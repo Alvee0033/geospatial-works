@@ -1,0 +1,15 @@
+.vercel
+node_modules
+**/node_modules
+apps/web/node_modules
+.next
+**/.next
+apps/web/.next
+.env*
+landing page images*
+landing page images/*
+"landing page images "
+"landing page images "/*
+extract.py
+*.tsbuildinfo
+*.node
