@@ -1,0 +1,780 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { AdminLayout } from '@/components/layout/AdminLayout';
+import { ApiClient } from '@/lib/api';
+import {
+  Briefcase,
+  ArrowLeft,
+  Save,
+  Calendar,
+  Building,
+  DollarSign,
+  Percent,
+  Users,
+  Plus,
+  Trash2,
+  Check,
+  AlertCircle,
+  HelpCircle,
+} from 'lucide-react';
+
+export default function NewProjectPage() {
+  const router = useRouter();
+  const [users, setUsers] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Form Fields
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [client, setClient] = useState('');
+  const [clientType, setClientType] = useState('government');
+  const [assignmentType, setAssignmentType] = useState('direct_consultancy');
+  const [status, setStatus] = useState('ongoing');
+  const [taxStatus, setTaxStatus] = useState<'included' | 'excluded' | 'not_applicable'>('included');
+  const [taxRate, setTaxRate] = useState<number>(0.10); // 10% VAT
+  const [incomeTaxRate, setIncomeTaxRate] = useState<number>(0.05); // 5% Income Tax (IT)
+  const [officeBenefitRate, setOfficeBenefitRate] = useState<number>(0.30); // 30%
+
+  const [grossProjectValue, setGrossProjectValue] = useState<number>(100000);
+  const [advanceReceived, setAdvanceReceived] = useState<number>(25000);
+  const [amountReceived, setAmountReceived] = useState<number>(25000);
+
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Category Budgets
+  const [budgetEquipment, setBudgetEquipment] = useState<number>(15000);
+  const [budgetTransportation, setBudgetTransportation] = useState<number>(15000);
+  const [budgetFood, setBudgetFood] = useState<number>(10000);
+  const [budgetAccommodation, setBudgetAccommodation] = useState<number>(10000);
+  const [budgetOfficeCost, setBudgetOfficeCost] = useState<number>(10000);
+  const [customCategories, setCustomCategories] = useState<{ name: string; amount: number }[]>([]);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatAmount, setNewCatAmount] = useState<number>(5000);
+
+  // Team Selection
+  const [selectedTeamMemberIds, setSelectedTeamMemberIds] = useState<string[]>([]);
+  const [teamSearch, setTeamSearch] = useState('');
+
+  useEffect(() => {
+    // Initial dates
+    const today = new Date();
+    setStartDate(today.toISOString().split('T')[0]);
+    const sixMonthsLater = new Date(today);
+    sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+    setEndDate(sixMonthsLater.toISOString().split('T')[0]);
+
+    // Fetch live users & clients
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [uData, cData] = await Promise.all([
+          ApiClient.getUsers().catch(() => []),
+          ApiClient.getClients().catch(() => []),
+        ]);
+        setUsers(uData || []);
+        setClients(cData || []);
+      } catch (e: any) {
+        console.error('Error loading initial data:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Calculated values
+  const totalTaxDeductionRate =
+    taxStatus === 'included'
+      ? taxRate + incomeTaxRate
+      : 0;
+
+  const expectedNetRevenue =
+    taxStatus === 'included'
+      ? grossProjectValue * Math.max(0, 1 - totalTaxDeductionRate)
+      : grossProjectValue;
+
+  const directExpensesBudget =
+    budgetEquipment +
+    budgetTransportation +
+    budgetFood +
+    budgetAccommodation +
+    budgetOfficeCost +
+    customCategories.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
+
+  const calculatedOfficeBenefit = directExpensesBudget * officeBenefitRate;
+  const calculatedTotalBudget = directExpensesBudget + calculatedOfficeBenefit;
+  const amountReceivable = Math.max(0, grossProjectValue - amountReceived);
+
+  const handleAddCustomCategory = () => {
+    if (!newCatName.trim()) return;
+    setCustomCategories([
+      ...customCategories,
+      { name: newCatName.trim().toLowerCase(), amount: Number(newCatAmount) || 0 },
+    ]);
+    setNewCatName('');
+    setNewCatAmount(5000);
+  };
+
+  const handleRemoveCustomCategory = (index: number) => {
+    setCustomCategories(customCategories.filter((_, i) => i !== index));
+  };
+
+  const toggleTeamMember = (id: string) => {
+    if (selectedTeamMemberIds.includes(id)) {
+      setSelectedTeamMemberIds(selectedTeamMemberIds.filter((m) => m !== id));
+    } else {
+      setSelectedTeamMemberIds([...selectedTeamMemberIds, id]);
+    }
+  };
+
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!name.trim()) {
+      setError('Project title is required.');
+      return;
+    }
+    if (!client.trim()) {
+      setError('Client name is required.');
+      return;
+    }
+    if (selectedTeamMemberIds.length === 0) {
+      setError('Please select at least one assigned team member.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const categoryBudgets: Record<string, number> = {
+        equipment: budgetEquipment,
+        transportation: budgetTransportation,
+        food: budgetFood,
+        accommodation: budgetAccommodation,
+        officecost: budgetOfficeCost,
+        officebenefit: calculatedOfficeBenefit,
+        _meta_income_tax_rate: incomeTaxRate,
+      };
+
+      customCategories.forEach((c) => {
+        categoryBudgets[c.name] = c.amount;
+      });
+
+      const payload = {
+        name: name.trim(),
+        description: description.trim(),
+        client: client.trim(),
+        client_name: client.trim(),
+        client_type: clientType,
+        assignment_type: assignmentType,
+        gross_project_value: grossProjectValue,
+        tax_status: taxStatus,
+        tax_rate: taxRate,
+        income_tax_rate: incomeTaxRate,
+        expected_net_revenue: expectedNetRevenue,
+        advance_received: advanceReceived,
+        amount_received: amountReceived,
+        amount_receivable: amountReceivable,
+        budget: calculatedTotalBudget,
+        category_budgets: categoryBudgets,
+        estimated_remaining_cost: calculatedTotalBudget * 0.4,
+        office_benefit_rate: officeBenefitRate,
+        start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
+        end_date: endDate ? new Date(endDate).toISOString() : new Date().toISOString(),
+        team_member_ids: selectedTeamMemberIds,
+        status: status,
+      };
+
+      const res = await ApiClient.createProject(payload);
+      const createdId = res?.id || res?.data?.id;
+      if (createdId) {
+        router.push(`/projects/${createdId}`);
+      } else {
+        router.push('/projects');
+      }
+    } catch (err: any) {
+      console.error('Failed to create project:', err);
+      setError(err?.message || 'Failed to create project. Please verify backend connection.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const filteredUsers = users.filter((u) => {
+    if (!teamSearch.trim()) return true;
+    const q = teamSearch.toLowerCase();
+    return (
+      (u.name && u.name.toLowerCase().includes(q)) ||
+      (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.department && u.department.toLowerCase().includes(q))
+    );
+  });
+
+  return (
+    <AdminLayout
+      title="Create New Project"
+      subtitle="Set up project contract, tax rate, direct cost lines, and staff roster"
+    >
+      <div className="p-8 max-w-7xl mx-auto space-y-8">
+        {/* Header Breadcrumbs */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.back()}
+              className="p-2 bg-white border border-[#EAEBEF] rounded-xl hover:bg-slate-50 transition-colors text-slate-600 shadow-sm"
+              title="Go Back"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wider">
+                  Projects & Budget
+                </span>
+                <span className="text-slate-300">/</span>
+                <span className="text-xs font-semibold text-slate-500">New Project</span>
+              </div>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Create New Project</h1>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.push('/projects')}
+              className="px-5 py-2.5 rounded-full border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="new-project-form"
+              disabled={saving}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#0D1117] text-white text-xs font-bold shadow-md hover:bg-slate-800 transition-all disabled:opacity-50"
+            >
+              <Save size={16} />
+              {saving ? 'Creating Project...' : 'Save & Launch Project'}
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-3 text-rose-700 text-sm">
+            <AlertCircle size={18} className="shrink-0 text-rose-500" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form id="new-project-form" onSubmit={handleCreateProject} className="space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left 2 Cols: Main Details & Budgets */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Basic Information Card */}
+              <div className="bg-white border border-[#EAEBEF] rounded-3xl p-6 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                    <Briefcase size={18} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900">Project Overview</h2>
+                    <p className="text-xs text-slate-400">Core parameters, client entity, and assignment scope</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Project Title *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g., Meghna River Hydrographic Baseline Survey 2026"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Scope & Objectives Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Specify project deliverables, key milestones, geographic bounds, and special client stipulations..."
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Client Entity *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={client}
+                        onChange={(e) => setClient(e.target.value)}
+                        placeholder="e.g., Bangladesh Water Development Board"
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Client Category
+                      </label>
+                      <select
+                        value={clientType}
+                        onChange={(e) => setClientType(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="government">Government Agency</option>
+                        <option value="private">Private Enterprise</option>
+                        <option value="ngo">NGO / International Development</option>
+                        <option value="autonomous">Autonomous Body</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Assignment Mechanism
+                      </label>
+                      <select
+                        value={assignmentType}
+                        onChange={(e) => setAssignmentType(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="direct_consultancy">Direct Consultancy</option>
+                        <option value="sub_consultancy">Sub-Consultancy Joint Venture</option>
+                        <option value="government">Government Tender / RFP</option>
+                        <option value="private">Private Contract</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Lifecycle Status
+                      </label>
+                      <select
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="ongoing">Ongoing (Active Operations)</option>
+                        <option value="completed">Completed (Awaiting Final Audit)</option>
+                        <option value="closed">Closed & Archived</option>
+                        <option value="on_hold">On Hold</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <Calendar size={13} className="text-slate-400" /> Start Date
+                      </label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <Calendar size={13} className="text-slate-400" /> Target Completion Date
+                      </label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Category Budgets Card */}
+              <div className="bg-white border border-[#EAEBEF] rounded-3xl p-6 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                      <DollarSign size={18} />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-slate-900">Expense Category Budgets</h2>
+                      <p className="text-xs text-slate-400">Allocate baseline cost caps for direct field operational lines</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Direct Allocations</span>
+                    <p className="text-base font-black text-slate-900">৳{directExpensesBudget.toLocaleString()}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Equipment & Instruments (৳)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={budgetEquipment}
+                      onChange={(e) => setBudgetEquipment(Number(e.target.value) || 0)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Transportation & Fuel (৳)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={budgetTransportation}
+                      onChange={(e) => setBudgetTransportation(Number(e.target.value) || 0)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Food & Subsistence (৳)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={budgetFood}
+                      onChange={(e) => setBudgetFood(Number(e.target.value) || 0)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Accommodation & Stays (৳)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={budgetAccommodation}
+                      onChange={(e) => setBudgetAccommodation(Number(e.target.value) || 0)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Direct Office & Field Admin Cost (৳)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={budgetOfficeCost}
+                      onChange={(e) => setBudgetOfficeCost(Number(e.target.value) || 0)}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Custom Categories List */}
+                {customCategories.length > 0 && (
+                  <div className="space-y-3 pt-2 border-t border-slate-100">
+                    <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Custom Category Budgets</h3>
+                    <div className="space-y-2">
+                      {customCategories.map((cat, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between px-4 py-2.5 bg-slate-50 rounded-2xl border border-slate-200 text-sm"
+                        >
+                          <span className="font-bold text-slate-800 capitalize">{cat.name}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono font-bold text-slate-900">৳{cat.amount.toLocaleString()}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveCustomCategory(idx)}
+                              className="text-slate-400 hover:text-rose-600 transition-colors"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add Custom Category Inline */}
+                <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3">
+                  <input
+                    type="text"
+                    placeholder="Custom category name (e.g., Drone License)"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-emerald-500"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Amount (৳)"
+                    value={newCatAmount}
+                    onChange={(e) => setNewCatAmount(Number(e.target.value) || 0)}
+                    className="w-32 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomCategory}
+                    className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+                  >
+                    <Plus size={14} /> Add Line
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Right 1 Col: Financial Summary & Team */}
+            <div className="space-y-8">
+              {/* Financial & Contract Calculations (Light Themed Card) */}
+              <div className="bg-white border border-[#EAEBEF] text-slate-900 rounded-3xl p-6 shadow-sm space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold border border-emerald-200/80">
+                      <Percent size={16} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-900 tracking-tight">Contract Financials</h2>
+                      <p className="text-[11px] text-slate-500">VAT, Income Tax (IT) & Project Economics</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    Live Calculation
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Gross Contract Value */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Gross Contract Value (৳)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={grossProjectValue}
+                      onChange={(e) => setGrossProjectValue(Number(e.target.value) || 0)}
+                      className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
+                    />
+                  </div>
+
+                  {/* IT-VAT Policy Mode */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      IT & VAT Policy
+                    </label>
+                    <select
+                      value={taxStatus}
+                      onChange={(e) => setTaxStatus(e.target.value as any)}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
+                    >
+                      <option value="included">Taxes Included in Contract Value</option>
+                      <option value="excluded">Taxes Excluded (Charged Separately)</option>
+                      <option value="not_applicable">Not Applicable / Tax Exempt</option>
+                    </select>
+                  </div>
+
+                  {/* Separate VAT & Income Tax Fields */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        VAT Rate (%)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="1"
+                          value={taxRate}
+                          onChange={(e) => setTaxRate(Number(e.target.value) || 0)}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
+                        />
+                        <span className="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">
+                          {Math.round(taxRate * 100)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Income Tax / IT Rate (%)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="1"
+                          value={incomeTaxRate}
+                          onChange={(e) => setIncomeTaxRate(Number(e.target.value) || 0)}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
+                        />
+                        <span className="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">
+                          {Math.round(incomeTaxRate * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Advance Received & Office Benefit */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Advance Received (৳)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={advanceReceived}
+                        onChange={(e) => setAdvanceReceived(Number(e.target.value) || 0)}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Office Benefit (%)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="1"
+                          value={officeBenefitRate}
+                          onChange={(e) => setOfficeBenefitRate(Number(e.target.value) || 0)}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
+                        />
+                        <span className="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">
+                          {Math.round(officeBenefitRate * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Summary Breakdown Box in Light Palette */}
+                  <div className="p-4 bg-emerald-50/50 border border-emerald-200/70 rounded-2xl space-y-2 text-xs">
+                    <div className="flex justify-between text-slate-600">
+                      <span>VAT Deduction ({Math.round(taxRate * 100)}%):</span>
+                      <span className="font-mono font-semibold text-slate-800">
+                        ৳{Math.round(taxStatus === 'included' ? grossProjectValue * taxRate : 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>IT Deduction ({Math.round(incomeTaxRate * 100)}%):</span>
+                      <span className="font-mono font-semibold text-slate-800">
+                        ৳{Math.round(taxStatus === 'included' ? grossProjectValue * incomeTaxRate : 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-slate-600 pt-1 border-t border-emerald-200/50">
+                      <span className="font-bold text-slate-800">Expected Net Revenue:</span>
+                      <span className="font-mono font-bold text-emerald-800">৳{Math.round(expectedNetRevenue).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Direct Operational Budget:</span>
+                      <span className="font-mono font-semibold text-slate-800">৳{directExpensesBudget.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Office Benefit ({Math.round(officeBenefitRate * 100)}%):</span>
+                      <span className="font-mono font-bold text-emerald-700">+৳{Math.round(calculatedOfficeBenefit).toLocaleString()}</span>
+                    </div>
+                    <div className="border-t border-emerald-300/80 pt-2 flex justify-between text-sm font-bold">
+                      <span className="text-emerald-950 font-extrabold">Total Agreed Budget:</span>
+                      <span className="font-mono text-emerald-800 font-extrabold">৳{Math.round(calculatedTotalBudget).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Team Assignment Card */}
+              <div className="bg-white border border-[#EAEBEF] rounded-3xl p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center font-bold">
+                      <Users size={16} />
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-slate-900">Project Team</h2>
+                      <p className="text-[11px] text-slate-400">{selectedTeamMemberIds.length} members assigned</p>
+                    </div>
+                  </div>
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Filter employees..."
+                  value={teamSearch}
+                  onChange={(e) => setTeamSearch(e.target.value)}
+                  className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-violet-500"
+                />
+
+                <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1">
+                  {filteredUsers.map((user) => {
+                    const isSelected = selectedTeamMemberIds.includes(user.id);
+                    return (
+                      <div
+                        key={user.id}
+                        onClick={() => toggleTeamMember(user.id)}
+                        className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all border ${
+                          isSelected
+                            ? 'bg-violet-50/80 border-violet-200 text-violet-900'
+                            : 'bg-white border-slate-100 hover:bg-slate-50 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${
+                              isSelected ? 'bg-violet-600 text-white' : 'bg-slate-200 text-slate-600'
+                            }`}
+                          >
+                            {(user.name || 'U').substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold truncate">{user.name}</p>
+                            <p className="text-[10px] text-slate-400 truncate">{user.department || user.email}</p>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`w-5 h-5 rounded-lg flex items-center justify-center border transition-colors ${
+                            isSelected
+                              ? 'bg-violet-600 border-violet-600 text-white'
+                              : 'border-slate-300 bg-white'
+                          }`}
+                        >
+                          {isSelected && <Check size={12} strokeWidth={3} />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </AdminLayout>
+  );
+}

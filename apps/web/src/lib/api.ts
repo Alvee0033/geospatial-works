@@ -1,0 +1,548 @@
+const DEFAULT_BACKEND_URL = 'http://xqeqm4yyv7fqxryrkm6phk55.163.227.239.97.sslip.io/api/v1';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_BACKEND_URL;
+const API_BASE = typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_API_URL || '/api') : BACKEND_URL;
+
+let activeAuthPromise: Promise<string | null> | null = null;
+let serverSideToken: string | null = null;
+
+export class ApiClient {
+  public static clearCachePattern(pattern?: string) {
+    // No-op for backwards compatibility
+  }
+
+
+  public static getToken(): string | null {
+    if (typeof window === 'undefined') return serverSideToken;
+    const token = localStorage.getItem('gw_auth_token');
+    if (token && token.startsWith('mock_')) {
+      localStorage.removeItem('gw_auth_token');
+      return null;
+    }
+    return token;
+  }
+
+  public static setToken(token: string) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gw_auth_token', token);
+    } else {
+      serverSideToken = token;
+    }
+  }
+
+  public static clearToken() {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('gw_auth_token');
+      localStorage.removeItem('gw_user');
+    } else {
+      serverSideToken = null;
+    }
+  }
+
+  public static async authenticateAdmin(): Promise<string | null> {
+    if (activeAuthPromise) {
+      return activeAuthPromise;
+    }
+
+    activeAuthPromise = (async () => {
+      try {
+        const url = typeof window !== 'undefined' ? '/api/auth/login' : `${BACKEND_URL}/auth/login`;
+        const loginRes = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'admin@gw.com', password: 'password123' }),
+        });
+
+        if (loginRes.ok) {
+          const authData = await loginRes.json();
+          const token = authData.accessToken || authData.token;
+          if (token) {
+            ApiClient.setToken(token);
+            if (typeof window !== 'undefined' && authData.user) {
+              localStorage.setItem('gw_user', JSON.stringify(authData.user));
+            }
+            return token;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to auto-authenticate admin:', err);
+      } finally {
+        activeAuthPromise = null;
+      }
+      return null;
+    })();
+
+    return activeAuthPromise;
+  }
+
+  public static async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+    let token = this.getToken();
+
+    if (!token) {
+      token = await this.authenticateAdmin();
+    }
+
+    const url = `${API_BASE}${cleanEndpoint}`;
+
+    const executeFetch = async (authToken: string | null) => {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...(options.headers as Record<string, string> || {}),
+      };
+
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
+      return fetch(url, {
+        ...options,
+        headers,
+      });
+    };
+
+    let res = await executeFetch(token);
+
+    // If 401 Unauthorized, clear cached token, re-authenticate immediately, and retry once
+    if (res.status === 401) {
+      ApiClient.clearToken();
+      token = await this.authenticateAdmin();
+      if (token) {
+        res = await executeFetch(token);
+      }
+    }
+
+    if (!res.ok) {
+      const errorBody = await res.json().catch(() => ({}));
+      throw new Error(errorBody.message || `API Error: ${res.statusText} (${res.status})`);
+    }
+
+    const json = await res.json();
+    return (json.data !== undefined ? json.data : json) as T;
+  }
+
+  // Auth
+  static async login(credentials: { email: string; password: string }) {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+    if (!res.ok) {
+      const errorBody = await res.json().catch(() => ({}));
+      throw new Error(errorBody.message || 'Invalid credentials');
+    }
+    const data = await res.json();
+    const token = data.accessToken || data.token;
+    if (token) {
+      this.setToken(token);
+      if (data.user) {
+        localStorage.setItem('gw_user', JSON.stringify(data.user));
+      }
+    }
+    return data;
+  }
+
+  // Projects API
+  static async getProjects() {
+    return this.request<any[]>('/projects');
+  }
+
+  static async getProjectById(id: string) {
+    return this.request<any>(`/projects/${id}`);
+  }
+
+  static async createProject(data: any) {
+    return this.request<any>('/projects', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateProject(id: string, data: any) {
+    return this.request<any>(`/projects/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteProject(id: string) {
+    return this.request<any>(`/projects/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  static async addProjectRevenue(id: string, data: { amount: number; date?: string; note?: string; milestone?: string }) {
+    return this.request<any>(`/projects/${id}/revenue`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async closeProject(id: string, data: { closingSummary?: string }) {
+    return this.request<any>(`/projects/${id}/close`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async reopenProject(id: string) {
+    return this.request<any>(`/projects/${id}/reopen`, {
+      method: 'POST',
+    });
+  }
+
+  // Expenses API
+  static async getExpenses(params: Record<string, string> = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request<any[]>(`/expenses${qs ? `?${qs}` : ''}`);
+  }
+
+  static async getExpenseById(id: string) {
+    return this.request<any>(`/expenses/${id}`);
+  }
+
+  static async createExpense(data: any) {
+    return this.request<any>('/expenses', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateExpense(id: string, data: any) {
+    return this.request<any>(`/expenses/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteExpense(id: string) {
+    return this.request<any>(`/expenses/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  static async approveExpense(id: string, note: string = 'Approved by administrator') {
+    return this.request<any>(`/expenses/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+  }
+
+  static async rejectExpense(id: string, reason: string = 'Rejected by administrator') {
+    return this.request<any>(`/expenses/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  static async addExpenseComment(id: string, comment: string) {
+    return this.request<any>(`/expenses/${id}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
+    });
+  }
+
+  static async reviewExpenseJustification(id: string, data: { justificationStatus: 'approved' | 'rejected'; justificationReviewComment?: string }) {
+    return this.request<any>(`/expenses/${id}/justification/review`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Attendance & GPS API
+  static async getAttendance(params: Record<string, string> = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request<any[]>(`/attendance${qs ? `?${qs}` : ''}`);
+  }
+
+  static async getAttendanceOverview(date?: string) {
+    const qs = date ? `?date=${encodeURIComponent(date)}` : '';
+    return this.request<any>(`/attendance/overview${qs}`);
+  }
+
+  static async getAttendanceSummary(userId?: string) {
+    const qs = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+    return this.request<any>(`/attendance/summary${qs}`);
+  }
+
+  static async getAttendanceSettings() {
+    return this.request<any>('/attendance/settings');
+  }
+
+  static async updateAttendanceSettings(settings: any) {
+    return this.request<any>('/attendance/settings', {
+      method: 'POST',
+      body: JSON.stringify(settings),
+    });
+  }
+
+  static async recordCheckIn(data: {
+    userId?: string;
+    latitude: number;
+    longitude: number;
+    addressText?: string;
+    sessionType?: 'morning' | 'afternoon';
+    notes?: string;
+    deviceInfo?: string;
+    date?: string;
+  }) {
+    return this.request<any>('/attendance/check-in', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Users & Staff API
+  static async getUsers(query?: string) {
+    const qs = query ? `?q=${encodeURIComponent(query)}` : '';
+    return this.request<any[]>(`/users${qs}`);
+  }
+
+  static async getUserById(id: string) {
+    return this.request<any>(`/users/${id}`);
+  }
+
+  static async createUser(data: any) {
+    return this.request<any>('/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateUser(id: string, data: any) {
+    return this.request<any>(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateUserRole(id: string, role: string) {
+    return this.request<any>(`/users/${id}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    });
+  }
+
+  static async updateUserStatus(id: string, isActive: boolean) {
+    return this.request<any>(`/users/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive }),
+    });
+  }
+
+  static async deleteUser(id: string) {
+    return this.request<any>(`/users/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Salary & Payroll API
+  static async getEmployeeSalary(userId: string) {
+    return this.request<any>(`/salary/employee/${userId}`);
+  }
+
+  static async setEmployeeSalary(userId: string, data: { baseSalary: number; allowances?: number; deductions?: number }) {
+    return this.request<any>(`/salary/employee/${userId}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async calculateSalary(userId: string, month: number, year: number) {
+    return this.request<any>(`/salary/calculate/${userId}?month=${month}&year=${year}`);
+  }
+
+  static async saveSalaryCalculation(data: { userId: string; month: number; year: number; notes?: string }) {
+    return this.request<any>('/salary/save-calculation', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async getSalaryReport(month: number, year: number) {
+    return this.request<any>(`/salary/report?month=${month}&year=${year}`);
+  }
+
+  // Leaves & Holidays
+  static async getLeaves(params: Record<string, string> = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return this.request<any[]>(`/salary/leaves${qs ? `?${qs}` : ''}`);
+  }
+
+  static async createLeave(data: { userId: string; leaveType: string; startDate: string; endDate: string; reason?: string }) {
+    return this.request<any>('/salary/leaves', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteLeave(id: string) {
+    return this.request<any>(`/salary/leaves/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  static async approveLeave(id: string) {
+    return this.request<any>(`/salary/leaves/${id}/approve`, {
+      method: 'POST',
+    }).catch(() => {
+      return this.request<any>(`/salary/leaves/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ isApproved: true, status: 'approved' }),
+      });
+    });
+  }
+
+  static async rejectLeave(id: string, reason?: string) {
+    return this.request<any>(`/salary/leaves/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }).catch(() => {
+      return this.request<any>(`/salary/leaves/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ isApproved: false, status: 'rejected', rejectionReason: reason }),
+      });
+    });
+  }
+
+  static async getHolidays(year?: number) {
+    const qs = year ? `?year=${year}` : '';
+    return this.request<any[]>(`/salary/holidays${qs}`);
+  }
+
+  static async createHoliday(data: { name: string; date: string; isRecurring?: boolean }) {
+    return this.request<any>('/salary/holidays', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteHoliday(id: string) {
+    return this.request<any>(`/salary/holidays/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Metadata & Tools
+  static async getCategories() {
+    return this.request<any[]>('/categories');
+  }
+
+  static async getAuditLogs() {
+    return this.request<any[]>('/audit-logs');
+  }
+
+  static async getHistoricalEstimator() {
+    return this.request<any>('/admin/cost-estimator/historical');
+  }
+
+  static async getClients() {
+    return this.request<any[]>('/clients');
+  }
+
+  // Tasks API
+  static async getTasks(projectId?: string) {
+    const qs = projectId ? `?projectId=${encodeURIComponent(projectId)}` : '';
+    return this.request<any[]>(`/tasks${qs}`);
+  }
+
+  static async createTask(data: any) {
+    return this.request<any>('/tasks', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateTask(id: string, data: any) {
+    return this.request<any>(`/tasks/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteTask(id: string) {
+    return this.request<any>(`/tasks/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Categories API
+  static async createCategory(data: any) {
+    return this.request<any>('/categories', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateCategory(id: string, data: any) {
+    return this.request<any>(`/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteCategory(id: string) {
+    return this.request<any>(`/categories/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Chat API
+  static async getChatChannels() {
+    return this.request<any[]>('/chat/channels');
+  }
+
+  static async getChannelMessages(channelId: string, limit: number = 50) {
+    return this.request<any[]>(`/chat/channels/${channelId}/messages?limit=${limit}`);
+  }
+
+  static async sendChatMessage(channelId: string, data: { content?: string; imageUrl?: string; projectId?: string }) {
+    return this.request<any>(`/chat/channels/${channelId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async createProjectChannel(projectId: string) {
+    return this.request<any>('/chat/channels/project', {
+      method: 'POST',
+      body: JSON.stringify({ projectId }),
+    });
+  }
+
+  static async createDirectChannel(recipientId: string) {
+    return this.request<any>('/chat/channels/direct', {
+      method: 'POST',
+      body: JSON.stringify({ recipientId }),
+    });
+  }
+
+  // Upload API
+  static async uploadFile(fileDataUri: string, category: 'receipts' | 'avatars' | 'projects' = 'projects') {
+    return this.request<{ url: string; filename?: string; sizeBytes?: number }>('/uploads', {
+      method: 'POST',
+      body: JSON.stringify({
+        file: fileDataUri,
+        category,
+      }),
+    });
+  }
+
+  // Notifications API
+  static async getNotifications() {
+    return this.request<any[]>('/notifications');
+  }
+
+  static async markNotificationRead(id: string) {
+    return this.request<any>(`/notifications/${id}/read`, {
+      method: 'PATCH',
+    });
+  }
+
+  static async markAllNotificationsRead(ids: string[]) {
+    return Promise.allSettled(ids.map((id) => this.markNotificationRead(id)));
+  }
+}
+
