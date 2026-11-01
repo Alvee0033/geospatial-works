@@ -578,10 +578,11 @@ export default function ApprovalsQueuePage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {pendingLeaves.map((leave) => {
-                      const matchedUser = users.find(
-                        (u) => u.id === (leave.userId || leave.user_id) || u.name === (leave.employeeName || leave.employee_name)
+                      const leaveUserId = leave.userId || leave.user_id;
+                      const matchedUser = users.find((user) => String(user.id || user._id) === String(leaveUserId)) || users.find(
+                        (user) => user.name === (leave.employeeName || leave.employee_name || leave.userName || leave.user_name)
                       );
-                      const name = leave.employeeName || leave.employee_name || 'Staff';
+                      const name = leave.employeeName || leave.employee_name || leave.userName || leave.user_name || matchedUser?.name || matchedUser?.fullName || matchedUser?.full_name || 'Staff';
                       const avatar = leave.avatarUrl || leave.avatar_url || matchedUser?.avatarUrl || matchedUser?.avatar_url;
 
                       return (
@@ -609,7 +610,7 @@ export default function ApprovalsQueuePage() {
                               />
                               <div>
                                 <p className="font-bold text-slate-900">{name}</p>
-                                <p className="text-[10px] text-slate-400">{leave.department || 'Employee'}</p>
+                          <p className="text-[10px] text-slate-400">{leave.department || matchedUser?.department || 'Employee'}</p>
                               </div>
                             </div>
                           </td>
@@ -812,8 +813,11 @@ export default function ApprovalsQueuePage() {
 
         {selectedLeave && (() => {
           const leave = selectedLeave;
-          const matchedUser = users.find((user) => user.id === (leave.userId || leave.user_id) || user.name === (leave.employeeName || leave.employee_name));
-          const name = leave.employeeName || leave.employee_name || matchedUser?.name || matchedUser?.fullName || 'Staff';
+          const leaveUserId = leave.userId || leave.user_id;
+          const matchedUser = users.find((user) => String(user.id || user._id) === String(leaveUserId)) || users.find(
+            (user) => user.name === (leave.employeeName || leave.employee_name || leave.userName || leave.user_name)
+          );
+          const name = leave.employeeName || leave.employee_name || leave.userName || leave.user_name || matchedUser?.name || matchedUser?.fullName || matchedUser?.full_name || 'Staff';
           const status = String(leave.status || (leave.isApproved || leave.is_approved ? 'approved' : 'pending')).toLowerCase();
           return <LeaveDetailsDrawer
             leave={leave}
