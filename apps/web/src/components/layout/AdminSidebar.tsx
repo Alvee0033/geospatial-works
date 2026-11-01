@@ -17,12 +17,10 @@ const workspaceItems: NavItem[] = [
   { href: '/projects', label: 'Projects', icon: FolderKanban },
   { href: '/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/reports', label: 'Reports', icon: FileBarChart },
-  { href: '/payroll', label: 'Cash flow', icon: Banknote },
 ];
 
 const peopleItems: NavItem[] = [
   { href: '/employees', label: 'People', icon: Users },
-  { href: '/attendance', label: 'Attendance', icon: UserCheck },
   { href: '/leaves', label: 'Leave', icon: CalendarDays },
   { href: '/chat', label: 'Messages', icon: MessageSquare },
 ];
@@ -31,6 +29,8 @@ export const AdminSidebar: React.FC = () => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [transactionsOpen, setTransactionsOpen] = useState(true);
+  const [attendanceOpen, setAttendanceOpen] = useState(pathname.startsWith('/attendance'));
+  const [payrollOpen, setPayrollOpen] = useState(pathname.startsWith('/payroll'));
 
   useEffect(() => {
     try { setCollapsed(localStorage.getItem('gw_sidebar_collapsed') === 'true'); } catch {}
@@ -46,6 +46,8 @@ export const AdminSidebar: React.FC = () => {
 
   const isCurrent = (href: string) => href === '/dashboard' ? pathname === href : pathname.startsWith(href);
   const transactionsActive = isCurrent('/expenses') || isCurrent('/approvals');
+  const attendanceActive = isCurrent('/attendance');
+  const payrollActive = isCurrent('/payroll');
 
   const navigationLink = (item: NavItem) => {
     const Icon = item.icon;
@@ -96,7 +98,16 @@ export const AdminSidebar: React.FC = () => {
             )}
           </section>
 
-          {section('Team', peopleItems)}
+          <section className="space-y-1">
+            {!collapsed && <p className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.13em] text-slate-400">Finance</p>}
+            {collapsed ? <Link href="/payroll" prefetch title="Payroll" className={`flex h-9 items-center justify-center rounded-lg transition-colors ${payrollActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}><Banknote size={17}/></Link> : <div className="space-y-0.5"><button type="button" onClick={() => setPayrollOpen((value) => !value)} className={`flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-[13px] font-medium transition-colors ${payrollActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`} aria-expanded={payrollOpen}><span className="flex items-center gap-3"><Banknote size={17}/><span>Payroll</span></span><ChevronDown size={15} className={`text-slate-400 transition-transform ${payrollOpen ? 'rotate-180' : ''}`}/></button>{payrollOpen && <div className="ml-[18px] space-y-0.5 border-l border-slate-200 pl-3">{[{href:'/payroll',label:'Payroll overview'},{href:'/settings?tab=payroll',label:'Salary settings'},{href:'/settings?tab=schedule',label:'Holidays & schedule'}].map((item)=><Link key={item.href} href={item.href} prefetch className={`flex h-7 items-center rounded-md px-2 text-xs transition-colors ${pathname === item.href.split('?')[0] ? 'text-indigo-700 hover:bg-indigo-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{item.label}</Link>)}</div>}</div>}
+          </section>
+
+          <section className="space-y-1">
+            {!collapsed && <p className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.13em] text-slate-400">Team</p>}
+            {collapsed ? <Link href="/attendance" prefetch title="Attendance" className={`flex h-9 items-center justify-center rounded-lg transition-colors ${attendanceActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}><UserCheck size={17}/></Link> : <div className="space-y-0.5"><button type="button" onClick={() => setAttendanceOpen((value) => !value)} className={`flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-[13px] font-medium transition-colors ${attendanceActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`} aria-expanded={attendanceOpen}><span className="flex items-center gap-3"><UserCheck size={17}/><span>Attendance</span></span><ChevronDown size={15} className={`text-slate-400 transition-transform ${attendanceOpen ? 'rotate-180' : ''}`}/></button>{attendanceOpen && <div className="ml-[18px] space-y-0.5 border-l border-slate-200 pl-3">{[{href:'/attendance',label:'Team attendance'},{href:'/attendance/map',label:'Live locations'},{href:'/settings?tab=schedule',label:'Shift settings'}].map((item)=><Link key={item.href} href={item.href} prefetch className={`flex h-7 items-center rounded-md px-2 text-xs transition-colors ${pathname === item.href.split('?')[0] ? 'text-indigo-700 hover:bg-indigo-50' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{item.label}</Link>)}</div>}</div>}
+            {!collapsed && <nav className="space-y-0.5">{peopleItems.map(navigationLink)}</nav>}
+          </section>
           <section className="border-t border-slate-100 pt-3"><nav className="space-y-0.5" aria-label="Administration">{navigationLink({ href: '/clients', label: 'Clients', icon: BriefcaseBusiness })}{navigationLink({ href: '/settings', label: 'Settings', icon: Settings })}</nav></section>
         </div>
       </div>

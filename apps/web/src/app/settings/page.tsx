@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { 
   Clock, DollarSign, Percent, FolderTree, Database, ShieldCheck,
@@ -51,7 +52,8 @@ interface CategoryItem {
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-export default function SettingsPage() {
+function SettingsPageContent() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'schedule' | 'payroll' | 'benefits' | 'categories' | 'storage' | 'audit'>('schedule');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -115,6 +117,13 @@ export default function SettingsPage() {
     { id: '3', action: 'Category Modified', user: 'Admin', timestamp: 'Yesterday, 05:22 PM', details: 'Added Equipment Lease limit' },
     { id: '4', action: 'Document Retention Changed', user: 'System', timestamp: 'Oct 19, 09:00 AM', details: 'Retention set to 90 days' },
   ]);
+
+  useEffect(() => {
+    const requestedTab = searchParams.get('tab');
+    if (['schedule', 'payroll', 'benefits', 'categories', 'storage', 'audit'].includes(requestedTab || '')) {
+      setActiveTab(requestedTab as typeof activeTab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     loadAllSettings();
@@ -1145,4 +1154,8 @@ export default function SettingsPage() {
       )}
     </AdminLayout>
   );
+}
+
+export default function SettingsPage() {
+  return <Suspense fallback={<div className="p-6 text-sm text-slate-500">Loading settings…</div>}><SettingsPageContent /></Suspense>;
 }

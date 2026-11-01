@@ -30,11 +30,17 @@ export default function ApprovalsQueuePage() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [leaves, setLeaves] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Expense Filter State
   const [filterType, setFilterType] = useState<'all' | 'highAmount' | 'noReceipt' | 'hasReceipt'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [projectFilter, setProjectFilter] = useState('all');
+  const [minAmount, setMinAmount] = useState('');
+  const [maxAmount, setMaxAmount] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [selectedExpenseIds, setSelectedExpenseIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -48,14 +54,16 @@ export default function ApprovalsQueuePage() {
   const fetchApprovalsData = async () => {
     setLoading(true);
     try {
-      const [allExp, allLeaves, allUsers] = await Promise.all([
+      const [allExp, allLeaves, allUsers, allProjects] = await Promise.all([
         ApiClient.getExpenses(),
         ApiClient.getLeaves().catch(() => []),
         ApiClient.getUsers().catch(() => []),
+        ApiClient.getProjects().catch(() => []),
       ]);
       setExpenses(allExp || []);
       setLeaves(allLeaves || []);
       setUsers(allUsers || []);
+      setProjects(allProjects || []);
     } catch (e) {
       console.error('Error fetching approvals queue:', e);
     } finally {
@@ -73,18 +81,24 @@ export default function ApprovalsQueuePage() {
 
   const filteredExpenses = pendingExpenses.filter((e) => {
     const amount = Number(e.amount) || 0;
-    const hasReceipt = Boolean(e.receiptUrl || e.receipt_url);
+    const hasReceipt = Boolean(e.hasReceipt || e.receiptUrl || e.receipt_url || e.receiptPhotoUrl || e.receipt_photo_url);
+    const date = new Date(e.date || e.createdAt || e.created_at || 0);
 
     if (filterType === 'highAmount' && amount <= 5000) return false;
     if (filterType === 'noReceipt' && hasReceipt) return false;
     if (filterType === 'hasReceipt' && !hasReceipt) return false;
+    if (projectFilter !== 'all' && String(e.projectId || e.project_id || '') !== projectFilter) return false;
+    if (minAmount && amount < Number(minAmount)) return false;
+    if (maxAmount && amount > Number(maxAmount)) return false;
+    if (fromDate && date < new Date(`${fromDate}T00:00:00`)) return false;
+    if (toDate && date >= new Date(`${toDate}T23:59:59.999`)) return false;
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const name = (e.employeeName || e.employee_name || '').toLowerCase();
       const proj = (e.projectName || e.project_name || e.projectId || '').toLowerCase();
-      const cat = (e.category || '').toLowerCase();
-      const desc = (e.description || '').toLowerCase();
+      const cat = (e.categoryName || e.category_name || e.category || '').toLowerCase();
+      const desc = (e.description || e.note || '').toLowerCase();
       if (!name.includes(q) && !proj.includes(q) && !cat.includes(q) && !desc.includes(q)) {
         return false;
       }
@@ -234,7 +248,7 @@ export default function ApprovalsQueuePage() {
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Missing Receipts</p>
               <p className="text-2xl font-black text-rose-600 mt-1">
-                {pendingExpenses.filter((e) => !e.receiptUrl && !e.receipt_url).length}
+                {pendingExpenses.filter((e) => !(e.hasReceipt || e.receiptUrl || e.receipt_url || e.receiptPhotoUrl || e.receipt_photo_url)).length}
               </p>
             </div>
             <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
@@ -251,6 +265,7 @@ export default function ApprovalsQueuePage() {
               <Calendar size={20} />
             </div>
           </div>
+
         </div>
 
         {/* Section Tabs: Claims vs Leaves */}
@@ -350,6 +365,13 @@ export default function ApprovalsQueuePage() {
                   </button>
                 </div>
               )}
+              <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2 md:grid-cols-5">
+                <select aria-label="Filter approvals by project" value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700"><option value="all">All projects</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select>
+                <input aria-label="Minimum claim amount" type="number" min="0" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} placeholder="Min amount" className="h-9 rounded-lg border border-slate-200 px-2.5 text-xs" />
+                <input aria-label="Maximum claim amount" type="number" min="0" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} placeholder="Max amount" className="h-9 rounded-lg border border-slate-200 px-2.5 text-xs" />
+                <label className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-2 text-[10px] text-slate-500">From<input aria-label="Approval from date" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="min-w-0 flex-1 text-xs text-slate-700" /></label>
+                <label className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-2 text-[10px] text-slate-500">To<input aria-label="Approval to date" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="min-w-0 flex-1 text-xs text-slate-700" /></label>
+              </div>
             </div>
 
             {/* Claims Table */}
@@ -386,8 +408,8 @@ export default function ApprovalsQueuePage() {
                     <tbody className="divide-y divide-slate-100">
                       {filteredExpenses.map((exp) => {
                         const isSelected = selectedExpenseIds.includes(exp.id);
-                        const hasReceipt = Boolean(exp.receiptUrl || exp.receipt_url);
-                        const receiptUrl = exp.receiptUrl || exp.receipt_url;
+                        const hasReceipt = Boolean(exp.hasReceipt || exp.receiptUrl || exp.receipt_url || exp.receiptPhotoUrl || exp.receipt_photo_url);
+                        const receiptUrl = exp.receiptUrl || exp.receipt_url || exp.receiptPhotoUrl || exp.receipt_photo_url;
                         const matchedUser = users.find(
                           (u) => u.id === (exp.userId || exp.user_id) || u.name === (exp.employeeName || exp.employee_name)
                         );

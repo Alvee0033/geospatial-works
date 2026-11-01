@@ -34,6 +34,11 @@ export default function ExpensesPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [search, setSearch] = useState('');
+  const [projectFilter, setProjectFilter] = useState('all');
+  const [minAmount, setMinAmount] = useState('');
+  const [maxAmount, setMaxAmount] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [inspectExp, setInspectExp] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
@@ -223,7 +228,14 @@ export default function ExpensesPage() {
     const cat = (e.categoryName || e.category_name || '').toLowerCase();
     const q = search.toLowerCase();
     const matchesSearch = emp.includes(q) || proj.includes(q) || cat.includes(q);
-    return matchesStatus && matchesSearch;
+    const amount = Number(e.amount) || 0;
+    const date = new Date(e.date || e.createdAt || e.created_at || 0);
+    const matchesProject = projectFilter === 'all' || String(e.projectId || e.project_id || '') === projectFilter;
+    const matchesMin = !minAmount || amount >= Number(minAmount);
+    const matchesMax = !maxAmount || amount <= Number(maxAmount);
+    const matchesFrom = !fromDate || date >= new Date(`${fromDate}T00:00:00`);
+    const matchesTo = !toDate || date < new Date(`${toDate}T23:59:59.999`);
+    return matchesStatus && matchesSearch && matchesProject && matchesMin && matchesMax && matchesFrom && matchesTo;
   });
 
   const totalGross = filtered.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
@@ -279,8 +291,8 @@ export default function ExpensesPage() {
       </div>
 
       {/* Control Bar: Filters, Search & Action Button */}
-      <div className="bg-white border border-[#EAEBEF] rounded-xl p-4 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
+      <div className="bg-white border border-[#EAEBEF] rounded-xl p-3 shadow-xs">
+        <div className="flex flex-col gap-2.5 mb-3">
           <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg text-xs font-semibold">
             {(['all', 'pending', 'approved', 'rejected'] as const).map((st) => (
               <button
@@ -295,20 +307,25 @@ export default function ExpensesPage() {
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-[minmax(220px,1fr)_minmax(150px,200px)_repeat(2,minmax(120px,150px))_repeat(2,minmax(135px,160px))_auto]">
+            <div className="relative col-span-2 md:col-span-1">
               <Search size={14} className="absolute left-3.5 top-2.5 text-slate-400" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Filter by staff, project, category..."
-                className="pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-slate-900 w-60"
+                className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
+            <select aria-label="Filter by project" value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} className="h-9 min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700"><option value="all">All projects</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select>
+            <input aria-label="Minimum amount" type="number" min="0" inputMode="decimal" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} placeholder="Min amount" className="h-9 min-w-0 rounded-lg border border-slate-200 px-2.5 text-xs outline-none focus:border-indigo-400" />
+            <input aria-label="Maximum amount" type="number" min="0" inputMode="decimal" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} placeholder="Max amount" className="h-9 min-w-0 rounded-lg border border-slate-200 px-2.5 text-xs outline-none focus:border-indigo-400" />
+            <label className="flex h-9 min-w-0 items-center gap-1.5 rounded-lg border border-slate-200 px-2 text-[10px] text-slate-500"><span>From</span><input aria-label="From date" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="min-w-0 flex-1 text-xs text-slate-700" /></label>
+            <label className="flex h-9 min-w-0 items-center gap-1.5 rounded-lg border border-slate-200 px-2 text-[10px] text-slate-500"><span>To</span><input aria-label="To date" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="min-w-0 flex-1 text-xs text-slate-700" /></label>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#0D1117] hover:bg-slate-800 text-white rounded-full text-xs font-bold transition-all shadow-xs"
+              className="flex h-9 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-indigo-700"
             >
               <Plus size={14} />
               <span>Record Expense</span>
@@ -374,9 +391,9 @@ export default function ExpensesPage() {
                       <td className="py-3.5 px-3 font-bold text-slate-900">BDT {gross.toLocaleString()}</td>
                       <td className="py-3.5 px-3">
                         {hasReceipt ? (
-                          <span className="text-emerald-600 font-semibold text-[11px] flex items-center gap-1">
-                            <CheckCircle2 size={12} /> Voucher
-                          </span>
+                          <a href={e.receiptPhotoUrl || e.receipt_photo_url || e.receiptUrl || e.receipt_url} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-900">
+                            <Eye size={12} /> View receipt
+                          </a>
                         ) : (
                           <span className="text-amber-600 font-semibold text-[11px] flex items-center gap-1">
                             <XCircle size={12} /> Missing
