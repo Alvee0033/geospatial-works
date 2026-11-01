@@ -275,19 +275,19 @@ export default function ExpensesPage() {
       <div className="w-full max-w-[1440px] mx-auto px-5 py-5 space-y-3">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
-          <p className="text-[11px] font-semibold text-slate-400">Total Base Direct Cost</p>
+          <p className="text-[11px] font-semibold text-slate-500">Base amount</p>
           <p className="text-lg font-bold text-slate-900 mt-1">BDT {totalBase.toLocaleString()}</p>
         </div>
         <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
-          <p className="text-[11px] font-semibold text-indigo-500">Total VAT Segment</p>
+          <p className="text-[11px] font-semibold text-indigo-500">VAT</p>
           <p className="text-lg font-bold text-indigo-700 mt-1">BDT {totalVat.toLocaleString()}</p>
         </div>
         <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
-          <p className="text-[11px] font-semibold text-slate-500">Total Tax / AIT Deducted</p>
+          <p className="text-[11px] font-semibold text-slate-500">Tax / AIT</p>
           <p className="text-lg font-bold text-slate-800 mt-1">BDT {totalTax.toLocaleString()}</p>
         </div>
         <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
-          <p className="text-[11px] font-semibold text-emerald-600">Total Gross Expenditures</p>
+          <p className="text-[11px] font-semibold text-emerald-600">Total spent</p>
           <p className="text-lg font-bold text-slate-900 mt-1">BDT {totalGross.toLocaleString()}</p>
         </div>
       </div>
@@ -309,8 +309,8 @@ export default function ExpensesPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-[minmax(220px,1fr)_minmax(150px,200px)_repeat(2,minmax(120px,150px))_repeat(2,minmax(135px,160px))_auto]">
-            <div className="relative col-span-2 md:col-span-1">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-[minmax(170px,1.6fr)_minmax(130px,1fr)_repeat(2,minmax(90px,.8fr))_repeat(2,minmax(120px,1fr))_auto]">
+            <div className="relative col-span-2 sm:col-span-2 xl:col-span-1">
               <Search size={14} className="absolute left-3.5 top-2.5 text-slate-400" />
               <input
                 type="text"
