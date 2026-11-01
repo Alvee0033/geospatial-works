@@ -23,12 +23,11 @@ export default function ReceiptCompliancePage() {
     try {
       const [allExpenses, allProjects] = await Promise.all([ApiClient.getExpenses(), ApiClient.getProjects().catch(() => [])]);
       // Filter claims without receipt voucher OR with active justification
-      const nonCompliant = (allExpenses || []).filter(
-        (e: any) =>
-          !e.hasReceipt ||
-          !e.receiptPhotoUrl ||
-          (e.justificationStatus && e.justificationStatus !== 'none')
-      );
+      const nonCompliant = (allExpenses || []).filter((e: any) => {
+        const hasReceipt = Boolean(e.hasReceipt || e.has_receipt || e.receiptPhotoUrl || e.receipt_photo_url || e.receiptUrl || e.receipt_url);
+        const justification = e.justificationStatus || e.justification_status;
+        return !hasReceipt || Boolean(justification && justification !== 'none');
+      });
       setClaims(nonCompliant);
       setProjects(allProjects || []);
     } catch (e) {
@@ -66,7 +65,7 @@ export default function ReceiptCompliancePage() {
   };
 
   const handleExport = () => {
-    const rows = claims.map((c) => ({
+    const rows = filteredClaims.map((c) => ({
       'Claim ID': c.id,
       Employee: c.employeeName || c.employee_name || 'Staff',
       Project: c.projectName || c.project_name || 'Project',
