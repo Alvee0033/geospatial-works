@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar, resolveAvatarUrl } from '@/components/ui/UserAvatar';
+import { readApiCache } from '@/lib/pageCache';
 import {
   MessageSquare,
   Users,
@@ -101,6 +102,7 @@ export default function ChatPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const messageRequestRef = useRef(0);
 
   // Load current authenticated user info
   useEffect(() => {
@@ -141,20 +143,21 @@ export default function ChatPage() {
   }, [users, currentUser]);
 
   const fetchChannels = async () => {
-    setLoadingChannels(true);
-    try {
-      const [chanData, uData, pData] = await Promise.all([
-        ApiClient.getChatChannels().catch(() => []),
-        ApiClient.getUsers().catch(() => []),
-        ApiClient.getProjects().catch(() => []),
-      ]);
-      setChannels(chanData || []);
-      setUsers(uData || []);
-      setProjects(pData || []);
+    const cachedChannels = readApiCache<any[]>('GET:/chat/channels');
+    if (cachedChannels) {
+      setChannels(cachedChannels.value || []);
+      setActiveChannelId((current) => current || cachedChannels.value?.[0]?.id || null);
+    }
+    setLoadingChannels(!cachedChannels);
 
-      if (chanData && chanData.length > 0 && !activeChannelId) {
-        setActiveChannelId(chanData[0].id);
-      }
+    // Load the conversation list first. Contact/project metadata is only needed
+    // for the compose dialogs and must not delay opening the first conversation.
+    void ApiClient.getUsers().then((data) => setUsers(data || [])).catch(() => undefined);
+    void ApiClient.getProjects().then((data) => setProjects(data || [])).catch(() => undefined);
+    try {
+      const chanData = await ApiClient.getChatChannels();
+      setChannels(chanData || []);
+      setActiveChannelId((current) => current || chanData?.[0]?.id || null);
     } catch (e) {
       console.error('Failed to load chat channels:', e);
     } finally {
@@ -163,14 +166,24 @@ export default function ChatPage() {
   };
 
   const fetchMessages = async (channelId: string) => {
-    setLoadingMessages(true);
+    const requestId = ++messageRequestRef.current;
+    const cacheKey = `GET:/chat/channels/${channelId}/messages?limit=100`;
+    const cachedMessages = readApiCache<any[]>(cacheKey);
+    const channel = channels.find((item) => item.id === channelId);
+    const preview = channel?.lastMessage
+      ? [{ ...channel.lastMessage, channelId, senderAvatarUrl: channel.lastMessage.senderAvatarUrl }]
+      : [];
+
+    setMessages(cachedMessages?.value || preview);
+    setLoadingMessages(!cachedMessages);
     try {
       const msgs = await ApiClient.getChannelMessages(channelId, 100);
+      if (requestId !== messageRequestRef.current) return;
       setMessages(msgs || []);
     } catch (e) {
       console.error('Failed to fetch messages for channel:', e);
     } finally {
-      setLoadingMessages(false);
+      if (requestId === messageRequestRef.current) setLoadingMessages(false);
     }
   };
 
@@ -886,9 +899,9 @@ export default function ChatPage() {
 
               {/* Message Stream */}
               <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                {loadingMessages ? (
+                {loadingMessages && messages.length === 0 ? (
                   <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-                    Loading messages...
+                    <span className="inline-flex items-center gap-2"><Loader2 size={14} className="animate-spin" />Opening conversation…</span>
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-2">
@@ -901,7 +914,9 @@ export default function ChatPage() {
                     </p>
                   </div>
                 ) : (
-                  messages.map((m, idx) => {
+                  <>
+                  {loadingMessages && messages.length > 0 && <div className="sticky top-0 z-10 flex justify-center"><span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/95 px-2.5 py-1 text-[10px] font-medium text-slate-500 shadow-xs"><Loader2 size={11} className="animate-spin" />Syncing conversation</span></div>}
+                  {messages.map((m, idx) => {
                     const msgId = m.id || m._id || String(idx);
                     
                     // Sender info
@@ -920,7 +935,7 @@ export default function ChatPage() {
                     const isPinned = pinnedMessageIds.has(msgId);
                     const time = m.createdAt ? new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
                     
-                    const senderAvatar = m.senderAvatarUrl || m.avatarUrl || sender?.avatarUrl || (isCurrentUser ? currentUser?.avatarUrl : undefined);
+                    const senderAvatar = m.senderAvatarUrl || m.sender_avatar_url || m.avatarUrl || sender?.avatarUrl || sender?.avatar_url || (isCurrentUser ? currentUser?.avatarUrl || currentUser?.avatar_url : undefined);
                     const senderName = isCurrentUser ? (currentUser?.name || currentUser?.fullName || 'You') : (m.senderName || sender?.name || sender?.fullName || 'Staff Member');
                     const mediaUrl = m.imageUrl ? resolveAvatarUrl(m.imageUrl) : '';
 
@@ -1158,7 +1173,8 @@ export default function ChatPage() {
                         )}
                       </div>
                     );
-                  })
+                  })}
+                  </>
                 )}
 
                 {/* Animated Typing Indicator Bubble */}

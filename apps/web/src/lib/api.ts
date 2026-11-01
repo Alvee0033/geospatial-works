@@ -140,8 +140,16 @@ export class ApiClient {
   static warmWorkspaceData(): void {
     void Promise.allSettled([
       this.getProjects(), this.getExpenses(), this.getTasks(), this.getLeaves(),
-      this.getAttendance(), this.getUsers(), this.getHolidays(),
+      this.getAttendance(), this.getUsers(), this.getHolidays(), this.getClients(),
+      this.warmInitialChatData(),
     ]);
+  }
+
+  /** Prime the most recently used conversation so its first screen paints from cache. */
+  static async warmInitialChatData(): Promise<void> {
+    const channels = await this.getChatChannels().catch(() => []);
+    const channelId = channels?.[0]?.id;
+    if (channelId) await this.getChannelMessages(channelId, 100).catch(() => []);
   }
 
   // Projects API
