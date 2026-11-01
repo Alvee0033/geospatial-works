@@ -664,6 +664,9 @@ export default function ApprovalsQueuePage() {
             (project) => String(project.id) === String(claim.projectId || claim.project_id)
           )?.name || 'General overhead';
           const claimDate = claim.date || claim.createdAt || claim.created_at;
+          const rawDescription = claim.description || claim.note || '';
+          const taxMeta = rawDescription.match(/\[TAX_META:vat=([\d.]+):([\d.]+)\|tax=([\d.]+):([\d.]+)\|base=([\d.]+)\]/i);
+          const description = rawDescription.replace(/\s*\[TAX_META:[^\]]+\]/i, '').trim();
 
           return (
             <div
@@ -713,7 +716,14 @@ export default function ApprovalsQueuePage() {
                     </div>
                     <div className="mt-4 border-t border-slate-100 pt-4">
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Description</p>
-                      <p className="mt-1.5 text-sm leading-6 text-slate-700">{claim.description || claim.note || 'No description provided.'}</p>
+                      <p className="mt-1.5 text-sm leading-6 text-slate-700">{description || 'No description provided.'}</p>
+                      {taxMeta && (
+                        <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 text-xs">
+                          <div className="flex justify-between text-slate-500"><span>Base amount</span><span className="font-mono text-slate-700">৳{Number(taxMeta[5]).toLocaleString()}</span></div>
+                          <div className="flex justify-between text-slate-500"><span>VAT ({taxMeta[1]}%)</span><span className="font-mono text-slate-700">৳{Number(taxMeta[2]).toLocaleString()}</span></div>
+                          <div className="flex justify-between text-slate-500"><span>Tax / AIT ({taxMeta[3]}%)</span><span className="font-mono text-slate-700">৳{Number(taxMeta[4]).toLocaleString()}</span></div>
+                        </div>
+                      )}
                     </div>
                     {(claim.justification || claim.reason) && (
                       <div className="mt-4 rounded-xl bg-slate-50 p-3.5">
