@@ -6,6 +6,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ShieldAlert, CheckCircle2, XCircle, FileWarning, Eye, Check, X, FileSpreadsheet, Search, ExternalLink } from 'lucide-react';
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
+import { notifyAction } from '@/components/feedback/ActionFeedback';
 
 export default function ReceiptCompliancePage() {
   const [claims, setClaims] = useState<any[]>([]);
@@ -58,9 +59,9 @@ export default function ReceiptCompliancePage() {
         justificationReviewComment: comment,
       });
       await fetchNonCompliantClaims();
-      alert(`Justification marked ${newStatus}`);
+      notifyAction(`Justification ${newStatus}.`);
     } catch (err: any) {
-      alert(`Review failed: ${err.message}`);
+      notifyAction(`Review failed: ${err.message}`, 'error');
     }
   };
 

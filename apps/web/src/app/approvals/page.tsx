@@ -24,6 +24,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { notifyAction } from '@/components/feedback/ActionFeedback';
 
 export default function ApprovalsQueuePage() {
   const [activeTab, setActiveTab] = useState<'expenses' | 'leaves'>('expenses');
@@ -125,9 +126,10 @@ export default function ApprovalsQueuePage() {
       await ApiClient.approveExpense(id, 'Approved via Executive Approvals Portal');
       setExpenses(expenses.map((e) => (e.id === id ? { ...e, status: 'approved' } : e)));
       setSelectedExpenseIds(selectedExpenseIds.filter((item) => item !== id));
+      notifyAction('Claim approved.');
     } catch (err: any) {
       console.error('Failed to approve expense:', err);
-      alert(`Approval failed: ${err.message}`);
+      notifyAction(`Approval failed: ${err.message}`, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -147,10 +149,10 @@ export default function ApprovalsQueuePage() {
         expenses.map((e) => (selectedExpenseIds.includes(e.id) ? { ...e, status: 'approved' } : e))
       );
       setSelectedExpenseIds([]);
-      alert(`Successfully approved ${selectedExpenseIds.length} expense claims!`);
+      notifyAction(`${selectedExpenseIds.length} claims approved.`);
     } catch (err: any) {
       console.error('Batch approval error:', err);
-      alert('One or more approvals failed.');
+      notifyAction('One or more approvals failed.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -162,9 +164,10 @@ export default function ApprovalsQueuePage() {
     try {
       await ApiClient.approveLeave(id);
       setLeaves(leaves.map((l) => (l.id === id ? { ...l, status: 'approved' } : l)));
+      notifyAction('Leave request approved.');
     } catch (err: any) {
       console.error('Failed to approve leave:', err);
-      alert(`Approval failed: ${err.message}`);
+      notifyAction(`Approval failed: ${err.message}`, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -183,9 +186,10 @@ export default function ApprovalsQueuePage() {
         setLeaves(leaves.map((l) => (l.id === itemToReject.id ? { ...l, status: 'rejected' } : l)));
       }
       setItemToReject(null);
+      notifyAction(`${itemToReject.type === 'expense' ? 'Claim' : 'Leave request'} rejected.`);
     } catch (err: any) {
       console.error('Rejection failed:', err);
-      alert(`Rejection failed: ${err.message}`);
+      notifyAction(`Rejection failed: ${err.message}`, 'error');
     } finally {
       setSubmitting(false);
     }

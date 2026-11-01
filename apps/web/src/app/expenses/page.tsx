@@ -26,6 +26,7 @@ import {
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { notifyAction } from '@/components/feedback/ActionFeedback';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -99,9 +100,9 @@ export default function ExpensesPage() {
       if (inspectExp && inspectExp.id === id) {
         setInspectExp({ ...inspectExp, status: 'approved' });
       }
-      alert('Claim successfully approved');
+      notifyAction('Claim approved.');
     } catch (err: any) {
-      alert(`Approval failed: ${err.message}`);
+      notifyAction(`Approval failed: ${err.message}`, 'error');
     }
   };
 
@@ -114,9 +115,9 @@ export default function ExpensesPage() {
       if (inspectExp && inspectExp.id === id) {
         setInspectExp({ ...inspectExp, status: 'rejected', rejectionReason: reason });
       }
-      alert('Claim marked rejected');
+      notifyAction('Claim marked rejected.');
     } catch (err: any) {
-      alert(`Rejection failed: ${err.message}`);
+      notifyAction(`Rejection failed: ${err.message}`, 'error');
     }
   };
 
@@ -126,9 +127,9 @@ export default function ExpensesPage() {
       await ApiClient.deleteExpense(id);
       await fetchRealExpenses();
       if (inspectExp?.id === id) setInspectExp(null);
-      alert('Expense record deleted');
+      notifyAction('Expense record deleted.');
     } catch (err: any) {
-      alert(`Deletion failed: ${err.message}`);
+      notifyAction(`Deletion failed: ${err.message}`, 'error');
     }
   };
 
@@ -141,8 +142,9 @@ export default function ExpensesPage() {
       const updated = await ApiClient.getExpenseById(inspectExp.id);
       setInspectExp(updated);
       await fetchRealExpenses();
+      notifyAction('Comment added.');
     } catch (err: any) {
-      alert(`Failed to post comment: ${err.message}`);
+      notifyAction(`Failed to post comment: ${err.message}`, 'error');
     }
   };
 
@@ -174,9 +176,9 @@ export default function ExpensesPage() {
       setFormNote('');
       setFormReceiptUrl('');
       await fetchRealExpenses();
-      alert('Expense claim created and recorded successfully');
+      notifyAction('Expense recorded successfully.');
     } catch (err: any) {
-      alert(`Claim creation failed: ${err.message}`);
+      notifyAction(`Claim creation failed: ${err.message}`, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -212,9 +214,9 @@ export default function ExpensesPage() {
       setIsEditModalOpen(false);
       setExpenseToEdit(null);
       await fetchRealExpenses();
-      alert('Expense record updated successfully');
+      notifyAction('Expense record updated.');
     } catch (err: any) {
-      alert(`Update failed: ${err.message}`);
+      notifyAction(`Update failed: ${err.message}`, 'error');
     } finally {
       setSubmitting(false);
     }
