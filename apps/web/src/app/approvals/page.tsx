@@ -590,7 +590,7 @@ export default function ApprovalsQueuePage() {
                           key={leave.id}
                           tabIndex={0}
                           aria-haspopup="dialog"
-                          aria-label={`Open leave request for ${leave.employeeName || leave.employee_name || 'employee'}`}
+                          aria-label={`Open leave request for ${name}`}
                           onClick={() => setSelectedLeave(leave)}
                           onKeyDown={(event) => {
                             if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
