@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { notifyAction } from '@/components/feedback/ActionFeedback';
+import { LeaveDetailsDrawer } from '@/components/leaves/LeaveDetailsDrawer';
 
 export default function ApprovalsQueuePage() {
   const [activeTab, setActiveTab] = useState<'expenses' | 'leaves'>('expenses');
@@ -52,6 +53,7 @@ export default function ApprovalsQueuePage() {
   // Voucher preview modal
   const [previewVoucherUrl, setPreviewVoucherUrl] = useState<string | null>(null);
   const [selectedClaim, setSelectedClaim] = useState<any | null>(null);
+  const [selectedLeave, setSelectedLeave] = useState<any | null>(null);
 
   // Rejection modal
   const [itemToReject, setItemToReject] = useState<{ id: string; type: 'expense' | 'leave'; name: string } | null>(null);
@@ -170,6 +172,7 @@ export default function ApprovalsQueuePage() {
     try {
       await ApiClient.approveLeave(id);
       setLeaves(leaves.map((l) => (l.id === id ? { ...l, status: 'approved' } : l)));
+      setSelectedLeave(null);
       notifyAction('Leave request approved.');
     } catch (err: any) {
       console.error('Failed to approve leave:', err);
@@ -191,6 +194,7 @@ export default function ApprovalsQueuePage() {
       } else {
         await ApiClient.rejectLeave(itemToReject.id, rejectionReason);
         setLeaves(leaves.map((l) => (l.id === itemToReject.id ? { ...l, status: 'rejected' } : l)));
+        setSelectedLeave(null);
       }
       setItemToReject(null);
       notifyAction(`${itemToReject.type === 'expense' ? 'Claim' : 'Leave request'} rejected.`);
@@ -581,7 +585,20 @@ export default function ApprovalsQueuePage() {
                       const avatar = leave.avatarUrl || leave.avatar_url || matchedUser?.avatarUrl || matchedUser?.avatar_url;
 
                       return (
-                        <tr key={leave.id} className="hover:bg-slate-50/70 transition-colors">
+                        <tr
+                          key={leave.id}
+                          tabIndex={0}
+                          aria-haspopup="dialog"
+                          aria-label={`Open leave request for ${leave.employeeName || leave.employee_name || 'employee'}`}
+                          onClick={() => setSelectedLeave(leave)}
+                          onKeyDown={(event) => {
+                            if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
+                              event.preventDefault();
+                              setSelectedLeave(leave);
+                            }
+                          }}
+                          className="cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
+                        >
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2.5">
                               <UserAvatar
@@ -618,7 +635,7 @@ export default function ApprovalsQueuePage() {
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               type="button"
-                              onClick={() => handleApproveLeave(leave.id)}
+                              onClick={(event) => { event.stopPropagation(); handleApproveLeave(leave.id); }}
                               disabled={submitting}
                               className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-xl transition-all shadow-xs"
                               title="Approve Leave"
@@ -627,13 +644,14 @@ export default function ApprovalsQueuePage() {
                             </button>
                             <button
                               type="button"
-                              onClick={() =>
+                              onClick={(event) => {
+                                event.stopPropagation();
                                 setItemToReject({
                                   id: leave.id,
                                   type: 'leave',
                                   name: `${leave.employeeName || 'Staff'} Leave`,
                                 })
-                              }
+                              }}
                               disabled={submitting}
                               className="p-1.5 bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-xs"
                               title="Reject Leave"
@@ -790,6 +808,26 @@ export default function ApprovalsQueuePage() {
               </aside>
             </div>
           );
+        })()}
+
+        {selectedLeave && (() => {
+          const leave = selectedLeave;
+          const matchedUser = users.find((user) => user.id === (leave.userId || leave.user_id) || user.name === (leave.employeeName || leave.employee_name));
+          const name = leave.employeeName || leave.employee_name || matchedUser?.name || matchedUser?.fullName || 'Staff';
+          const status = String(leave.status || (leave.isApproved || leave.is_approved ? 'approved' : 'pending')).toLowerCase();
+          return <LeaveDetailsDrawer
+            leave={leave}
+            employeeName={name}
+            avatarUrl={leave.avatarUrl || leave.avatar_url || matchedUser?.avatarUrl || matchedUser?.avatar_url}
+            email={leave.email || leave.employeeEmail || leave.employee_email || matchedUser?.email}
+            department={leave.department || matchedUser?.department}
+            status={status}
+            canReview={status === 'pending'}
+            busy={submitting}
+            onClose={() => setSelectedLeave(null)}
+            onApprove={() => handleApproveLeave(leave.id)}
+            onDecline={() => setItemToReject({ id: leave.id, type: 'leave', name: `${name} Leave` })}
+          />;
         })()}
 
         {/* MODAL: Voucher Preview */}
