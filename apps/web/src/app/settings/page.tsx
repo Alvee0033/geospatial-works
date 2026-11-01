@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense, useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { 
   Clock, DollarSign, Percent, FolderTree, Database, ShieldCheck,
@@ -53,8 +53,15 @@ interface CategoryItem {
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function SettingsPageContent() {
+  type SettingsTab = 'schedule' | 'payroll' | 'benefits' | 'categories' | 'storage' | 'audit';
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<'schedule' | 'payroll' | 'benefits' | 'categories' | 'storage' | 'audit'>('schedule');
+  const router = useRouter();
+  const requestedTab = searchParams.get('tab');
+  const validRequestedTab = ['schedule', 'payroll', 'benefits', 'categories', 'storage', 'audit'].includes(requestedTab || '')
+    ? requestedTab as SettingsTab
+    : null;
+  const [activeTab, setActiveTab] = useState<SettingsTab>(validRequestedTab || 'schedule');
+  const currentTab = validRequestedTab || activeTab;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -119,11 +126,13 @@ function SettingsPageContent() {
   ]);
 
   useEffect(() => {
-    const requestedTab = searchParams.get('tab');
-    if (['schedule', 'payroll', 'benefits', 'categories', 'storage', 'audit'].includes(requestedTab || '')) {
-      setActiveTab(requestedTab as typeof activeTab);
-    }
-  }, [searchParams]);
+    setActiveTab(validRequestedTab || 'schedule');
+  }, [validRequestedTab]);
+
+  const selectSettingsTab = (tab: SettingsTab) => {
+    setActiveTab(tab);
+    router.replace(`/settings?tab=${tab}`, { scroll: false });
+  };
 
   useEffect(() => {
     loadAllSettings();
@@ -305,6 +314,8 @@ function SettingsPageContent() {
     <AdminLayout
       title="Settings"
       subtitle="Shift schedule, deductions, retainage, and expense configuration"
+      sidebarSettingsTab={currentTab}
+      sidebarSettingsGroup={currentTab === 'schedule' ? 'attendance' : currentTab === 'payroll' || currentTab === 'benefits' ? 'payroll' : null}
       onRefresh={loadAllSettings}
       isRefreshing={loading}
     >
@@ -332,11 +343,11 @@ function SettingsPageContent() {
             { id: 'audit', label: 'Audit Trail', icon: ShieldCheck },
           ].map(tab => {
             const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+            const isActive = currentTab === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => selectSettingsTab(tab.id as SettingsTab)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-[#10241E] text-white'
@@ -351,7 +362,7 @@ function SettingsPageContent() {
         </div>
 
         {/* Tab 1: Work Schedule */}
-        {activeTab === 'schedule' && (
+        {currentTab === 'schedule' && (
           <div className="space-y-4">
             {/* Top Quick Settings */}
             <div className="bg-white border border-slate-200 rounded-lg p-4">
@@ -518,7 +529,7 @@ function SettingsPageContent() {
         )}
 
         {/* Tab 2: Salary Deductions */}
-        {activeTab === 'payroll' && (
+        {currentTab === 'payroll' && (
           <div className="space-y-4">
             <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -658,7 +669,7 @@ function SettingsPageContent() {
         )}
 
         {/* Tab 3: Retainage & Financial Margins */}
-        {activeTab === 'benefits' && (
+        {currentTab === 'benefits' && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
@@ -756,7 +767,7 @@ function SettingsPageContent() {
         )}
 
         {/* Tab 4: Expense Categories */}
-        {activeTab === 'categories' && (
+        {currentTab === 'categories' && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
@@ -835,7 +846,7 @@ function SettingsPageContent() {
         )}
 
         {/* Tab 5: Data & Purge */}
-        {activeTab === 'storage' && (
+        {currentTab === 'storage' && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-4 max-w-xl">
             <div className="flex items-center gap-1.5 pb-2 border-b border-slate-100 text-xs font-bold text-slate-800 uppercase tracking-wider">
               <Database className="w-3.5 h-3.5 text-emerald-600" />
@@ -877,7 +888,7 @@ function SettingsPageContent() {
         )}
 
         {/* Tab 6: Audit Trail */}
-        {activeTab === 'audit' && (
+        {currentTab === 'audit' && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-1.5 pb-2 border-b border-slate-100 text-xs font-bold text-slate-800 uppercase tracking-wider">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />

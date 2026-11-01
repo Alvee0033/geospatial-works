@@ -7,6 +7,8 @@ import { AdminTopNav } from './AdminTopNav';
 import { ActionFeedbackHost } from '@/components/feedback/ActionFeedback';
 import { ApiClient } from '@/lib/api';
 
+let verifiedClientToken: string | null = null;
+
 interface AdminLayoutProps {
   children: React.ReactNode;
   title?: string;
@@ -17,6 +19,8 @@ interface AdminLayoutProps {
   contentClassName?: string;
   noScroll?: boolean;
   hideTopNav?: boolean;
+  sidebarSettingsTab?: string;
+  sidebarSettingsGroup?: 'attendance' | 'payroll' | null;
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({
@@ -29,15 +33,24 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   contentClassName,
   noScroll = false,
   hideTopNav = false,
+  sidebarSettingsTab,
+  sidebarSettingsGroup = null,
 }) => {
   const router = useRouter();
-  const [authChecked, setAuthChecked] = useState(false);
+  const [authChecked, setAuthChecked] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const token = ApiClient.getToken();
+    return Boolean(token && token === verifiedClientToken);
+  });
 
   useEffect(() => {
-    if (!ApiClient.getToken()) {
+    const token = ApiClient.getToken();
+    if (!token) {
+      verifiedClientToken = null;
       router.replace('/login');
       return;
     }
+    verifiedClientToken = token;
     setAuthChecked(true);
   }, [router]);
 
@@ -47,7 +60,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
   return (
     <div className="flex min-h-screen bg-[#F7F8F6] text-slate-900 font-sans">
-      <AdminSidebar />
+      <AdminSidebar settingsTab={sidebarSettingsTab} settingsGroup={sidebarSettingsGroup} />
       <div
         className={`flex-1 flex flex-col min-w-0 max-h-screen ${
           noScroll ? 'overflow-y-auto xl:overflow-hidden h-screen' : 'overflow-y-auto'
