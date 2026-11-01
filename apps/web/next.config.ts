@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     },
   },
   async rewrites() {
-    const backendOrigin = (process.env.BACKEND_INTERNAL_URL || 'http://xqeqm4yyv7fqxryrkm6phk55.163.227.239.97.sslip.io').replace(/\/$/, '');
+    const backendOrigin = (process.env.BACKEND_INTERNAL_URL || 'http://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io').replace(/\/$/, '');
     return [
       {
         source: '/uploads/:path*',

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Banknote, BriefcaseBusiness, CalendarDays, CheckSquare, ChevronDown,
+  Banknote, BriefcaseBusiness, CalendarDays, CheckSquare, ChevronDown, FileBarChart,
   ChevronsLeft, ChevronsRight, CircleHelp, FolderKanban, LayoutDashboard,
   MessageSquare, Receipt, Settings, UserCheck, Users,
 } from 'lucide-react';
@@ -16,6 +16,7 @@ const workspaceItems: NavItem[] = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/projects', label: 'Projects', icon: FolderKanban },
   { href: '/tasks', label: 'Tasks', icon: CheckSquare },
+  { href: '/reports', label: 'Reports', icon: FileBarChart },
   { href: '/payroll', label: 'Cash flow', icon: Banknote },
 ];
 

@@ -1,39 +1,58 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AttendanceMap, AttendanceLocation } from '@/components/attendance/AttendanceMap';
 import {
   MapPin,
-  Clock,
   Calendar,
   Settings,
   PlusCircle,
   Crosshair,
   Search,
-  CheckCircle2,
-  Building,
-  Navigation,
   X,
-  FileSpreadsheet,
-  Users,
-  Compass,
-  ArrowUpRight,
-  TrendingUp,
-  MapPinOff,
-  UserCheck
 } from 'lucide-react';
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
+import { notifyAction } from '@/components/feedback/ActionFeedback';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { getWorkLocation, hasValidCoordinates, type AttendanceWorkLocation } from '@/lib/attendanceData';
+import { readPageCache, writePageCache } from '@/lib/pageCache';
 
-const HQ_LAT = 23.8103;
-const HQ_LNG = 90.4125;
-const HQ_RADIUS_METERS = 500;
+const DEFAULT_OFFICE = {
+  latitude: 23.7925,
+  longitude: 90.4078,
+  radiusMeters: 200,
+  name: 'Geospatial Works HQ',
+  address: 'Road 11, Block D, Banani, Dhaka',
+};
+const workLocationLabels: Record<AttendanceWorkLocation, string> = {
+  office: 'Office',
+  home: 'Home',
+  home_office: 'Home office',
+  field: 'Field',
+  unknown: 'Unspecified',
+};
+const workLocationTones: Record<AttendanceWorkLocation, string> = {
+  office: 'bg-indigo-50 text-indigo-700 ring-indigo-100',
+  home: 'bg-violet-50 text-violet-700 ring-violet-100',
+  home_office: 'bg-sky-50 text-sky-700 ring-sky-100',
+  field: 'bg-amber-50 text-amber-700 ring-amber-100',
+  unknown: 'bg-slate-100 text-slate-500 ring-slate-200',
+};
+const localDateInput = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};
+const shiftDate = (value: string, amount: number) => {
+  const date = new Date(`${value}T00:00:00`);
+  date.setDate(date.getDate() + amount);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+type AttendancePageCache = { attendance: any[]; users: any[]; leaves: any[]; office: typeof DEFAULT_OFFICE };
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  if (!lat1 || !lon1 || !lat2 || !lon2) return 0;
   const R = 6371e3;
   const φ1 = (lat1 * Math.PI) / 180;
   const φ2 = (lat2 * Math.PI) / 180;
@@ -51,55 +70,111 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 export default function AttendancePage() {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>('2026-10-20');
-  const [loading, setLoading] = useState(true);
+  const [leaves, setLeaves] = useState<any[]>([]);
+  const [office, setOffice] = useState(DEFAULT_OFFICE);
+  const [selectedDate, setSelectedDate] = useState<string>(localDateInput);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'geofence' | 'field' | 'morning' | 'afternoon'>('all');
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [workLocationFilter, setWorkLocationFilter] = useState<'all' | AttendanceWorkLocation>('all');
+  const [shiftFilter, setShiftFilter] = useState<'all' | 'morning' | 'afternoon'>('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   // Modal
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
 
   // Check-In Form
   const [checkInUserId, setCheckInUserId] = useState<string>('');
-  const [checkInLat, setCheckInLat] = useState<number>(HQ_LAT);
-  const [checkInLng, setCheckInLng] = useState<number>(HQ_LNG);
-  const [checkInAddress, setCheckInAddress] = useState('Geospatial Works HQ, Dhaka');
+  const [checkInLat, setCheckInLat] = useState<number>(DEFAULT_OFFICE.latitude);
+  const [checkInLng, setCheckInLng] = useState<number>(DEFAULT_OFFICE.longitude);
+  const [checkInAddress, setCheckInAddress] = useState(DEFAULT_OFFICE.address);
   const [checkInSession, setCheckInSession] = useState<'morning' | 'afternoon'>('morning');
   const [checkInNotes, setCheckInNotes] = useState('');
   const [isGettingGps, setIsGettingGps] = useState(false);
   const [submittingCheckIn, setSubmittingCheckIn] = useState(false);
 
-  const fetchAttendance = async () => {
-    setLoading(true);
+  const fetchAttendance = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    setLoadError('');
     try {
-      const [attData, userData] = await Promise.all([
-        ApiClient.getAttendance({ date: selectedDate }).catch(() => []),
-        ApiClient.getUsers().catch(() => []),
+      const [attendanceResult, usersResult, settingsResult, leavesResult] = await Promise.allSettled([
+        ApiClient.getAttendance({ date: selectedDate }),
+        ApiClient.getUsers(),
+        ApiClient.getAttendanceSettings(),
+        ApiClient.getLeaves(),
       ]);
-      setAttendance(attData || []);
-      setUsers(userData || []);
+      const failures = [
+        attendanceResult.status === 'rejected' ? 'attendance records' : '',
+        usersResult.status === 'rejected' ? 'employee directory' : '',
+        settingsResult.status === 'rejected' ? 'attendance settings' : '',
+        leavesResult.status === 'rejected' ? 'approved leave data' : '',
+      ].filter(Boolean);
+      const nextAttendance = attendanceResult.status === 'fulfilled' && Array.isArray(attendanceResult.value) ? attendanceResult.value : null;
+      const nextUsers = usersResult.status === 'fulfilled' && Array.isArray(usersResult.value) ? usersResult.value : null;
+      const nextLeaves = leavesResult.status === 'fulfilled' && Array.isArray(leavesResult.value) ? leavesResult.value : null;
+      let nextOffice = DEFAULT_OFFICE;
+      if (attendanceResult.status === 'fulfilled') {
+        const attData = nextAttendance || [];
+        setAttendance(attData);
 
-      if (attData && attData.length > 0 && !selectedRecord) {
-        setSelectedRecord(attData[0]);
+        setSelectedRecord(attData[0] ?? null);
       }
+      if (usersResult.status === 'fulfilled') setUsers(nextUsers || []);
+      if (leavesResult.status === 'fulfilled') setLeaves(nextLeaves || []);
+      if (settingsResult.status === 'fulfilled' && settingsResult.value && typeof settingsResult.value === 'object') {
+        const settings = settingsResult.value as Record<string, unknown>;
+        const latitude = Number(settings.officeLatitude ?? settings.office_latitude);
+        const longitude = Number(settings.officeLongitude ?? settings.office_longitude);
+        const radiusMeters = Number(settings.geofenceRadiusMeters ?? settings.geofence_radius_meters);
+        nextOffice = {
+          latitude: Number.isFinite(latitude) && Math.abs(latitude) <= 90 ? latitude : DEFAULT_OFFICE.latitude,
+          longitude: Number.isFinite(longitude) && Math.abs(longitude) <= 180 ? longitude : DEFAULT_OFFICE.longitude,
+          radiusMeters: Number.isFinite(radiusMeters) && radiusMeters > 0 ? radiusMeters : DEFAULT_OFFICE.radiusMeters,
+          name: String(settings.officeName ?? settings.office_name ?? DEFAULT_OFFICE.name),
+          address: String(settings.officeAddress ?? settings.office_address ?? DEFAULT_OFFICE.address),
+        };
+        setOffice(nextOffice);
+      }
+      if (!failures.length && nextAttendance && nextUsers && nextLeaves) {
+        writePageCache<AttendancePageCache>(`attendance:${selectedDate}`, { attendance: nextAttendance, users: nextUsers, leaves: nextLeaves, office: nextOffice });
+      }
+      if (failures.length) setLoadError(`Could not load ${failures.join(' and ')}. Unavailable live data may be stale; the map uses the standard office settings for now.`);
     } catch (e) {
       console.error('Error fetching attendance:', e);
+      setLoadError('Attendance data could not be refreshed. Showing the last successfully loaded data.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate]);
 
   useEffect(() => {
-    fetchAttendance();
-  }, [selectedDate]);
+    const cached = readPageCache<AttendancePageCache>(`attendance:${selectedDate}`);
+    if (cached) {
+      setAttendance(cached.attendance);
+      setUsers(cached.users);
+      setLeaves(cached.leaves);
+      setOffice(cached.office);
+      setSelectedRecord(cached.attendance[0] ?? null);
+    } else {
+      setAttendance([]);
+      setSelectedRecord(null);
+    }
+    void fetchAttendance(true);
+    const unsubscribe = ApiClient.subscribeToDataRefresh((endpoint) => {
+      if (['/attendance', '/attendance/settings', '/users', '/salary/leaves'].some((prefix) => endpoint.startsWith(prefix))) {
+        void fetchAttendance(true);
+      }
+    });
+    return unsubscribe;
+  }, [fetchAttendance]);
 
   const handleGetCurrentGps = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
+      notifyAction('Geolocation is not supported by this browser.', 'error', 'Location unavailable');
       return;
     }
     setIsGettingGps(true);
@@ -111,7 +186,7 @@ export default function AttendancePage() {
         setIsGettingGps(false);
       },
       (err) => {
-        alert(`Failed to get device GPS: ${err.message}`);
+        notifyAction(`Could not get device location: ${err.message}`, 'error', 'Location unavailable');
         setIsGettingGps(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -134,8 +209,9 @@ export default function AttendancePage() {
       setIsCheckInModalOpen(false);
       setCheckInNotes('');
       await fetchAttendance();
+      notifyAction('Check-in has been recorded.');
     } catch (err: any) {
-      alert(`Check-in failed: ${err.message}`);
+      notifyAction(`Check-in failed: ${err.message}`, 'error');
     } finally {
       setSubmittingCheckIn(false);
     }
@@ -150,16 +226,17 @@ export default function AttendancePage() {
 
     return attendance.map((item) => {
       const u = item.userId ? userMap.get(item.userId) : null;
-      const userName = item.userName || item.user_name || (u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : 'Staff Member');
+      const userName = item.userName || item.user_name || (u ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : '') || u?.name || u?.full_name || u?.email || 'Employee';
       const userEmail = item.userEmail || item.user_email || u?.email || '';
-      const department = item.department || u?.department || 'Operations';
-      const designation = item.designation || u?.designation || u?.role || 'Engineer';
+      const department = item.department || u?.department || 'Unassigned';
+      const designation = item.designation || u?.designation || u?.role || 'Employee';
       const avatarUrl = item.avatarUrl || item.avatar_url || u?.avatarUrl;
 
-      const lat = item.latitude !== undefined ? Number(item.latitude) : HQ_LAT;
-      const lng = item.longitude !== undefined ? Number(item.longitude) : HQ_LNG;
-      const dist = calculateDistance(lat, lng, HQ_LAT, HQ_LNG);
-      const isInside = dist <= HQ_RADIUS_METERS;
+      const hasCoordinates = hasValidCoordinates(item.latitude ?? item.lat, item.longitude ?? item.lng);
+      const lat = hasCoordinates ? Number(item.latitude ?? item.lat) : null;
+      const lng = hasCoordinates ? Number(item.longitude ?? item.lng) : null;
+      const dist = hasCoordinates ? calculateDistance(lat!, lng!, office.latitude, office.longitude) : null;
+      const isInside = dist !== null && dist <= office.radiusMeters;
 
       return {
         ...item,
@@ -172,9 +249,10 @@ export default function AttendancePage() {
         parsedLng: lng,
         distanceMeters: dist,
         isInsideGeofence: isInside,
+        workLocation: getWorkLocation({ ...item, isInsideGeofence: isInside }),
       };
     });
-  }, [attendance, users]);
+  }, [attendance, users, office]);
 
   const filteredRecords = useMemo(() => {
     return enrichedAttendance.filter((rec) => {
@@ -188,23 +266,75 @@ export default function AttendancePage() {
 
       if (!matchQuery) return false;
 
-      if (activeFilter === 'geofence') return rec.isInsideGeofence;
-      if (activeFilter === 'field') return !rec.isInsideGeofence;
-      if (activeFilter === 'morning') return (rec.sessionType || rec.session_type) === 'morning';
-      if (activeFilter === 'afternoon') return (rec.sessionType || rec.session_type) === 'afternoon';
+      if (departmentFilter !== 'all' && rec.department !== departmentFilter) return false;
+      const late = String(rec.status ?? '').toLowerCase().includes('late') || String(rec.notes ?? '').toLowerCase().includes('late check-in') || Number(rec.lateMinutes ?? rec.late_minutes ?? 0) > 0;
+      if (statusFilter === 'late' && !late) return false;
+      if (statusFilter === 'present' && late) return false;
+      if (statusFilter === 'absent' || statusFilter === 'on leave') return false;
+      if (workLocationFilter !== 'all' && rec.workLocation !== workLocationFilter) return false;
+      if (shiftFilter !== 'all' && (rec.sessionType || rec.session_type) !== shiftFilter) return false;
 
       return true;
     });
-  }, [enrichedAttendance, searchQuery, activeFilter]);
+  }, [enrichedAttendance, searchQuery, workLocationFilter, shiftFilter, departmentFilter, statusFilter]);
+
+  const attendanceRoster = useMemo(() => {
+    const selected = new Date(`${selectedDate}T00:00:00`);
+    const onLeaveIds = new Set(leaves.filter((leave) => {
+      const status = String(leave.status ?? (leave.isApproved || leave.is_approved ? 'approved' : '')).toLowerCase();
+      if (!['approved', 'accepted'].includes(status)) return false;
+      const start = new Date(String(leave.startDate ?? leave.start_date ?? ''));
+      const end = new Date(String(leave.endDate ?? leave.end_date ?? leave.startDate ?? leave.start_date ?? ''));
+      return Boolean(!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && selected >= new Date(start.toDateString()) && selected <= new Date(end.toDateString()));
+    }).map((leave) => String(leave.userId ?? leave.user_id ?? leave.employeeId ?? leave.employee_id)));
+    const byUser = new Map<string, any>();
+    enrichedAttendance.forEach((record) => {
+      const userId = String(record.userId ?? record.user_id ?? record.employeeId ?? record.employee_id ?? record.id ?? '');
+      const previous = byUser.get(userId);
+      if (!previous || new Date(record.loginTime ?? record.created_at ?? 0).getTime() > new Date(previous.loginTime ?? previous.created_at ?? 0).getTime()) byUser.set(userId, record);
+    });
+    const rows = users.filter((user) => user.isActive !== false && user.is_active !== false && user.active !== false).map((user) => {
+      const id = String(user.id ?? user._id ?? '');
+      const record = byUser.get(id);
+      const statusValue = String(record?.status ?? '').toLowerCase();
+      const notes = String(record?.notes ?? '').toLowerCase();
+      const isLate = statusValue.includes('late') || notes.includes('late check-in') || Number(record?.lateMinutes ?? record?.late_minutes ?? 0) > 0;
+      const status = record ? (isLate ? 'Late' : 'Present') : onLeaveIds.has(id) ? 'On leave' : 'Absent';
+      return {
+        id,
+        name: [user.firstName ?? user.first_name, user.lastName ?? user.last_name].filter(Boolean).join(' ') || user.name || user.full_name || user.email || 'Employee',
+        email: user.email ?? '',
+        department: user.department ?? 'Unassigned',
+        designation: user.designation ?? user.role ?? 'Employee',
+        shift: record?.sessionType ?? record?.session_type ?? user.shift ?? '—',
+      workLocation: record?.workLocation ?? (record ? getWorkLocation(record) : 'unknown'),
+        record,
+        status,
+      };
+    });
+    return rows;
+  }, [users, enrichedAttendance, leaves, selectedDate]);
+  const visibleRoster = useMemo(() => attendanceRoster.filter((row) => {
+    const query = searchQuery.trim().toLowerCase();
+    const record = row.record;
+    return (!query || `${row.name} ${row.email} ${row.department}`.toLowerCase().includes(query)) &&
+      (departmentFilter === 'all' || row.department === departmentFilter) &&
+      (statusFilter === 'all' || row.status.toLowerCase() === statusFilter) &&
+      (workLocationFilter === 'all' || row.workLocation === workLocationFilter) &&
+      (shiftFilter === 'all' || row.shift === shiftFilter);
+  }), [attendanceRoster, searchQuery, departmentFilter, statusFilter, workLocationFilter, shiftFilter]);
+  const departments = useMemo(() => [...new Set(users.map((user) => String(user.department || 'Unassigned')))].sort(), [users]);
+  const presentCount = attendanceRoster.filter((row) => row.status === 'Present').length;
+  const lateCount = attendanceRoster.filter((row) => row.status === 'Late').length;
+  const leaveCount = attendanceRoster.filter((row) => row.status === 'On leave').length;
+  const absentCount = attendanceRoster.filter((row) => row.status === 'Absent').length;
 
   // Counts
-  const inGeofenceCount = enrichedAttendance.filter((r) => r.isInsideGeofence).length;
-  const fieldDeployCount = enrichedAttendance.filter((r) => !r.isInsideGeofence).length;
-  const morningCount = enrichedAttendance.filter((r) => (r.sessionType || r.session_type) === 'morning').length;
-  const afternoonCount = enrichedAttendance.filter((r) => (r.sessionType || r.session_type) === 'afternoon').length;
-  const presenceRatio = users.length > 0 ? Math.round((attendance.length / users.length) * 100) : 0;
+  const presenceRatio = users.length > 0 ? Math.round(((presentCount + lateCount) / users.length) * 100) : 0;
 
-  const mapLocations: AttendanceLocation[] = filteredRecords.map((a) => ({
+  const mapLocations: AttendanceLocation[] = filteredRecords.flatMap((a) => {
+    if (a.parsedLat === null || a.parsedLng === null) return [];
+    return [{
     id: a.id,
     userName: a.userName,
     userEmail: a.userEmail,
@@ -218,13 +348,9 @@ export default function AttendancePage() {
     sessionType: a.sessionType || a.session_type || 'morning',
     status: a.status || 'present',
     distanceMeters: a.distanceMeters,
-  }));
-
-  const handleCopyCoords = (lat: number, lng: number, id: string) => {
-    navigator.clipboard.writeText(`${lat}, ${lng}`);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
+    workLocation: a.workLocation,
+    }];
+  });
 
   const handleExport = () => {
     const rows = enrichedAttendance.map((a) => ({
@@ -238,394 +364,39 @@ export default function AttendancePage() {
       'Check-in Time': a.loginTime ? new Date(a.loginTime).toLocaleTimeString() : '',
       Latitude: a.latitude,
       Longitude: a.longitude,
+      'Work location': workLocationLabels[a.workLocation as AttendanceWorkLocation] || 'Unspecified',
       'Distance from HQ (m)': a.distanceMeters ?? 'N/A',
-      'Geofence Status': a.isInsideGeofence ? 'Inside HQ (≤500m)' : 'Field Deployment (>500m)',
       Address: a.addressText || a.address_text || '',
       Status: a.status || 'present',
     }));
     ExportUtils.exportToExcel(rows, `GW_Attendance_${selectedDate}`);
+    notifyAction('Attendance report downloaded as an Excel workbook.');
   };
 
   return (
     <AdminLayout
-      title="Attendance Operations"
-      subtitle="Full geofence tracking, live personnel positions, and daily deployment logs"
+      title="Attendance"
+      subtitle="Team presence and check-ins"
       onRefresh={fetchAttendance}
       onExport={handleExport}
       isRefreshing={loading}
       contentClassName="px-4 lg:px-6 py-4"
     >
-      <div className="w-full space-y-3.5">
-        {/* Bento Top Header Bar */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-2.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 shadow-2xs">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 rounded-lg px-2.5 py-1">
-              <Calendar size={13} className="text-slate-500" />
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
-              />
-            </div>
-
-            <div className="relative">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search staff, location, department..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-7 pr-3 py-1 bg-slate-50 border border-slate-200/90 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-52 sm:w-64"
-              />
-            </div>
-
-            <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg text-xs">
-              {(
-                [
-                  { id: 'all', label: `All (${enrichedAttendance.length})` },
-                  { id: 'geofence', label: `HQ (${inGeofenceCount})` },
-                  { id: 'field', label: `Field (${fieldDeployCount})` },
-                  { id: 'morning', label: `AM (${morningCount})` },
-                  { id: 'afternoon', label: `PM (${afternoonCount})` },
-                ] as const
-              ).map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveFilter(tab.id as any)}
-                  className={`px-2.5 py-0.5 rounded-md text-[11px] font-semibold transition-all ${
-                    activeFilter === tab.id
-                      ? 'bg-white text-slate-900 shadow-2xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setIsCheckInModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#10241E] hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow-2xs transition-all"
-            >
-              <PlusCircle size={13} />
-              <span>Record Check-In</span>
-            </button>
-
-            <Link
-              href="/settings"
-              className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/90 transition-colors"
-              title="Attendance Shifts & Deduction Settings"
-            >
-              <Settings size={14} />
-            </Link>
-          </div>
-        </div>
-
-        {/* Bento Grid: 12-Column Responsive Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch">
-          
-          {/* Card 1 (Left 8 Cols): Live Map & Selected Intel */}
-          <div className="lg:col-span-8 bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs flex flex-col justify-between space-y-2">
-            <div>
-              <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                    <Compass size={14} />
-                  </div>
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    Geospatial Radar & Geofence
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Live Tracking
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                    HQ: {HQ_LAT}, {HQ_LNG}
-                  </span>
-                </div>
-              </div>
-
-              {/* Map Surface */}
-              <div className="h-[360px] w-full rounded-lg border border-slate-200 overflow-hidden relative mt-2">
-                <AttendanceMap
-                  records={mapLocations}
-                  selectedRecord={selectedRecord}
-                  onSelectRecord={(rec) => setSelectedRecord(rec)}
-                  officeLat={HQ_LAT}
-                  officeLng={HQ_LNG}
-                  officeRadiusMeters={HQ_RADIUS_METERS}
-                />
-              </div>
-            </div>
-
-            {/* Bottom Target Card */}
-            {selectedRecord ? (
-              <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs">
-                <div className="min-w-0 pr-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-slate-900 truncate">
-                      {selectedRecord.userName || 'Staff Member'}
-                    </span>
-                    <span className="text-[10px] font-medium text-slate-500">• {selectedRecord.department}</span>
-                    <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
-                      selectedRecord.isInsideGeofence
-                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                        : 'bg-sky-100 text-sky-800 border border-sky-200'
-                    }`}>
-                      {selectedRecord.isInsideGeofence ? 'Inside HQ' : 'Field Deploy'}
-                    </span>
-                  </div>
-                  <p className="text-slate-500 text-[11px] truncate mt-0.5">
-                    {selectedRecord.addressText || selectedRecord.address_text || 'Dhaka HQ'}
-                    {selectedRecord.distanceMeters !== undefined && (
-                      <span className="font-mono ml-1 font-semibold text-slate-700">
-                        ({selectedRecord.distanceMeters > 1000 ? `${(selectedRecord.distanceMeters / 1000).toFixed(1)} km` : `${selectedRecord.distanceMeters} m`} from center)
-                      </span>
-                    )}
-                  </p>
-                </div>
-
-                {selectedRecord.parsedLat && selectedRecord.parsedLng && (
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      onClick={() => handleCopyCoords(selectedRecord.parsedLat, selectedRecord.parsedLng, selectedRecord.id)}
-                      className="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-50 rounded-md text-[11px] font-semibold text-slate-700 shadow-2xs"
-                    >
-                      {copiedId === selectedRecord.id ? 'Copied' : 'Copy GPS'}
-                    </button>
-                    <a
-                      href={`https://www.google.com/maps?q=${selectedRecord.parsedLat},${selectedRecord.parsedLng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 px-2.5 py-1 bg-[#10241E] hover:bg-slate-800 text-white rounded-md text-[11px] font-semibold shadow-2xs"
-                    >
-                      <span>Maps</span>
-                      <ArrowUpRight size={12} />
-                    </a>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="p-2.5 bg-slate-50 border border-dashed border-slate-200 rounded-lg text-center text-xs text-slate-400">
-                Click any staff pin on the map or roster to inspect coordinates.
-              </div>
-            )}
-          </div>
-
-          {/* Card 2 (Right 4 Cols): Bento KPI Metrics + Live Check-in Stream */}
-          <div className="lg:col-span-4 flex flex-col space-y-3.5">
-            {/* Top 4 Stat Micro-Cards in 2x2 Bento */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div className="p-3 bg-white border border-slate-200/90 rounded-xl shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Checked In</span>
-                  <div className="w-5 h-5 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                    <CheckCircle2 size={12} />
-                  </div>
-                </div>
-                <p className="text-xl font-extrabold text-slate-900 mt-1">{attendance.length}</p>
-                <span className="text-[10px] text-slate-400 font-medium">Out of {users.length || 0} active</span>
-              </div>
-
-              <div className="p-3 bg-white border border-slate-200/90 rounded-xl shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Turnout Rate</span>
-                  <div className="w-5 h-5 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center">
-                    <TrendingUp size={12} />
-                  </div>
-                </div>
-                <p className="text-xl font-extrabold text-slate-900 mt-1">{presenceRatio}%</p>
-                <span className="text-[10px] text-emerald-600 font-medium font-mono">Present today</span>
-              </div>
-
-              <div className="p-3 bg-white border border-slate-200/90 rounded-xl shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Office (HQ)</span>
-                  <div className="w-5 h-5 rounded-md bg-slate-100 text-slate-800 flex items-center justify-center">
-                    <Building size={12} />
-                  </div>
-                </div>
-                <p className="text-xl font-extrabold text-slate-900 mt-1">{inGeofenceCount}</p>
-                <span className="text-[10px] text-slate-400 font-medium">Within 500m radius</span>
-              </div>
-
-              <div className="p-3 bg-white border border-slate-200/90 rounded-xl shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Field Sites</span>
-                  <div className="w-5 h-5 rounded-md bg-sky-50 text-sky-700 flex items-center justify-center">
-                    <Navigation size={12} />
-                  </div>
-                </div>
-                <p className="text-xl font-extrabold text-slate-900 mt-1">{fieldDeployCount}</p>
-                <span className="text-[10px] text-slate-400 font-medium">Remote deployments</span>
-              </div>
-            </div>
-
-            {/* Live Check-in Feed Column */}
-            <div className="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs flex-1 flex flex-col min-h-[300px]">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  <Clock size={13} className="text-emerald-600" />
-                  Realtime Check-in Stream
-                </div>
-                <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                  {filteredRecords.length}
-                </span>
-              </div>
-
-              <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 max-h-[300px]">
-                {filteredRecords.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-center p-6 text-slate-400 text-xs">
-                    No records found for this filter
-                  </div>
-                ) : (
-                  filteredRecords.map((rec) => {
-                    const isSelected = selectedRecord?.id === rec.id;
-                    const time = rec.loginTime
-                      ? new Date(rec.loginTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                      : '—';
-
-                    return (
-                      <div
-                        key={rec.id}
-                        onClick={() => setSelectedRecord(rec)}
-                        className={`p-2 rounded-lg border text-xs cursor-pointer transition-all ${
-                          isSelected
-                            ? 'bg-slate-50 border-[#10241E] ring-1 ring-[#10241E]/20'
-                            : 'bg-white border-slate-200/70 hover:border-slate-300'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-slate-900 truncate mr-2">
-                            {rec.userName || 'Staff Member'}
-                          </span>
-                          <span
-                            className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase shrink-0 ${
-                              rec.isInsideGeofence
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-sky-100 text-sky-800'
-                            }`}
-                          >
-                            {rec.isInsideGeofence ? 'HQ' : 'Field'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
-                          <span className="truncate max-w-[170px]">{rec.addressText || rec.address_text || 'Dhaka'}</span>
-                          <span className="font-mono text-slate-400 font-semibold">{time}</span>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Full-Width Bento Attendance Registry Table */}
-        <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs space-y-2.5">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                <FileSpreadsheet size={14} />
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  Personnel Attendance Master Registry
-                </h3>
-                <p className="text-[11px] text-slate-400">Complete verification records with verified geofencing status</p>
-              </div>
-            </div>
-            <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
-              {filteredRecords.length} Verified Entries
-            </span>
-          </div>
-
-          <div className="overflow-x-auto border border-slate-200/90 rounded-lg">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
-                <tr>
-                  <th className="py-2.5 px-3.5">Employee Name & Role</th>
-                  <th className="py-2.5 px-3.5">Session</th>
-                  <th className="py-2.5 px-3.5">Check-In Time</th>
-                  <th className="py-2.5 px-3.5">Verified Geofence Location</th>
-                  <th className="py-2.5 px-3.5">HQ Offset</th>
-                  <th className="py-2.5 px-3.5 text-right">Verification</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredRecords.map((rec) => {
-                  const time = rec.loginTime
-                    ? new Date(rec.loginTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                    : '—';
-
-                  return (
-                    <tr
-                      key={rec.id}
-                      onClick={() => setSelectedRecord(rec)}
-                      className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${selectedRecord?.id === rec.id ? 'bg-slate-50/80 font-medium' : ''}`}
-                    >
-                      <td className="py-2.5 px-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <UserAvatar
-                            src={rec.avatarUrl}
-                            name={rec.userName || 'Staff Member'}
-                            size="sm"
-                            shape="rounded"
-                          />
-                          <div>
-                            <span className="font-bold text-slate-900 block">{rec.userName || 'Staff Member'}</span>
-                            <span className="text-[10px] text-slate-400">{rec.designation || 'Staff'} • {rec.department || 'Operations'}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-3.5">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-slate-100 text-slate-700">
-                          {rec.sessionType || rec.session_type || 'Morning'}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3.5 font-mono text-slate-600 text-[11px]">
-                        {time}
-                      </td>
-                      <td className="py-2.5 px-3.5">
-                        <span className="text-slate-800 font-medium block truncate max-w-[320px]">
-                          {rec.addressText || rec.address_text || `${rec.latitude}, ${rec.longitude}`}
-                        </span>
-                        <span className={`inline-block text-[9px] font-bold px-1.5 py-0.2 rounded mt-0.5 ${
-                          rec.isInsideGeofence ? 'bg-emerald-100 text-emerald-800' : 'bg-sky-100 text-sky-800'
-                        }`}>
-                          {rec.isInsideGeofence ? 'Office Geofence (≤500m)' : 'Remote Field Deployment'}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3.5 font-mono text-slate-600 text-[11px]">
-                        {rec.distanceMeters !== undefined 
-                          ? (rec.distanceMeters > 1000 ? `${(rec.distanceMeters / 1000).toFixed(1)} km` : `${rec.distanceMeters} m`)
-                          : '—'}
-                      </td>
-                      <td className="py-2.5 px-3.5 text-right">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md font-bold text-[10px]">
-                          <CheckCircle2 size={11} />
-                          Verified
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {filteredRecords.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                      No records found matching current query or filters.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+      <div className="mx-auto w-full max-w-[1600px] space-y-3 py-2">
+        {loadError && <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"><span>{loadError}</span><button type="button" onClick={() => void fetchAttendance()} className="shrink-0 rounded-md border border-amber-300 bg-white px-2.5 py-1 font-semibold hover:bg-amber-100">Retry</button></div>}
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div><h1 className="text-lg font-semibold tracking-tight text-slate-900">Attendance</h1><p className="mt-0.5 text-xs text-slate-500">Daily team presence and check-ins</p></div><div className="flex flex-wrap items-center gap-2"><div className="flex h-9 items-center overflow-hidden rounded-lg border border-slate-200 bg-white"><button aria-label="Previous day" onClick={() => setSelectedDate((date) => shiftDate(date, -1))} className="grid h-full w-8 place-items-center text-slate-500 hover:bg-slate-50">&lt;</button><label className="flex h-full items-center gap-1.5 border-x border-slate-200 px-2.5"><Calendar size={14} className="text-slate-500"/><input aria-label="Attendance date" type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-[122px] bg-transparent text-xs font-medium text-slate-700 outline-none" /></label><button aria-label="Next day" onClick={() => setSelectedDate((date) => shiftDate(date, 1))} className="grid h-full w-8 place-items-center text-slate-500 hover:bg-slate-50">&gt;</button></div><Link href="/settings" className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-700 hover:bg-slate-50"><Settings size={14}/>Settings</Link><button onClick={() => setIsCheckInModalOpen(true)} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700"><PlusCircle size={14}/>Record check-in</button></div></section>
+        <section aria-label="Attendance summary" className="grid grid-cols-2 gap-2 sm:grid-cols-4">{[{ label: "Present", value: presentCount, color: "bg-emerald-500" }, { label: "Late", value: lateCount, color: "bg-amber-500" }, { label: "On leave", value: leaveCount, color: "bg-sky-500" }, { label: "Absent", value: absentCount, color: "bg-rose-500" }].map((metric) => <div key={metric.label} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm"><div><p className="text-[11px] font-medium text-slate-500">{metric.label}</p><p className="mt-0.5 text-xl font-semibold tabular-nums text-slate-900">{metric.value}</p></div><span className={`h-2.5 w-2.5 rounded-full ${metric.color}`} /></div>)}</section>
+        <section aria-label="Attendance filters" className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+          <div className="relative min-w-[190px] flex-1"><Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"/><input aria-label="Search employees" placeholder="Search by name or email" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-9 w-full rounded-lg border border-slate-200 pl-8 pr-3 text-xs outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100" /></div>
+          <select aria-label="Department" value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="h-9 min-w-[138px] rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700"><option value="all">All departments</option>{departments.map((department) => <option key={department}>{department}</option>)}</select>
+          <select aria-label="Attendance status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-9 min-w-[122px] rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700"><option value="all">All statuses</option><option value="present">Present</option><option value="late">Late</option><option value="on leave">On leave</option><option value="absent">Absent</option></select>
+          <select aria-label="Work location" value={workLocationFilter} onChange={(e) => setWorkLocationFilter(e.target.value as 'all' | AttendanceWorkLocation)} className="h-9 min-w-[140px] rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700"><option value="all">All work locations</option>{(['office', 'home', 'home_office', 'field', 'unknown'] as AttendanceWorkLocation[]).map((location) => <option key={location} value={location}>{workLocationLabels[location]}</option>)}</select>
+          <select aria-label="Shift" value={shiftFilter} onChange={(e) => setShiftFilter(e.target.value as typeof shiftFilter)} className="h-9 min-w-[110px] rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700"><option value="all">All shifts</option><option value="morning">Morning</option><option value="afternoon">Afternoon</option></select>
+          <span className="ml-auto whitespace-nowrap px-1 text-xs tabular-nums text-slate-500">{visibleRoster.length} employees</span>
+        </section>
+        <div className="grid grid-cols-1 items-stretch gap-3 xl:grid-cols-12">
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm xl:col-span-8"><div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><div><h2 className="text-sm font-semibold text-slate-900">Team attendance</h2><p className="mt-0.5 text-xs text-slate-500">{selectedDate} | {visibleRoster.length} employees</p></div><span className="rounded-md bg-indigo-50 px-2 py-1 text-[11px] font-medium text-indigo-700">{presenceRatio}% present</span></div><div className="overflow-x-auto"><table className="w-full min-w-[790px] text-left text-xs"><thead className="bg-slate-50 text-[10px] font-semibold uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-2.5">Employee</th><th className="px-3 py-2.5">Department</th><th className="px-3 py-2.5">Shift</th><th className="px-3 py-2.5">Check-in</th><th className="px-3 py-2.5">Work location</th><th className="px-4 py-2.5 text-right">Status</th></tr></thead><tbody className="divide-y divide-slate-100">{visibleRoster.length ? visibleRoster.map((row) => { const record = row.record; const time = record?.loginTime || record?.login_time || record?.created_at; const tone = row.status === "Present" ? "bg-emerald-50 text-emerald-700" : row.status === "Late" ? "bg-amber-50 text-amber-700" : row.status === "On leave" ? "bg-sky-50 text-sky-700" : "bg-slate-100 text-slate-600"; const location = row.workLocation as AttendanceWorkLocation; return <tr key={row.id} onClick={() => record && setSelectedRecord(record)} className={`transition-colors ${record ? "cursor-pointer hover:bg-indigo-50/40" : ""} ${selectedRecord && record?.id === selectedRecord.id ? "bg-indigo-50/50" : ""}`}><td className="px-4 py-2.5"><div className="flex items-center gap-2.5"><UserAvatar src={record?.avatarUrl || record?.avatar_url || users.find((u) => String(u.id ?? u._id) === row.id)?.avatarUrl} name={row.name} size="sm" shape="rounded"/><div className="min-w-0"><div className="truncate font-medium text-slate-800">{row.name}</div><div className="truncate text-[10px] text-slate-400">{row.email}</div></div></div></td><td className="px-3 py-2.5 text-slate-600">{row.department}</td><td className="px-3 py-2.5 capitalize text-slate-600">{row.shift}</td><td className="px-3 py-2.5 tabular-nums text-slate-600">{time ? new Date(time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}</td><td className="px-3 py-2.5"><span className={`inline-flex whitespace-nowrap rounded-full px-2 py-1 text-[10px] font-medium ring-1 ring-inset ${workLocationTones[location]}`}>{workLocationLabels[location]}</span></td><td className="px-4 py-2.5 text-right"><span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-medium ${tone}`}>{row.status}</span></td></tr>; }) : <tr><td colSpan={6} className="px-4 py-12 text-center text-slate-500">{users.length ? "No employees match these filters." : "No employee records are available."}</td></tr>}</tbody></table></div></section>
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm xl:col-span-4"><div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><div><h2 className="text-sm font-semibold text-slate-900">Attendance locations</h2><p className="mt-0.5 text-xs text-slate-500">{office.name}</p></div><span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500"><MapPin size={12}/>{mapLocations.length} check-ins</span></div><div className="h-[310px] w-full overflow-hidden sm:h-[360px]"><AttendanceMap records={mapLocations} selectedRecord={selectedRecord} onSelectRecord={(record) => setSelectedRecord(record)} officeLat={office.latitude} officeLng={office.longitude} officeRadiusMeters={office.radiusMeters} /></div><div className="border-t border-slate-100 px-4 py-2.5">{selectedRecord ? <div className="flex min-w-0 items-center justify-between gap-2"><div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-800">{selectedRecord.userName || "Employee"}</p><p className="truncate text-[10px] text-slate-500">{selectedRecord.addressText || selectedRecord.address_text || "Check-in location"}</p></div>{hasValidCoordinates(selectedRecord.parsedLat ?? selectedRecord.latitude, selectedRecord.parsedLng ?? selectedRecord.longitude) && <a href={`https://www.google.com/maps?q=${selectedRecord.parsedLat ?? selectedRecord.latitude},${selectedRecord.parsedLng ?? selectedRecord.longitude}`} target="_blank" rel="noopener noreferrer" className="shrink-0 text-[11px] font-medium text-indigo-700 hover:text-indigo-900">Open map</a>}</div> : <p className="text-xs text-slate-500">Select a check-in in the roster or on the map to inspect location.</p>}</div></section>
         </div>
       </div>
 

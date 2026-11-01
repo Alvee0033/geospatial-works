@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { ApiClient } from '@/lib/api';
+import { notifyAction } from '@/components/feedback/ActionFeedback';
 import {
   Plus,
   Search,
@@ -45,7 +46,7 @@ interface TaskItem {
   dueDate?: string;
   due_date?: string;
   status: string;
-  priority?: 'important' | 'high' | 'medium' | 'ok';
+  priority?: 'important' | 'high' | 'medium' | 'low';
   commentsCount?: number;
   assignees?: { id: string; name: string; avatar?: string }[];
 }
@@ -55,6 +56,9 @@ export default function TasksPage() {
   const [projects, setProjects] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canManageTasks, setCanManageTasks] = useState(false);
+  const [canUpdateTaskStatus, setCanUpdateTaskStatus] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   // Active view: 'kanban' | 'list'
   const [activeView, setActiveView] = useState<'kanban' | 'list'>('kanban');
@@ -76,41 +80,46 @@ export default function TasksPage() {
   const [formAssigneeIds, setFormAssigneeIds] = useState<string[]>([]);
   const [assigneeSearch, setAssigneeSearch] = useState('');
   const [isAssigneeMenuOpen, setIsAssigneeMenuOpen] = useState(false);
-  const [formPriority, setFormPriority] = useState<'important' | 'high' | 'medium' | 'ok'>('important');
+  const [formPriority, setFormPriority] = useState<'important' | 'high' | 'medium' | 'low'>('important');
   const [formDueDate, setFormDueDate] = useState('');
   const [formStatus, setFormStatus] = useState<KanbanStatus>('todo');
 
   // Drag and Drop state
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
-  const fetchTasksData = async () => {
-    setLoading(true);
+  const fetchTasksData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
-      const [tData, pData, uData] = await Promise.all([
-        ApiClient.getTasks().catch(() => []),
-        ApiClient.getProjects().catch(() => []),
-        ApiClient.getUsers().catch(() => []),
-      ]);
-      setTasks(tData || []);
-      setProjects(pData || []);
-      setUsers(uData || []);
+      const results = await Promise.allSettled([ApiClient.getTasks(), ApiClient.getProjects(), ApiClient.getUsers()]);
+      const errors = results.flatMap((result, index) => result.status === 'rejected' ? [['tasks', 'projects', 'people'][index]] : []);
+      if (results[0].status === 'fulfilled') setTasks(results[0].value || []);
+      if (results[1].status === 'fulfilled') setProjects(results[1].value || []);
+      if (results[2].status === 'fulfilled') setUsers(results[2].value || []);
+      setLoadError(errors.length ? `Could not load ${errors.join(', ')} from the server. Some actions may be unavailable.` : '');
     } catch (e) {
       console.error('Error fetching tasks data:', e);
+      setLoadError('Could not load live task data. Please retry.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTasksData();
+    try {
+      const user = JSON.parse(localStorage.getItem('gw_user') || '{}');
+      setCanManageTasks(['main_admin', 'project_manager'].includes(user.role));
+      setCanUpdateTaskStatus(['main_admin', 'project_manager', 'project_member'].includes(user.role));
+    } catch { setCanManageTasks(false); setCanUpdateTaskStatus(false); }
+    void fetchTasksData();
+    const unsubscribe = ApiClient.subscribeToDataRefresh(() => { void fetchTasksData(true); });
+    return unsubscribe;
   }, []);
 
   // Standardize task status into Kanban categories
   const normalizeStatus = (task: any): KanbanStatus => {
     const s = (task.status || '').toLowerCase();
     if (s.includes('complete') || s === 'done') return 'completed';
-    const bl = (task.budgetLine || task.budget_line || '').toLowerCase();
-    if (bl === 'todo') return 'todo';
+    if (s === 'todo' || s === 'not_started') return 'todo';
     return 'in_progress';
   };
 
@@ -118,7 +127,7 @@ export default function TasksPage() {
   const enrichedTasks = useMemo(() => {
     return tasks.map((t) => {
       const normStatus = normalizeStatus(t);
-      const pr = t.priority || 'important';
+      const pr = t.priority === 'ok' ? 'low' : t.priority || 'medium';
       const pName = projects.find((p) => p.id === (t.projectId || t.project_id))?.name || 'General Operations';
       const aName = t.assigneeName || t.assignee_name || 'Staff Member';
       const aId = t.assigneeId || t.assignee_id || t.assignees?.[0]?.id;
@@ -165,13 +174,14 @@ export default function TasksPage() {
 
   const assignableUsers = useMemo(() => {
     const query = assigneeSearch.trim().toLowerCase();
-    if (!query) return users;
-    const matches = users.filter((user) =>
+    const eligible = users.filter((user) => ['main_admin', 'project_manager', 'project_member'].includes(user.role));
+    if (!query) return eligible;
+    const matches = eligible.filter((user) =>
       [user.name, user.full_name, user.email, user.department]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(query))
     );
-    const selectedUsers = users.filter((user) => formAssigneeIds.includes(user.id));
+    const selectedUsers = eligible.filter((user) => formAssigneeIds.includes(user.id));
     return [...selectedUsers, ...matches.filter((user) => !formAssigneeIds.includes(user.id))];
   }, [users, assigneeSearch, formAssigneeIds]);
 
@@ -194,8 +204,8 @@ export default function TasksPage() {
     setFormTitle('');
     setFormDesc('');
     setFormProjectId(selectedProjectId !== 'all' ? selectedProjectId : projects[0]?.id || '');
-    setFormAssigneeIds(users[0]?.id ? [users[0].id] : []);
-    setAssigneeSearch(users[0] ? (users[0].name || users[0].full_name || users[0].email || '') : '');
+    setFormAssigneeIds([]);
+    setAssigneeSearch('');
     setIsAssigneeMenuOpen(false);
     setFormPriority('important');
     const defaultDate = new Date();
@@ -214,7 +224,7 @@ export default function TasksPage() {
     setFormAssigneeIds(assigneeIds);
     setAssigneeSearch('');
     setIsAssigneeMenuOpen(false);
-    setFormPriority(task.priority || 'important');
+    setFormPriority(task.priority === 'ok' ? 'low' : task.priority || 'important');
     if (task.dueDate || task.due_date) {
       setFormDueDate(new Date(task.dueDate || task.due_date).toISOString().split('T')[0]);
     } else {
@@ -227,17 +237,21 @@ export default function TasksPage() {
   const handleSaveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim()) return;
+    if (!formProjectId) {
+      notifyAction('Choose a project before saving this task.', 'error', 'Project required');
+      return;
+    }
+    if (!formAssigneeIds.length) {
+      notifyAction('Select at least one assignee before saving this task.', 'error', 'Assignee required');
+      return;
+    }
 
     setSubmitting(true);
     try {
       const targetProjId = formProjectId || projects[0]?.id;
-      const assigneeIds = formAssigneeIds.length > 0 ? formAssigneeIds : [users[0]?.id].filter(Boolean);
+      const assigneeIds = [...new Set(formAssigneeIds)];
       const targetUserId = assigneeIds[0];
       const assignee = users.find((u) => u.id === targetUserId);
-
-      // Map Kanban status to PostgreSQL DB constraint ('in_progress' | 'completed')
-      const dbStatus = formStatus === 'completed' ? 'completed' : 'in_progress';
-      const stageTag = formStatus === 'todo' ? 'todo' : 'in_progress';
 
       const payload = {
         title: formTitle.trim(),
@@ -250,9 +264,9 @@ export default function TasksPage() {
         assigneeIds,
         assignee_name: assignee?.name || 'Staff Member',
         due_date: formDueDate ? new Date(formDueDate).toISOString() : new Date().toISOString(),
-        status: dbStatus,
-        budget_line: stageTag,
-        budgetLine: stageTag,
+        status: formStatus,
+        budget_line: editingTask?.budgetLine || editingTask?.budget_line || null,
+        budgetLine: editingTask?.budgetLine || editingTask?.budget_line || null,
         priority: formPriority,
       };
 
@@ -261,31 +275,30 @@ export default function TasksPage() {
       } else {
         await ApiClient.createTask(payload);
       }
+      notifyAction(editingTask ? 'Task changes saved.' : 'Task assigned successfully.');
 
       setIsModalOpen(false);
       setEditingTask(null);
       await fetchTasksData();
     } catch (err: any) {
       console.error('Failed saving task:', err);
-      alert(`Error saving task: ${err.message || 'Operation failed'}`);
+      notifyAction(err.message || 'Task could not be saved.', 'error', 'Task save failed');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleMoveStatus = async (taskId: string, newStatus: KanbanStatus) => {
+    if (!canUpdateTaskStatus) return;
     // Optimistic UI update
-    const dbStatus = newStatus === 'completed' ? 'completed' : 'in_progress';
-    const stageTag = newStatus === 'todo' ? 'todo' : 'in_progress';
+    const previous = tasks;
 
     setTasks((prev) =>
       prev.map((t) =>
         t.id === taskId
           ? {
               ...t,
-              status: dbStatus,
-              budget_line: stageTag,
-              budgetLine: stageTag,
+              status: newStatus,
               kanbanStatus: newStatus,
             }
           : t
@@ -293,14 +306,13 @@ export default function TasksPage() {
     );
 
     try {
-      await ApiClient.updateTask(taskId, {
-        status: dbStatus,
-        budget_line: stageTag,
-        budgetLine: stageTag,
-      });
+      const updated = await ApiClient.updateTaskStatus(taskId, newStatus);
+      setTasks((prev) => prev.map((task) => task.id === taskId ? { ...task, ...updated, kanbanStatus: newStatus } : task));
+      notifyAction('Task status updated.');
     } catch (err) {
       console.error('Failed to update task status:', err);
-      await fetchTasksData();
+      setTasks(previous);
+      notifyAction(err instanceof Error ? err.message : 'Task status could not be saved. Please try again.', 'error', 'Status update failed');
     }
   };
 
@@ -310,8 +322,10 @@ export default function TasksPage() {
     try {
       await ApiClient.deleteTask(taskId);
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      notifyAction('Task deleted.');
     } catch (err) {
       console.error('Failed to delete task:', err);
+      notifyAction(err instanceof Error ? err.message : 'Task could not be deleted.', 'error', 'Delete failed');
     }
   };
 
@@ -326,6 +340,7 @@ export default function TasksPage() {
   };
 
   const handleDrop = async (e: React.DragEvent, targetStatus: KanbanStatus) => {
+    if (!canUpdateTaskStatus) return;
     e.preventDefault();
     const id = e.dataTransfer.getData('text/plain') || draggedTaskId;
     if (id) {
@@ -385,11 +400,12 @@ export default function TasksPage() {
   return (
     <AdminLayout
       title="Tasks & Deliverables Kanban"
-      onRefresh={fetchTasksData}
+      onRefresh={() => { void fetchTasksData(); }}
       onExport={handleExport}
       isRefreshing={loading}
     >
       <div className="w-full max-w-[1440px] mx-auto px-5 py-5 space-y-3">
+        {loadError && <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"><span>{loadError}</span><button type="button" onClick={() => void fetchTasksData()} className="font-semibold underline">Retry</button></div>}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <h1 className="text-xl font-black text-slate-900 tracking-tight">Tasks</h1>
@@ -415,13 +431,13 @@ export default function TasksPage() {
               <ChevronDown size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
 
-            <button
+            {canManageTasks && <button
               onClick={() => handleOpenCreate('todo')}
               className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
             >
               <Plus size={14} />
               <span>New task</span>
-            </button>
+            </button>}
           </div>
         </div>
 
@@ -512,13 +528,13 @@ export default function TasksPage() {
               </div>
 
               {/* Add New Task Button (Purple matching image) */}
-              <button
+              {canManageTasks && <button
                 onClick={() => handleOpenCreate('todo')}
                 className="w-full py-2 px-3 bg-[#6366F1] hover:bg-indigo-600 text-white rounded-xl font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-1.5 mb-3 shrink-0"
               >
                 <Plus size={14} />
                 <span>Add New Task</span>
-              </button>
+              </button>}
 
               {/* Cards Stream */}
               <div className="space-y-3 flex-1 overflow-y-auto pr-1">
@@ -530,32 +546,27 @@ export default function TasksPage() {
                   todoTasks.map((task) => (
                     <div
                       key={task.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, task.id)}
-                      onClick={() => handleOpenEdit(task)}
-                      className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-slate-300 transition-all cursor-pointer group relative"
+                      draggable={canUpdateTaskStatus}
+                      onDragStart={canUpdateTaskStatus ? (e) => handleDragStart(e, task.id) : undefined}
+                      onClick={() => { if (canManageTasks) handleOpenEdit(task); }}
+                      className={`bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-slate-300 transition-all group relative ${canManageTasks ? 'cursor-pointer' : ''}`}
                     >
                       {/* Priority Tag & Quick Status Shifter */}
                       <div className="flex items-center justify-between mb-2">
                         {renderPriorityBadge(task.priority)}
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMoveStatus(task.id, 'in_progress');
-                            }}
+                          {canUpdateTaskStatus && <button
+                            onClick={(e) => { e.stopPropagation(); handleMoveStatus(task.id, 'in_progress'); }}
                             className="text-[10px] font-bold px-2 py-0.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-md transition-colors"
                             title="Move to In Progress"
-                          >
-                            Start →
-                          </button>
-                          <button
+                          >Start →</button>}
+                          {canManageTasks && <button
                             onClick={(e) => handleDeleteTask(task.id, e)}
                             className="p-1 text-slate-400 hover:text-rose-600 transition-colors"
                             title="Delete Task"
                           >
                             <Trash2 size={12} />
-                          </button>
+                          </button>}
                         </div>
                       </div>
 
@@ -618,13 +629,13 @@ export default function TasksPage() {
               </div>
 
               {/* Add New Task Button (Orange matching image) */}
-              <button
+              {canManageTasks && <button
                 onClick={() => handleOpenCreate('in_progress')}
                 className="w-full py-2 px-3 bg-[#F59E0B] hover:bg-amber-600 text-white rounded-xl font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-1.5 mb-3 shrink-0"
               >
                 <Plus size={14} />
                 <span>Add New Task</span>
-              </button>
+              </button>}
 
               {/* Cards Stream */}
               <div className="space-y-3 flex-1 overflow-y-auto pr-1">
@@ -636,32 +647,30 @@ export default function TasksPage() {
                   inProgressTasks.map((task) => (
                     <div
                       key={task.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, task.id)}
-                      onClick={() => handleOpenEdit(task)}
-                      className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-slate-300 transition-all cursor-pointer group relative"
+                      draggable={canUpdateTaskStatus}
+                      onDragStart={canUpdateTaskStatus ? (e) => handleDragStart(e, task.id) : undefined}
+                      onClick={() => { if (canManageTasks) handleOpenEdit(task); }}
+                      className={`bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-slate-300 transition-all group relative ${canManageTasks ? 'cursor-pointer' : ''}`}
                     >
                       {/* Priority Tag & Quick Complete Action */}
                       <div className="flex items-center justify-between mb-2">
                         {renderPriorityBadge(task.priority)}
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                          <button
+                          {canUpdateTaskStatus && <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleMoveStatus(task.id, 'completed');
                             }}
                             className="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-md transition-colors"
                             title="Complete Task"
-                          >
-                            Done ✓
-                          </button>
-                          <button
+                          >Done ✓</button>}
+                          {canManageTasks && <button
                             onClick={(e) => handleDeleteTask(task.id, e)}
                             className="p-1 text-slate-400 hover:text-rose-600 transition-colors"
                             title="Delete Task"
                           >
                             <Trash2 size={12} />
-                          </button>
+                          </button>}
                         </div>
                       </div>
 
@@ -724,13 +733,13 @@ export default function TasksPage() {
               </div>
 
               {/* Add New Task Button (Green matching image) */}
-              <button
+              {canManageTasks && <button
                 onClick={() => handleOpenCreate('completed')}
                 className="w-full py-2 px-3 bg-[#10B981] hover:bg-emerald-600 text-white rounded-xl font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-1.5 mb-3 shrink-0"
               >
                 <Plus size={14} />
                 <span>Add New Task</span>
-              </button>
+              </button>}
 
               {/* Cards Stream */}
               <div className="space-y-3 flex-1 overflow-y-auto pr-1">
@@ -742,32 +751,30 @@ export default function TasksPage() {
                   completedTasks.map((task) => (
                     <div
                       key={task.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, task.id)}
-                      onClick={() => handleOpenEdit(task)}
-                      className="bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-slate-300 transition-all cursor-pointer group relative opacity-95"
+                      draggable={canUpdateTaskStatus}
+                      onDragStart={canUpdateTaskStatus ? (e) => handleDragStart(e, task.id) : undefined}
+                      onClick={() => { if (canManageTasks) handleOpenEdit(task); }}
+                      className={`bg-white rounded-xl p-3 border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-slate-300 transition-all group relative opacity-95 ${canManageTasks ? 'cursor-pointer' : ''}`}
                     >
                       {/* Priority Tag & Reopen Action */}
                       <div className="flex items-center justify-between mb-2">
                         {renderPriorityBadge(task.priority)}
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                          <button
+                          {canUpdateTaskStatus && <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleMoveStatus(task.id, 'todo');
                             }}
                             className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-md transition-colors"
                             title="Reopen Task"
-                          >
-                            Reopen ↺
-                          </button>
-                          <button
+                          >Reopen ↺</button>}
+                          {canManageTasks && <button
                             onClick={(e) => handleDeleteTask(task.id, e)}
                             className="p-1 text-slate-400 hover:text-rose-600 transition-colors"
                             title="Delete Task"
                           >
                             <Trash2 size={12} />
-                          </button>
+                          </button>}
                         </div>
                       </div>
 
@@ -834,15 +841,15 @@ export default function TasksPage() {
                   {filteredTasks.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="py-12 text-center text-slate-400 font-medium">
-                        No tasks matching active criteria. Click "+ Add New Task" to create one.
+                        No tasks matching the selected filters.
                       </td>
                     </tr>
                   ) : (
                     filteredTasks.map((task) => (
                       <tr
                         key={task.id}
-                        onClick={() => handleOpenEdit(task)}
-                        className="hover:bg-slate-50/80 transition-colors cursor-pointer"
+                        onClick={() => { if (canManageTasks) handleOpenEdit(task); }}
+                        className={`hover:bg-slate-50/80 transition-colors ${canManageTasks ? 'cursor-pointer' : ''}`}
                       >
                         <td className="py-3.5 px-4 font-extrabold text-slate-900 max-w-xs truncate">
                           {task.title}
@@ -877,12 +884,12 @@ export default function TasksPage() {
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-right">
-                          <button
+                          {canManageTasks && <button
                             onClick={(e) => handleDeleteTask(task.id, e)}
                             className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
                           >
                             <Trash2 size={14} />
-                          </button>
+                          </button>}
                         </td>
                       </tr>
                     ))

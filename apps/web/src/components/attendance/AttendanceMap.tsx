@@ -16,6 +16,7 @@ export interface AttendanceLocation {
   sessionType?: string;
   status?: string;
   distanceMeters?: number;
+  workLocation?: 'office' | 'home' | 'home_office' | 'field' | 'unknown';
 }
 
 interface AttendanceMapProps {
@@ -88,7 +89,7 @@ export const AttendanceMap: React.FC<AttendanceMapProps> = ({
         }).addTo(map);
 
         // Office Geofence Circle
-        const officeCircle = L.circle([officeLat, officeLng], {
+        L.circle([officeLat, officeLng], {
           color: '#4F46E5',
           fillColor: '#818CF8',
           fillOpacity: 0.16,
@@ -97,13 +98,6 @@ export const AttendanceMap: React.FC<AttendanceMapProps> = ({
           dashArray: '4, 6',
         }).addTo(map);
 
-        officeCircle.bindPopup(`
-          <div style="font-family: inherit; font-size: 12px; line-height: 1.4;">
-            <div style="font-weight: 700; color: #1E293B; font-size: 13px;">🏢 Dhaka Head Office HQ</div>
-            <div style="color: #64748B; font-size: 11px; margin-top: 2px;">Official Geofence: ${officeRadiusMeters}m radius</div>
-            <div style="color: #4F46E5; font-size: 10px; font-family: monospace; margin-top: 4px;">${officeLat.toFixed(5)}°, ${officeLng.toFixed(5)}°</div>
-          </div>
-        `);
 
         // HQ Center Marker
         const hqIcon = L.divIcon({
@@ -131,14 +125,7 @@ export const AttendanceMap: React.FC<AttendanceMapProps> = ({
           iconAnchor: [17, 17],
         });
 
-        L.marker([officeLat, officeLng], { icon: hqIcon })
-          .bindPopup(`
-            <div style="font-family: inherit; font-size: 12px; padding: 2px;">
-              <strong style="color: #1E293B; font-size: 13px;">🏢 Corporate HQ</strong><br/>
-              <span style="color: #64748B; font-size: 11px;">Dhaka Base Operations</span>
-            </div>
-          `)
-          .addTo(map);
+        L.marker([officeLat, officeLng], { icon: hqIcon }).addTo(map);
 
         // Markers layer
         markersLayerRef.current = L.layerGroup().addTo(map);
@@ -149,8 +136,10 @@ export const AttendanceMap: React.FC<AttendanceMapProps> = ({
         markersLayerRef.current.clearLayers();
         markerMapRef.current.clear();
 
-        const validRecords = records.filter(
-          (r) => r.latitude && r.longitude && !isNaN(r.latitude) && !isNaN(r.longitude)
+        const validRecords = records.filter((r) =>
+          Number.isFinite(r.latitude) && Number.isFinite(r.longitude) &&
+          Math.abs(r.latitude) <= 90 && Math.abs(r.longitude) <= 180 &&
+          (r.latitude !== 0 || r.longitude !== 0)
         );
 
         validRecords.forEach((r) => {
@@ -160,20 +149,13 @@ export const AttendanceMap: React.FC<AttendanceMapProps> = ({
           const statusLower = (r.status || 'present').toLowerCase();
 
           // Semantic Colors
-          let markerColor = '#10B981'; // Green for inside geofence
-          let badgeText = 'HQ Geofence';
-
-          if (!isInsideGeofence) {
-            markerColor = '#0284C7'; // Cyan/Blue for field sites
-            badgeText = `Field (${dist > 1000 ? (dist / 1000).toFixed(1) + 'km' : dist + 'm'})`;
-          }
+          const locationColors = { office: '#10B981', home: '#8B5CF6', home_office: '#0284C7', field: '#D97706', unknown: isInsideGeofence ? '#10B981' : '#64748B' };
+          let markerColor = locationColors[r.workLocation || 'unknown'];
           if (statusLower.includes('late')) {
-            markerColor = '#F59E0B'; // Amber
-            badgeText = 'Late Shift';
+            markerColor = '#DB2777'; // Pink for late check-ins
           }
           if (statusLower.includes('absent')) {
             markerColor = '#EF4444'; // Red
-            badgeText = 'Flagged';
           }
 
           const customIcon = L.divIcon({
@@ -205,37 +187,6 @@ export const AttendanceMap: React.FC<AttendanceMapProps> = ({
 
           const marker = L.marker([r.latitude, r.longitude], { icon: customIcon });
 
-          const timeDisplay = r.loginTime
-            ? new Date(r.loginTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : 'Logged';
-
-          const popupContent = `
-            <div style="font-family: inherit; font-size: 12px; min-width: 200px; padding: 4px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                <span style="font-weight: 800; color: #0F172A; font-size: 13px;">${r.userName}</span>
-                <span style="font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 9999px; background: ${markerColor}20; color: ${markerColor};">
-                  ${badgeText}
-                </span>
-              </div>
-              <div style="font-size: 11px; color: #64748B; margin-bottom: 8px;">
-                ${r.department || 'Operations'} • ${r.designation || 'Specialist'}
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px; margin-bottom: 6px; background: #F8FAFC; padding: 6px; border-radius: 8px;">
-                <div><strong>Shift:</strong> <span style="text-transform: capitalize;">${r.sessionType || 'Morning'}</span></div>
-                <div><strong>Time:</strong> ${timeDisplay}</div>
-                <div style="grid-column: span 2;"><strong>Distance:</strong> ${dist > 1000 ? (dist / 1000).toFixed(2) + ' km' : dist + ' m'} from HQ</div>
-              </div>
-              <div style="font-size: 10px; color: #475569; margin-bottom: 4px; line-height: 1.3;">
-                <strong>Site:</strong> ${r.addressText || `${r.latitude.toFixed(4)}, ${r.longitude.toFixed(4)}`}
-              </div>
-              <div style="font-size: 10px; color: #94A3B8; font-family: monospace;">
-                ${Number(r.latitude).toFixed(5)}°, ${Number(r.longitude).toFixed(5)}°
-              </div>
-            </div>
-          `;
-
-          marker.bindPopup(popupContent);
-
           marker.on('click', () => {
             if (onSelectRecord) onSelectRecord(r);
           });
@@ -243,10 +194,6 @@ export const AttendanceMap: React.FC<AttendanceMapProps> = ({
           markersLayerRef.current.addLayer(marker);
           markerMapRef.current.set(r.id, marker);
 
-          // If this record is selected, open popup
-          if (isSelected) {
-            setTimeout(() => marker.openPopup(), 100);
-          }
         });
 
         // Pan to selected record or fit all bounds
@@ -285,22 +232,22 @@ export const AttendanceMap: React.FC<AttendanceMapProps> = ({
 
   return (
     <div
-      className={`relative w-full h-full min-h-[460px] rounded-[28px] overflow-hidden border border-slate-200/80 shadow-xs bg-slate-100 ${className}`}
+      className={`relative isolate z-0 w-full h-full min-h-0 rounded-[28px] overflow-hidden border border-slate-200/80 shadow-xs bg-slate-100 ${className}`}
     >
-      <div ref={mapContainerRef} className="w-full h-full min-h-[460px]" />
+      <div ref={mapContainerRef} className="w-full h-full min-h-0" />
 
       {/* Floating Control Buttons */}
-      <div className="absolute top-4 right-4 z-[1000] flex items-center gap-2">
+      <div className="absolute left-12 right-3 top-3 z-[1000] flex flex-wrap items-center justify-end gap-1.5 sm:left-auto sm:right-4 sm:top-4 sm:flex-nowrap sm:gap-2">
         <button
           onClick={handleCenterHQ}
-          className="px-3 py-1.5 bg-white/95 backdrop-blur-md hover:bg-white text-slate-800 text-xs font-bold rounded-xl border border-slate-200 shadow-sm transition-all flex items-center gap-1.5"
+          className="px-2.5 py-1.5 bg-white/95 backdrop-blur-md hover:bg-white text-slate-800 text-[10px] sm:text-xs font-bold rounded-lg sm:rounded-xl border border-slate-200 shadow-sm transition-all flex items-center gap-1.5"
           title="Center on Dhaka HQ"
         >
           <span>🏢 HQ Focus</span>
         </button>
         <button
           onClick={handleFitAll}
-          className="px-3 py-1.5 bg-white/95 backdrop-blur-md hover:bg-white text-slate-800 text-xs font-bold rounded-xl border border-slate-200 shadow-sm transition-all flex items-center gap-1.5"
+          className="px-2.5 py-1.5 bg-white/95 backdrop-blur-md hover:bg-white text-slate-800 text-[10px] sm:text-xs font-bold rounded-lg sm:rounded-xl border border-slate-200 shadow-sm transition-all flex items-center gap-1.5"
           title="Fit all staff markers"
         >
           <span>🌐 Fit All ({records.length})</span>
@@ -308,18 +255,26 @@ export const AttendanceMap: React.FC<AttendanceMapProps> = ({
       </div>
 
       {/* Legend Badge Bar */}
-      <div className="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-slate-200 shadow-md text-[11px] font-semibold text-slate-700 flex flex-wrap items-center gap-3">
+      <div className="absolute bottom-3 left-3 right-3 z-[1000] bg-white/95 backdrop-blur-md px-2.5 py-2 rounded-xl border border-slate-200 shadow-md text-[9px] sm:text-[11px] font-semibold text-slate-700 flex flex-wrap items-center gap-x-2.5 gap-y-1 sm:bottom-4 sm:left-4 sm:right-auto sm:px-3.5 sm:rounded-2xl sm:gap-3">
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs" />
-          <span>HQ Geofence (≤{officeRadiusMeters}m)</span>
+          <span>Office / in range</span>
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-xs" />
-          <span>Field Site (&gt;{officeRadiusMeters}m)</span>
+          <span>Home office</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-violet-500 shadow-xs" />
+          <span>Home</span>
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs" />
-          <span>Late Shift</span>
+          <span>Field</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-pink-600 shadow-xs" />
+          <span>Late</span>
         </span>
       </div>
     </div>

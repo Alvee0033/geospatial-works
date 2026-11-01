@@ -33,6 +33,7 @@ export default function EmployeesPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,33 +56,29 @@ export default function EmployeesPage() {
   const [formRole, setFormRole] = useState('project_member');
   const [formAssignedProjects, setFormAssignedProjects] = useState<string[]>([]);
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const [userData, projData] = await Promise.all([
-        ApiClient.getUsers().catch(() => []),
-        ApiClient.getProjects().catch(() => []),
-      ]);
-      setUsers(userData || []);
-      setProjects(projData || []);
-    } catch (e) {
-      console.error('Failed fetching users:', e);
-    } finally {
-      setLoading(false);
-    }
+  const fetchUsers = async (silent = false) => {
+    if (!silent) setLoading(true);
+    const results = await Promise.allSettled([ApiClient.getUsers(), ApiClient.getProjects()]);
+    if (results[0].status === 'fulfilled') setUsers(results[0].value || []);
+    if (results[1].status === 'fulfilled') setProjects(results[1].value || []);
+    const failed = results.flatMap((result, index) => result.status === 'rejected' ? [['employees', 'projects'][index]] : []);
+    setLoadError(failed.length ? `Could not refresh ${failed.join(' or ')} from the server. Showing the last records received where available.` : '');
+    if (!silent) setLoading(false);
   };
 
   useEffect(() => {
-    fetchUsers();
+    void fetchUsers();
+    const unsubscribe = ApiClient.subscribeToDataRefresh(() => { void fetchUsers(true); });
+    return unsubscribe;
   }, []);
 
   const handleOpenAdd = () => {
     setFormName('');
     setFormEmail('');
-    setFormPassword('password123');
-    setFormPhone('+880 1711-');
-    setFormDepartment('GIS & Remote Sensing');
-    setFormDesignation('Field Specialist');
+    setFormPassword('');
+    setFormPhone('');
+    setFormDepartment('');
+    setFormDesignation('');
     setFormRole('project_member');
     setFormAssignedProjects([]);
     setIsAddModalOpen(true);
@@ -218,11 +215,12 @@ export default function EmployeesPage() {
     <AdminLayout
       title="Team Directory & Access"
       subtitle="Corporate directory, roles and permissions, assignment allocation"
-      onRefresh={fetchUsers}
+      onRefresh={() => { void fetchUsers(); }}
       onExport={handleExport}
       isRefreshing={loading}
       contentClassName="px-4 lg:px-6 py-4"
     >
+      {loadError && <div role="alert" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"><span>{loadError}</span><button type="button" onClick={() => { void fetchUsers(); }} className="font-semibold underline">Retry</button></div>}
       <div className="w-full space-y-3.5">
         {/* Bento Top Header Bar */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-2.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 shadow-2xs">

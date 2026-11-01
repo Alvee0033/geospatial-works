@@ -1,13 +1,23 @@
-const DEFAULT_BACKEND_URL = 'http://xqeqm4yyv7fqxryrkm6phk55.163.227.239.97.sslip.io/api/v1';
+import { clearApiCache, readApiCache, writeApiCache } from '@/lib/pageCache';
+
+const DEFAULT_BACKEND_URL = 'http://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io/api/v1';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_BACKEND_URL;
 const API_BASE = typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_API_URL || '/api') : BACKEND_URL;
 
-let activeAuthPromise: Promise<string | null> | null = null;
 let serverSideToken: string | null = null;
+const inFlightGetRequests = new Map<string, Promise<unknown>>();
+const API_REVALIDATE_MS = 15_000;
 
 export class ApiClient {
   public static clearCachePattern(pattern?: string) {
-    // No-op for backwards compatibility
+    clearApiCache();
+  }
+
+  public static subscribeToDataRefresh(callback: (endpoint: string) => void): () => void {
+    if (typeof window === 'undefined') return () => undefined;
+    const listener = (event: Event) => callback((event as CustomEvent<{ endpoint: string }>).detail.endpoint);
+    window.addEventListener('gw-api-data-refreshed', listener);
+    return () => window.removeEventListener('gw-api-data-refreshed', listener);
   }
 
 
@@ -30,6 +40,7 @@ export class ApiClient {
   }
 
   public static clearToken() {
+    clearApiCache();
     if (typeof window !== 'undefined') {
       localStorage.removeItem('gw_auth_token');
       localStorage.removeItem('gw_user');
@@ -38,88 +49,67 @@ export class ApiClient {
     }
   }
 
-  public static async authenticateAdmin(): Promise<string | null> {
-    if (activeAuthPromise) {
-      return activeAuthPromise;
-    }
-
-    activeAuthPromise = (async () => {
-      try {
-        const url = typeof window !== 'undefined' ? '/api/auth/login' : `${BACKEND_URL}/auth/login`;
-        const loginRes = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: 'admin@gw.com', password: 'password123' }),
-        });
-
-        if (loginRes.ok) {
-          const authData = await loginRes.json();
-          const token = authData.accessToken || authData.token;
-          if (token) {
-            ApiClient.setToken(token);
-            if (typeof window !== 'undefined' && authData.user) {
-              localStorage.setItem('gw_user', JSON.stringify(authData.user));
-            }
-            return token;
-          }
-        }
-      } catch (err) {
-        console.error('Failed to auto-authenticate admin:', err);
-      } finally {
-        activeAuthPromise = null;
-      }
-      return null;
-    })();
-
-    return activeAuthPromise;
-  }
-
   public static async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const method = (options.method || 'GET').toUpperCase();
+    const cacheKey = `${method}:${cleanEndpoint}`;
+    const isCacheableGet = method === 'GET' && typeof window !== 'undefined';
+    const cached = isCacheableGet ? readApiCache<T>(cacheKey) : null;
 
-    let token = this.getToken();
-
-    if (!token) {
-      token = await this.authenticateAdmin();
-    }
-
-    const url = `${API_BASE}${cleanEndpoint}`;
-
-    const executeFetch = async (authToken: string | null) => {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        ...(options.headers as Record<string, string> || {}),
+    const executeRequest = async (): Promise<T> => {
+      let token = this.getToken();
+      const url = `${API_BASE}${cleanEndpoint}`;
+      const executeFetch = (authToken: string | null) => {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...(options.headers as Record<string, string> || {}),
+        };
+        if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+        return fetch(url, { ...options, ...(method === 'GET' ? { cache: 'no-store' as RequestCache } : {}), headers });
       };
 
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
+      const res = await executeFetch(token);
+      if (res.status === 401) {
+        ApiClient.clearToken();
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') window.location.assign('/login');
+        throw new Error('Your session has expired. Sign in again to continue.');
       }
-
-      return fetch(url, {
-        ...options,
-        headers,
-      });
+      if (!res.ok) {
+        const errorBody = await res.json().catch(() => ({}));
+        throw new Error(errorBody.message || `API Error: ${res.statusText} (${res.status})`);
+      }
+      const json = await res.json();
+      return (json.data !== undefined ? json.data : json) as T;
     };
 
-    let res = await executeFetch(token);
-
-    // If 401 Unauthorized, clear cached token, re-authenticate immediately, and retry once
-    if (res.status === 401) {
-      ApiClient.clearToken();
-      token = await this.authenticateAdmin();
-      if (token) {
-        res = await executeFetch(token);
+    if (cached) {
+      if (Date.now() - cached.checkedAt >= API_REVALIDATE_MS && !inFlightGetRequests.has(cacheKey)) {
+        writeApiCache(cacheKey, cached.value, Date.now());
+        const refresh = executeRequest().then((value) => {
+          writeApiCache(cacheKey, value);
+          window.dispatchEvent(new CustomEvent('gw-api-data-refreshed', { detail: { endpoint: cleanEndpoint } }));
+          return value;
+        }).catch(() => undefined).finally(() => inFlightGetRequests.delete(cacheKey));
+        inFlightGetRequests.set(cacheKey, refresh);
       }
+      return cached.value;
     }
 
-    if (!res.ok) {
-      const errorBody = await res.json().catch(() => ({}));
-      throw new Error(errorBody.message || `API Error: ${res.statusText} (${res.status})`);
+    if (isCacheableGet) {
+      const existing = inFlightGetRequests.get(cacheKey) as Promise<T> | undefined;
+      if (existing) return existing;
+      const request = executeRequest().then((value) => {
+        writeApiCache(cacheKey, value);
+        return value;
+      }).finally(() => inFlightGetRequests.delete(cacheKey));
+      inFlightGetRequests.set(cacheKey, request);
+      return request;
     }
 
-    const json = await res.json();
-    return (json.data !== undefined ? json.data : json) as T;
+    const result = await executeRequest();
+    if (method !== 'GET') clearApiCache();
+    return result;
   }
 
   // Auth
@@ -136,12 +126,22 @@ export class ApiClient {
     const data = await res.json();
     const token = data.accessToken || data.token;
     if (token) {
+      clearApiCache();
       this.setToken(token);
       if (data.user) {
         localStorage.setItem('gw_user', JSON.stringify(data.user));
       }
+      this.warmWorkspaceData();
     }
     return data;
+  }
+
+  /** Warm frequently used live workspace data after sign-in without delaying navigation. */
+  static warmWorkspaceData(): void {
+    void Promise.allSettled([
+      this.getProjects(), this.getExpenses(), this.getTasks(), this.getLeaves(),
+      this.getAttendance(), this.getUsers(), this.getHolidays(),
+    ]);
   }
 
   // Projects API
@@ -387,11 +387,6 @@ export class ApiClient {
   static async approveLeave(id: string) {
     return this.request<any>(`/salary/leaves/${id}/approve`, {
       method: 'POST',
-    }).catch(() => {
-      return this.request<any>(`/salary/leaves/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ isApproved: true, status: 'approved' }),
-      });
     });
   }
 
@@ -399,11 +394,6 @@ export class ApiClient {
     return this.request<any>(`/salary/leaves/${id}/reject`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
-    }).catch(() => {
-      return this.request<any>(`/salary/leaves/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ isApproved: false, status: 'rejected', rejectionReason: reason }),
-      });
     });
   }
 
@@ -459,6 +449,13 @@ export class ApiClient {
     return this.request<any>(`/tasks/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
+    });
+  }
+
+  static async updateTaskStatus(id: string, status: 'todo' | 'in_progress' | 'completed') {
+    return this.request<any>(`/tasks/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
     });
   }
 

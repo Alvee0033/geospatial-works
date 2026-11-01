@@ -131,15 +131,10 @@ export default function ChatPage() {
       const currentName = (currentUser?.name || currentUser?.fullName || '').toLowerCase();
       
       const uId = u.id || u._id;
-      const uEmail = (u.email || '').toLowerCase();
-      const uName = (u.name || u.full_name || '').toLowerCase();
-
       // Exclude by exact ID
       if (currentId && uId === currentId) return false;
       // Exclude by email
-      if (currentEmail && uEmail && uEmail === currentEmail) return false;
-      // Exclude 'admin@gw.com' or 'gw admin' if user is admin
-      if (currentUser?.role === 'admin' && (uEmail === 'admin@gw.com' || uName.includes('gw admin'))) return false;
+      if (currentEmail && u.email && u.email.toLowerCase() === currentEmail) return false;
 
       return true;
     });

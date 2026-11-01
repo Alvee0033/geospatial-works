@@ -1,8 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminTopNav } from './AdminTopNav';
+import { ActionFeedbackHost } from '@/components/feedback/ActionFeedback';
+import { ApiClient } from '@/lib/api';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -27,6 +30,21 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   noScroll = false,
   hideTopNav = false,
 }) => {
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (!ApiClient.getToken()) {
+      router.replace('/login');
+      return;
+    }
+    setAuthChecked(true);
+  }, [router]);
+
+  if (!authChecked) {
+    return <div className="min-h-screen bg-[#F7F8F6]" aria-label="Checking session" />;
+  }
+
   return (
     <div className="flex min-h-screen bg-[#F7F8F6] text-slate-900 font-sans">
       <AdminSidebar />
@@ -46,6 +64,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         )}
         <main className={`flex-1 ${contentClassName || 'px-8 pb-12'}`}>{children}</main>
       </div>
+      <ActionFeedbackHost />
     </div>
   );
 };

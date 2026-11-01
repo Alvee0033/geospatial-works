@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
+import { notifyAction } from '@/components/feedback/ActionFeedback';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export default function LeavesPage() {
@@ -23,7 +24,13 @@ export default function LeavesPage() {
   const [holidays, setHolidays] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [activeTab, setActiveTab] = useState<'leaves' | 'holidays'>('leaves');
+  const [leaveStatusFilter, setLeaveStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [canReviewLeaves, setCanReviewLeaves] = useState(false);
+  const [canManageLeaveRecords, setCanManageLeaveRecords] = useState(false);
+  const [currentUserName, setCurrentUserName] = useState('your account');
+  const [reviewingLeaveId, setReviewingLeaveId] = useState<string | null>(null);
 
   // Modals
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
@@ -42,30 +49,55 @@ export default function LeavesPage() {
   const [holidayDate, setHolidayDate] = useState('');
   const [holidayRecurring, setHolidayRecurring] = useState(false);
 
-  const fetchLeavesAndHolidays = async () => {
-    setLoading(true);
-    try {
-      const [leavesData, holidaysData, usersData] = await Promise.all([
-        ApiClient.getLeaves().catch(() => []),
-        ApiClient.getHolidays().catch(() => []),
-        ApiClient.getUsers().catch(() => []),
-      ]);
-      setLeaves(leavesData || []);
-      setHolidays(holidaysData || []);
-      setUsers(usersData || []);
-      if (usersData && usersData.length > 0 && !leaveUserId) {
-        setLeaveUserId(usersData[0].id);
+  const fetchLeavesAndHolidays = async (silent = false) => {
+    if (!silent) setLoading(true);
+    const results = await Promise.allSettled([ApiClient.getLeaves(), ApiClient.getHolidays(), ApiClient.getUsers()]);
+    const labels = ['leave requests', 'holidays', 'employees'];
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        if (index === 0) setLeaves(result.value || []);
+        if (index === 1) setHolidays(result.value || []);
+        if (index === 2) {
+          const usersData = result.value || [];
+          setUsers(usersData);
+          if (usersData.length > 0 && !leaveUserId) {
+            const user = JSON.parse(localStorage.getItem('gw_user') || '{}');
+            const canManage = ['main_admin', 'finance_manager', 'finance'].includes(user.role);
+            setLeaveUserId(canManage ? usersData[0].id : user.id || '');
+          }
+        }
       }
-    } catch (e) {
-      console.error('Failed fetching leaves/holidays:', e);
-    } finally {
-      setLoading(false);
-    }
+    });
+    const failed = results.flatMap((result, index) => result.status === 'rejected' ? [labels[index]] : []);
+    setLoadError(failed.length ? `Could not refresh ${failed.join(', ')}. Showing the last server records where available.` : '');
+    if (!silent) setLoading(false);
   };
 
   useEffect(() => {
-    fetchLeavesAndHolidays();
+    try {
+      const user = JSON.parse(localStorage.getItem('gw_user') || '{}');
+      setCanReviewLeaves(['main_admin', 'project_manager', 'finance_manager', 'finance'].includes(user.role));
+      setCanManageLeaveRecords(['main_admin', 'finance_manager', 'finance'].includes(user.role));
+      setCurrentUserName(user.fullName || user.name || user.email || 'your account');
+    } catch { setCanReviewLeaves(false); setCanManageLeaveRecords(false); }
+    void fetchLeavesAndHolidays();
+    const unsubscribe = ApiClient.subscribeToDataRefresh(() => { void fetchLeavesAndHolidays(true); });
+    return unsubscribe;
   }, []);
+
+  const leaveStatus = (leave: any) => String(leave.status || (leave.isApproved || leave.is_approved ? 'approved' : 'pending')).toLowerCase();
+  const visibleLeaves = leaves.filter((leave) => leaveStatusFilter === 'all' || leaveStatus(leave) === leaveStatusFilter);
+
+  const handleLeaveDecision = async (id: string, approved: boolean) => {
+    setReviewingLeaveId(id);
+    try {
+      if (approved) await ApiClient.approveLeave(id);
+      else await ApiClient.rejectLeave(id);
+      await fetchLeavesAndHolidays();
+    } catch (err: any) {
+      notifyAction(`Could not ${approved ? 'approve' : 'decline'} leave: ${err.message}`, 'error', 'Leave decision failed');
+    } finally { setReviewingLeaveId(null); }
+  };
 
   const handleCreateLeave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,9 +113,9 @@ export default function LeavesPage() {
       setIsLeaveModalOpen(false);
       setLeaveReason('');
       await fetchLeavesAndHolidays();
-      alert('Leave record submitted successfully to live database');
+      notifyAction('Leave request submitted.');
     } catch (err: any) {
-      alert(`Failed submitting leave: ${err.message}`);
+      notifyAction(`Leave request could not be submitted: ${err.message}`, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -94,9 +126,9 @@ export default function LeavesPage() {
     try {
       await ApiClient.deleteLeave(id);
       await fetchLeavesAndHolidays();
-      alert('Leave record removed');
+      notifyAction('Leave record removed.');
     } catch (err: any) {
-      alert(`Deletion failed: ${err.message}`);
+      notifyAction(`Leave record could not be removed: ${err.message}`, 'error');
     }
   };
 
@@ -112,9 +144,9 @@ export default function LeavesPage() {
       setIsHolidayModalOpen(false);
       setHolidayName('');
       await fetchLeavesAndHolidays();
-      alert('Company holiday added successfully');
+      notifyAction('Company holiday added.');
     } catch (err: any) {
-      alert(`Failed to add holiday: ${err.message}`);
+      notifyAction(`Holiday could not be added: ${err.message}`, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -125,9 +157,9 @@ export default function LeavesPage() {
     try {
       await ApiClient.deleteHoliday(id);
       await fetchLeavesAndHolidays();
-      alert('Holiday removed');
+      notifyAction('Holiday removed.');
     } catch (err: any) {
-      alert(`Failed deleting holiday: ${err.message}`);
+      notifyAction(`Holiday could not be removed: ${err.message}`, 'error');
     }
   };
 
@@ -155,15 +187,16 @@ export default function LeavesPage() {
 
   return (
     <AdminLayout
-      title="Leave Management & Corporate Calendar"
-      subtitle="Authorized leave records, medical absences, and corporate holidays schedule (Live Database)"
-      onRefresh={fetchLeavesAndHolidays}
+      title="Leave & holidays"
+      subtitle="Review leave requests and manage the company calendar."
+      onRefresh={() => { void fetchLeavesAndHolidays(); }}
       onExport={handleExport}
       isRefreshing={loading}
     >
+      {loadError && <div role="alert" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"><span>{loadError}</span><button type="button" onClick={() => void fetchLeavesAndHolidays()} className="font-semibold underline">Retry</button></div>}
       {/* Tab Switcher & Action Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white border border-[#EAEBEF] rounded-[24px] p-4 shadow-xs">
-        <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-full text-xs font-semibold">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+            <div className="flex items-center gap-1 rounded-lg bg-slate-50 p-1 text-xs font-semibold">
           <button
             onClick={() => setActiveTab('leaves')}
             className={`px-4 py-1.5 rounded-full transition-all ${
@@ -189,29 +222,38 @@ export default function LeavesPage() {
               className="flex items-center gap-2 px-4 py-2 bg-[#0D1117] hover:bg-slate-800 text-white rounded-full text-xs font-bold transition-all shadow-xs"
             >
               <Plus size={14} />
-              <span>Record Employee Leave</span>
+              <span>{canManageLeaveRecords ? 'Record Employee Leave' : 'Apply for Leave'}</span>
             </button>
-          ) : (
+          ) : canManageLeaveRecords ? (
             <button
               onClick={() => setIsHolidayModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#0D1117] hover:bg-slate-800 text-white rounded-full text-xs font-bold transition-all shadow-xs"
+              className="flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-700"
             >
               <Plus size={14} />
-              <span>Add Company Holiday</span>
+              <span>Add holiday</span>
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
       {activeTab === 'leaves' ? (
         /* Leaves Table */
-        <div className="bg-white border border-[#EAEBEF] rounded-[32px] p-6 shadow-xs">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="font-bold text-slate-900 text-sm tracking-tight">Staff Leave Records</h3>
-              <p className="text-xs text-slate-400">All registered absences from database</p>
+              <h3 className="font-bold text-slate-900 text-sm tracking-tight">Leave requests</h3>
+              <p className="text-xs text-slate-400">Review request status and dates.</p>
             </div>
             <span className="text-xs font-semibold text-slate-500">{leaves.length} Applications</span>
+          </div>
+
+          <div className="mb-3 flex flex-wrap gap-1.5" aria-label="Filter leave records by status">
+            {(['all', 'pending', 'approved', 'rejected'] as const).map((status) => (
+              <button key={status} type="button" onClick={() => setLeaveStatusFilter(status)} aria-pressed={leaveStatusFilter === status}
+                className={`rounded-full px-3 py-1.5 text-[11px] font-semibold capitalize ${leaveStatusFilter === status ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                {status === 'rejected' ? 'Declined' : status} ({status === 'all' ? leaves.length : leaves.filter((leave) => leaveStatus(leave) === status).length})
+              </button>
+            ))}
           </div>
 
           <div className="overflow-x-auto">
@@ -221,19 +263,21 @@ export default function LeavesPage() {
                   <th className="py-3 px-3">Personnel</th>
                   <th className="py-3 px-3">Type</th>
                   <th className="py-3 px-3">Date Span</th>
+                  <th className="py-3 px-3">Status</th>
                   <th className="py-3 px-3">Reason</th>
                   <th className="py-3 px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 text-xs">
-                {leaves.length === 0 ? (
+                {visibleLeaves.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-slate-400 font-medium">
-                      {loading ? 'Fetching leave database...' : 'No leave records found in database.'}
+                    <td colSpan={6} className="py-12 text-center text-slate-400 font-medium">
+                      {loading ? 'Fetching leave database...' : 'No leave records match this filter.'}
                     </td>
                   </tr>
                 ) : (
-                  leaves.map((l) => {
+                  visibleLeaves.map((l) => {
+                    const status = leaveStatus(l);
                     const u = users.find((usr) => usr.id === l.userId || usr._id === l.userId);
                     const name = l.userName || (u ? (u.name || u.full_name) : 'Employee');
                     const avatar = l.avatarUrl || u?.avatarUrl || u?.avatar_url;
@@ -262,17 +306,22 @@ export default function LeavesPage() {
                       <td className="py-3.5 px-3 font-mono text-[11px] text-slate-700">
                         {l.startDate} &rarr; {l.endDate}
                       </td>
+                      <td className="py-3 px-3"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold capitalize ${status === 'approved' ? 'bg-emerald-50 text-emerald-700' : status === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{status === 'rejected' ? 'Declined' : status}</span></td>
                       <td className="py-3.5 px-3 text-slate-600 font-medium max-w-sm truncate">
                         {l.reason || 'Personal / General leave'}
                       </td>
                       <td className="py-3.5 px-3 text-right">
-                        <button
+                        {canReviewLeaves && status === 'pending' && <>
+                          <button disabled={reviewingLeaveId === l.id} onClick={() => handleLeaveDecision(l.id, true)} className="mr-2 rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700 disabled:opacity-50">Approve</button>
+                          <button disabled={reviewingLeaveId === l.id} onClick={() => handleLeaveDecision(l.id, false)} className="mr-2 rounded-md bg-rose-50 px-2 py-1 text-[10px] font-semibold text-rose-700 disabled:opacity-50">Decline</button>
+                        </>}
+                        {canManageLeaveRecords && <button
                           onClick={() => handleDeleteLeave(l.id)}
                           className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
                           title="Revoke / Delete Leave"
                         >
                           <Trash2 size={13} />
-                        </button>
+                        </button>}
                       </td>
                     </tr>
                   );
@@ -284,7 +333,7 @@ export default function LeavesPage() {
         </div>
       ) : (
         /* Holidays Table */
-        <div className="bg-white border border-[#EAEBEF] rounded-[32px] p-6 shadow-xs">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h3 className="font-bold text-slate-900 text-sm tracking-tight">Official Company Holidays</h3>
@@ -343,7 +392,7 @@ export default function LeavesPage() {
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-[32px] p-6 max-w-md w-full border border-slate-200 shadow-xl animate-in fade-in duration-200">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-              <h4 className="font-bold text-slate-900 text-base">Record Employee Leave</h4>
+              <h4 className="font-bold text-slate-900 text-base">{canManageLeaveRecords ? 'Record Employee Leave' : 'Apply for Leave'}</h4>
               <button
                 onClick={() => setIsLeaveModalOpen(false)}
                 className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200"
@@ -353,7 +402,7 @@ export default function LeavesPage() {
             </div>
 
             <form onSubmit={handleCreateLeave} className="space-y-4 text-xs">
-              <div>
+              {canManageLeaveRecords ? <div>
                 <label className="block text-slate-700 font-semibold mb-1">Employee</label>
                 <select
                   value={leaveUserId}
@@ -367,7 +416,7 @@ export default function LeavesPage() {
                     </option>
                   ))}
                 </select>
-              </div>
+              </div> : <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700">Submitting as {currentUserName}</div>}
 
               <div>
                 <label className="block text-slate-700 font-semibold mb-1">Leave Category</label>
@@ -378,7 +427,7 @@ export default function LeavesPage() {
                 >
                   <option value="casual">Casual Leave</option>
                   <option value="sick">Sick / Medical Leave</option>
-                  <option value="annual">Annual Leave</option>
+                  <option value="paid">Annual / Paid Leave</option>
                   <option value="maternity">Maternity / Paternity</option>
                   <option value="unpaid">Unpaid Leave</option>
                 </select>
@@ -429,7 +478,7 @@ export default function LeavesPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || !leaveUserId}
                   className="px-5 py-2 bg-[#0D1117] hover:bg-slate-800 text-white font-bold rounded-full shadow-xs"
                 >
                   {submitting ? 'Recording...' : 'Record Leave'}

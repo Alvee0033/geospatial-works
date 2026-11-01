@@ -2,28 +2,15 @@
 
 import React from 'react';
 
-const LEGACY_BACKEND_HOST = 'xqeqm4yyv7fqxryrkm6phk55.163.227.239.97.sslip.io';
+const BACKEND_BASE = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || 'http://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io';
 
 export function resolveAvatarUrl(url?: string | null): string {
   if (!url) return '';
-  if (url.startsWith('data:')) {
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
     return url;
   }
-
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    try {
-      const parsedUrl = new URL(url);
-      if (parsedUrl.hostname === LEGACY_BACKEND_HOST && parsedUrl.pathname.startsWith('/uploads/')) {
-        return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
-      }
-    } catch {
-      return url;
-    }
-    return url;
-  }
-
   const cleanPath = url.startsWith('/') ? url : `/${url}`;
-  return cleanPath;
+  return `${BACKEND_BASE}${cleanPath}`;
 }
 
 export function getAvatarColor(name: string): string {

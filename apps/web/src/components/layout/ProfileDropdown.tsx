@@ -44,9 +44,9 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ currentUser, o
 
   useEffect(() => {
     if (currentUser) {
-      setName(currentUser.name || currentUser.fullName || 'Admin User');
-      setEmail(currentUser.email || 'admin@gw.com');
-      setPhone(currentUser.phone || currentUser.phoneNumber || '+880 1711-000000');
+      setName(currentUser.name || currentUser.fullName || '');
+      setEmail(currentUser.email || '');
+      setPhone(currentUser.phone || currentUser.phoneNumber || '');
       setAvatarUrl(currentUser.avatarUrl || currentUser.avatar_url || '');
     }
   }, [currentUser]);
@@ -179,7 +179,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ currentUser, o
         </div>
         <div className="hidden md:block text-left pr-1">
           <p className="text-[11px] font-bold leading-tight text-slate-900 truncate max-w-[110px]">
-            {name || 'GW Admin'}
+            {name || 'Your profile'}
           </p>
           <p className="text-[10px] text-slate-400 capitalize">
             {(currentUser?.role || 'admin').replace('_', ' ')}
@@ -191,8 +191,8 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ currentUser, o
       {isOpen && (
         <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white border border-emerald-100 shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
           <div className="px-4 py-3 border-b border-slate-100">
-            <p className="text-xs font-bold text-slate-900 truncate">{name || 'Admin User'}</p>
-            <p className="text-[11px] text-slate-500 truncate">{email || 'admin@gw.com'}</p>
+            <p className="text-xs font-bold text-slate-900 truncate">{name || 'Your profile'}</p>
+            <p className="text-[11px] text-slate-500 truncate">{email || 'No email set'}</p>
             <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold">
               <ShieldCheck size={12} className="text-emerald-600" />
               <span className="capitalize">{currentUser?.role || 'Administrator'}</span>

@@ -38,6 +38,7 @@ import { UserAvatar } from '@/components/ui/UserAvatar';
 import { NotificationPanel } from '@/components/layout/NotificationPanel';
 import { ProfileDropdown } from '@/components/layout/ProfileDropdown';
 import { ApiClient } from '@/lib/api';
+import { notifyAction } from '@/components/feedback/ActionFeedback';
 import { ExportUtils } from '@/lib/exportUtils';
 
 type ChartMode = 'budget' | 'categories' | 'projects';
@@ -69,8 +70,10 @@ export default function DashboardPage() {
   const [lastWeekAttendance, setLastWeekAttendance] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
+  const [leaveRequests, setLeaveRequests] = useState<any[]>([]);
+  const [dataError, setDataError] = useState('');
+  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedProjectId, setSelectedProjectId] = useState('all');
   const [selectedChartProjectId, setSelectedChartProjectId] = useState('all');
   const [chartMode, setChartMode] = useState<ChartMode>('budget');
   const [chartStyle, setChartStyle] = useState<ChartStyle>('donut');
@@ -78,36 +81,56 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('');
   const [mounted, setMounted] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const canUpdateTaskStatus = ['main_admin', 'project_manager', 'project_member'].includes(currentUser?.role);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const comparableDay = new Date();
       comparableDay.setDate(comparableDay.getDate() - 7);
       const comparableDate = `${comparableDay.getFullYear()}-${String(comparableDay.getMonth() + 1).padStart(2, '0')}-${String(comparableDay.getDate()).padStart(2, '0')}`;
-      const [projectData, expenseData, attendanceData, userData, taskData, comparableAttendance] = await Promise.all([
-        ApiClient.getProjects().catch(() => []),
-        ApiClient.getExpenses().catch(() => []),
-        ApiClient.getAttendance().catch(() => []),
-        ApiClient.getUsers().catch(() => []),
-        ApiClient.getTasks().catch(() => []),
-        ApiClient.getAttendance({ date: comparableDate }).catch(() => []),
+      const results = await Promise.allSettled([
+        ApiClient.getProjects(), ApiClient.getExpenses(), ApiClient.getAttendance(), ApiClient.getUsers(),
+        ApiClient.getTasks(), ApiClient.getAttendance({ date: comparableDate }), ApiClient.getLeaves(),
       ]);
-      setProjects(projectData || []);
-      setExpenses(expenseData || []);
-      setAttendance(attendanceData || []);
-      setLastWeekAttendance(comparableAttendance || []);
-      setUsers(userData || []);
-      setTasks(taskData || []);
+      const labels = ['projects', 'expenses', 'attendance', 'people', 'tasks', 'attendance history', 'leave requests'];
+      const errors = results.flatMap((result, index) => result.status === 'rejected' ? [labels[index]] : []);
+      if (results[0].status === 'fulfilled') setProjects(results[0].value || []);
+      if (results[1].status === 'fulfilled') setExpenses(results[1].value || []);
+      if (results[2].status === 'fulfilled') setAttendance(results[2].value || []);
+      if (results[3].status === 'fulfilled') setUsers(results[3].value || []);
+      if (results[4].status === 'fulfilled') setTasks(results[4].value || []);
+      if (results[5].status === 'fulfilled') setLastWeekAttendance(results[5].value || []);
+      if (results[6].status === 'fulfilled') setLeaveRequests(results[6].value || []);
+      setDataError(errors.length ? `Live data unavailable for ${errors.join(', ')}.` : '');
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setDataError('Dashboard live data could not be refreshed.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
+  const updateDashboardTaskStatus = async (task: any, status: 'todo' | 'in_progress' | 'completed') => {
+    if (!canUpdateTaskStatus) return;
+    const previousTask = tasks.find((item) => item.id === task.id);
+    setUpdatingTaskId(task.id);
+    setTasks((current) => current.map((item) => item.id === task.id ? { ...item, status } : item));
+    try {
+      const saved = await ApiClient.updateTaskStatus(task.id, status);
+      setTasks((current) => current.map((item) => item.id === task.id ? { ...item, ...saved } : item));
+      notifyAction('Task status updated.');
+    } catch (error) {
+      setTasks((current) => current.map((item) => item.id === task.id ? previousTask : item));
+      notifyAction(error instanceof Error ? error.message : 'Task status could not be saved.', 'error');
+    } finally {
+      setUpdatingTaskId(null);
+    }
+  };
+
   useEffect(() => {
-    fetchData();
+    void fetchData();
+    const unsubscribe = ApiClient.subscribeToDataRefresh(() => { void fetchData(true); });
     setMounted(true);
     try {
       const storedUser = localStorage.getItem('gw_user');
@@ -115,6 +138,7 @@ export default function DashboardPage() {
     } catch {
       // Continue with the neutral admin greeting if profile storage is unavailable.
     }
+    return unsubscribe;
   }, [fetchData]);
 
   const approvedExpenses = useMemo(
@@ -125,25 +149,16 @@ export default function DashboardPage() {
     () => expenses.filter((expense) => String(expense.status || '').toLowerCase() === 'pending'),
     [expenses]
   );
-  const currentProject = useMemo(
-    () => selectedProjectId === 'all' ? null : projects.find((project) => project.id === selectedProjectId) || null,
-    [projects, selectedProjectId]
-  );
+  const pendingLeaves = useMemo(() => leaveRequests
+    .filter((leave) => String(leave.status || (leave.isApproved || leave.is_approved ? 'approved' : 'pending')).toLowerCase() === 'pending')
+    .slice(0, 4), [leaveRequests]);
   const chartProject = useMemo(
     () => selectedChartProjectId === 'all' ? null : projects.find((project) => project.id === selectedChartProjectId) || null,
     [projects, selectedChartProjectId]
   );
 
-  const scopedApprovedExpenses = useMemo(() => currentProject
-    ? approvedExpenses.filter((expense) =>
-        (expense.projectId || expense.project_id) === currentProject.id || expense.projectName === currentProject.name)
-    : approvedExpenses,
-  [approvedExpenses, currentProject]);
-
-  const totalBudget = currentProject
-    ? Number(currentProject.budget || currentProject.grossProjectValue || 0)
-    : projects.reduce((sum, project) => sum + Number(project.budget || project.grossProjectValue || 0), 0);
-  const totalSpent = scopedApprovedExpenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
+  const totalBudget = projects.reduce((sum, project) => sum + Number(project.budget || project.grossProjectValue || 0), 0);
+  const totalSpent = approvedExpenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
   const remainingBudget = Math.max(0, totalBudget - totalSpent);
   const percentSpent = totalBudget ? Math.round((totalSpent / totalBudget) * 100) : 0;
 
@@ -193,9 +208,9 @@ export default function DashboardPage() {
     approvals: calculateTrend(currentMonthClaims, previousMonthClaims, false, 'MTD', expensesHaveSubmissionHistory),
     attendance: calculateTrend(presentTeam.length, lastWeekPresentCount, true, 'vs last week', true),
     spent: calculateTrend(currentMonthSpend, previousMonthSpend, false, 'MTD', expensesHaveDateHistory),
-    remaining: expensesHaveDateHistory && !currentProject && currentMonthSpend > 0
+    remaining: expensesHaveDateHistory && currentMonthSpend > 0
       ? { percent: null, direction: 'down' as const, positiveWhenUp: true, text: `−${money(currentMonthSpend)} MTD` }
-      : expensesHaveDateHistory && !currentProject
+      : expensesHaveDateHistory
         ? { percent: null, direction: 'flat' as const, positiveWhenUp: true, text: 'No spend MTD' }
         : null,
   };
@@ -257,9 +272,9 @@ export default function DashboardPage() {
     const start = new Date(now.getFullYear(), period === 'year' ? 0 : now.getMonth() - count + 1, 1);
     const months = Array.from({ length: count }, (_, index) => new Date(start.getFullYear(), start.getMonth() + index, 1));
     const values = new Map(months.map((date) => [`${date.getFullYear()}-${date.getMonth()}`, { inflow: 0, outflow: 0 }]));
-    const trendExpenses = currentProject
+    const trendExpenses = chartProject
       ? approvedExpenses.filter((expense) =>
-          (expense.projectId || expense.project_id) === currentProject.id || expense.projectName === currentProject.name)
+          (expense.projectId || expense.project_id) === chartProject.id || expense.projectName === chartProject.name)
       : approvedExpenses;
     trendExpenses.forEach((expense) => {
       const rawDate = expense.date || expense.createdAt || expense.created_at;
@@ -269,7 +284,7 @@ export default function DashboardPage() {
       const month = values.get(key);
       if (month) month.outflow += Number(expense.amount) || 0;
     });
-    const revenueProjects = currentProject ? [currentProject] : projects;
+    const revenueProjects = chartProject ? [chartProject] : projects;
     revenueProjects.forEach((project) => (project.revenueEntries || []).forEach((revenue: any) => {
       const date = new Date(revenue.date);
       if (Number.isNaN(date.getTime())) return;
@@ -280,7 +295,7 @@ export default function DashboardPage() {
       month: date.toLocaleDateString('en', { month: 'short' }),
       ...values.get(`${date.getFullYear()}-${date.getMonth()}`),
     }));
-  }, [approvedExpenses, currentProject, period, projects]);
+  }, [approvedExpenses, chartProject, period, projects]);
 
   const projectRows = useMemo(() => projects.filter((project) => {
     if (!search) return true;
@@ -348,17 +363,18 @@ export default function DashboardPage() {
               </div>}
             </div>
             <span className="hidden rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 md:inline-flex md:items-center md:gap-2"><CalendarDays size={14} className="text-slate-400" />{todayLabel}</span>
-            <button type="button" onClick={fetchData} aria-label="Refresh dashboard" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /></button>
+            <button type="button" onClick={() => void fetchData()} aria-label="Refresh dashboard" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /></button>
             <button type="button" onClick={exportDashboard} aria-label="Export dashboard" className="hidden h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 sm:flex"><Receipt size={15} /></button>
             <NotificationPanel />
             <ProfileDropdown currentUser={currentUser} onUserUpdate={setCurrentUser} />
             <Link href="/projects/new" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white transition hover:bg-indigo-700"><Plus size={15} />New project</Link>
           </div>
         </header>
+        {dataError && <div role="alert" className="flex shrink-0 items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"><span>{dataError}</span><button type="button" onClick={() => void fetchData()} className="font-semibold underline">Retry</button></div>}
 
         <section className="grid shrink-0 grid-cols-2 gap-1.5 sm:grid-cols-3 xl:grid-cols-6" aria-label="Dashboard key metrics">
           <MetricCard label="Active projects" value={projects.length} detail={`${projects.length} in workspace`} trend={trends.projects} icon={FolderKanban} tone="indigo" />
-          <MetricCard label="Total budget" value={money(totalBudget)} detail={currentProject?.name || 'Current allocation'} trend={trends.budget} icon={CircleDollarSign} tone="blue" />
+          <MetricCard label="Total budget" value={money(totalBudget)} detail="Current allocation" trend={trends.budget} icon={CircleDollarSign} tone="blue" />
           <MetricCard label="Pending approvals" value={pendingExpenses.length} detail={pendingExpenses.length ? 'Needs review' : 'All caught up'} trend={null} icon={Receipt} tone="amber" />
           <MetricCard label="Team present" value={`${presentTeam.length} / ${users.length}`} detail={`${attendancePercent}% attendance today`} trend={trends.attendance} icon={Users} tone="green" />
           <MetricCard label="Total spent" value={money(totalSpent)} detail={`${percentSpent}% spent`} trend={trends.spent} icon={ArrowUpRight} tone="amber" />
@@ -436,11 +452,11 @@ export default function DashboardPage() {
                 const spent = approvedExpenses.filter((expense) => (expense.projectId || expense.project_id) === project.id || expense.projectName === project.name).reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
                 const percent = budget ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
                 const status = percent >= 90 ? 'At risk' : 'On track';
-                return <button type="button" key={project.id} onClick={() => setSelectedProjectId(selectedProjectId === project.id ? 'all' : project.id)} className={`grid w-full grid-cols-[minmax(0,1fr)_100px_74px] items-center gap-2 px-2.5 py-2.5 text-left transition hover:bg-slate-50 ${selectedProjectId === project.id ? 'bg-indigo-50/50' : ''}`}>
+                return <Link href={`/projects/${project.id}`} key={project.id} className="grid w-full grid-cols-[minmax(0,1fr)_100px_74px] items-center gap-2 px-2.5 py-2.5 text-left transition hover:bg-slate-50">
                   <span className="flex min-w-0 items-center gap-2"><UserAvatar src={project.imageUrl || project.image_url || project.thumbnailUrl || project.thumbnail_url} name={project.name} size="sm" shape="rounded" className="shrink-0" /><span className="min-w-0"><span className="block truncate text-[11px] font-semibold text-slate-800">{project.name}</span><span className="block truncate text-[9px] text-slate-400">{project.client || 'Direct client'}</span></span></span>
                   <span className="min-w-0"><span className="flex items-center gap-1 text-[9px] text-slate-500">{percent}% <span className="truncate">{money(spent)}</span></span><span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-slate-100"><span className={`block h-full rounded-full ${percent >= 90 ? 'bg-rose-500' : percent >= 70 ? 'bg-amber-500' : 'bg-indigo-500'}`} style={{ width: `${percent}%` }} /></span></span>
                   <span className={`justify-self-start rounded-full px-2 py-1 text-[9px] font-semibold ${status === 'At risk' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>{status}</span>
-                </button>;
+                </Link>;
               })}
               {projectRows.length === 0 && <p className="py-6 text-center text-xs text-slate-400">No matching projects.</p>}
             </div>
@@ -473,22 +489,36 @@ export default function DashboardPage() {
                 <span className="shrink-0 text-right"><span className="block text-[11px] font-semibold text-slate-800">{money(Number(expense.amount) || 0)}</span><span className="mt-1 inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-medium text-amber-700">Pending</span></span>
               </Link>;
               })}
-              {approvalRows.length === 0 && <div className="flex h-full min-h-[120px] items-center justify-center gap-2 text-xs text-slate-500"><CheckCircle2 size={16} className="text-emerald-500" />No pending approvals</div>}
+              {pendingLeaves.map((leave) => {
+                const leaveUser = users.find((user) => user.id === (leave.userId || leave.user_id));
+                const leaveName = leave.userName || leave.full_name || leaveUser?.fullName || leaveUser?.name || 'Team member';
+                return <Link key={`leave-${leave.id}`} href="/leaves" className="flex items-center gap-2.5 border-t border-slate-100 py-3 hover:bg-slate-50">
+                  <UserAvatar src={leave.avatarUrl || leaveUser?.avatarUrl || leaveUser?.avatar_url} name={leaveName} size="sm" shape="circle" className="shrink-0" />
+                  <span className="min-w-0 flex-1"><span className="block truncate text-[11px] font-semibold text-slate-800">{leave.leaveType || 'Leave'} request</span><span className="block truncate text-[10px] text-slate-500">{leaveName} · {leave.startDate || leave.start_date}</span></span>
+                  <span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-[9px] font-medium text-amber-700">Review</span>
+                </Link>;
+              })}
+              {approvalRows.length === 0 && pendingLeaves.length === 0 && <div className="flex h-full min-h-[120px] items-center justify-center gap-2 text-xs text-slate-500"><CheckCircle2 size={16} className="text-emerald-500" />No pending approvals</div>}
             </div>
           </article>
 
           <article className="flex min-h-[300px] flex-col rounded-xl border border-slate-200 bg-white p-3.5">
-            <div className="mb-2 flex items-center justify-between"><h2 className="text-sm font-bold text-slate-900">Upcoming deadlines</h2><Link href="/tasks" className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800">View all</Link></div>
+            <div className="mb-2 flex items-center justify-between"><h2 className="text-sm font-bold text-slate-900">{currentUser?.role === 'project_member' ? 'My tasks' : 'Upcoming deadlines'}</h2><Link href="/tasks" className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800">View all</Link></div>
             <div className="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto">
               {deadlineRows.map((task) => {
                 const due = new Date(task.dueDate || task.due_date);
                 const days = Math.ceil((new Date(due.getFullYear(), due.getMonth(), due.getDate()).getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000);
                 const dueLabel = days < 0 ? 'Overdue' : days === 0 ? 'Today' : `${days} days`;
-                return <Link key={task.id} href="/tasks" className="flex items-center gap-2.5 py-3 hover:bg-slate-50">
+                const taskStatus = ['todo', 'in_progress', 'completed'].includes(task.status) ? task.status : 'todo';
+                return <div key={task.id} className="flex items-center gap-2.5 py-3">
                   <span className="flex h-9 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-slate-50 text-slate-500"><span className="text-[8px] font-semibold uppercase">{due.toLocaleDateString('en', { month: 'short' })}</span><span className="text-xs font-bold text-slate-700">{due.getDate()}</span></span>
-                  <span className="min-w-0 flex-1"><span className="block truncate text-[11px] font-semibold text-slate-800">{task.title || 'Task deadline'}</span><span className="block truncate text-[10px] text-slate-500">{task.projectName || task.project_name || projects.find((project) => project.id === (task.projectId || task.project_id))?.name || 'Project task'}</span></span>
+                  <span className="min-w-0 flex-1"><Link href="/tasks" className="block truncate text-[11px] font-semibold text-slate-800 hover:text-indigo-700">{task.title || 'Task deadline'}</Link><span className="block truncate text-[10px] text-slate-500">{task.projectName || task.project_name || projects.find((project) => project.id === (task.projectId || task.project_id))?.name || 'Project task'}</span></span>
                   <span className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-semibold ${days <= 2 ? 'bg-rose-50 text-rose-700' : days <= 7 ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>{dueLabel}</span>
-                </Link>;
+                  {canUpdateTaskStatus && <>
+                    <label className="sr-only" htmlFor={`dashboard-task-status-${task.id}`}>Update status for {task.title}</label>
+                    <select id={`dashboard-task-status-${task.id}`} value={taskStatus} disabled={updatingTaskId === task.id} onChange={(event) => void updateDashboardTaskStatus(task, event.target.value as 'todo' | 'in_progress' | 'completed')} className="h-7 max-w-[104px] rounded-md border border-slate-200 bg-white px-1.5 text-[9px] font-medium text-slate-700 disabled:opacity-50"><option value="todo">To do</option><option value="in_progress">In progress</option><option value="completed">Completed</option></select>
+                  </>}
+                </div>;
               })}
               {deadlineRows.length === 0 && <p className="py-6 text-center text-xs text-slate-400">No upcoming deadlines.</p>}
             </div>
