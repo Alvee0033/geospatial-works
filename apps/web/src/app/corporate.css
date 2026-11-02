@@ -46,6 +46,11 @@
 .reference-home .reference-project-card:hover,.reference-home .reference-insight-feature:hover{transform:translateY(-3px);box-shadow:0 12px 28px #0b282a27}
 @media(prefers-reduced-motion:no-preference){.reference-hero-inner>*{animation:hero-enter .75s both}.reference-hero-inner>*:nth-child(2){animation-delay:.1s}.reference-hero-inner>*:nth-child(3){animation-delay:.2s}.reference-hero-inner>*:nth-child(4){animation-delay:.3s}@keyframes hero-enter{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}}
 @media(max-width:620px){.reference-hero{height:auto;min-height:700px;padding:45px 0 105px;align-items:flex-start}.reference-hero h1{font-size:clamp(52px,13vw,65px);margin:32px 0 18px}.reference-hero h1::after{margin-left:140px}.reference-hero p{max-width:310px}.reference-hero-side{bottom:18px}}
+/* Keep animated media inside the mobile viewport and prevent sideways page drift. */
+html,body{width:100%;max-width:100%;overflow-x:clip}
+.corporate-site,.reference-home{width:100%;max-width:100%;overflow-x:clip}
+.reference-carousel{overflow:hidden}
+@media(max-width:620px){.reference-home .reference-grid-section{grid-template-columns:minmax(0,1fr)}.reference-home .reference-services-grid,.reference-home .reference-project-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.reference-home .reference-section-intro,.reference-home .reference-about-main,.reference-home .reference-insights-grid,.reference-home .reference-insight-list{min-width:0}}
 /* Services is the only expandable navigation item. */
 .corporate-submenu-toggle{display:none}.corporate-services-item.services-open .corporate-dropdown{opacity:1;visibility:visible;transform:translateY(0)}
 .reference-about-image img{object-position:center 25%}.reference-service-card img{object-position:center 20%}.reference-project-card img{object-position:center 25%}
