@@ -1,23 +1,18 @@
-'use client';
+import Link from 'next/link';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import CorporateShell from '@/components/CorporateShell';
+import HeroCarousel from '@/components/HeroCarousel';
+import { partners, projects, services, insights } from '@/lib/corporate-data';
+import './corporate.css';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+const serviceImages = ['/field-surveyor-v2.png','/hero-poster.jpg','/photo-1598368195835-91e67f80c9d7.jpeg','/about_surveyor_arch.png','/photo-1587260704881-fff9988fda80.jpeg','/hero-poster.webp'];
+const projectImages = ['/delta-hero-v2.png','/geospatial-river-hero.png','/photo-1587260704881-fff9988fda80.jpeg'];
 
-export default function RootPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('gw_auth_token') : null;
-    if (token) {
-      router.replace('/dashboard');
-    } else {
-      router.replace('/login');
-    }
-  }, [router]);
-
-  return (
-    <div className="min-h-screen bg-[#F3F4F8] flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-}
+export default function Home() { return <CorporateShell><main className="reference-home">
+  <HeroCarousel />
+  <section className="reference-about reference-wrap reveal"><div className="reference-about-image"><img src="/field-surveyor-v2.png" alt="Surveyor beside a Bangladesh river floodplain"/><span>FIELD<br/>TO A BRIGHTER<br/>BANGLADESH</span></div><div className="reference-about-main"><div className="reference-rule"><span className="reference-section-name">/ ABOUT</span></div><h2>Turning spatial data<br/>into <em>real-world impact.</em></h2><p>We deliver geospatial data, modern mapping solutions and practical insights to support better decisions for a stronger, more resilient Bangladesh.</p><Link href="/about" className="reference-about-link">Learn About Us <ArrowUpRight size={17}/></Link></div><div className="reference-about-points">{[['01','LOCAL EXPERTISE','Deep understanding of Bangladesh’s landscape.'],['02','INTEGRATED SOLUTIONS','Survey, drone, GIS and remote sensing under one roof.'],['03','IMPACT DRIVEN','Actionable data for infrastructure, environment and communities.']].map(([n,t,d])=><div key={n}><b>{n}</b><span><strong>{t}</strong><small>{d}</small></span></div>)}</div></section>
+  <section className="reference-grid-section reference-wrap reveal"><div className="reference-section-intro"><div className="reference-rule"><span className="reference-section-name">/ SERVICES</span></div><h2>Geospatial<br/>solutions<br/>for a changing<br/><em>Bangladesh.</em></h2><p>From the ground to the sky, we capture, map and analyse the world around you.</p><Link href="/services" className="reference-dark-button">View all services <ArrowRight size={16}/></Link></div><div className="reference-services-grid">{services.map((s,i)=><Link href={`/services/${s.slug}`} className="reference-service-card" key={s.slug}><img src={serviceImages[i]} alt="" loading="lazy"/><div><span>{s.category}</span><strong>{s.title}</strong><small>{s.description}</small><ArrowRight size={16}/></div></Link>)}</div></section>
+  <section className="reference-grid-section reference-wrap reveal"><div className="reference-section-intro"><div className="reference-rule"><span className="reference-section-name">/ PROJECTS</span></div><h2>Real landscapes.<br/><em>Real impact.</em></h2><p>A selection of our work across surveying, mapping and spatial analysis.</p><Link href="/projects" className="reference-underline-link">View all projects <ArrowRight size={17}/></Link></div><div className="reference-project-grid">{projects.slice(0,3).map((p,i)=><Link href={`/projects/${p.slug}`} className="reference-project-card" key={p.slug}><img src={projectImages[i]} alt="" loading="lazy"/><div><span>{p.category}</span><strong>{p.title}</strong><ArrowRight size={18}/></div></Link>)}</div></section>
+  <section className="reference-grid-section reference-wrap reference-insights-section reveal"><div className="reference-section-intro"><div className="reference-rule"><span className="reference-section-name">/ INSIGHTS</span></div><h2>Ideas for a<br/>more resilient<br/><em>tomorrow.</em></h2><p>Stories about maps, land, and the places that shape Bangladesh.</p><Link href="/insights" className="reference-underline-link">View all articles <ArrowRight size={17}/></Link></div><div className="reference-insights-grid"><Link href={`/insights/${insights[0].slug}`} className="reference-insight-feature"><img src="/geospatial-river-hero.png" alt="River landscape seen from above" loading="lazy"/><span>FEATURED ARTICLE</span><strong>{insights[0].title}</strong><b>↗</b></Link><div className="reference-insight-list">{insights.slice(1,4).map(item=><Link href={`/insights/${item.slug}`} key={item.slug}><img src={item.image} alt="" loading="lazy"/><span><small>{item.category}</small><strong>{item.title}</strong></span><ArrowRight size={17}/></Link>)}</div></div></section>
+  <section className="reference-partners reveal" aria-labelledby="partners-heading"><div className="reference-partners-inner"><div className="reference-partners-heading"><div><span className="reference-partners-kicker">WORKING TOGETHER</span><h2 id="partners-heading">Our partners<span>.</span></h2></div><p>Organizations we work with across Bangladesh.</p></div><ul className="reference-partners-grid" tabIndex={0} aria-label="Partner logos; scroll horizontally to view more on small screens">{partners.map(partner=><li key={partner.name}><div className="reference-partner-logo"><img src={partner.image} alt={`${partner.name} logo`} loading="lazy"/></div><span>{partner.name}</span></li>)}</ul><p className="reference-partners-scroll-hint">Swipe to see all partners <span aria-hidden="true">→</span></p></div></section>
+</main></CorporateShell>; }
