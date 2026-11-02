@@ -36,7 +36,7 @@ export default function CorporateShell({ children }: { children: React.ReactNode
     <header className="corporate-header">
       <div className="corporate-header-inner">
         <Link href="/" className="corporate-logo" aria-label="Geospatial Works home" onClick={() => setMenuOpen(false)}>
-          <img src="/logo.png" alt="" width="48" height="48" />
+          <img src="/logo.webp" alt="" width="48" height="48" />
           <span>GEOSPATIAL <strong>WORKS</strong></span>
         </Link>
         <nav className={menuOpen ? 'corporate-nav is-open' : 'corporate-nav'} aria-label="Main navigation">
@@ -57,7 +57,7 @@ export default function CorporateShell({ children }: { children: React.ReactNode
     </section>}
     <footer className="corporate-footer">
       <div className="corporate-container corporate-footer-grid">
-        <div><Link href="/" className="corporate-logo corporate-logo-light"><img src="/logo.png" alt="" width="48" height="48" /><span>GEOSPATIAL <strong>WORKS</strong></span></Link><p>Surveying, mapping, GIS, and spatial insight for better decisions across Bangladesh.</p></div>
+        <div><Link href="/" className="corporate-logo corporate-logo-light"><img src="/logo.webp" alt="" width="48" height="48" /><span>GEOSPATIAL <strong>WORKS</strong></span></Link><p>Surveying, mapping, GIS, and spatial insight for better decisions across Bangladesh.</p></div>
         <div><h3>Explore</h3><div className="corporate-footer-links">{navigation.map(item => <Link key={item.href} href={item.href}>{item.label}</Link>)}<Link href="/contact">Contact</Link></div></div>
         <div><h3>Contact</h3><a href="tel:+8801303772216"><Phone size={15} /> +88 01303 772216</a><a href="mailto:info@geospatialworks.com.bd"><Mail size={15} /> info@geospatialworks.com.bd</a><p className="corporate-address"><MapPin size={15} /> 64/1 (D1), Lake Circus, Kalabagan, Dhaka 1205, Bangladesh</p></div>
       </div>
