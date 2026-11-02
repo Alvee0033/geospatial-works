@@ -202,6 +202,11 @@
 @media(prefers-reduced-motion:reduce){.reference-partners-grid li,.reference-partners-grid li::before,.reference-partners-grid img{transition:none!important}}
 .reference-partners-mobile-controls{display:none}
 @media(max-width:700px){.reference-partners-mobile-controls{display:flex;align-items:center;justify-content:space-between;gap:12px}.reference-partners-mobile-controls .reference-partners-scroll-hint{margin:12px 0 0}.reference-partners-mobile-controls button{flex:0 0 auto;border:1px solid #cbd8c7;border-radius:999px;padding:8px 12px;background:#fff;color:#24443a;font:700 11px/1 Arial,Helvetica,sans-serif;cursor:pointer}.reference-partners-mobile-controls button:focus-visible{outline:2px solid #83a83c;outline-offset:3px}}
+.reference-partners-marquee{overflow:hidden}
+.reference-partners-track>ul:nth-child(2){display:none}
+@media(max-width:700px){.reference-partners-marquee{position:relative;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}.reference-partners-track{display:flex;width:max-content;animation:partner-conveyor 38s linear infinite}.reference-partners-track>.reference-partners-grid{display:flex;flex:none;gap:10px;width:max-content;margin:0;padding:0 10px 0 0;border:0}.reference-partners-track>ul:nth-child(2){display:flex}.reference-partners-track .reference-partners-grid li{flex:0 0 min(64vw,245px);min-height:164px;padding:16px 12px;border:1px solid #dce5db}.reference-partners-track .reference-partners-grid li>span{font-size:9px;margin-top:10px}.reference-partners-track .reference-partner-logo{height:95px}.reference-partners-track .reference-partners-grid img{height:90px}.reference-partners-mobile-controls{display:none}}
+@keyframes partner-conveyor{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.reference-partners-track{animation:none!important}.reference-partners-marquee{overflow-x:auto;mask-image:none}.reference-partners-track>ul:nth-child(2){display:none}.reference-partners-track>.reference-partners-grid{width:max-content;overflow:visible}}
 @media(max-width:620px){.corporate-site:has(.reference-home) .corporate-footer-grid{grid-template-columns:1fr;gap:28px}}
 
 /* The homepage previews three articles; its feature and list share one height. */
