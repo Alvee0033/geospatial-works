@@ -19,6 +19,7 @@ import { notifyAction } from '@/components/feedback/ActionFeedback';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { getWorkLocation, hasValidCoordinates, type AttendanceWorkLocation } from '@/lib/attendanceData';
 import { readPageCache, writePageCache } from '@/lib/pageCache';
+import { selectOwnRecords } from '@/lib/roleAccess';
 
 const DEFAULT_OFFICE = {
   latitude: 23.7925,
@@ -76,6 +77,8 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [roleResolved, setRoleResolved] = useState(false);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -101,6 +104,18 @@ export default function AttendancePage() {
     if (!silent) setLoading(true);
     setLoadError('');
     try {
+      let signedInUser: any = null;
+      try { signedInUser = JSON.parse(localStorage.getItem('gw_user') || 'null'); } catch {}
+      if (signedInUser?.role === 'project_member') {
+        const result = await ApiClient.getAttendance({ date: selectedDate });
+        const ownAttendance = selectOwnRecords(Array.isArray(result) ? result : [], String(signedInUser.id ?? signedInUser._id ?? ''));
+        setAttendance(ownAttendance);
+        setUsers([]);
+        setLeaves([]);
+        setSelectedRecord(ownAttendance[0] ?? null);
+        writePageCache<AttendancePageCache>(`attendance:member:${signedInUser.id ?? signedInUser._id}:${selectedDate}`, { attendance: ownAttendance, users: [], leaves: [], office: DEFAULT_OFFICE });
+        return;
+      }
       const [attendanceResult, usersResult, settingsResult, leavesResult] = await Promise.allSettled([
         ApiClient.getAttendance({ date: selectedDate }),
         ApiClient.getUsers(),
@@ -152,7 +167,12 @@ export default function AttendancePage() {
   }, [selectedDate]);
 
   useEffect(() => {
-    const cached = readPageCache<AttendancePageCache>(`attendance:${selectedDate}`);
+    let user: any = null;
+    try { user = JSON.parse(localStorage.getItem('gw_user') || 'null'); } catch { user = null; }
+    setCurrentUser(user);
+    setRoleResolved(true);
+    const cacheKey = user?.role === 'project_member' ? `attendance:member:${user.id ?? user._id}:${selectedDate}` : `attendance:${selectedDate}`;
+    const cached = readPageCache<AttendancePageCache>(cacheKey);
     if (cached) {
       setAttendance(cached.attendance);
       setUsers(cached.users);
@@ -372,6 +392,30 @@ export default function AttendancePage() {
     ExportUtils.exportToExcel(rows, `GW_Attendance_${selectedDate}`);
     notifyAction('Attendance report downloaded as an Excel workbook.');
   };
+
+  if (!roleResolved) {
+    return <AdminLayout title="Attendance" subtitle="Loading your workspace"><div className="px-5 py-8 text-sm text-slate-500">Loading attendance…</div></AdminLayout>;
+  }
+
+  if (currentUser?.role === 'project_member') {
+    const timeOf = (record: any) => record.loginTime || record.login_time || record.createdAt || record.created_at;
+    const locationOf = (record: any) => record.addressText || record.address_text || 'Check-in location recorded';
+    return (
+      <AdminLayout title="My attendance" subtitle="Your own check-in history" onRefresh={() => fetchAttendance()} isRefreshing={loading} contentClassName="mx-auto w-full max-w-5xl px-5 py-5">
+        <div className="space-y-4">
+          <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div><h1 className="text-base font-semibold text-slate-900">My attendance</h1><p className="mt-1 text-xs text-slate-500">Only your attendance records are shown here.</p></div>
+            <div className="flex items-center gap-2"><label className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-3 text-xs text-slate-600"><Calendar size={14}/><input aria-label="Attendance date" type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} className="bg-transparent outline-none" /></label><Link href="/expenses" className="inline-flex h-9 items-center rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700">Submit a claim</Link></div>
+          </section>
+          {loadError && <div role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{loadError}</div>}
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3"><div><h2 className="text-sm font-semibold text-slate-900">Check-in history</h2><p className="mt-1 text-xs text-slate-500">{selectedDate} · {attendance.length} check-ins</p></div><span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-700">{attendance.length ? 'Recorded' : 'No check-in'}</span></div>
+            {loading && !attendance.length ? <p className="px-4 py-8 text-center text-sm text-slate-500">Loading your attendance…</p> : attendance.length ? <ul className="divide-y divide-slate-100">{attendance.map((record) => <li key={record.id ?? record._id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"><div className="flex min-w-0 items-start gap-3"><span className="mt-0.5 rounded-lg bg-indigo-50 p-2 text-indigo-600"><MapPin size={15}/></span><div className="min-w-0"><p className="text-xs font-semibold text-slate-800">{locationOf(record)}</p><p className="mt-1 text-[11px] text-slate-500">{record.sessionType || record.session_type || 'Shift'} · {timeOf(record) ? new Date(timeOf(record)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Time unavailable'}</p></div></div><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold capitalize text-emerald-700">{record.status || 'Present'}</span></li>)}</ul> : <div className="px-4 py-12 text-center"><p className="text-sm font-medium text-slate-700">No check-in recorded for this date.</p><p className="mt-1 text-xs text-slate-500">Your attendance history will appear here after you check in.</p></div>}
+          </section>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout

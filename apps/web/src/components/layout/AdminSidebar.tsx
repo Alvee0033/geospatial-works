@@ -9,6 +9,8 @@ import {
   ChevronsLeft, ChevronsRight, CircleHelp, FolderKanban, LayoutDashboard,
   MessageSquare, Receipt, Settings, UserCheck, Users,
 } from 'lucide-react';
+import { getNavigationForRole } from '@/lib/roleAccess';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 type NavItem = { href: string; label: string; icon: React.ElementType };
 
@@ -31,9 +33,18 @@ export const AdminSidebar: React.FC = () => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [transactionsOpen, setTransactionsOpen] = useState(true);
+  const [role, setRole] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [roleReady, setRoleReady] = useState(false);
 
   useEffect(() => {
     try { setCollapsed(localStorage.getItem('gw_sidebar_collapsed') === 'true'); } catch {}
+    try {
+      const user = JSON.parse(localStorage.getItem('gw_user') || 'null');
+      setCurrentUser(user);
+      setRole(user?.role ?? null);
+    } catch {}
+    setRoleReady(true);
   }, []);
 
   const toggleCollapsed = () => {
@@ -46,6 +57,21 @@ export const AdminSidebar: React.FC = () => {
 
   const isCurrent = (href: string) => href === '/dashboard' ? pathname === href : pathname.startsWith(href);
   const transactionsActive = isCurrent('/expenses') || isCurrent('/approvals');
+  const memberGroups = getNavigationForRole(role)?.map((group) => ({
+    label: group.label,
+    items: group.items.map((item) => ({
+      ...item,
+      icon: ({
+        overview: LayoutDashboard,
+        projects: FolderKanban,
+        tasks: CheckSquare,
+        claims: Receipt,
+        attendance: UserCheck,
+        leave: CalendarDays,
+        messages: MessageSquare,
+      } as Record<string, React.ElementType>)[item.icon],
+    })),
+  }));
 
   const navigationLink = (item: NavItem) => {
     const Icon = item.icon;
@@ -75,34 +101,38 @@ export const AdminSidebar: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          {section('Workspace', workspaceItems)}
-
-          <section className="space-y-1">
-            {!collapsed && <p className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.13em] text-slate-400">Finance</p>}
-            {collapsed ? (
-              <Link href="/expenses" prefetch title="Transactions" className={`flex h-9 items-center justify-center rounded-lg transition-colors ${transactionsActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}><Receipt size={17} strokeWidth={transactionsActive ? 2.2 : 1.8} /></Link>
-            ) : (
-              <div className="space-y-1">
-                <button type="button" onClick={() => setTransactionsOpen((value) => !value)} className={`flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-[13px] font-medium transition-colors ${transactionsActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`} aria-expanded={transactionsOpen}>
-                  <span className="flex items-center gap-3"><Receipt size={17} strokeWidth={transactionsActive ? 2.2 : 1.8} /><span>Transactions</span></span>
-                  <ChevronDown size={15} className={`text-slate-400 transition-transform ${transactionsOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {transactionsOpen && <div className="ml-[18px] space-y-0.5 border-l border-slate-200 pl-3">
-                  {[{ href: '/expenses', label: 'Activity' }, { href: '/approvals', label: 'Approvals' }, { href: '/expenses/compliance', label: 'Voucher audit' }].map((item) => (
-                    <Link key={item.href} href={item.href} prefetch className={`flex h-7 items-center rounded-md px-2 text-xs transition-colors ${pathname === item.href ? 'bg-indigo-50 font-medium text-indigo-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{item.label}</Link>
-                  ))}
-                </div>}
-              </div>
-            )}
-          </section>
-
-          {section('Team', peopleItems)}
-          <section className="border-t border-slate-100 pt-3"><nav className="space-y-0.5" aria-label="Administration">{navigationLink({ href: '/clients', label: 'Clients', icon: BriefcaseBusiness })}{navigationLink({ href: '/settings', label: 'Settings', icon: Settings })}</nav></section>
+          {!roleReady ? null : memberGroups ? (
+            memberGroups.map((group) => <React.Fragment key={group.label}>{section(group.label, group.items)}</React.Fragment>)
+          ) : (
+            <>
+              {section('Workspace', workspaceItems)}
+              <section className="space-y-1">
+                {!collapsed && <p className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.13em] text-slate-400">Finance</p>}
+                {collapsed ? (
+                  <Link href="/expenses" prefetch title="Transactions" className={`flex h-9 items-center justify-center rounded-lg transition-colors ${transactionsActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}><Receipt size={17} strokeWidth={transactionsActive ? 2.2 : 1.8} /></Link>
+                ) : (
+                  <div className="space-y-1">
+                    <button type="button" onClick={() => setTransactionsOpen((value) => !value)} className={`flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-[13px] font-medium transition-colors ${transactionsActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`} aria-expanded={transactionsOpen}>
+                      <span className="flex items-center gap-3"><Receipt size={17} strokeWidth={transactionsActive ? 2.2 : 1.8} /><span>Transactions</span></span>
+                      <ChevronDown size={15} className={`text-slate-400 transition-transform ${transactionsOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {transactionsOpen && <div className="ml-[18px] space-y-0.5 border-l border-slate-200 pl-3">
+                      {[{ href: '/expenses', label: 'Activity' }, { href: '/approvals', label: 'Approvals' }, { href: '/expenses/compliance', label: 'Voucher audit' }].map((item) => (
+                        <Link key={item.href} href={item.href} prefetch className={`flex h-7 items-center rounded-md px-2 text-xs transition-colors ${pathname === item.href ? 'bg-indigo-50 font-medium text-indigo-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{item.label}</Link>
+                      ))}
+                    </div>}
+                  </div>
+                )}
+              </section>
+              {section('Team', peopleItems)}
+              <section className="border-t border-slate-100 pt-3"><nav className="space-y-0.5" aria-label="Administration">{navigationLink({ href: '/clients', label: 'Clients', icon: BriefcaseBusiness })}{navigationLink({ href: '/settings', label: 'Settings', icon: Settings })}</nav></section>
+            </>
+          )}
         </div>
       </div>
 
       <div className="mt-2 border-t border-slate-100 pt-2">
-        {!collapsed && <div className="mb-1 flex items-center gap-2.5 px-2.5 py-1"><div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600">GW</div><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium text-slate-700">GW Admin</p><p className="text-[11px] text-slate-400">Administrator</p></div><CircleHelp size={16} className="text-slate-400" aria-label="Help" /></div>}
+        {!collapsed && <div className="mb-1 flex items-center gap-2.5 px-2.5 py-1"><UserAvatar src={currentUser?.avatarUrl || currentUser?.avatar_url} name={currentUser?.name || currentUser?.fullName || currentUser?.email || 'User'} size="sm" shape="circle"/><div className="min-w-0 flex-1"><p className="truncate text-xs font-medium text-slate-700">{currentUser?.name || currentUser?.fullName || currentUser?.email || 'Workspace user'}</p><p className="truncate text-[11px] capitalize text-slate-400">{String(currentUser?.role || 'member').replace(/_/g, ' ')}</p></div><CircleHelp size={16} className="text-slate-400" aria-label="Help" /></div>}
         <button type="button" onClick={toggleCollapsed} className={`flex h-9 w-full items-center rounded-lg text-xs font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 ${collapsed ? 'justify-center' : 'gap-2.5 px-2.5'}`} title={collapsed ? 'Expand menu' : 'Collapse menu'} aria-label={collapsed ? 'Expand menu' : 'Collapse menu'}>
           {collapsed ? <ChevronsRight size={17} /> : <><ChevronsLeft size={17} /><span>Collapse menu</span></>}
         </button>

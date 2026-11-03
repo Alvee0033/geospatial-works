@@ -26,12 +26,14 @@ import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { LocationPickerMap } from '@/components/maps/LocationPickerMap';
+import { selectAssignedProjects, selectOwnRecords } from '@/lib/roleAccess';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [filter, setFilter] = useState<'all' | 'ongoing' | 'completed' | 'closed'>('all');
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
 
@@ -79,20 +81,30 @@ export default function ProjectsPage() {
   const [revNote, setRevNote] = useState('Milestone advance payment');
   const [revMilestone, setRevMilestone] = useState('Phase 1 Delivery');
 
-  const fetchRealProjects = async () => {
+  const fetchRealProjects = async (userOverride?: any) => {
     setLoading(true);
     try {
-      const [projData, expData, userData, attendanceSettings] = await Promise.all([
-        ApiClient.getProjects().catch(() => []),
-        ApiClient.getExpenses().catch(() => []),
-        ApiClient.getUsers().catch(() => []),
-        ApiClient.getAttendanceSettings().catch(() => null),
-      ]);
-      setProjects(projData || []);
-      setExpenses(expData || []);
-      setUsers(userData || []);
-      const radius = Number(attendanceSettings?.geofenceRadiusMeters ?? attendanceSettings?.geofence_radius_meters);
-      if (Number.isFinite(radius) && radius > 0) setAttendanceRadiusMeters(radius);
+      const user = userOverride ?? currentUser;
+      if (user?.role === 'project_member') {
+        const [projData, expData] = await Promise.all([ApiClient.getProjects(), ApiClient.getExpenses()]);
+        const userId = String(user.id ?? user._id ?? '');
+        const assignedProjects = selectAssignedProjects(projData || [], userId);
+        setProjects(assignedProjects);
+        setExpenses(selectOwnRecords(expData || [], userId));
+        setUsers([]);
+      } else {
+        const [projData, expData, userData, attendanceSettings] = await Promise.all([
+          ApiClient.getProjects().catch(() => []),
+          ApiClient.getExpenses().catch(() => []),
+          ApiClient.getUsers().catch(() => []),
+          ApiClient.getAttendanceSettings().catch(() => null),
+        ]);
+        setProjects(projData || []);
+        setExpenses(expData || []);
+        setUsers(userData || []);
+        const radius = Number(attendanceSettings?.geofenceRadiusMeters ?? attendanceSettings?.geofence_radius_meters);
+        if (Number.isFinite(radius) && radius > 0) setAttendanceRadiusMeters(radius);
+      }
     } catch (e) {
       console.error('Error fetching real projects:', e);
     } finally {
@@ -101,7 +113,10 @@ export default function ProjectsPage() {
   };
 
   useEffect(() => {
-    fetchRealProjects();
+    let user: any = null;
+    try { user = JSON.parse(localStorage.getItem('gw_user') || 'null'); } catch {}
+    setCurrentUser(user);
+    void fetchRealProjects(user);
   }, []);
 
   const resetForm = () => {
@@ -414,15 +429,15 @@ export default function ProjectsPage() {
 
   return (
     <AdminLayout
-      title="Project Portfolio & Invoicing"
-      subtitle="Complete project control, category budget allocations, team roster, and client invoicing (Live Server)"
+      title={currentUser?.role === 'project_member' ? 'My projects' : 'Project Portfolio & Invoicing'}
+      subtitle={currentUser?.role === 'project_member' ? 'Projects assigned to you' : 'Complete project control, category budget allocations, team roster, and client invoicing (Live Server)'}
       onRefresh={fetchRealProjects}
-      onExport={handleExport}
+      onExport={currentUser ? currentUser.role === 'project_member' ? undefined : handleExport : undefined}
       isRefreshing={loading}
       contentClassName="w-full max-w-[1440px] mx-auto px-5 py-5"
     >
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 text-xs font-semibold">
+        <div className={`flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 text-xs font-semibold ${!currentUser || currentUser.role === 'project_member' ? 'hidden' : ''}`}>
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-1.5 rounded-full transition-all ${
@@ -457,7 +472,7 @@ export default function ProjectsPage() {
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        {currentUser && currentUser.role !== 'project_member' && <div className="flex items-center gap-2">
           <button
             onClick={handleOpenCreate}
             className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 text-slate-800 rounded-md text-xs font-bold hover:bg-slate-200 transition-all"
@@ -472,7 +487,7 @@ export default function ProjectsPage() {
             <Plus size={14} />
             <span>New project</span>
           </Link>
-        </div>
+        </div>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -482,6 +497,23 @@ export default function ProjectsPage() {
           </div>
         ) : (
           filteredProjects.map((p) => {
+            if (currentUser?.role === 'project_member') {
+              const siteLat = p.siteLatitude ?? p.site_latitude;
+              const siteLng = p.siteLongitude ?? p.site_longitude;
+              return (
+                <article key={p.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                  <div className="relative h-28 bg-slate-100">
+                    {(p.imageUrl || p.image_url) && <img src={p.imageUrl || p.image_url} alt="" className="h-full w-full object-cover" />}
+                    <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-slate-700">{p.status || 'Active'}</span>
+                  </div>
+                  <div className="space-y-3 p-4">
+                    <div><h2 className="truncate text-sm font-semibold text-slate-900">{p.name}</h2><p className="mt-1 truncate text-xs text-slate-500">{p.client || p.client_name || 'Assigned project'}</p></div>
+                    <p className="text-xs text-slate-600">{siteLat != null && siteLng != null ? 'Site location set' : 'No site location set'}</p>
+                    <Link href={`/projects/${p.id}`} className="inline-flex h-8 items-center rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700">Open project</Link>
+                  </div>
+                </article>
+              );
+            }
             const projExpenses = expenses.filter(
               (e) => (e.projectId || e.project_id) === p.id && (e.status || '').toLowerCase() === 'approved'
             );

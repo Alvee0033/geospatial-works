@@ -32,6 +32,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { isAssignedToUser, selectAssignedProjects, selectOwnRecords } from '@/lib/roleAccess';
 
 function ProjectDetailContent() {
   const router = useRouter();
@@ -39,6 +40,8 @@ function ProjectDetailContent() {
   const projectId = (routeParams?.id as string) || '';
 
   const [project, setProject] = useState<any | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [roleResolved, setRoleResolved] = useState(false);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
@@ -76,6 +79,22 @@ function ProjectDetailContent() {
   const loadProjectData = async () => {
     setLoading(true);
     try {
+      let user = currentUser;
+      if (!user) { try { user = JSON.parse(localStorage.getItem('gw_user') || 'null'); } catch {} }
+      if (user?.role === 'project_member') {
+        const [proj, allExp, pTasks] = await Promise.all([
+          ApiClient.getProjectById(projectId).catch(() => null),
+          ApiClient.getExpenses({ projectId }).catch(() => []),
+          ApiClient.getTasks(projectId).catch(() => []),
+        ]);
+        const userId = String(user.id ?? user._id ?? '');
+        const memberProject = proj && selectAssignedProjects([proj], userId)[0];
+        setProject(memberProject || null);
+        setExpenses(selectOwnRecords(allExp || [], userId));
+        setTasks((pTasks || []).filter((task: any) => isAssignedToUser(task, userId)));
+        setAllUsers([]);
+        return;
+      }
       const [proj, allExp, pTasks, users] = await Promise.all([
         ApiClient.getProjectById(projectId).catch(() => null),
         ApiClient.getExpenses({ projectId }).catch(() => []),
@@ -99,6 +118,8 @@ function ProjectDetailContent() {
   };
 
   useEffect(() => {
+    try { setCurrentUser(JSON.parse(localStorage.getItem('gw_user') || 'null')); } catch {}
+    setRoleResolved(true);
     loadProjectData();
   }, [projectId]);
 
@@ -112,6 +133,8 @@ function ProjectDetailContent() {
       </AdminLayout>
     );
   }
+
+  if (!roleResolved) return <div className="min-h-screen bg-[#F7F8F6]" aria-label="Loading project access" />;
 
   if (!project) {
     return (
@@ -128,6 +151,45 @@ function ProjectDetailContent() {
           >
             Back to Projects List
           </button>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (currentUser?.role === 'project_member') {
+    const projectTasks = tasks;
+    const projectExpenses = expenses;
+    const statusLabel = String(project.status || 'In progress').replace(/_/g, ' ');
+    return (
+      <AdminLayout title={project.name} subtitle="Project overview">
+        <div className="mx-auto max-w-5xl space-y-5 px-5 py-6">
+          <div className="flex items-center justify-between gap-3">
+            <Link href="/projects" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"><ArrowLeft size={16} /> My projects</Link>
+            <StatusBadge status={statusLabel} />
+          </div>
+          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            {project.imageUrl || project.image_url ? <img src={project.imageUrl || project.image_url} alt="" className="h-44 w-full object-cover" /> : null}
+            <div className="space-y-4 p-5 sm:p-7">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">{project.projectId || project.project_code || 'Assigned project'}</p>
+                <h1 className="mt-1 text-2xl font-bold text-slate-900">{project.name}</h1>
+                <p className="mt-1 text-sm text-slate-500">{project.client || project.client_name || 'Project'}{project.endDate || project.end_date ? ` · Due ${new Date(project.endDate || project.end_date).toLocaleDateString()}` : ''}</p>
+              </div>
+              {project.description && <p className="max-w-3xl text-sm leading-6 text-slate-600">{project.description}</p>}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Link href="/tasks" className="rounded-xl border border-slate-200 p-4 transition hover:border-indigo-300 hover:bg-indigo-50/40">
+                  <span className="text-xs font-medium text-slate-500">Your assigned tasks</span><p className="mt-1 text-2xl font-semibold text-slate-900">{projectTasks.length}</p><span className="text-sm font-medium text-indigo-700">Open my tasks →</span>
+                </Link>
+                <Link href="/expenses" className="rounded-xl border border-slate-200 p-4 transition hover:border-emerald-300 hover:bg-emerald-50/40">
+                  <span className="text-xs font-medium text-slate-500">Your submitted claims</span><p className="mt-1 text-2xl font-semibold text-slate-900">{projectExpenses.length}</p><span className="text-sm font-medium text-emerald-700">View or submit a claim →</span>
+                </Link>
+              </div>
+              <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+                <Link href="/attendance" className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">My attendance</Link>
+                <Link href="/expenses" className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Submit a claim</Link>
+              </div>
+            </div>
+          </section>
         </div>
       </AdminLayout>
     );

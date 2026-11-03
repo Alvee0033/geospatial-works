@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { ExportUtils } from '@/lib/exportUtils';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { isAssignedToUser, selectAssignedProjects } from '@/lib/roleAccess';
 
 type KanbanStatus = 'todo' | 'in_progress' | 'completed';
 
@@ -58,6 +59,8 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [canManageTasks, setCanManageTasks] = useState(false);
   const [canUpdateTaskStatus, setCanUpdateTaskStatus] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [roleReady, setRoleReady] = useState(false);
   const [loadError, setLoadError] = useState('');
 
   // Active view: 'kanban' | 'list'
@@ -90,6 +93,18 @@ export default function TasksPage() {
   const fetchTasksData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
+      let user = currentUser;
+      if (!user) { try { user = JSON.parse(localStorage.getItem('gw_user') || 'null'); } catch {} }
+      if (user?.role === 'project_member') {
+        const results = await Promise.allSettled([ApiClient.getTasks(), ApiClient.getProjects()]);
+        const errors = results.flatMap((result, index) => result.status === 'rejected' ? [['tasks', 'projects'][index]] : []);
+        const userId = String(user.id ?? user._id ?? '');
+        setTasks(results[0].status === 'fulfilled' ? (results[0].value || []).filter((task: any) => isAssignedToUser(task, userId)) : []);
+        setProjects(results[1].status === 'fulfilled' ? selectAssignedProjects(results[1].value || [], userId) : []);
+        setUsers([]);
+        setLoadError(errors.length ? `Could not load your ${errors.join(' and ')} from the server. Please retry.` : '');
+        return;
+      }
       const results = await Promise.allSettled([ApiClient.getTasks(), ApiClient.getProjects(), ApiClient.getUsers()]);
       const errors = results.flatMap((result, index) => result.status === 'rejected' ? [['tasks', 'projects', 'people'][index]] : []);
       if (results[0].status === 'fulfilled') setTasks(results[0].value || []);
@@ -107,9 +122,11 @@ export default function TasksPage() {
   useEffect(() => {
     try {
       const user = JSON.parse(localStorage.getItem('gw_user') || '{}');
+      setCurrentUser(user);
       setCanManageTasks(['main_admin', 'project_manager'].includes(user.role));
       setCanUpdateTaskStatus(['main_admin', 'project_manager', 'project_member'].includes(user.role));
     } catch { setCanManageTasks(false); setCanUpdateTaskStatus(false); }
+    setRoleReady(true);
     void fetchTasksData();
     const unsubscribe = ApiClient.subscribeToDataRefresh(() => { void fetchTasksData(true); });
     return unsubscribe;
@@ -399,7 +416,7 @@ export default function TasksPage() {
 
   return (
     <AdminLayout
-      title="Tasks & Deliverables Kanban"
+      title={currentUser?.role === 'project_member' ? 'My tasks' : 'Tasks & Deliverables Kanban'}
       onRefresh={() => { void fetchTasksData(); }}
       onExport={handleExport}
       isRefreshing={loading}
