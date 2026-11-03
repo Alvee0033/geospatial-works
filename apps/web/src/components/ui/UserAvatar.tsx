@@ -2,33 +2,15 @@
 
 import React from 'react';
 
-const BACKEND_BASE = process.env.NEXT_PUBLIC_BACKEND_ORIGIN
-  || process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/api\/v1\/?$/, '')
-  || 'http://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io';
-const BACKEND_HOST = (() => {
-  try {
-    return new URL(BACKEND_BASE).hostname;
-  } catch {
-    return '';
-  }
-})();
+const BACKEND_BASE = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || 'http://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io';
 
 export function resolveAvatarUrl(url?: string | null): string {
-  const source = url?.trim();
-  if (!source) return '';
-  if (source.startsWith('data:') || source.startsWith('blob:')) return source;
-
-  if (/^https?:\/\//i.test(source)) {
-    try {
-      const parsed = new URL(source);
-      const isBackendAsset = parsed.hostname === BACKEND_HOST && parsed.pathname.startsWith('/uploads/');
-      return isBackendAsset ? `${parsed.pathname}${parsed.search}${parsed.hash}` : source;
-    } catch {
-      return source;
-    }
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url;
   }
-
-  return source.startsWith('/') ? source : `/${source}`;
+  const cleanPath = url.startsWith('/') ? url : `/${url}`;
+  return `${BACKEND_BASE}${cleanPath}`;
 }
 
 export function getAvatarColor(name: string): string {
@@ -68,22 +50,20 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   size = 'md',
   shape = 'rounded',
 }) => {
-  const [failedSource, setFailedSource] = React.useState('');
+  const [imageError, setImageError] = React.useState(false);
   const resolved = src ? resolveAvatarUrl(src) : '';
   const initial = (name || 'U').trim().charAt(0).toUpperCase();
   const shapeClass = shape === 'circle' ? 'rounded-full' : 'rounded-xl';
   const sizeClass = SIZE_MAP[size] || SIZE_MAP.md;
 
-  if (resolved && failedSource !== resolved) {
+  if (resolved && !imageError) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- avatar hosts are dynamic and served through the app's upload proxy.
       <img
         src={resolved}
-        key={resolved}
         alt={name || 'Avatar'}
         className={`${sizeClass} ${shapeClass} object-cover border border-slate-200/90 shadow-2xs shrink-0 bg-slate-100 ${className}`}
         referrerPolicy="no-referrer"
-        onError={() => setFailedSource(resolved)}
+        onError={() => setImageError(true)}
       />
     );
   }

@@ -15,11 +15,12 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError(null);
 
     try {
-      const res = await ApiClient.login({ email, password });
+      const res = await ApiClient.login({ email: email.trim(), password });
       const token = res.accessToken || res.token;
       if (token) {
         ApiClient.setToken(token);
@@ -30,8 +31,9 @@ export default function LoginPage() {
       } else {
         throw new Error('No access token returned from server');
       }
-    } catch (err: any) {
-      setError(err.message || 'Invalid credentials');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Sign in failed. Please try again.';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -49,8 +51,8 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl flex items-center gap-2">
-            <ShieldCheck size={16} />
+          <div role="alert" aria-live="polite" className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm leading-5 text-rose-700 flex items-start gap-2.5">
+            <ShieldCheck size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -64,9 +66,11 @@ export default function LoginPage() {
                 type="text"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@geospatialworks.com"
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-[#EAEBEF] rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all"
+                onChange={(e) => { setEmail(e.target.value); setError(null); }}
+                autoComplete="username"
+                aria-label="Employee ID or email"
+                placeholder="Employee ID or name@company.com"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-[#EAEBEF] rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all"
               />
             </div>
           </div>
@@ -79,9 +83,11 @@ export default function LoginPage() {
                 type="password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { setPassword(e.target.value); setError(null); }}
+                autoComplete="current-password"
+                aria-label="Password"
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-[#EAEBEF] rounded-full text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50/50 border border-[#EAEBEF] rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all"
               />
             </div>
           </div>
@@ -99,10 +105,10 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 bg-[#0D1117] text-white rounded-full text-xs font-bold hover:bg-slate-800 flex items-center justify-center gap-2 transition-all shadow-xs disabled:opacity-50"
+            className="w-full mt-2 py-3 bg-[#0D1117] text-white rounded-xl text-sm font-semibold hover:bg-slate-800 flex items-center justify-center gap-2 transition-all shadow-xs disabled:cursor-wait disabled:opacity-60"
           >
-            <span>{loading ? 'Authenticating...' : 'Sign In to Portal'}</span>
-            <ArrowRight size={14} />
+            <span>{loading ? 'Signing in…' : 'Sign in'}</span>
+            <ArrowRight size={16} aria-hidden="true" />
           </button>
         </form>
 

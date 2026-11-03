@@ -26,7 +26,6 @@ import {
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { notifyAction } from '@/components/feedback/ActionFeedback';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -35,11 +34,6 @@ export default function ExpensesPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [search, setSearch] = useState('');
-  const [projectFilter, setProjectFilter] = useState('all');
-  const [minAmount, setMinAmount] = useState('');
-  const [maxAmount, setMaxAmount] = useState('');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
   const [inspectExp, setInspectExp] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
@@ -100,9 +94,9 @@ export default function ExpensesPage() {
       if (inspectExp && inspectExp.id === id) {
         setInspectExp({ ...inspectExp, status: 'approved' });
       }
-      notifyAction('Claim approved.');
+      alert('Claim successfully approved');
     } catch (err: any) {
-      notifyAction(`Approval failed: ${err.message}`, 'error');
+      alert(`Approval failed: ${err.message}`);
     }
   };
 
@@ -115,9 +109,9 @@ export default function ExpensesPage() {
       if (inspectExp && inspectExp.id === id) {
         setInspectExp({ ...inspectExp, status: 'rejected', rejectionReason: reason });
       }
-      notifyAction('Claim marked rejected.');
+      alert('Claim marked rejected');
     } catch (err: any) {
-      notifyAction(`Rejection failed: ${err.message}`, 'error');
+      alert(`Rejection failed: ${err.message}`);
     }
   };
 
@@ -127,9 +121,9 @@ export default function ExpensesPage() {
       await ApiClient.deleteExpense(id);
       await fetchRealExpenses();
       if (inspectExp?.id === id) setInspectExp(null);
-      notifyAction('Expense record deleted.');
+      alert('Expense record deleted');
     } catch (err: any) {
-      notifyAction(`Deletion failed: ${err.message}`, 'error');
+      alert(`Deletion failed: ${err.message}`);
     }
   };
 
@@ -142,9 +136,8 @@ export default function ExpensesPage() {
       const updated = await ApiClient.getExpenseById(inspectExp.id);
       setInspectExp(updated);
       await fetchRealExpenses();
-      notifyAction('Comment added.');
     } catch (err: any) {
-      notifyAction(`Failed to post comment: ${err.message}`, 'error');
+      alert(`Failed to post comment: ${err.message}`);
     }
   };
 
@@ -176,9 +169,9 @@ export default function ExpensesPage() {
       setFormNote('');
       setFormReceiptUrl('');
       await fetchRealExpenses();
-      notifyAction('Expense recorded successfully.');
+      alert('Expense claim created and recorded successfully');
     } catch (err: any) {
-      notifyAction(`Claim creation failed: ${err.message}`, 'error');
+      alert(`Claim creation failed: ${err.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -214,9 +207,9 @@ export default function ExpensesPage() {
       setIsEditModalOpen(false);
       setExpenseToEdit(null);
       await fetchRealExpenses();
-      notifyAction('Expense record updated.');
+      alert('Expense record updated successfully');
     } catch (err: any) {
-      notifyAction(`Update failed: ${err.message}`, 'error');
+      alert(`Update failed: ${err.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -230,14 +223,7 @@ export default function ExpensesPage() {
     const cat = (e.categoryName || e.category_name || '').toLowerCase();
     const q = search.toLowerCase();
     const matchesSearch = emp.includes(q) || proj.includes(q) || cat.includes(q);
-    const amount = Number(e.amount) || 0;
-    const date = new Date(e.date || e.createdAt || e.created_at || 0);
-    const matchesProject = projectFilter === 'all' || String(e.projectId || e.project_id || '') === projectFilter;
-    const matchesMin = !minAmount || amount >= Number(minAmount);
-    const matchesMax = !maxAmount || amount <= Number(maxAmount);
-    const matchesFrom = !fromDate || date >= new Date(`${fromDate}T00:00:00`);
-    const matchesTo = !toDate || date < new Date(`${toDate}T23:59:59.999`);
-    return matchesStatus && matchesSearch && matchesProject && matchesMin && matchesMax && matchesFrom && matchesTo;
+    return matchesStatus && matchesSearch;
   });
 
   const totalGross = filtered.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
@@ -275,26 +261,26 @@ export default function ExpensesPage() {
       <div className="w-full max-w-[1440px] mx-auto px-5 py-5 space-y-3">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
-          <p className="text-[11px] font-semibold text-slate-500">Base amount</p>
+          <p className="text-[11px] font-semibold text-slate-400">Total Base Direct Cost</p>
           <p className="text-lg font-bold text-slate-900 mt-1">BDT {totalBase.toLocaleString()}</p>
         </div>
         <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
-          <p className="text-[11px] font-semibold text-indigo-500">VAT</p>
+          <p className="text-[11px] font-semibold text-indigo-500">Total VAT Segment</p>
           <p className="text-lg font-bold text-indigo-700 mt-1">BDT {totalVat.toLocaleString()}</p>
         </div>
         <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
-          <p className="text-[11px] font-semibold text-slate-500">Tax / AIT</p>
+          <p className="text-[11px] font-semibold text-slate-500">Total Tax / AIT Deducted</p>
           <p className="text-lg font-bold text-slate-800 mt-1">BDT {totalTax.toLocaleString()}</p>
         </div>
         <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
-          <p className="text-[11px] font-semibold text-emerald-600">Total spent</p>
+          <p className="text-[11px] font-semibold text-emerald-600">Total Gross Expenditures</p>
           <p className="text-lg font-bold text-slate-900 mt-1">BDT {totalGross.toLocaleString()}</p>
         </div>
       </div>
 
       {/* Control Bar: Filters, Search & Action Button */}
-      <div className="bg-white border border-[#EAEBEF] rounded-xl p-3 shadow-xs">
-        <div className="flex flex-col gap-2.5 mb-3">
+      <div className="bg-white border border-[#EAEBEF] rounded-xl p-4 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-lg text-xs font-semibold">
             {(['all', 'pending', 'approved', 'rejected'] as const).map((st) => (
               <button
@@ -309,25 +295,20 @@ export default function ExpensesPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-[minmax(170px,1.6fr)_minmax(130px,1fr)_repeat(2,minmax(90px,.8fr))_repeat(2,minmax(120px,1fr))_auto]">
-            <div className="relative col-span-2 sm:col-span-2 xl:col-span-1">
+          <div className="flex items-center gap-3">
+            <div className="relative">
               <Search size={14} className="absolute left-3.5 top-2.5 text-slate-400" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Filter by staff, project, category..."
-                className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                className="pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-slate-900 w-60"
               />
             </div>
-            <select aria-label="Filter by project" value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} className="h-9 min-w-0 rounded-lg border border-slate-200 bg-white px-2.5 text-xs text-slate-700"><option value="all">All projects</option>{projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select>
-            <input aria-label="Minimum amount" type="number" min="0" inputMode="decimal" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} placeholder="Min amount" className="h-9 min-w-0 rounded-lg border border-slate-200 px-2.5 text-xs outline-none focus:border-indigo-400" />
-            <input aria-label="Maximum amount" type="number" min="0" inputMode="decimal" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} placeholder="Max amount" className="h-9 min-w-0 rounded-lg border border-slate-200 px-2.5 text-xs outline-none focus:border-indigo-400" />
-            <label className="flex h-9 min-w-0 items-center gap-1.5 rounded-lg border border-slate-200 px-2 text-[10px] text-slate-500"><span>From</span><input aria-label="From date" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="min-w-0 flex-1 text-xs text-slate-700" /></label>
-            <label className="flex h-9 min-w-0 items-center gap-1.5 rounded-lg border border-slate-200 px-2 text-[10px] text-slate-500"><span>To</span><input aria-label="To date" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="min-w-0 flex-1 text-xs text-slate-700" /></label>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex h-9 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-indigo-700"
+              className="flex items-center gap-2 px-4 py-2 bg-[#0D1117] hover:bg-slate-800 text-white rounded-full text-xs font-bold transition-all shadow-xs"
             >
               <Plus size={14} />
               <span>Record Expense</span>
@@ -393,9 +374,9 @@ export default function ExpensesPage() {
                       <td className="py-3.5 px-3 font-bold text-slate-900">BDT {gross.toLocaleString()}</td>
                       <td className="py-3.5 px-3">
                         {hasReceipt ? (
-                          <a href={e.receiptPhotoUrl || e.receipt_photo_url || e.receiptUrl || e.receipt_url} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()} className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-900">
-                            <Eye size={12} /> View receipt
-                          </a>
+                          <span className="text-emerald-600 font-semibold text-[11px] flex items-center gap-1">
+                            <CheckCircle2 size={12} /> Voucher
+                          </span>
                         ) : (
                           <span className="text-amber-600 font-semibold text-[11px] flex items-center gap-1">
                             <XCircle size={12} /> Missing

@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // The dashboard is opened at 127.0.0.1:3100 during local browser testing.
+  allowedDevOrigins: ['127.0.0.1'],
 
   turbopack: {
     rules: {

@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { ApiClient } from '@/lib/api';
+import { DateField } from '@/components/forms/DateField';
+import { LocationPickerMap } from '@/components/maps/LocationPickerMap';
 import {
   Briefcase,
   ArrowLeft,
@@ -50,6 +52,10 @@ function EditProjectContent() {
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [siteLatitude, setSiteLatitude] = useState<number | null>(null);
+  const [siteLongitude, setSiteLongitude] = useState<number | null>(null);
+  const [siteLocationEnabled, setSiteLocationEnabled] = useState(false);
+  const [siteRadiusMeters, setSiteRadiusMeters] = useState(200);
 
   // Category Budgets
   const [budgetEquipment, setBudgetEquipment] = useState<number>(15000);
@@ -74,14 +80,22 @@ function EditProjectContent() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [proj, uData, cData] = await Promise.all([
+        const [proj, uData, cData, attendanceSettings] = await Promise.all([
           ApiClient.getProjectById(projectId),
           ApiClient.getUsers().catch(() => []),
           ApiClient.getClients().catch(() => []),
+          ApiClient.getAttendanceSettings().catch(() => null),
         ]);
+        const configuredRadius = Number(attendanceSettings?.geofenceRadiusMeters ?? attendanceSettings?.geofence_radius_meters);
+        if (Number.isFinite(configuredRadius) && configuredRadius > 0) setSiteRadiusMeters(configuredRadius);
 
         if (proj) {
           setName(proj.name || '');
+          const latitude = proj.siteLatitude == null && proj.site_latitude == null ? null : Number(proj.siteLatitude ?? proj.site_latitude);
+          const longitude = proj.siteLongitude == null && proj.site_longitude == null ? null : Number(proj.siteLongitude ?? proj.site_longitude);
+          setSiteLatitude(latitude);
+          setSiteLongitude(longitude);
+          setSiteLocationEnabled(latitude !== null && longitude !== null);
           setDescription(proj.description || '');
           setClient(proj.client || proj.client_name || '');
           setClientType(proj.clientType || proj.client_type || 'government');
@@ -140,7 +154,7 @@ function EditProjectContent() {
 
   // Calculations
   const vatProvision = taxStatus === 'included' ? grossProjectValue * taxRate : 0;
-  const incomeTaxProvision = grossProjectValue * incomeTaxRate;
+  const incomeTaxProvision = taxStatus === 'included' ? grossProjectValue * incomeTaxRate : 0;
   const expectedNetRevenue = Math.max(0, grossProjectValue - vatProvision - incomeTaxProvision);
 
   const directExpensesBudget =
@@ -152,6 +166,7 @@ function EditProjectContent() {
     customCategories.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
 
   const calculatedOfficeBenefit = directExpensesBudget * officeBenefitRate;
+  const expectedRevenue = expectedNetRevenue - (directExpensesBudget + calculatedOfficeBenefit);
   const calculatedTotalBudget = directExpensesBudget + calculatedOfficeBenefit;
   const amountReceivable = Math.max(0, grossProjectValue - amountReceived);
 
@@ -233,6 +248,8 @@ function EditProjectContent() {
         team_member_ids: selectedTeamMemberIds,
         teamMemberIds: selectedTeamMemberIds,
         status: status,
+        site_latitude: siteLatitude,
+        site_longitude: siteLongitude,
       };
 
       await ApiClient.updateProject(projectId, payload);
@@ -363,6 +380,43 @@ function EditProjectContent() {
                     />
                   </div>
 
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800">Field site</h3>
+                        <p className="mt-0.5 text-xs text-slate-500">Optional location for on-site attendance.</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-slate-600">{siteLocationEnabled ? 'Enabled' : 'Not set'}</span>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-label="Set field site location"
+                          aria-checked={siteLocationEnabled}
+                          onClick={() => {
+                            const enabled = !siteLocationEnabled;
+                            setSiteLocationEnabled(enabled);
+                            if (!enabled) { setSiteLatitude(null); setSiteLongitude(null); }
+                          }}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${siteLocationEnabled ? 'bg-emerald-600' : 'bg-slate-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${siteLocationEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                        </button>
+                        {siteLocationEnabled && siteLatitude !== null && <button type="button" onClick={() => { setSiteLatitude(null); setSiteLongitude(null); }} className="text-xs font-semibold text-rose-600 hover:text-rose-700">Clear pin</button>}
+                      </div>
+                    </div>
+                    {siteLocationEnabled ? <div className="mt-3">
+                      <LocationPickerMap
+                        latitude={siteLatitude ?? 23.8103}
+                        longitude={siteLongitude ?? 90.4125}
+                        radiusMeters={siteRadiusMeters}
+                        pinLabel="Project site"
+                        onChange={(point) => { setSiteLatitude(point.latitude); setSiteLongitude(point.longitude); }}
+                      />
+                      <p className="mt-2 text-[11px] text-slate-500">{siteLatitude === null ? 'Search an address or place the pin to set this project site.' : `Pinned at ${siteLatitude.toFixed(6)}, ${siteLongitude?.toFixed(6)}`}</p>
+                    </div> : null}
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
@@ -427,28 +481,8 @@ function EditProjectContent() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <Calendar size={13} className="text-slate-400" /> Start Date
-                      </label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <Calendar size={13} className="text-slate-400" /> Target Completion Date
-                      </label>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
+                    <DateField label="Start Date" value={startDate} onChange={setStartDate} />
+                    <DateField label="Target Completion Date" value={endDate} onChange={setEndDate} />
                   </div>
                 </div>
               </div>
@@ -526,7 +560,7 @@ function EditProjectContent() {
 
                   <div className="md:col-span-2">
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Direct Office & Field Admin Cost (৳)
+                      Office and Administration (৳)
                     </label>
                     <input
                       type="number"
@@ -538,10 +572,11 @@ function EditProjectContent() {
                   </div>
                 </div>
 
-                {/* Custom Categories List */}
+                <div className="ml-2 space-y-3 border-l-2 border-emerald-100 pl-4">
+                {/* Custom Categories are sub-lines of Office and Administration. */}
                 {customCategories.length > 0 && (
-                  <div className="space-y-3 pt-2 border-t border-slate-100">
-                    <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Custom Category Budgets</h3>
+                  <div className="space-y-3 pt-2">
+                    <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Additional Office and Administration Lines</h3>
                     <div className="space-y-2">
                       {customCategories.map((cat, idx) => (
                         <div
@@ -566,7 +601,7 @@ function EditProjectContent() {
                 )}
 
                 {/* Add Custom Category Inline */}
-                <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3">
+                <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
                   <input
                     type="text"
                     placeholder="Custom category name (e.g., Drone License)"
@@ -588,6 +623,7 @@ function EditProjectContent() {
                   >
                     <Plus size={14} /> Add Line
                   </button>
+                </div>
                 </div>
               </div>
             </div>
@@ -702,7 +738,7 @@ function EditProjectContent() {
                   {/* Summary Breakdown Box */}
                   <div className="p-3 bg-white/80 border border-indigo-100 rounded-xl space-y-2 text-xs">
                     <div className="flex justify-between text-slate-500">
-                      <span>Expected Net Revenue:</span>
+                      <span>Project Value Excl. IT-VAT:</span>
                       <span className="font-mono font-bold text-slate-900">৳{expectedNetRevenue.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-slate-500">
@@ -719,7 +755,11 @@ function EditProjectContent() {
                     </div>
                     <div className="flex justify-between text-slate-500">
                       <span>Office Benefit ({Math.round(officeBenefitRate * 100)}%):</span>
-                      <span className="font-mono font-bold text-emerald-400">+৳{Math.round(calculatedOfficeBenefit).toLocaleString()}</span>
+                      <span className="font-mono font-bold text-slate-900">৳{Math.round(calculatedOfficeBenefit).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-indigo-100 pt-2 text-slate-700">
+                      <span className="font-bold">Expected Revenue:</span>
+                      <span className={`font-mono font-bold ${expectedRevenue < 0 ? 'text-rose-700' : 'text-emerald-700'}`}>৳{Math.round(expectedRevenue).toLocaleString()}</span>
                     </div>
                     <div className="border-t border-indigo-100 pt-2 flex justify-between text-sm font-bold">
                       <span className="text-indigo-700">Total Agreed Budget:</span>

@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { ApiClient } from '@/lib/api';
+import { DateField } from '@/components/forms/DateField';
+import { LocationPickerMap } from '@/components/maps/LocationPickerMap';
 import {
   Briefcase,
   ArrowLeft,
@@ -46,6 +48,10 @@ export default function NewProjectPage() {
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [siteLatitude, setSiteLatitude] = useState<number | null>(null);
+  const [siteLongitude, setSiteLongitude] = useState<number | null>(null);
+  const [siteLocationEnabled, setSiteLocationEnabled] = useState(false);
+  const [siteRadiusMeters, setSiteRadiusMeters] = useState(200);
 
   // Category Budgets
   const [budgetEquipment, setBudgetEquipment] = useState<number>(15000);
@@ -73,12 +79,15 @@ export default function NewProjectPage() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const [uData, cData] = await Promise.all([
+        const [uData, cData, attendanceSettings] = await Promise.all([
           ApiClient.getUsers().catch(() => []),
           ApiClient.getClients().catch(() => []),
+          ApiClient.getAttendanceSettings().catch(() => null),
         ]);
         setUsers(uData || []);
         setClients(cData || []);
+        const configuredRadius = Number(attendanceSettings?.geofenceRadiusMeters ?? attendanceSettings?.geofence_radius_meters);
+        if (Number.isFinite(configuredRadius) && configuredRadius > 0) setSiteRadiusMeters(configuredRadius);
       } catch (e: any) {
         console.error('Error loading initial data:', e);
       } finally {
@@ -98,7 +107,6 @@ export default function NewProjectPage() {
     taxStatus === 'included'
       ? grossProjectValue * Math.max(0, 1 - totalTaxDeductionRate)
       : grossProjectValue;
-
   const directExpensesBudget =
     budgetEquipment +
     budgetTransportation +
@@ -108,6 +116,7 @@ export default function NewProjectPage() {
     customCategories.reduce((acc, c) => acc + (Number(c.amount) || 0), 0);
 
   const calculatedOfficeBenefit = directExpensesBudget * officeBenefitRate;
+  const expectedRevenue = expectedNetRevenue - (directExpensesBudget + calculatedOfficeBenefit);
   const calculatedTotalBudget = directExpensesBudget + calculatedOfficeBenefit;
   const amountReceivable = Math.max(0, grossProjectValue - amountReceived);
 
@@ -189,6 +198,8 @@ export default function NewProjectPage() {
         end_date: endDate ? new Date(endDate).toISOString() : new Date().toISOString(),
         team_member_ids: selectedTeamMemberIds,
         status: status,
+        site_latitude: siteLatitude,
+        site_longitude: siteLongitude,
       };
 
       const res = await ApiClient.createProject(payload);
@@ -315,6 +326,43 @@ export default function NewProjectPage() {
                     />
                   </div>
 
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800">Field site</h3>
+                        <p className="mt-0.5 text-xs text-slate-500">Optional location for on-site attendance.</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-slate-600">{siteLocationEnabled ? 'Enabled' : 'Not set'}</span>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-label="Set field site location"
+                          aria-checked={siteLocationEnabled}
+                          onClick={() => {
+                            const enabled = !siteLocationEnabled;
+                            setSiteLocationEnabled(enabled);
+                            if (!enabled) { setSiteLatitude(null); setSiteLongitude(null); }
+                          }}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${siteLocationEnabled ? 'bg-emerald-600' : 'bg-slate-300'}`}
+                        >
+                          <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${siteLocationEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                        </button>
+                        {siteLocationEnabled && siteLatitude !== null && <button type="button" onClick={() => { setSiteLatitude(null); setSiteLongitude(null); }} className="text-xs font-semibold text-rose-600 hover:text-rose-700">Clear pin</button>}
+                      </div>
+                    </div>
+                    {siteLocationEnabled ? <div className="mt-3">
+                      <LocationPickerMap
+                        latitude={siteLatitude ?? 23.8103}
+                        longitude={siteLongitude ?? 90.4125}
+                        radiusMeters={siteRadiusMeters}
+                        pinLabel="Project site"
+                        onChange={(point) => { setSiteLatitude(point.latitude); setSiteLongitude(point.longitude); }}
+                      />
+                      <p className="mt-2 text-[11px] text-slate-500">{siteLatitude === null ? 'Search an address or place the pin to set this project site.' : `Pinned at ${siteLatitude.toFixed(6)}, ${siteLongitude?.toFixed(6)}`}</p>
+                    </div> : null}
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
@@ -380,28 +428,8 @@ export default function NewProjectPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <Calendar size={13} className="text-slate-400" /> Start Date
-                      </label>
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <Calendar size={13} className="text-slate-400" /> Target Completion Date
-                      </label>
-                      <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
+                    <DateField label="Start Date" value={startDate} onChange={setStartDate} />
+                    <DateField label="Target Completion Date" value={endDate} onChange={setEndDate} />
                   </div>
                 </div>
               </div>
@@ -479,7 +507,7 @@ export default function NewProjectPage() {
 
                   <div className="md:col-span-2">
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Direct Office & Field Admin Cost (৳)
+                      Office and Administration (৳)
                     </label>
                     <input
                       type="number"
@@ -491,10 +519,11 @@ export default function NewProjectPage() {
                   </div>
                 </div>
 
-                {/* Custom Categories List */}
+                {/* Office and Administration includes its custom cost lines. */}
+                <div className="ml-2 space-y-3 border-l-2 border-emerald-100 pl-4">
                 {customCategories.length > 0 && (
-                  <div className="space-y-3 pt-2 border-t border-slate-100">
-                    <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Custom Category Budgets</h3>
+                  <div className="space-y-3 pt-2">
+                    <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Additional Office and Administration Lines</h3>
                     <div className="space-y-2">
                       {customCategories.map((cat, idx) => (
                         <div
@@ -519,7 +548,7 @@ export default function NewProjectPage() {
                 )}
 
                 {/* Add Custom Category Inline */}
-                <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3">
+                <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
                   <input
                     type="text"
                     placeholder="Custom category name (e.g., Drone License)"
@@ -541,6 +570,7 @@ export default function NewProjectPage() {
                   >
                     <Plus size={14} /> Add Line
                   </button>
+                </div>
                 </div>
               </div>
             </div>
@@ -689,7 +719,7 @@ export default function NewProjectPage() {
                       </span>
                     </div>
                     <div className="flex justify-between text-slate-600 pt-1 border-t border-emerald-200/50">
-                      <span className="font-bold text-slate-800">Expected Net Revenue:</span>
+                      <span className="font-bold text-slate-800">Project Value Excl. IT-VAT:</span>
                       <span className="font-mono font-bold text-emerald-800">৳{Math.round(expectedNetRevenue).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-slate-600">
@@ -698,7 +728,11 @@ export default function NewProjectPage() {
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <span>Office Benefit ({Math.round(officeBenefitRate * 100)}%):</span>
-                      <span className="font-mono font-bold text-emerald-700">+৳{Math.round(calculatedOfficeBenefit).toLocaleString()}</span>
+                      <span className="font-mono font-semibold text-slate-800">৳{Math.round(calculatedOfficeBenefit).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-emerald-200/50 pt-2 text-slate-700">
+                      <span className="font-bold">Expected Revenue:</span>
+                      <span className={`font-mono font-bold ${expectedRevenue < 0 ? 'text-rose-700' : 'text-emerald-800'}`}>৳{Math.round(expectedRevenue).toLocaleString()}</span>
                     </div>
                     <div className="border-t border-emerald-300/80 pt-2 flex justify-between text-sm font-bold">
                       <span className="text-emerald-950 font-extrabold">Total Agreed Budget:</span>

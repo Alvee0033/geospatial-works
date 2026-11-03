@@ -28,6 +28,103 @@ import {
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { filterAssignableProjects, type AssignableProject } from '@/lib/projectAssignment';
+
+function ProjectAssignmentPicker({
+  projects,
+  selectedIds,
+  onChange,
+  label,
+}: {
+  projects: AssignableProject[];
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+  label: string;
+}) {
+  const [query, setQuery] = useState('');
+  const visibleProjects = useMemo(() => filterAssignableProjects(projects, query), [projects, query]);
+  const selectedProjects = projects.filter((project) => selectedIds.includes(project.id));
+
+  const toggleProject = (projectId: string) => {
+    onChange(
+      selectedIds.includes(projectId)
+        ? selectedIds.filter((id) => id !== projectId)
+        : [...selectedIds, projectId],
+    );
+  };
+
+  return (
+    <section aria-label={label} className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <label htmlFor={`${label.toLowerCase().replaceAll(' ', '-')}-search`} className="text-[10px] font-bold text-slate-500 uppercase">
+          {label}
+        </label>
+        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+          {selectedIds.length} selected
+        </span>
+      </div>
+
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div className="relative border-b border-slate-100">
+          <Search size={14} aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            id={`${label.toLowerCase().replaceAll(' ', '-')}-search`}
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search projects by name, ID, or client"
+            aria-label={`Search ${label.toLowerCase()} by name, ID, or client`}
+            className="h-9 w-full bg-white pl-8 pr-3 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-[#10241E]/20"
+          />
+        </div>
+
+        {selectedProjects.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 border-b border-slate-100 bg-slate-50/70 p-2" aria-label="Selected projects">
+            {selectedProjects.map((project) => (
+              <button
+                type="button"
+                key={project.id}
+                onClick={() => toggleProject(project.id)}
+                aria-label={`Remove ${project.name || 'project'} from ${label.toLowerCase()}`}
+                className="inline-flex max-w-full items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-900 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+              >
+                <span className="max-w-[180px] truncate">{project.name || 'Untitled project'}</span>
+                <X size={11} aria-hidden="true" className="shrink-0" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div role="group" aria-label="Available projects" className="max-h-28 overflow-y-auto p-1.5">
+          {visibleProjects.length > 0 ? visibleProjects.map((project) => {
+            const isSelected = selectedIds.includes(project.id);
+            return (
+              <button
+                type="button"
+                key={project.id}
+                aria-pressed={isSelected}
+                onClick={() => toggleProject(project.id)}
+                className={`flex min-h-8 w-full items-center justify-between gap-3 rounded-md px-2.5 py-1.5 text-left text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#10241E]/30 ${
+                  isSelected ? 'bg-emerald-50 text-emerald-950' : 'text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <span className="min-w-0 truncate font-medium">{project.name || 'Untitled project'}</span>
+                <span className={`grid h-4 w-4 shrink-0 place-items-center rounded border ${isSelected ? 'border-emerald-700 bg-emerald-700 text-white' : 'border-slate-300 bg-white'}`}>
+                  {isSelected && <CheckCircle size={11} aria-hidden="true" />}
+                </span>
+              </button>
+            );
+          }) : (
+            <p role="status" className="px-2.5 py-3 text-center text-[11px] text-slate-500">
+              {projects.length === 0 ? 'No projects available to assign.' : 'No projects match your search.'}
+            </p>
+          )}
+        </div>
+      </div>
+      <p className="text-[10px] text-slate-400">Select one or more projects. Click a selected project or chip to remove it.</p>
+    </section>
+  );
+}
 
 export default function EmployeesPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -49,6 +146,7 @@ export default function EmployeesPage() {
   // Form State
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
+  const [formEmployeeCode, setFormEmployeeCode] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formPhone, setFormPhone] = useState('');
   const [formDepartment, setFormDepartment] = useState('GIS & Survey');
@@ -75,6 +173,7 @@ export default function EmployeesPage() {
   const handleOpenAdd = () => {
     setFormName('');
     setFormEmail('');
+    setFormEmployeeCode('');
     setFormPassword('');
     setFormPhone('');
     setFormDepartment('');
@@ -88,6 +187,7 @@ export default function EmployeesPage() {
     setUserToEdit(u);
     setFormName(u.name || u.full_name || '');
     setFormEmail(u.email || '');
+    setFormEmployeeCode(u.employeeCode || u.employee_code || '');
     setFormPhone(u.phone || '');
     setFormDepartment(u.department || 'General');
     setFormDesignation(u.designation || 'Staff');
@@ -103,6 +203,7 @@ export default function EmployeesPage() {
       const payload = {
         name: formName,
         email: formEmail,
+        employeeCode: formEmployeeCode.trim(),
         password: formPassword,
         phone: formPhone,
         department: formDepartment,
@@ -128,6 +229,7 @@ export default function EmployeesPage() {
       const payload = {
         name: formName,
         email: formEmail,
+        employeeCode: formEmployeeCode.trim(),
         phone: formPhone,
         department: formDepartment,
         designation: formDesignation,
@@ -179,6 +281,7 @@ export default function EmployeesPage() {
         !searchQuery ||
         (u.name && u.name.toLowerCase().includes(q)) ||
         (u.email && u.email.toLowerCase().includes(q)) ||
+      ((u.employeeCode || u.employee_code || '').toLowerCase().includes(q)) ||
         (u.designation && u.designation.toLowerCase().includes(q)) ||
         (u.department && u.department.toLowerCase().includes(q));
 
@@ -198,7 +301,7 @@ export default function EmployeesPage() {
 
   const handleExport = () => {
     const rows = filteredUsers.map((u) => ({
-      ID: u.id,
+      ID: u.employeeCode || u.employee_code || '',
       Name: u.name || u.full_name || '',
       Email: u.email,
       Phone: u.phone || '',
@@ -357,6 +460,7 @@ export default function EmployeesPage() {
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
                 <tr>
                   <th className="py-2.5 px-3.5">Personnel Name</th>
+                  <th className="py-2.5 px-3.5">Employee ID</th>
                   <th className="py-2.5 px-3.5">Email & Phone</th>
                   <th className="py-2.5 px-3.5">Department</th>
                   <th className="py-2.5 px-3.5">Designation</th>
@@ -383,10 +487,10 @@ export default function EmployeesPage() {
                           />
                           <div>
                             <span className="font-bold text-slate-900 block">{u.name || u.full_name || 'Staff Member'}</span>
-                            <span className="text-[10px] font-mono text-slate-400">ID: {u.id ? u.id.slice(0, 8) : '—'}</span>
                           </div>
                         </div>
                       </td>
+                      <td className="py-2.5 px-3.5 font-mono font-semibold text-slate-700">{u.employeeCode || u.employee_code || '—'}</td>
                       <td className="py-2.5 px-3.5">
                         <div className="flex items-center gap-1.5 text-slate-700 font-medium">
                           <Mail size={12} className="text-slate-400" />
@@ -451,7 +555,7 @@ export default function EmployeesPage() {
                 })}
                 {filteredUsers.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-slate-400 text-xs">
+                    <td colSpan={9} className="py-8 text-center text-slate-400 text-xs">
                       No team members found matching your search.
                     </td>
                   </tr>
@@ -499,6 +603,20 @@ export default function EmployeesPage() {
                 </div>
               </div>
 
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Employee ID *</label>
+                <input
+                  type="text"
+                  required
+                  maxLength={64}
+                  placeholder="Enter the staff ID"
+                  value={formEmployeeCode}
+                  onChange={(e) => setFormEmployeeCode(e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#10241E]"
+                />
+                <p className="mt-1 text-[10px] text-slate-400">Employees can use this ID or their email to sign in.</p>
+              </div>
+
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Phone</label>
@@ -523,7 +641,7 @@ export default function EmployeesPage() {
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Role</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">System Access Role</label>
                   <select
                     value={formRole}
                     onChange={(e) => setFormRole(e.target.value)}
@@ -544,45 +662,30 @@ export default function EmployeesPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Designation</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Position / Designation</label>
                   <input
                     type="text"
+                    list="employee-designation-options"
                     value={formDesignation}
                     onChange={(e) => setFormDesignation(e.target.value)}
                     className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium"
                   />
+                  <datalist id="employee-designation-options">
+                    <option value="General Employee" />
+                    <option value="Director" />
+                    <option value="Administration" />
+                    <option value="CEO" />
+                    <option value="Others" />
+                  </datalist>
                 </div>
               </div>
 
-              {projects.length > 0 && (
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Assign Initial Projects</label>
-                  <div className="grid grid-cols-2 gap-1.5 max-h-28 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50">
-                    {projects.map((p) => {
-                      const isAssigned = formAssignedProjects.includes(p.id);
-                      return (
-                        <button
-                          type="button"
-                          key={p.id}
-                          onClick={() => {
-                            if (isAssigned) {
-                              setFormAssignedProjects(formAssignedProjects.filter((id) => id !== p.id));
-                            } else {
-                              setFormAssignedProjects([...formAssignedProjects, p.id]);
-                            }
-                          }}
-                          className={`p-1.5 rounded text-left text-[11px] font-medium border flex items-center justify-between ${
-                            isAssigned ? 'bg-white border-[#10241E] text-slate-900 shadow-2xs font-bold' : 'border-transparent text-slate-600'
-                          }`}
-                        >
-                          <span className="truncate">{p.name}</span>
-                          {isAssigned && <CheckCircle size={11} className="text-[#10241E] shrink-0" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              <ProjectAssignmentPicker
+                projects={projects}
+                selectedIds={formAssignedProjects}
+                onChange={setFormAssignedProjects}
+                label="Assign Initial Projects"
+              />
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
@@ -641,6 +744,20 @@ export default function EmployeesPage() {
               </div>
 
               <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Employee ID *</label>
+                <input
+                  type="text"
+                  required
+                  maxLength={64}
+                  placeholder="Enter the staff ID"
+                  value={formEmployeeCode}
+                  onChange={(e) => setFormEmployeeCode(e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#10241E]"
+                />
+                <p className="mt-1 text-[10px] text-slate-400">Employees can use this ID or their email to sign in.</p>
+              </div>
+
+              <div>
                 <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Phone</label>
                 <input
                   type="text"
@@ -652,7 +769,7 @@ export default function EmployeesPage() {
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Role</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">System Access Role</label>
                   <select
                     value={formRole}
                     onChange={(e) => setFormRole(e.target.value)}
@@ -673,45 +790,30 @@ export default function EmployeesPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Designation</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Position / Designation</label>
                   <input
                     type="text"
+                    list="employee-designation-options"
                     value={formDesignation}
                     onChange={(e) => setFormDesignation(e.target.value)}
                     className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium"
                   />
+                  <datalist id="employee-designation-options">
+                    <option value="General Employee" />
+                    <option value="Director" />
+                    <option value="Administration" />
+                    <option value="CEO" />
+                    <option value="Others" />
+                  </datalist>
                 </div>
               </div>
 
-              {projects.length > 0 && (
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Assigned Projects</label>
-                  <div className="grid grid-cols-2 gap-1.5 max-h-28 overflow-y-auto border border-slate-200 rounded-lg p-2 bg-slate-50">
-                    {projects.map((p) => {
-                      const isAssigned = formAssignedProjects.includes(p.id);
-                      return (
-                        <button
-                          type="button"
-                          key={p.id}
-                          onClick={() => {
-                            if (isAssigned) {
-                              setFormAssignedProjects(formAssignedProjects.filter((id) => id !== p.id));
-                            } else {
-                              setFormAssignedProjects([...formAssignedProjects, p.id]);
-                            }
-                          }}
-                          className={`p-1.5 rounded text-left text-[11px] font-medium border flex items-center justify-between ${
-                            isAssigned ? 'bg-white border-[#10241E] text-slate-900 shadow-2xs font-bold' : 'border-transparent text-slate-600'
-                          }`}
-                        >
-                          <span className="truncate">{p.name}</span>
-                          {isAssigned && <CheckCircle size={11} className="text-[#10241E] shrink-0" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              <ProjectAssignmentPicker
+                projects={projects}
+                selectedIds={formAssignedProjects}
+                onChange={setFormAssignedProjects}
+                label="Assigned Projects"
+              />
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button

@@ -11,30 +11,26 @@ import {
 } from 'lucide-react';
 
 type NavItem = { href: string; label: string; icon: React.ElementType };
-type AdminSidebarProps = {
-  settingsTab?: string;
-  settingsGroup?: 'attendance' | 'payroll' | null;
-};
 
 const workspaceItems: NavItem[] = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { href: '/projects', label: 'Projects', icon: FolderKanban },
   { href: '/tasks', label: 'Tasks', icon: CheckSquare },
   { href: '/reports', label: 'Reports', icon: FileBarChart },
+  { href: '/payroll', label: 'Cash flow', icon: Banknote },
 ];
 
 const peopleItems: NavItem[] = [
   { href: '/employees', label: 'People', icon: Users },
+  { href: '/attendance', label: 'Attendance', icon: UserCheck },
   { href: '/leaves', label: 'Leave', icon: CalendarDays },
   { href: '/chat', label: 'Messages', icon: MessageSquare },
 ];
 
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ settingsTab, settingsGroup }) => {
+export const AdminSidebar: React.FC = () => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [transactionsOpen, setTransactionsOpen] = useState(true);
-  const [attendanceOpen, setAttendanceOpen] = useState(pathname.startsWith('/attendance'));
-  const [payrollOpen, setPayrollOpen] = useState(pathname.startsWith('/payroll'));
 
   useEffect(() => {
     try { setCollapsed(localStorage.getItem('gw_sidebar_collapsed') === 'true'); } catch {}
@@ -50,17 +46,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ settingsTab, setting
 
   const isCurrent = (href: string) => href === '/dashboard' ? pathname === href : pathname.startsWith(href);
   const transactionsActive = isCurrent('/expenses') || isCurrent('/approvals');
-  const attendanceOpenForRoute = pathname.startsWith('/attendance') || settingsGroup === 'attendance';
-  const payrollOpenForRoute = pathname.startsWith('/payroll') || settingsGroup === 'payroll';
-  const attendanceExpanded = attendanceOpen || attendanceOpenForRoute;
-  const payrollExpanded = payrollOpen || payrollOpenForRoute;
-  const attendanceActive = isCurrent('/attendance') || settingsGroup === 'attendance';
-  const payrollActive = isCurrent('/payroll') || settingsGroup === 'payroll';
-  const isSubmenuCurrent = (href: string) => {
-    const [targetPath, query = ''] = href.split('?');
-    const targetTab = new URLSearchParams(query).get('tab');
-    return pathname === targetPath && (targetTab ? settingsTab === targetTab : true);
-  };
 
   const navigationLink = (item: NavItem) => {
     const Icon = item.icon;
@@ -104,22 +89,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ settingsTab, setting
                 </button>
                 {transactionsOpen && <div className="ml-[18px] space-y-0.5 border-l border-slate-200 pl-3">
                   {[{ href: '/expenses', label: 'Activity' }, { href: '/approvals', label: 'Approvals' }, { href: '/expenses/compliance', label: 'Voucher audit' }].map((item) => (
-                    <Link key={item.href} href={item.href} prefetch className={`flex h-7 items-center rounded-md px-2 text-xs transition-colors ${isSubmenuCurrent(item.href) ? 'bg-indigo-50 font-medium text-indigo-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{item.label}</Link>
+                    <Link key={item.href} href={item.href} prefetch className={`flex h-7 items-center rounded-md px-2 text-xs transition-colors ${pathname === item.href ? 'bg-indigo-50 font-medium text-indigo-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{item.label}</Link>
                   ))}
                 </div>}
               </div>
             )}
           </section>
 
-          <section className="space-y-1">
-            {collapsed ? <Link href="/payroll" prefetch title="Payroll" className={`flex h-9 items-center justify-center rounded-lg transition-colors ${payrollActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}><Banknote size={17}/></Link> : <div className="space-y-0.5"><button type="button" onClick={() => setPayrollOpen((value) => !value)} className={`flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-[13px] font-medium transition-colors ${payrollActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`} aria-expanded={payrollExpanded}><span className="flex items-center gap-3"><Banknote size={17}/><span>Payroll</span></span><ChevronDown size={15} className={`text-slate-400 transition-transform ${payrollExpanded ? 'rotate-180' : ''}`}/></button>{payrollExpanded && <div className="ml-[18px] space-y-0.5 border-l border-slate-200 pl-3">{[{href:'/payroll',label:'Payroll overview'},{href:'/settings?tab=payroll',label:'Pay rules & holidays'},{href:'/settings?tab=benefits',label:'Benefits & rates'}].map((item)=><Link key={item.href} href={item.href} prefetch className={`flex h-7 items-center rounded-md px-2 text-xs transition-colors ${isSubmenuCurrent(item.href) ? 'bg-indigo-50 font-medium text-indigo-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{item.label}</Link>)}</div>}</div>}
-          </section>
-
-          <section className="space-y-1">
-            {!collapsed && <p className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.13em] text-slate-400">Team</p>}
-            {collapsed ? <Link href="/attendance" prefetch title="Attendance" className={`flex h-9 items-center justify-center rounded-lg transition-colors ${attendanceActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}><UserCheck size={17}/></Link> : <div className="space-y-0.5"><button type="button" onClick={() => setAttendanceOpen((value) => !value)} className={`flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-[13px] font-medium transition-colors ${attendanceActive ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-950'}`} aria-expanded={attendanceExpanded}><span className="flex items-center gap-3"><UserCheck size={17}/><span>Attendance</span></span><ChevronDown size={15} className={`text-slate-400 transition-transform ${attendanceExpanded ? 'rotate-180' : ''}`}/></button>{attendanceExpanded && <div className="ml-[18px] space-y-0.5 border-l border-slate-200 pl-3">{[{href:'/attendance',label:'Team attendance'},{href:'/attendance/map',label:'Live locations'},{href:'/settings?tab=schedule',label:'Shift settings'}].map((item)=><Link key={item.href} href={item.href} prefetch className={`flex h-7 items-center rounded-md px-2 text-xs transition-colors ${isSubmenuCurrent(item.href) ? 'bg-indigo-50 font-medium text-indigo-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`}>{item.label}</Link>)}</div>}</div>}
-            {!collapsed && <nav className="space-y-0.5">{peopleItems.map(navigationLink)}</nav>}
-          </section>
+          {section('Team', peopleItems)}
           <section className="border-t border-slate-100 pt-3"><nav className="space-y-0.5" aria-label="Administration">{navigationLink({ href: '/clients', label: 'Clients', icon: BriefcaseBusiness })}{navigationLink({ href: '/settings', label: 'Settings', icon: Settings })}</nav></section>
         </div>
       </div>

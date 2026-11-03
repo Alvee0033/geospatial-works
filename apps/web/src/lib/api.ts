@@ -1,8 +1,10 @@
 import { clearApiCache, readApiCache, writeApiCache } from '@/lib/pageCache';
 
-const DEFAULT_BACKEND_URL = 'http://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io/api/v1';
+const DEFAULT_BACKEND_URL = 'https://mtoam6j7bojzuo6lhsakwfp8.203.96.190.78.sslip.io/api';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_BACKEND_URL;
-const API_BASE = typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_API_URL || '/api') : BACKEND_URL;
+// The same-origin gateway is mounted at /api/[...path]. Include the backend
+// prefix here so an unset public URL still reaches Nest's /api/v1 routes.
+const API_BASE = typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_API_URL || '/api/v1') : BACKEND_URL;
 
 let serverSideToken: string | null = null;
 const inFlightGetRequests = new Map<string, Promise<unknown>>();
@@ -114,17 +116,48 @@ export class ApiClient {
 
   // Auth
   static async login(credentials: { email: string; password: string }) {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-    });
-    if (!res.ok) {
-      const errorBody = await res.json().catch(() => ({}));
-      throw new Error(errorBody.message || 'Invalid credentials');
+    const endpoint = `${API_BASE.replace(/\/+$/, '')}/auth/login`;
+    const request = (url: string, timeoutMs = 15_000) => {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ email: credentials.email.trim(), password: credentials.password }),
+        signal: controller.signal,
+      }).finally(() => window.clearTimeout(timeout));
+    };
+
+    let res: Response;
+    try {
+      res = await request(endpoint);
+    } catch (error) {
+      // If a configured cross-origin API is temporarily unreachable (or CORS
+      // blocks it), retry once through the same-origin gateway.
+      if (endpoint.startsWith('/')) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          throw new Error('Sign in timed out. Check your connection and try again.');
+        }
+        throw new Error('Unable to reach the sign-in service. Check your connection and try again.');
+      }
+      try {
+        res = await request('/api/v1/auth/login');
+      } catch (fallbackError) {
+        if (fallbackError instanceof DOMException && fallbackError.name === 'AbortError') {
+          throw new Error('Sign in timed out. Check your connection and try again.');
+        }
+        throw new Error('Unable to reach the sign-in service. Check your connection and try again.');
+      }
     }
-    const data = await res.json();
+
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const message = payload?.message || payload?.error;
+      throw new Error(Array.isArray(message) ? message.join(', ') : message || `Sign in failed (${res.status}).`);
+    }
+    const data = payload?.data ?? payload;
     const token = data.accessToken || data.token;
+    if (!token) throw new Error('The sign-in service returned no session token. Please try again.');
     if (token) {
       clearApiCache();
       this.setToken(token);
@@ -140,16 +173,8 @@ export class ApiClient {
   static warmWorkspaceData(): void {
     void Promise.allSettled([
       this.getProjects(), this.getExpenses(), this.getTasks(), this.getLeaves(),
-      this.getAttendance(), this.getUsers(), this.getHolidays(), this.getClients(),
-      this.warmInitialChatData(),
+      this.getAttendance(), this.getUsers(), this.getHolidays(),
     ]);
-  }
-
-  /** Prime the most recently used conversation so its first screen paints from cache. */
-  static async warmInitialChatData(): Promise<void> {
-    const channels = await this.getChatChannels().catch(() => []);
-    const channelId = channels?.[0]?.id;
-    if (channelId) await this.getChannelMessages(channelId, 100).catch(() => []);
   }
 
   // Projects API

@@ -1,7 +1,6 @@
 'use client';
 
-import React, { Suspense, useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { 
   Clock, DollarSign, Percent, FolderTree, Database, ShieldCheck,
@@ -9,6 +8,7 @@ import {
   Calendar, MapPin, Coffee, TrendingUp, X
 } from 'lucide-react';
 import { ApiClient } from '@/lib/api';
+import { LocationPickerMap } from '@/components/maps/LocationPickerMap';
 
 interface AttendanceShift {
   id?: string;
@@ -52,16 +52,8 @@ interface CategoryItem {
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-function SettingsPageContent() {
-  type SettingsTab = 'schedule' | 'payroll' | 'benefits' | 'categories' | 'storage' | 'audit';
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const requestedTab = searchParams.get('tab');
-  const validRequestedTab = ['schedule', 'payroll', 'benefits', 'categories', 'storage', 'audit'].includes(requestedTab || '')
-    ? requestedTab as SettingsTab
-    : null;
-  const [activeTab, setActiveTab] = useState<SettingsTab>(validRequestedTab || 'schedule');
-  const currentTab = validRequestedTab || activeTab;
+export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState<'schedule' | 'payroll' | 'benefits' | 'categories' | 'storage' | 'audit'>('schedule');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -124,15 +116,6 @@ function SettingsPageContent() {
     { id: '3', action: 'Category Modified', user: 'Admin', timestamp: 'Yesterday, 05:22 PM', details: 'Added Equipment Lease limit' },
     { id: '4', action: 'Document Retention Changed', user: 'System', timestamp: 'Oct 19, 09:00 AM', details: 'Retention set to 90 days' },
   ]);
-
-  useEffect(() => {
-    setActiveTab(validRequestedTab || 'schedule');
-  }, [validRequestedTab]);
-
-  const selectSettingsTab = (tab: SettingsTab) => {
-    setActiveTab(tab);
-    router.replace(`/settings?tab=${tab}`, { scroll: false });
-  };
 
   useEffect(() => {
     loadAllSettings();
@@ -314,8 +297,6 @@ function SettingsPageContent() {
     <AdminLayout
       title="Settings"
       subtitle="Shift schedule, deductions, retainage, and expense configuration"
-      sidebarSettingsTab={currentTab}
-      sidebarSettingsGroup={currentTab === 'schedule' ? 'attendance' : currentTab === 'payroll' || currentTab === 'benefits' ? 'payroll' : null}
       onRefresh={loadAllSettings}
       isRefreshing={loading}
     >
@@ -343,11 +324,11 @@ function SettingsPageContent() {
             { id: 'audit', label: 'Audit Trail', icon: ShieldCheck },
           ].map(tab => {
             const Icon = tab.icon;
-            const isActive = currentTab === tab.id;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => selectSettingsTab(tab.id as SettingsTab)}
+                onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-[#10241E] text-white'
@@ -362,7 +343,7 @@ function SettingsPageContent() {
         </div>
 
         {/* Tab 1: Work Schedule */}
-        {currentTab === 'schedule' && (
+        {activeTab === 'schedule' && (
           <div className="space-y-4">
             {/* Top Quick Settings */}
             <div className="bg-white border border-slate-200 rounded-lg p-4">
@@ -426,6 +407,33 @@ function SettingsPageContent() {
                 </div>
               </div>
             </div>
+
+            {attendanceSettings && <div className="bg-white border border-slate-200 rounded-lg p-4">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Office geofence location</h3>
+                  <p className="mt-0.5 text-xs text-slate-500">Search the office address or place the pin manually. GPS is not needed on this computer.</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => saveAttendanceChanges({
+                    officeLatitude: attendanceSettings.officeLatitude ?? 23.8103,
+                    officeLongitude: attendanceSettings.officeLongitude ?? 90.4125,
+                    geofenceRadiusMeters: attendanceSettings.geofenceRadiusMeters ?? 100,
+                  })}
+                  className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                >{saving ? 'Saving…' : 'Save office location'}</button>
+              </div>
+              <LocationPickerMap
+                latitude={attendanceSettings.officeLatitude ?? 23.8103}
+                longitude={attendanceSettings.officeLongitude ?? 90.4125}
+                radiusMeters={attendanceSettings.geofenceRadiusMeters ?? 100}
+                pinLabel="Office"
+                onChange={(point) => setAttendanceSettings((current) => current ? { ...current, officeLatitude: point.latitude, officeLongitude: point.longitude } : current)}
+              />
+              <p className="mt-2 text-[11px] text-slate-500">Office pin: {(attendanceSettings.officeLatitude ?? 23.8103).toFixed(6)}, {(attendanceSettings.officeLongitude ?? 90.4125).toFixed(6)} · Radius: {attendanceSettings.geofenceRadiusMeters ?? 100} m</p>
+            </div>}
 
             {/* Shift Cards */}
             <div className="bg-white border border-slate-200 rounded-lg p-4">
@@ -529,7 +537,7 @@ function SettingsPageContent() {
         )}
 
         {/* Tab 2: Salary Deductions */}
-        {currentTab === 'payroll' && (
+        {activeTab === 'payroll' && (
           <div className="space-y-4">
             <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -669,7 +677,7 @@ function SettingsPageContent() {
         )}
 
         {/* Tab 3: Retainage & Financial Margins */}
-        {currentTab === 'benefits' && (
+        {activeTab === 'benefits' && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
@@ -767,7 +775,7 @@ function SettingsPageContent() {
         )}
 
         {/* Tab 4: Expense Categories */}
-        {currentTab === 'categories' && (
+        {activeTab === 'categories' && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
@@ -846,7 +854,7 @@ function SettingsPageContent() {
         )}
 
         {/* Tab 5: Data & Purge */}
-        {currentTab === 'storage' && (
+        {activeTab === 'storage' && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-4 max-w-xl">
             <div className="flex items-center gap-1.5 pb-2 border-b border-slate-100 text-xs font-bold text-slate-800 uppercase tracking-wider">
               <Database className="w-3.5 h-3.5 text-emerald-600" />
@@ -888,7 +896,7 @@ function SettingsPageContent() {
         )}
 
         {/* Tab 6: Audit Trail */}
-        {currentTab === 'audit' && (
+        {activeTab === 'audit' && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
             <div className="flex items-center gap-1.5 pb-2 border-b border-slate-100 text-xs font-bold text-slate-800 uppercase tracking-wider">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -1165,8 +1173,4 @@ function SettingsPageContent() {
       )}
     </AdminLayout>
   );
-}
-
-export default function SettingsPage() {
-  return <Suspense fallback={<div className="p-6 text-sm text-slate-500">Loading settings…</div>}><SettingsPageContent /></Suspense>;
 }

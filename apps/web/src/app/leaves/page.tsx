@@ -18,7 +18,6 @@ import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { notifyAction } from '@/components/feedback/ActionFeedback';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { LeaveDetailsDrawer } from '@/components/leaves/LeaveDetailsDrawer';
 
 export default function LeavesPage() {
   const [leaves, setLeaves] = useState<any[]>([]);
@@ -32,7 +31,6 @@ export default function LeavesPage() {
   const [canManageLeaveRecords, setCanManageLeaveRecords] = useState(false);
   const [currentUserName, setCurrentUserName] = useState('your account');
   const [reviewingLeaveId, setReviewingLeaveId] = useState<string | null>(null);
-  const [selectedLeave, setSelectedLeave] = useState<any | null>(null);
 
   // Modals
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
@@ -96,7 +94,6 @@ export default function LeavesPage() {
       if (approved) await ApiClient.approveLeave(id);
       else await ApiClient.rejectLeave(id);
       await fetchLeavesAndHolidays();
-      setSelectedLeave(null);
     } catch (err: any) {
       notifyAction(`Could not ${approved ? 'approve' : 'decline'} leave: ${err.message}`, 'error', 'Leave decision failed');
     } finally { setReviewingLeaveId(null); }
@@ -129,7 +126,6 @@ export default function LeavesPage() {
     try {
       await ApiClient.deleteLeave(id);
       await fetchLeavesAndHolidays();
-      setSelectedLeave(null);
       notifyAction('Leave record removed.');
     } catch (err: any) {
       notifyAction(`Leave record could not be removed: ${err.message}`, 'error');
@@ -282,26 +278,12 @@ export default function LeavesPage() {
                 ) : (
                   visibleLeaves.map((l) => {
                     const status = leaveStatus(l);
-                    const userId = l.userId || l.user_id;
-                    const u = users.find((usr) => String(usr.id || usr._id) === String(userId));
-                    const name = l.userName || l.user_name || (u ? (u.name || u.fullName || u.full_name) : 'Employee');
-                    const avatar = l.avatarUrl || l.avatar_url || u?.avatarUrl || u?.avatar_url;
+                    const u = users.find((usr) => usr.id === l.userId || usr._id === l.userId);
+                    const name = l.userName || (u ? (u.name || u.full_name) : 'Employee');
+                    const avatar = l.avatarUrl || u?.avatarUrl || u?.avatar_url;
 
                     return (
-                      <tr
-                        key={l.id}
-                        tabIndex={0}
-                        aria-haspopup="dialog"
-                        aria-label={`Open leave request for ${name}`}
-                        onClick={() => setSelectedLeave(l)}
-                        onKeyDown={(event) => {
-                          if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) {
-                            event.preventDefault();
-                            setSelectedLeave(l);
-                          }
-                        }}
-                        className="cursor-pointer transition-colors hover:bg-slate-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
-                      >
+                      <tr key={l.id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-2.5">
                             <UserAvatar
@@ -330,11 +312,11 @@ export default function LeavesPage() {
                       </td>
                       <td className="py-3.5 px-3 text-right">
                         {canReviewLeaves && status === 'pending' && <>
-                          <button disabled={reviewingLeaveId === l.id} onClick={(event) => { event.stopPropagation(); handleLeaveDecision(l.id, true); }} className="mr-2 rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700 disabled:opacity-50">Approve</button>
-                          <button disabled={reviewingLeaveId === l.id} onClick={(event) => { event.stopPropagation(); handleLeaveDecision(l.id, false); }} className="mr-2 rounded-md bg-rose-50 px-2 py-1 text-[10px] font-semibold text-rose-700 disabled:opacity-50">Decline</button>
+                          <button disabled={reviewingLeaveId === l.id} onClick={() => handleLeaveDecision(l.id, true)} className="mr-2 rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700 disabled:opacity-50">Approve</button>
+                          <button disabled={reviewingLeaveId === l.id} onClick={() => handleLeaveDecision(l.id, false)} className="mr-2 rounded-md bg-rose-50 px-2 py-1 text-[10px] font-semibold text-rose-700 disabled:opacity-50">Decline</button>
                         </>}
                         {canManageLeaveRecords && <button
-                          onClick={(event) => { event.stopPropagation(); handleDeleteLeave(l.id); }}
+                          onClick={() => handleDeleteLeave(l.id)}
                           className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
                           title="Revoke / Delete Leave"
                         >
@@ -404,29 +386,6 @@ export default function LeavesPage() {
           </div>
         </div>
       )}
-
-      {selectedLeave && (() => {
-        const leave = selectedLeave;
-        const userId = leave.userId || leave.user_id;
-        const user = users.find((candidate) => String(candidate.id || candidate._id) === String(userId));
-        const name = leave.userName || leave.user_name || user?.name || user?.fullName || user?.full_name || 'Employee';
-        const status = leaveStatus(leave);
-        return <LeaveDetailsDrawer
-          leave={leave}
-          employeeName={name}
-          avatarUrl={leave.avatarUrl || leave.avatar_url || user?.avatarUrl || user?.avatar_url}
-          email={leave.email || leave.employeeEmail || leave.employee_email || user?.email}
-          department={leave.department || user?.department}
-          status={status}
-          canReview={canReviewLeaves}
-          canDelete={canManageLeaveRecords}
-          busy={reviewingLeaveId === leave.id}
-          onClose={() => setSelectedLeave(null)}
-          onApprove={() => handleLeaveDecision(leave.id, true)}
-          onDecline={() => handleLeaveDecision(leave.id, false)}
-          onDelete={() => handleDeleteLeave(leave.id)}
-        />;
-      })()}
 
       {/* Record Leave Modal */}
       {isLeaveModalOpen && (
