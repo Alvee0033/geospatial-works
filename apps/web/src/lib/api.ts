@@ -171,6 +171,16 @@ export class ApiClient {
 
   /** Warm frequently used live workspace data after sign-in without delaying navigation. */
   static warmWorkspaceData(): void {
+    let role: string | undefined;
+    try {
+      role = JSON.parse(localStorage.getItem('gw_user') || 'null')?.role;
+    } catch {
+      role = undefined;
+    }
+    if (role === 'project_member' || role === 'viewer') {
+      void Promise.allSettled([this.getProjects(), this.getExpenses()]);
+      return;
+    }
     void Promise.allSettled([
       this.getProjects(), this.getExpenses(), this.getTasks(), this.getLeaves(),
       this.getAttendance(), this.getUsers(), this.getHolidays(),

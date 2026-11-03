@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowDownRight,
   ArrowUpRight,
-  BriefcaseBusiness,
   CalendarDays,
   CheckCircle2,
   ChevronDown,
@@ -40,6 +39,8 @@ import { ProfileDropdown } from '@/components/layout/ProfileDropdown';
 import { ApiClient } from '@/lib/api';
 import { notifyAction } from '@/components/feedback/ActionFeedback';
 import { ExportUtils } from '@/lib/exportUtils';
+import { getDashboardAudience, getDashboardDataKeys, selectPersonalDashboardData } from '@/lib/dashboardRoleData';
+import { PersonalDashboard } from './PersonalDashboard';
 
 type ChartMode = 'budget' | 'categories' | 'projects';
 type ChartStyle = 'donut' | 'pie';
@@ -81,27 +82,67 @@ export default function DashboardPage() {
   const [search, setSearch] = useState('');
   const [mounted, setMounted] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [roleResolved, setRoleResolved] = useState(false);
+  const loadedIdentity = useRef('');
   const canUpdateTaskStatus = ['main_admin', 'project_manager', 'project_member'].includes(currentUser?.role);
 
   const fetchData = useCallback(async (silent = false) => {
+    if (!currentUser?.role) return;
     if (!silent) setLoading(true);
     try {
+      const audience = getDashboardAudience(currentUser.role);
+      const isCompanyDashboard = audience === 'company';
+      const identity = `${currentUser.id || ''}:${currentUser.role}`;
+      if (loadedIdentity.current !== identity) {
+        loadedIdentity.current = identity;
+        setProjects([]);
+        setExpenses([]);
+        setAttendance([]);
+        setLastWeekAttendance([]);
+        setUsers([]);
+        setTasks([]);
+        setLeaveRequests([]);
+      }
       const comparableDay = new Date();
       comparableDay.setDate(comparableDay.getDate() - 7);
       const comparableDate = `${comparableDay.getFullYear()}-${String(comparableDay.getMonth() + 1).padStart(2, '0')}-${String(comparableDay.getDate()).padStart(2, '0')}`;
-      const results = await Promise.allSettled([
-        ApiClient.getProjects(), ApiClient.getExpenses(), ApiClient.getAttendance(), ApiClient.getUsers(),
-        ApiClient.getTasks(), ApiClient.getAttendance({ date: comparableDate }), ApiClient.getLeaves(),
-      ]);
-      const labels = ['projects', 'expenses', 'attendance', 'people', 'tasks', 'attendance history', 'leave requests'];
-      const errors = results.flatMap((result, index) => result.status === 'rejected' ? [labels[index]] : []);
-      if (results[0].status === 'fulfilled') setProjects(results[0].value || []);
-      if (results[1].status === 'fulfilled') setExpenses(results[1].value || []);
-      if (results[2].status === 'fulfilled') setAttendance(results[2].value || []);
-      if (results[3].status === 'fulfilled') setUsers(results[3].value || []);
-      if (results[4].status === 'fulfilled') setTasks(results[4].value || []);
-      if (results[5].status === 'fulfilled') setLastWeekAttendance(results[5].value || []);
-      if (results[6].status === 'fulfilled') setLeaveRequests(results[6].value || []);
+      const requestByKey: Record<string, () => Promise<any>> = {
+        projects: () => ApiClient.getProjects(),
+        expenses: () => ApiClient.getExpenses(),
+        attendance: () => ApiClient.getAttendance(),
+        people: () => ApiClient.getUsers(),
+        tasks: () => ApiClient.getTasks(),
+        attendanceHistory: () => ApiClient.getAttendance({ date: comparableDate }),
+        leaveRequests: () => ApiClient.getLeaves(),
+      };
+      const dataKeys = getDashboardDataKeys(currentUser.role);
+      const requests = dataKeys.map((key) => requestByKey[key]());
+      const results = await Promise.allSettled(requests);
+      const dataLabels: Record<string, string> = {
+        projects: 'projects', expenses: 'expenses', attendance: 'attendance', people: 'team directory',
+        tasks: 'tasks', attendanceHistory: 'attendance history', leaveRequests: 'leave requests',
+      };
+      const errors = results.flatMap((result, index) => result.status === 'rejected' ? [dataLabels[dataKeys[index]]] : []);
+      const values = new Map(dataKeys.map((key, index) => [key, results[index]]));
+      const valueFor = (key: string) => {
+        const result = values.get(key);
+        return result?.status === 'fulfilled' ? result.value || [] : undefined;
+      };
+      if (valueFor('projects') !== undefined) setProjects(valueFor('projects'));
+      if (valueFor('expenses') !== undefined) setExpenses(valueFor('expenses'));
+      if (isCompanyDashboard) {
+        if (valueFor('attendance') !== undefined) setAttendance(valueFor('attendance'));
+        if (valueFor('people') !== undefined) setUsers(valueFor('people'));
+        if (valueFor('tasks') !== undefined) setTasks(valueFor('tasks'));
+        if (valueFor('attendanceHistory') !== undefined) setLastWeekAttendance(valueFor('attendanceHistory'));
+        if (valueFor('leaveRequests') !== undefined) setLeaveRequests(valueFor('leaveRequests'));
+      } else {
+        setAttendance([]);
+        setLastWeekAttendance([]);
+        setUsers([]);
+        setTasks([]);
+        setLeaveRequests([]);
+      }
       setDataError(errors.length ? `Live data unavailable for ${errors.join(', ')}.` : '');
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -109,7 +150,7 @@ export default function DashboardPage() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, []);
+  }, [currentUser?.role]);
 
   const updateDashboardTaskStatus = async (task: any, status: 'todo' | 'in_progress' | 'completed') => {
     if (!canUpdateTaskStatus) return;
@@ -129,17 +170,26 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    void fetchData();
-    const unsubscribe = ApiClient.subscribeToDataRefresh(() => { void fetchData(true); });
     setMounted(true);
     try {
       const storedUser = localStorage.getItem('gw_user');
       if (storedUser) setCurrentUser(JSON.parse(storedUser));
     } catch {
-      // Continue with the neutral admin greeting if profile storage is unavailable.
+      // Keep the user signed out if stored profile data is invalid.
+    } finally {
+      setRoleResolved(true);
     }
+  }, []);
+
+  useEffect(() => {
+    if (!roleResolved || !currentUser?.role) {
+      setLoading(false);
+      return;
+    }
+    void fetchData();
+    const unsubscribe = ApiClient.subscribeToDataRefresh(() => { void fetchData(true); });
     return unsubscribe;
-  }, [fetchData]);
+  }, [roleResolved, currentUser?.role, fetchData]);
 
   const approvedExpenses = useMemo(
     () => expenses.filter((expense) => String(expense.status || '').toLowerCase() === 'approved'),
@@ -191,8 +241,6 @@ export default function DashboardPage() {
   const expensesHaveSubmissionHistory = expenses.length > 0 && expenses.every((expense) => Boolean(expenseSubmittedAt(expense)));
   const currentMonthProjects = projects.filter((project) => monthValue(projectCreatedAt(project), thisMonthStart, dayThrough));
   const previousMonthProjects = projects.filter((project) => monthValue(projectCreatedAt(project), previousMonthStart, dayThrough));
-  const currentMonthAllocation = currentMonthProjects.reduce((sum, project) => sum + Number(project.budget || project.grossProjectValue || 0), 0);
-  const previousMonthAllocation = previousMonthProjects.reduce((sum, project) => sum + Number(project.budget || project.grossProjectValue || 0), 0);
   const currentMonthClaims = expenses.filter((expense) => monthValue(expenseSubmittedAt(expense), thisMonthStart, dayThrough)).length;
   const previousMonthClaims = expenses.filter((expense) => monthValue(expenseSubmittedAt(expense), previousMonthStart, dayThrough)).length;
   const monthlyApprovedSpend = (targetMonth: Date) => approvedExpenses
@@ -344,6 +392,33 @@ export default function DashboardPage() {
   const greetingName = currentUser?.firstName || currentUser?.name?.split(' ')[0] || 'Admin';
   const todayLabel = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
   const attendancePercent = users.length ? Math.min(100, Math.round((presentTeam.length / users.length) * 100)) : 0;
+
+  const audience = getDashboardAudience(currentUser?.role);
+  const personalData = currentUser?.id
+    ? selectPersonalDashboardData(String(currentUser.id), projects, expenses)
+    : { projects: [], expenses: [], personalExpenses: [] };
+
+  if (!roleResolved) {
+    return <AdminLayout hideTopNav noScroll contentClassName="flex min-h-0 flex-1 items-start justify-center px-5 pt-12"><p className="text-sm text-slate-500">Preparing your dashboard…</p></AdminLayout>;
+  }
+
+  if (!currentUser) {
+    return <AdminLayout hideTopNav noScroll contentClassName="flex min-h-0 flex-1 items-start justify-center px-5 pt-12"><p className="text-sm text-slate-500">Sign in to view your dashboard.</p></AdminLayout>;
+  }
+
+  if (audience === 'member' || audience === 'viewer') {
+    return <PersonalDashboard
+      currentUser={currentUser}
+      projects={personalData.projects}
+      expenses={personalData.expenses}
+      personalExpenses={personalData.personalExpenses}
+      loading={loading}
+      dataError={dataError}
+      onRefresh={() => void fetchData()}
+      onUserUpdate={setCurrentUser}
+      viewer={audience === 'viewer'}
+    />;
+  }
 
   return (
     <AdminLayout hideTopNav noScroll contentClassName="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pb-4 pt-4 xl:overflow-hidden">
