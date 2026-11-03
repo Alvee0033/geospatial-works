@@ -46,6 +46,8 @@ export default function ProjectsPage() {
   const [formCode, setFormCode] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formImageUrl, setFormImageUrl] = useState('');
+  const [uploadingProjectImage, setUploadingProjectImage] = useState(false);
+  const [projectImageError, setProjectImageError] = useState('');
   const [formClient, setFormClient] = useState('');
   const [formClientType, setFormClientType] = useState('government');
   const [formAssignmentType, setFormAssignmentType] = useState('direct_consultancy');
@@ -99,6 +101,7 @@ export default function ProjectsPage() {
     setFormCode(`PRJ-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`);
     setFormDescription('');
     setFormImageUrl('');
+    setProjectImageError('');
     setFormClient('');
     setFormClientType('government');
     setFormAssignmentType('direct_consultancy');
@@ -130,6 +133,7 @@ export default function ProjectsPage() {
     setFormCode(p.projectId || p.projectCode || p.project_code || '');
     setFormDescription(p.description || '');
     setFormImageUrl(p.imageUrl || p.image_url || '');
+    setProjectImageError('');
     setFormClient(p.client || p.client_name || '');
     setFormClientType(p.clientType || p.client_type || 'government');
     setFormAssignmentType(p.assignmentType || p.assignment_type || 'direct_consultancy');
@@ -154,8 +158,39 @@ export default function ProjectsPage() {
     setIsEditModalOpen(true);
   };
 
+  const handleProjectImageSelect = async (file?: File) => {
+    if (!file) return;
+    setProjectImageError('');
+    if (!file.type.startsWith('image/')) {
+      setProjectImageError('Choose an image file (JPG, PNG, WebP, or GIF).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setProjectImageError('Image must be 5 MB or smaller.');
+      return;
+    }
+
+    setUploadingProjectImage(true);
+    try {
+      const dataUri = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('Could not read image file.'));
+        reader.onerror = () => reject(new Error('Could not read image file.'));
+        reader.readAsDataURL(file);
+      });
+      const uploaded = await ApiClient.uploadFile(dataUri, 'projects');
+      if (!uploaded?.url) throw new Error('The upload did not return an image URL.');
+      setFormImageUrl(uploaded.url);
+    } catch (error: any) {
+      setProjectImageError(error?.message || 'Image upload failed. Please try again.');
+    } finally {
+      setUploadingProjectImage(false);
+    }
+  };
+
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (uploadingProjectImage) return;
     setSubmitting(true);
     try {
       const categoryBudgets: Record<string, any> = {
@@ -214,6 +249,7 @@ export default function ProjectsPage() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!projectToEdit) return;
+    if (uploadingProjectImage) return;
     setSubmitting(true);
     try {
       const categoryBudgets: Record<string, any> = {
@@ -738,29 +774,43 @@ export default function ProjectsPage() {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1 flex items-center justify-between">
-                  <span className="flex items-center gap-1.5">
+                <label className="block text-slate-700 font-semibold mb-1">
+                  <span className="inline-flex items-center gap-1.5">
                     <ImageIcon size={13} className="text-slate-500" />
-                    <span>Project Picture URL (Optional)</span>
+                    <span>Project image <span className="font-normal text-slate-400">(optional)</span></span>
                   </span>
-                  {formImageUrl && (
-                    <span className="text-[10px] text-emerald-600 font-bold">Image preview loaded</span>
-                  )}
                 </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="url"
-                    value={formImageUrl}
-                    onChange={(e) => setFormImageUrl(e.target.value)}
-                    placeholder="https://images.unsplash.com/... (leave blank for geospatial default)"
-                    className="flex-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                  />
-                  {formImageUrl && (
-                    <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100">
-                      <img src={formImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+                  {formImageUrl ? (
+                    <img src={formImageUrl} alt="Project image preview" className="h-14 w-20 shrink-0 rounded-lg border border-slate-200 bg-white object-cover" />
+                  ) : (
+                    <div className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-slate-400">
+                      <ImageIcon size={19} aria-hidden="true" />
                     </div>
                   )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-slate-700">{uploadingProjectImage ? 'Uploading image…' : formImageUrl ? 'Image ready' : 'Add a project cover'}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-500">JPG, PNG, WebP or GIF · up to 5 MB</p>
+                    <div className="mt-1.5 flex items-center gap-3">
+                      <label className={`cursor-pointer text-xs font-semibold text-indigo-600 hover:text-indigo-700 ${uploadingProjectImage ? 'pointer-events-none opacity-50' : ''}`}>
+                        {formImageUrl ? 'Replace image' : 'Upload image'}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          className="sr-only"
+                          disabled={uploadingProjectImage}
+                          onChange={(event) => {
+                            void handleProjectImageSelect(event.target.files?.[0]);
+                            event.currentTarget.value = '';
+                          }}
+                        />
+                      </label>
+                      {formImageUrl && <button type="button" onClick={() => { setFormImageUrl(''); setProjectImageError(''); }} className="text-xs font-medium text-slate-500 hover:text-rose-600">Remove</button>}
+                    </div>
+                  </div>
+                  {uploadingProjectImage && <span className="mr-1 h-4 w-4 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" aria-label="Uploading" />}
                 </div>
+                {projectImageError && <p role="alert" className="mt-1 text-[11px] font-medium text-rose-600">{projectImageError}</p>}
               </div>
 
               <div className="grid grid-cols-3 gap-3">
@@ -978,10 +1028,10 @@ export default function ProjectsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || uploadingProjectImage}
                   className="px-6 py-2 bg-[#0D1117] hover:bg-slate-800 text-white font-bold rounded-full shadow-xs"
                 >
-                  {submitting ? 'Saving Project...' : isCreateModalOpen ? 'Create Project' : 'Save Changes'}
+                  {uploadingProjectImage ? 'Uploading image...' : submitting ? 'Saving Project...' : isCreateModalOpen ? 'Create Project' : 'Save Changes'}
                 </button>
               </div>
             </form>
