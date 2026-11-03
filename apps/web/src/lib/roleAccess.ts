@@ -64,3 +64,31 @@ export function selectAssignedProjects<T extends Record<string, unknown>>(projec
 export function selectOwnRecords<T extends Record<string, unknown>>(records: T[], userId: string): T[] {
   return records.filter((record) => isAssignedToUser(record, userId));
 }
+
+export function selectOwnProjectRecords<T extends Record<string, unknown>>(
+  records: T[],
+  userId: string,
+  project: Record<string, unknown>,
+): T[] {
+  const projectId = asId(project.id ?? project._id ?? project.projectId ?? project.project_id);
+  const projectName = String(project.name ?? project.projectName ?? project.project_name ?? '').trim().toLowerCase();
+
+  return selectOwnRecords(records, userId).filter((record) => {
+    const relatedProject = record.project;
+    const relatedProjectId = asId(
+      record.projectId ?? record.project_id ??
+      (relatedProject && typeof relatedProject === 'object'
+        ? (relatedProject as Record<string, unknown>).id ?? (relatedProject as Record<string, unknown>)._id
+        : relatedProject),
+    );
+    if (relatedProjectId) return relatedProjectId === projectId;
+
+    const relatedProjectName = String(
+      record.projectName ?? record.project_name ??
+      (relatedProject && typeof relatedProject === 'object'
+        ? (relatedProject as Record<string, unknown>).name
+        : ''),
+    ).trim().toLowerCase();
+    return Boolean(projectName && relatedProjectName === projectName);
+  });
+}

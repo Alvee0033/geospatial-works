@@ -32,7 +32,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { isAssignedToUser, selectAssignedProjects, selectOwnRecords } from '@/lib/roleAccess';
+import { isAssignedToUser, selectAssignedProjects, selectOwnProjectRecords, selectOwnRecords } from '@/lib/roleAccess';
 
 function ProjectDetailContent() {
   const router = useRouter();
@@ -84,13 +84,13 @@ function ProjectDetailContent() {
       if (user?.role === 'project_member') {
         const [proj, allExp, pTasks] = await Promise.all([
           ApiClient.getProjectById(projectId).catch(() => null),
-          ApiClient.getExpenses({ projectId }).catch(() => []),
+          ApiClient.getExpenses().catch(() => []),
           ApiClient.getTasks(projectId).catch(() => []),
         ]);
         const userId = String(user.id ?? user._id ?? '');
         const memberProject = proj && selectAssignedProjects([proj], userId)[0];
         setProject(memberProject || null);
-        setExpenses(selectOwnRecords(allExp || [], userId));
+        setExpenses(memberProject ? selectOwnProjectRecords(allExp || [], userId, memberProject) : []);
         setTasks((pTasks || []).filter((task: any) => isAssignedToUser(task, userId)));
         setAllUsers([]);
         return;

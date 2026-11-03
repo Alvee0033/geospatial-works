@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canAccessRouteForRole, getNavigationForRole, isAssignedToUser, selectAssignedProjects, selectOwnRecords } from '../src/lib/roleAccess.ts';
+import { canAccessRouteForRole, getNavigationForRole, isAssignedToUser, selectAssignedProjects, selectOwnProjectRecords, selectOwnRecords } from '../src/lib/roleAccess.ts';
 
 test('project members receive only personal workspace navigation', () => {
   const groups = getNavigationForRole('project_member');
@@ -40,4 +40,15 @@ test('personal project and attendance selectors exclude coworkers records', () =
   ], 'employee-1');
   assert.deepEqual(ownCheckins.map(({ id }) => id), ['checkin-1']);
   assert.equal(isAssignedToUser({ assignees: [{ id: 'employee-1' }] }, 'employee-1'), true);
+});
+
+test('project detail claims include only the member claims for that project', () => {
+  const claims = selectOwnProjectRecords([
+    { id: 'mine-id', employeeId: 'employee-1', projectId: 'project-1' },
+    { id: 'mine-name', employeeId: 'employee-1', projectName: 'Project One' },
+    { id: 'other-project', employeeId: 'employee-1', projectId: 'project-2' },
+    { id: 'coworker', employeeId: 'employee-2', projectId: 'project-1' },
+  ], 'employee-1', { id: 'project-1', name: 'Project One' });
+
+  assert.deepEqual(claims.map(({ id }) => id), ['mine-id', 'mine-name']);
 });
