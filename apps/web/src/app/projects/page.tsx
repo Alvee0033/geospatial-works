@@ -25,6 +25,7 @@ import {
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { LocationPickerMap } from '@/components/maps/LocationPickerMap';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -48,6 +49,10 @@ export default function ProjectsPage() {
   const [formImageUrl, setFormImageUrl] = useState('');
   const [uploadingProjectImage, setUploadingProjectImage] = useState(false);
   const [projectImageError, setProjectImageError] = useState('');
+  const [formSiteEnabled, setFormSiteEnabled] = useState(false);
+  const [formSiteLatitude, setFormSiteLatitude] = useState<number | null>(null);
+  const [formSiteLongitude, setFormSiteLongitude] = useState<number | null>(null);
+  const [attendanceRadiusMeters, setAttendanceRadiusMeters] = useState(200);
   const [formClient, setFormClient] = useState('');
   const [formClientType, setFormClientType] = useState('government');
   const [formAssignmentType, setFormAssignmentType] = useState('direct_consultancy');
@@ -77,14 +82,17 @@ export default function ProjectsPage() {
   const fetchRealProjects = async () => {
     setLoading(true);
     try {
-      const [projData, expData, userData] = await Promise.all([
+      const [projData, expData, userData, attendanceSettings] = await Promise.all([
         ApiClient.getProjects().catch(() => []),
         ApiClient.getExpenses().catch(() => []),
         ApiClient.getUsers().catch(() => []),
+        ApiClient.getAttendanceSettings().catch(() => null),
       ]);
       setProjects(projData || []);
       setExpenses(expData || []);
       setUsers(userData || []);
+      const radius = Number(attendanceSettings?.geofenceRadiusMeters ?? attendanceSettings?.geofence_radius_meters);
+      if (Number.isFinite(radius) && radius > 0) setAttendanceRadiusMeters(radius);
     } catch (e) {
       console.error('Error fetching real projects:', e);
     } finally {
@@ -102,6 +110,9 @@ export default function ProjectsPage() {
     setFormDescription('');
     setFormImageUrl('');
     setProjectImageError('');
+    setFormSiteEnabled(false);
+    setFormSiteLatitude(null);
+    setFormSiteLongitude(null);
     setFormClient('');
     setFormClientType('government');
     setFormAssignmentType('direct_consultancy');
@@ -134,6 +145,11 @@ export default function ProjectsPage() {
     setFormDescription(p.description || '');
     setFormImageUrl(p.imageUrl || p.image_url || '');
     setProjectImageError('');
+    const siteLat = p.siteLatitude ?? p.site_latitude;
+    const siteLng = p.siteLongitude ?? p.site_longitude;
+    setFormSiteLatitude(siteLat == null ? null : Number(siteLat));
+    setFormSiteLongitude(siteLng == null ? null : Number(siteLng));
+    setFormSiteEnabled(siteLat != null && siteLng != null);
     setFormClient(p.client || p.client_name || '');
     setFormClientType(p.clientType || p.client_type || 'government');
     setFormAssignmentType(p.assignmentType || p.assignment_type || 'direct_consultancy');
@@ -191,6 +207,10 @@ export default function ProjectsPage() {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (uploadingProjectImage) return;
+    if (formSiteEnabled && (formSiteLatitude === null || formSiteLongitude === null)) {
+      alert('Choose a site location on the map or turn off the field site option.');
+      return;
+    }
     setSubmitting(true);
     try {
       const categoryBudgets: Record<string, any> = {
@@ -218,6 +238,8 @@ export default function ProjectsPage() {
         projectId: formCode,
         description: formDescription,
         imageUrl: formImageUrl,
+        site_latitude: formSiteEnabled ? formSiteLatitude : null,
+        site_longitude: formSiteEnabled ? formSiteLongitude : null,
         client: formClient,
         clientType: formClientType,
         assignmentType: formAssignmentType,
@@ -250,6 +272,10 @@ export default function ProjectsPage() {
     e.preventDefault();
     if (!projectToEdit) return;
     if (uploadingProjectImage) return;
+    if (formSiteEnabled && (formSiteLatitude === null || formSiteLongitude === null)) {
+      alert('Choose a site location on the map or turn off the field site option.');
+      return;
+    }
     setSubmitting(true);
     try {
       const categoryBudgets: Record<string, any> = {
@@ -277,6 +303,8 @@ export default function ProjectsPage() {
         projectId: formCode,
         description: formDescription,
         imageUrl: formImageUrl,
+        site_latitude: formSiteEnabled ? formSiteLatitude : null,
+        site_longitude: formSiteEnabled ? formSiteLongitude : null,
         client: formClient,
         clientType: formClientType,
         assignmentType: formAssignmentType,
@@ -1014,6 +1042,39 @@ export default function ProjectsPage() {
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"
                 />
               </div>
+
+              <section className="rounded-xl border border-slate-200 bg-slate-50/80 p-3" aria-labelledby="project-field-site-title">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h5 id="project-field-site-title" className="text-xs font-bold text-slate-800">Field site for attendance</h5>
+                    <p className="mt-0.5 text-[11px] text-slate-500">Choose a pinned project site. Field check-ins use this location and the configured {attendanceRadiusMeters} m geofence.</p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-label="Enable field attendance site"
+                    aria-checked={formSiteEnabled}
+                    onClick={() => {
+                      const nextEnabled = !formSiteEnabled;
+                      setFormSiteEnabled(nextEnabled);
+                      if (!nextEnabled) { setFormSiteLatitude(null); setFormSiteLongitude(null); }
+                    }}
+                    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${formSiteEnabled ? 'bg-emerald-600' : 'bg-slate-300'}`}
+                  >
+                    <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${formSiteEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+                {formSiteEnabled && <div className="mt-3">
+                  <LocationPickerMap
+                    latitude={formSiteLatitude ?? 23.8103}
+                    longitude={formSiteLongitude ?? 90.4125}
+                    radiusMeters={attendanceRadiusMeters}
+                    pinLabel="Project site"
+                    onChange={(point) => { setFormSiteLatitude(point.latitude); setFormSiteLongitude(point.longitude); }}
+                  />
+                  <p className="mt-2 text-[11px] text-slate-500">{formSiteLatitude === null || formSiteLongitude === null ? 'Search an address or click the map to set the field site.' : `Saved site pin: ${formSiteLatitude.toFixed(6)}, ${formSiteLongitude.toFixed(6)}`}</p>
+                </div>}
+              </section>
 
               <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
                 <button
