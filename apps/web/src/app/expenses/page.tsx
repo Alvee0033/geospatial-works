@@ -799,7 +799,7 @@ export default function ExpensesPage() {
                   disabled={submitting}
                   className="px-6 py-2 bg-[#0D1117] hover:bg-slate-800 text-white font-bold rounded-full shadow-xs"
                 >
-                  {submitting ? 'Recording...' : isCreateModalOpen ? 'Record Expense' : 'Save Changes'}
+                  {submitting ? (currentUser?.role === 'project_member' ? 'Submitting…' : 'Recording...') : isCreateModalOpen ? (currentUser?.role === 'project_member' ? 'Submit claim' : 'Record Expense') : 'Save Changes'}
                 </button>
               </div>
             </form>

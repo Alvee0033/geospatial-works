@@ -405,7 +405,7 @@ export default function AttendancePage() {
         <div className="space-y-4">
           <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div><h1 className="text-base font-semibold text-slate-900">My attendance</h1><p className="mt-1 text-xs text-slate-500">Only your attendance records are shown here.</p></div>
-            <div className="flex items-center gap-2"><label className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-3 text-xs text-slate-600"><Calendar size={14}/><input aria-label="Attendance date" type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} className="bg-transparent outline-none" /></label><Link href="/expenses" className="inline-flex h-9 items-center rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700">Submit a claim</Link></div>
+            <div className="flex items-center gap-2"><label className="flex h-9 items-center gap-2 rounded-lg border border-slate-200 px-3 text-xs text-slate-600"><Calendar size={14}/><input aria-label="Attendance date" type="date" value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} className="bg-transparent outline-none" /></label><Link href="/expenses" className="inline-flex h-9 items-center rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700">Submit project claim</Link></div>
           </section>
           {loadError && <div role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{loadError}</div>}
           <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
