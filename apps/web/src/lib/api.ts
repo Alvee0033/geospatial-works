@@ -63,10 +63,13 @@ export class ApiClient {
       const url = `${API_BASE}${cleanEndpoint}`;
       const executeFetch = (authToken: string | null) => {
         const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
           'Accept': 'application/json',
           ...(options.headers as Record<string, string> || {}),
         };
+        // Only set Content-Type for requests with a body — DELETE without body must NOT have Content-Type: application/json
+        if (method !== 'DELETE' || options.body) {
+          headers['Content-Type'] = 'application/json';
+        }
         if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
         return fetch(url, { ...options, ...(method === 'GET' ? { cache: 'no-store' as RequestCache } : {}), headers });
       };
@@ -636,5 +639,31 @@ export class ApiClient {
   static async markAllNotificationsRead(ids: string[]) {
     return Promise.allSettled(ids.map((id) => this.markNotificationRead(id)));
   }
-}
 
+  static async deleteNotification(id: string) {
+    return this.request<{ success: boolean }>(`/notifications/${id}`, { method: 'DELETE' });
+  }
+
+  static async deleteAllNotifications() {
+    return this.request<{ success: boolean }>('/notifications/all', { method: 'DELETE' });
+  }
+
+  // Admin Danger Zone
+  static async wipeAllData(confirmToken: string) {
+    return this.request<{ success: boolean; backupId: string }>('/admin/wipe-all-data', {
+      method: 'DELETE',
+      body: JSON.stringify({ confirmToken }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  static async getDataBackups() {
+    return this.request<any[]>('/admin/data-backups');
+  }
+
+  static async revertFromBackup(backupId: string) {
+    return this.request<{ success: boolean }>(`/admin/data-backups/${backupId}/revert`, {
+      method: 'POST',
+    });
+  }
+}

@@ -15,6 +15,8 @@ import {
   ChevronRight,
   Filter,
   UserPlus,
+  X,
+  Trash2,
 } from 'lucide-react';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -111,6 +113,27 @@ export const NotificationPanel: React.FC = () => {
       await ApiClient.markAllNotificationsRead(unreadIds);
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);
+    }
+  };
+
+  const handleDeleteNotification = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    try {
+      await ApiClient.deleteNotification(id);
+    } catch (err) {
+      console.error('Failed to delete notification:', err);
+      loadNotifications(); // revert on error
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    setNotifications([]);
+    try {
+      await ApiClient.deleteAllNotifications();
+    } catch (err) {
+      console.error('Failed to delete all notifications:', err);
+      loadNotifications();
     }
   };
 
@@ -236,6 +259,16 @@ export const NotificationPanel: React.FC = () => {
                   <span>Mark all read</span>
                 </button>
               )}
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleDeleteAll}
+                  className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 transition-colors"
+                  title="Delete all notifications"
+                >
+                  <Trash2 size={12} />
+                  <span>Clear all</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -322,9 +355,18 @@ export const NotificationPanel: React.FC = () => {
                         <p className="text-xs font-extrabold text-slate-900 truncate">
                           {notif.title}
                         </p>
-                        <span className="text-[10px] font-semibold text-slate-400 shrink-0">
-                          {formatTimeAgo(notif.createdAt)}
-                        </span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="text-[10px] font-semibold text-slate-400">
+                            {formatTimeAgo(notif.createdAt)}
+                          </span>
+                          <button
+                            onClick={(e) => handleDeleteNotification(notif.id, e)}
+                            className="p-0.5 rounded text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                            title="Delete notification"
+                          >
+                            <X size={11} />
+                          </button>
+                        </div>
                       </div>
 
                       <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
