@@ -124,9 +124,9 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-5 text-center border-t border-slate-100 pt-4 text-xs text-slate-500">
-          Need an account?{' '}
-          <Link href="/register" className="font-semibold text-slate-900 hover:underline">
-            Register
+          New employee?{' '}
+          <Link href="/register" className="font-bold text-slate-900 hover:underline">
+            Register for employee account
           </Link>
         </div>
       </div>
