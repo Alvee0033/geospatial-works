@@ -183,6 +183,12 @@ function EmployeesContent() {
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    if (urlFilter === 'pending') {
+      setStatusFilter('pending');
+    }
+  }, [urlFilter]);
+
   const handleOpenAdd = () => {
     setFormName('');
     setFormEmail('');
@@ -475,18 +481,18 @@ function EmployeesContent() {
               <button
                 type="button"
                 onClick={() => setStatusFilter('pending')}
-                className={`px-2.5 py-0.5 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                className={`px-2.5 py-0.5 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1.5 ${
                   statusFilter === 'pending'
-                    ? 'bg-amber-500 text-white shadow-2xs font-bold'
+                    ? 'bg-amber-600 text-white shadow-2xs font-bold'
                     : pendingCount > 0
-                    ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
+                    ? 'text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <span>Pending</span>
+                <span>Pending Approval</span>
                 {pendingCount > 0 && (
-                  <span className={`px-1 py-0.2 rounded-full text-[9px] font-black ${
-                    statusFilter === 'pending' ? 'bg-white text-amber-900' : 'bg-amber-200 text-amber-900'
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-black ${
+                    statusFilter === 'pending' ? 'bg-white text-amber-900' : 'bg-amber-500 text-white animate-pulse'
                   }`}>
                     {pendingCount}
                   </span>
@@ -627,6 +633,126 @@ function EmployeesContent() {
           </div>
         </div>
 
+        {/* PENDING EMPLOYEE APPROVALS ALERT & ACTION HERO CARD */}
+        {pendingCount > 0 && (
+          <div className="rounded-xl border-2 border-amber-300 bg-linear-to-r from-amber-50/90 via-orange-50/40 to-amber-50/70 p-4 shadow-sm animate-in fade-in">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-amber-200/80">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                  <UserCheck size={18} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-amber-950">
+                      Pending Employee Registration Approvals
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-black bg-amber-500 text-white shadow-2xs">
+                      {pendingCount} {pendingCount === 1 ? 'applicant' : 'applicants'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-800/90 mt-0.5">
+                    The following personnel registered via the employee registration portal and require administrative verification to access the mobile application and system features.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    statusFilter === 'pending'
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-white text-amber-900 border border-amber-300 hover:bg-amber-100/60'
+                  }`}
+                >
+                  {statusFilter === 'pending' ? 'Show All Directory' : 'Filter Table to Pending'}
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Approval Roster Cards */}
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              {users.filter(u => u.isActive === false).map((pendingUser) => (
+                <div
+                  key={pendingUser.id}
+                  className="bg-white/95 rounded-lg border border-amber-200 p-3 shadow-2xs flex flex-col justify-between hover:border-amber-400 transition-all"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-200">
+                          {(pendingUser.name || pendingUser.full_name || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-900 truncate">
+                            {pendingUser.name || pendingUser.full_name || 'Pending Employee'}
+                          </p>
+                          <p className="text-[11px] text-slate-500 truncate">{pendingUser.email}</p>
+                        </div>
+                      </div>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 shrink-0">
+                        Pending
+                      </span>
+                    </div>
+
+                    <div className="mt-2.5 grid grid-cols-2 gap-1.5 text-[11px] text-slate-600 bg-slate-50 p-2 rounded-md border border-slate-100">
+                      <div>
+                        <span className="text-[9px] uppercase font-bold text-slate-400 block">Department</span>
+                        <span className="font-medium text-slate-800 truncate block">
+                          {pendingUser.department || 'General'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] uppercase font-bold text-slate-400 block">Designation</span>
+                        <span className="font-medium text-slate-800 truncate block">
+                          {pendingUser.designation || 'Staff'}
+                        </span>
+                      </div>
+                      {pendingUser.phone && (
+                        <div className="col-span-2 mt-0.5">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block">Phone</span>
+                          <span className="font-medium text-slate-800 truncate block">{pendingUser.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-1.5">
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(pendingUser)}
+                        className="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded text-[11px] font-semibold transition-colors"
+                        title="Edit department or designation before approval"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteUser(pendingUser.id, pendingUser.name || 'User')}
+                        className="px-2 py-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded text-[11px] font-semibold transition-colors"
+                        title="Decline registration request"
+                      >
+                        Decline
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleApproveUser(pendingUser)}
+                      disabled={approvingId === pendingUser.id}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-md text-xs font-bold shadow-2xs transition-all disabled:opacity-50"
+                    >
+                      <CheckCircle2 size={13} />
+                      <span>{approvingId === pendingUser.id ? 'Approving…' : 'Approve & Grant Access'}</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Master Bento Personnel Directory Table */}
         <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs space-y-2.5">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -645,6 +771,22 @@ function EmployeesContent() {
               {filteredUsers.length} Members
             </span>
           </div>
+
+          {statusFilter === 'pending' && (
+            <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-lg flex items-center justify-between text-xs text-amber-900 animate-in fade-in">
+              <div className="flex items-center gap-2">
+                <Clock size={15} className="text-amber-700 shrink-0" />
+                <span>Showing <strong>{filteredUsers.length}</strong> employee registration(s) awaiting approval. Approving an account immediately enables mobile app login and dispatches confirmation instructions.</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('all')}
+                className="text-amber-800 underline font-semibold hover:text-amber-950 shrink-0 text-xs"
+              >
+                Show All
+              </button>
+            </div>
+          )}
 
           <div className="overflow-x-auto border border-slate-200/90 rounded-lg">
             <table className="w-full text-left text-xs">
@@ -667,7 +809,14 @@ function EmployeesContent() {
                   const initial = (u.name || u.full_name || 'U').charAt(0).toUpperCase();
 
                   return (
-                    <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr
+                      key={u.id}
+                      className={`transition-colors ${
+                        u.isActive === false
+                          ? 'bg-amber-50/60 hover:bg-amber-100/60 border-l-4 border-l-amber-500'
+                          : 'hover:bg-slate-50/80'
+                      }`}
+                    >
                       <td className="py-2.5 px-3.5">
                         <div className="flex items-center gap-2.5">
                           <UserAvatar
