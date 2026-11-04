@@ -136,7 +136,32 @@ export default function AppReleasesPage() {
     }
   };
 
+  const [switchingId, setSwitchingId] = useState<string | null>(null);
+  const [selectedActiveId, setSelectedActiveId] = useState<string>('');
+
   const latestRelease = releases.find((r) => r.isLatest) || releases[0];
+
+  useEffect(() => {
+    if (latestRelease && !selectedActiveId) {
+      setSelectedActiveId(latestRelease.id);
+    }
+  }, [latestRelease, selectedActiveId]);
+
+  const handleSetActiveVersion = async (id: string, versionName: string) => {
+    if (!id || id === 'default' || switchingId) return;
+    setSwitchingId(id);
+    try {
+      await ApiClient.setLatestAppRelease(id);
+      setSelectedActiveId(id);
+      setToast(`Build ${versionName} is now set as the active production release!`);
+      setTimeout(() => setToast(null), 5000);
+      await fetchReleases();
+    } catch (err: any) {
+      alert(`Error switching active release: ${err.message}`);
+    } finally {
+      setSwitchingId(null);
+    }
+  };
 
   const formatSize = (bytes?: number) => {
     if (!bytes) return '28.5 MB';
@@ -146,7 +171,7 @@ export default function AppReleasesPage() {
   return (
     <AdminLayout
       title="Mobile App Releases"
-      subtitle="Upload production APK builds, release notes, and distribute to surveyors"
+      subtitle="Upload production APK builds, manage version history, and select active releases"
       onRefresh={fetchReleases}
       isRefreshing={loading}
       contentClassName="px-3 sm:px-6 py-4"
@@ -203,7 +228,7 @@ export default function AppReleasesPage() {
                   className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-medium transition-colors"
                 >
                   <Download size={13} />
-                  <span>APK</span>
+                  <span>Download Latest APK</span>
                 </a>
                 <button
                   type="button"
@@ -234,22 +259,48 @@ export default function AppReleasesPage() {
               </p>
             </div>
             <div className="pt-2 text-[11px] text-slate-500 flex items-center justify-between">
-              <span>Automatic Email on Approval</span>
-              <span className="font-semibold text-emerald-600">Enabled</span>
+              <span>Direct Link Support</span>
+              <span className="font-semibold text-emerald-600">Active</span>
             </div>
           </div>
         </div>
 
         {/* Release History Card */}
         <div className="rounded-xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden">
-          <div className="p-3.5 sm:px-4 flex items-center justify-between border-b border-slate-100">
+          <div className="p-3.5 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">Release Builds</h3>
-              <p className="text-[11px] text-slate-400">Chronological history of uploaded and distributed APKs</p>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-700">Version History & Active Release Switcher</h3>
+              <p className="text-[11px] text-slate-400">Select any uploaded APK build to set as active production version or download directly</p>
             </div>
-            <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-              {releases.length} {releases.length === 1 ? 'build' : 'builds'}
-            </span>
+
+            {/* Dropdown Quick Version Switcher */}
+            {releases.length > 1 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-medium text-slate-500 whitespace-nowrap">Switch Version:</span>
+                <select
+                  value={selectedActiveId}
+                  onChange={(e) => setSelectedActiveId(e.target.value)}
+                  className="h-8 px-2.5 bg-slate-50 border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-900"
+                >
+                  {releases.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.versionName} (Build #{r.buildNumber}){r.isLatest ? ' ★ Active' : ''}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  disabled={switchingId !== null || selectedActiveId === latestRelease?.id}
+                  onClick={() => {
+                    const target = releases.find((r) => r.id === selectedActiveId);
+                    if (target) handleSetActiveVersion(target.id, target.versionName);
+                  }}
+                  className="h-8 px-3 rounded-md bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white text-xs font-medium transition-colors"
+                >
+                  {switchingId ? 'Switching…' : 'Apply Version'}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Table */}
@@ -262,15 +313,20 @@ export default function AppReleasesPage() {
                   <th className="py-2.5 px-3.5">Release Notes</th>
                   <th className="py-2.5 px-3.5">Size</th>
                   <th className="py-2.5 px-3.5">Date</th>
-                  <th className="py-2.5 px-3.5">Status</th>
-                  <th className="py-2.5 px-3.5 text-right">Actions</th>
+                  <th className="py-2.5 px-3.5">Status / Switch</th>
+                  <th className="py-2.5 px-3.5 text-right">Download & Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {releases.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50/60 transition-colors">
+                  <tr key={r.id} className={`transition-colors ${r.isLatest ? 'bg-emerald-50/20 hover:bg-emerald-50/30' : 'hover:bg-slate-50/60'}`}>
                     <td className="py-2.5 px-3.5 font-semibold text-slate-900 font-mono">
-                      {r.versionName}
+                      <div className="flex items-center gap-1.5">
+                        <span>{r.versionName}</span>
+                        {r.isLatest && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" title="Active Production Release" />
+                        )}
+                      </div>
                     </td>
                     <td className="py-2.5 px-3.5 text-slate-500 font-mono">
                       #{r.buildNumber}
@@ -286,26 +342,46 @@ export default function AppReleasesPage() {
                     </td>
                     <td className="py-2.5 px-3.5">
                       {r.isLatest ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                          Latest Active
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100/70 text-emerald-800 border border-emerald-300/60">
+                          <Check size={11} className="stroke-[2.5]" />
+                          Active Production
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500">
-                          Archived
-                        </span>
+                        <button
+                          type="button"
+                          disabled={switchingId === r.id}
+                          onClick={() => handleSetActiveVersion(r.id, r.versionName)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors"
+                        >
+                          {switchingId === r.id ? 'Switching…' : 'Set as Active'}
+                        </button>
                       )}
                     </td>
                     <td className="py-2.5 px-3.5 text-right">
-                      {r.id !== 'default' && (
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(r.id, r.versionName)}
-                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                          title="Delete Build"
+                      <div className="inline-flex items-center gap-2 justify-end">
+                        {/* Direct APK Download Button */}
+                        <a
+                          href={r.id === 'default' ? '/api/v1/app-releases/download-latest' : `/api/v1/app-releases/${r.id}/download`}
+                          download={`geospatial-works-${r.versionName}.apk`}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-medium shadow-2xs transition-colors"
+                          title={`Download ${r.versionName} APK`}
                         >
-                          <Trash2 size={13} />
-                        </button>
-                      )}
+                          <Download size={12} />
+                          <span>Download APK</span>
+                        </a>
+
+                        {/* Delete Button (only for inactive non-default builds) */}
+                        {r.id !== 'default' && !r.isLatest && (
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(r.id, r.versionName)}
+                            className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                            title="Delete Build"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -321,6 +397,7 @@ export default function AppReleasesPage() {
           </div>
         </div>
       </div>
+
 
       {/* Upload APK Modal (Shadcn-styled Compact Dialog) */}
       {isModalOpen && (

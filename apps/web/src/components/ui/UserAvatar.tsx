@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-const BACKEND_BASE = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || 'http://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io';
+const BACKEND_BASE = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || '';
 
 export function resolveAvatarUrl(url?: string | null): string {
   if (!url) return '';

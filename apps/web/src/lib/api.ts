@@ -1,6 +1,6 @@
 import { clearApiCache, readApiCache, writeApiCache } from '@/lib/pageCache';
 
-const DEFAULT_BACKEND_URL = 'https://mtoam6j7bojzuo6lhsakwfp8.203.96.190.78.sslip.io/api';
+const DEFAULT_BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_BACKEND_URL;
 // The same-origin gateway is mounted at /api/[...path]. Include the backend
 // prefix here so an unset public URL still reaches Nest's /api/v1 routes.
@@ -221,6 +221,12 @@ export class ApiClient {
   static async deleteAppRelease(id: string) {
     return this.request<{ success: boolean }>(`/app-releases/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  static async setLatestAppRelease(id: string) {
+    return this.request<{ success: boolean; release: any }>(`/app-releases/${id}/set-latest`, {
+      method: 'PATCH',
     });
   }
 
