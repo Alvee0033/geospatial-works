@@ -14,6 +14,7 @@ import {
   Info,
   ChevronRight,
   Filter,
+  UserPlus,
 } from 'lucide-react';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -160,6 +161,21 @@ export const NotificationPanel: React.FC = () => {
           badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
           link: '/leaves/early-departures',
           linkText: 'View Anomaly',
+        };
+      case 'employee_registration':
+      case 'user_registration':
+        return {
+          icon: <UserPlus size={14} className="text-blue-600" />,
+          badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
+          link: '/employees?filter=pending',
+          linkText: 'Review & Approve',
+        };
+      case 'account_approved':
+        return {
+          icon: <Check size={14} className="text-emerald-600" />,
+          badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          link: '/employees',
+          linkText: 'View Employees',
         };
       default:
         return {

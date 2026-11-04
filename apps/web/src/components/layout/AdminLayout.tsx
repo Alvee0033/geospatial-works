@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminTopNav } from './AdminTopNav';
 import { ActionFeedbackHost } from '@/components/feedback/ActionFeedback';
 import { ApiClient } from '@/lib/api';
-import { canAccessRouteForRole } from '@/lib/roleAccess';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -32,23 +31,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   hideTopNav = false,
 }) => {
   const router = useRouter();
-  const pathname = usePathname();
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    setAuthChecked(false);
     if (!ApiClient.getToken()) {
       router.replace('/login');
       return;
     }
-    let role: string | undefined;
-    try { role = JSON.parse(localStorage.getItem('gw_user') || 'null')?.role; } catch {}
-    if (!canAccessRouteForRole(role, pathname)) {
-      router.replace('/dashboard');
-      return;
-    }
     setAuthChecked(true);
-  }, [pathname, router]);
+  }, [router]);
 
   if (!authChecked) {
     return <div className="min-h-screen bg-[#F7F8F6]" aria-label="Checking session" />;

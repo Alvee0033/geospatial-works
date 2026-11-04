@@ -169,6 +169,56 @@ export class ApiClient {
     return data;
   }
 
+  static async register(data: {
+    name: string;
+    email: string;
+    password: string;
+    department?: string;
+    designation?: string;
+    phone?: string;
+  }) {
+    const endpoint = `${API_BASE.replace(/\/+$/, '')}/auth/register`;
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const message = payload?.message || payload?.error;
+      throw new Error(Array.isArray(message) ? message.join(', ') : message || `Registration failed (${res.status}).`);
+    }
+    return payload?.data ?? payload;
+  }
+
+  static async getLatestAppRelease() {
+    return this.request<any>('/app-releases/latest');
+  }
+
+  static async getAppReleases() {
+    return this.request<any[]>('/app-releases');
+  }
+
+  static async createAppRelease(data: {
+    versionName: string;
+    buildNumber: number;
+    releaseNotes?: string;
+    downloadUrl?: string;
+    fileSizeBytes?: number;
+    isLatest?: boolean;
+  }) {
+    return this.request<any>('/app-releases', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteAppRelease(id: string) {
+    return this.request<{ success: boolean }>(`/app-releases/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   /** Warm frequently used live workspace data after sign-in without delaying navigation. */
   static warmWorkspaceData(): void {
     let role: string | undefined;

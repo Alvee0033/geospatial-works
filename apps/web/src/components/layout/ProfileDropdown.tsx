@@ -211,14 +211,14 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ currentUser, o
               <span>Edit Profile & Avatar</span>
             </button>
 
-            {currentUser?.role !== 'project_member' && <Link
+            <Link
               href="/settings"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-4 py-2 hover:bg-emerald-50/70 hover:text-emerald-900 transition-colors"
             >
               <Settings size={15} className="text-emerald-600" />
               <span>System Preferences</span>
-            </Link>}
+            </Link>
           </div>
 
           <div className="border-t border-slate-100 pt-1">

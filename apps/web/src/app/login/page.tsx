@@ -51,9 +51,20 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div role="alert" aria-live="polite" className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-sm leading-5 text-rose-700 flex items-start gap-2.5">
+          <div
+            role="alert"
+            aria-live="polite"
+            className={`mb-5 rounded-xl border px-3.5 py-3 text-sm leading-5 flex items-start gap-2.5 ${
+              error.toLowerCase().includes('pending')
+                ? 'border-amber-200 bg-amber-50 text-amber-800'
+                : 'border-rose-200 bg-rose-50 text-rose-700'
+            }`}
+          >
             <ShieldCheck size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
-            <span>{error}</span>
+            <div>
+              <p className="font-semibold">{error.toLowerCase().includes('pending') ? 'Verification Required' : 'Authentication Error'}</p>
+              <p className="text-xs mt-0.5 opacity-90">{error}</p>
+            </div>
           </div>
         )}
 
@@ -112,8 +123,22 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 text-center border-t border-slate-100 pt-4">
-          <p className="text-[11px] text-slate-400">Authorized Personnel & Management Access Only</p>
+        <div className="mt-6 flex flex-col gap-2.5 text-center border-t border-slate-100 pt-5">
+          <p className="text-xs text-slate-600">
+            Need an employee account?{' '}
+            <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-2">
+              Register here
+            </Link>
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/download"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
+            >
+              📱 <span>Download Mobile App (APK)</span>
+            </Link>
+          </div>
+          <p className="text-[10px] text-slate-400 mt-2">Authorized Personnel & Management Access Only</p>
         </div>
       </div>
     </div>

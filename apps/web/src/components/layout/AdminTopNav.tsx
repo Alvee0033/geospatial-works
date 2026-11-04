@@ -64,7 +64,7 @@ export const AdminTopNav: React.FC<TopNavProps> = ({
           </button>
         )}
 
-        {onExport && currentUser && currentUser.role !== 'project_member' && (
+        {onExport && (
           <button
             onClick={onExport}
             title="Export Report"
@@ -78,13 +78,13 @@ export const AdminTopNav: React.FC<TopNavProps> = ({
         <NotificationPanel />
 
         {/* Settings Gear */}
-        {currentUser && currentUser.role !== 'project_member' && <Link
+        <Link
           href="/settings"
           className="hidden rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 sm:block"
           title="System Settings"
         >
           <Settings size={15} />
-        </Link>}
+        </Link>
 
         {/* Profile Pill with Settings & Edit Modal */}
         <ProfileDropdown
@@ -94,13 +94,13 @@ export const AdminTopNav: React.FC<TopNavProps> = ({
 
 
         {/* Add Widget Button */}
-        {currentUser && currentUser.role !== 'project_member' && <Link
+        <Link
           href="/projects/new"
           className="ml-1 flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-emerald-700"
         >
           <Plus size={14} />
           <span className="hidden sm:inline">New project</span>
-        </Link>}
+        </Link>
       </div>
     </header>
   );

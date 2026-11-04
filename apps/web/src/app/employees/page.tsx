@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
@@ -23,7 +24,8 @@ import {
   X,
   Sparkles,
   CheckCircle2,
-  UserCheck
+  UserCheck,
+  Clock,
 } from 'lucide-react';
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
@@ -126,7 +128,10 @@ function ProjectAssignmentPicker({
   );
 }
 
-export default function EmployeesPage() {
+function EmployeesContent() {
+  const searchParams = useSearchParams();
+  const urlFilter = searchParams?.get('filter');
+
   const [users, setUsers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,6 +141,11 @@ export default function EmployeesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'project_manager' | 'project_member'>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending'>(urlFilter === 'pending' ? 'pending' : 'all');
+
+  // Approval action feedback
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -265,6 +275,20 @@ export default function EmployeesPage() {
     }
   };
 
+  const handleApproveUser = async (user: any) => {
+    setApprovingId(user.id);
+    try {
+      await ApiClient.updateUserStatus(user.id, true);
+      setSuccessToast(`Account approved for ${user.name || user.email}! An approval confirmation email containing the mobile app download link has been dispatched.`);
+      setTimeout(() => setSuccessToast(null), 8000);
+      await fetchUsers();
+    } catch (e: any) {
+      alert(`Error approving user: ${e.message}`);
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   // Enriched & Filtered Users
   const departments = useMemo(() => {
     const set = new Set<string>();
@@ -288,13 +312,16 @@ export default function EmployeesPage() {
       if (!matchSearch) return false;
       if (roleFilter !== 'all' && u.role !== roleFilter) return false;
       if (departmentFilter !== 'all' && u.department !== departmentFilter) return false;
+      if (statusFilter === 'active' && u.isActive === false) return false;
+      if (statusFilter === 'pending' && u.isActive !== false) return false;
 
       return true;
     });
-  }, [users, searchQuery, roleFilter, departmentFilter]);
+  }, [users, searchQuery, roleFilter, departmentFilter, statusFilter]);
 
   // Bento Statistics
   const activeCount = users.filter((u) => u.isActive !== false).length;
+  const pendingCount = users.filter((u) => u.isActive === false).length;
   const adminCount = users.filter((u) => u.role === 'admin').length;
   const pmCount = users.filter((u) => u.role === 'project_manager').length;
   const fieldStaffCount = users.filter((u) => u.role === 'project_member').length;
@@ -323,6 +350,15 @@ export default function EmployeesPage() {
       isRefreshing={loading}
       contentClassName="px-4 lg:px-6 py-4"
     >
+      {successToast && (
+        <div role="status" className="mb-3.5 flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-900 shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+            <span className="font-semibold">{successToast}</span>
+          </div>
+          <button type="button" onClick={() => setSuccessToast(null)} className="text-emerald-700 hover:text-emerald-900 font-bold text-sm">✕</button>
+        </div>
+      )}
       {loadError && <div role="alert" className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"><span>{loadError}</span><button type="button" onClick={() => { void fetchUsers(); }} className="font-semibold underline">Retry</button></div>}
       <div className="w-full space-y-3.5">
         {/* Bento Top Header Bar */}
@@ -337,6 +373,52 @@ export default function EmployeesPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-7 pr-3 py-1 bg-slate-50 border border-slate-200/90 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-56 sm:w-72"
               />
+            </div>
+
+            {/* Status Filter Pills (All / Active / Pending Approval) */}
+            <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg text-xs">
+              <button
+                type="button"
+                onClick={() => setStatusFilter('all')}
+                className={`px-2.5 py-0.5 rounded-md text-[11px] font-semibold transition-all ${
+                  statusFilter === 'all'
+                    ? 'bg-white text-slate-900 shadow-2xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All ({users.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('active')}
+                className={`px-2.5 py-0.5 rounded-md text-[11px] font-semibold transition-all ${
+                  statusFilter === 'active'
+                    ? 'bg-white text-emerald-800 shadow-2xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Active ({activeCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter('pending')}
+                className={`px-2.5 py-0.5 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 ${
+                  statusFilter === 'pending'
+                    ? 'bg-amber-500 text-white shadow-2xs font-bold'
+                    : pendingCount > 0
+                    ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span>Pending</span>
+                {pendingCount > 0 && (
+                  <span className={`px-1 py-0.2 rounded-full text-[9px] font-black ${
+                    statusFilter === 'pending' ? 'bg-white text-amber-900' : 'bg-amber-200 text-amber-900'
+                  }`}>
+                    {pendingCount}
+                  </span>
+                )}
+              </button>
             </div>
 
             {/* Role Filter Pills */}
@@ -524,16 +606,34 @@ export default function EmployeesPage() {
                         <span className="font-mono font-bold text-slate-800">{assignedCount}</span> projects
                       </td>
                       <td className="py-2.5 px-3.5">
-                        <button
-                          onClick={() => handleToggleStatus(u)}
-                          title="Click to toggle active state"
-                          className="cursor-pointer"
-                        >
-                          <StatusBadge status={u.isActive !== false ? 'active' : 'inactive'} />
-                        </button>
+                        {u.isActive === false ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            <Clock size={10} className="text-amber-600" />
+                            <span>Pending Approval</span>
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleStatus(u)}
+                            title="Click to toggle active state"
+                            className="cursor-pointer"
+                          >
+                            <StatusBadge status="active" />
+                          </button>
+                        )}
                       </td>
                       <td className="py-2.5 px-3.5 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          {u.isActive === false && (
+                            <button
+                              onClick={() => handleApproveUser(u)}
+                              disabled={approvingId === u.id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[11px] font-bold shadow-2xs transition-all disabled:opacity-50 mr-1"
+                              title="Approve Employee and dispatch App Access Email"
+                            >
+                              <UserCheck size={12} />
+                              <span>{approvingId === u.id ? 'Approving…' : 'Approve & Grant Access'}</span>
+                            </button>
+                          )}
                           <button
                             onClick={() => handleOpenEdit(u)}
                             className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors"
@@ -836,5 +936,19 @@ export default function EmployeesPage() {
         </div>
       )}
     </AdminLayout>
+  );
+}
+
+export default function EmployeesPage() {
+  return (
+    <Suspense fallback={
+      <AdminLayout title="Team Directory">
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-[#10241E]" />
+        </div>
+      </AdminLayout>
+    }>
+      <EmployeesContent />
+    </Suspense>
   );
 }

@@ -26,7 +26,6 @@ import {
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { selectAssignedProjects, selectOwnRecords } from '@/lib/roleAccess';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -37,7 +36,6 @@ export default function ExpensesPage() {
   const [search, setSearch] = useState('');
   const [inspectExp, setInspectExp] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
   // Modals
@@ -54,29 +52,12 @@ export default function ExpensesPage() {
   const [formCategoryName, setFormCategoryName] = useState('Transportation');
   const [formAmount, setFormAmount] = useState<number>(1000);
   const [formNote, setFormNote] = useState('');
-  const [formDate, setFormDate] = useState(new Date().toISOString().slice(0, 10));
+  const [formDate, setFormDate] = useState('2026-10-20');
   const [formReceiptUrl, setFormReceiptUrl] = useState('');
 
   const fetchRealExpenses = async () => {
     setLoading(true);
     try {
-      let user = currentUser;
-      if (!user) { try { user = JSON.parse(localStorage.getItem('gw_user') || 'null'); } catch {} }
-      if (user?.role === 'project_member') {
-        const [expData, projData, catData] = await Promise.all([
-          ApiClient.getExpenses().catch(() => []),
-          ApiClient.getProjects().catch(() => []),
-          ApiClient.getCategories().catch(() => []),
-        ]);
-        setExpenses(selectOwnRecords(expData || [], String(user.id ?? user._id ?? '')));
-        const assignedProjects = selectAssignedProjects(projData || [], String(user.id ?? user._id ?? ''));
-        setProjects(assignedProjects);
-        setCategories(catData || []);
-        setUsers([]);
-        setFormEmployeeId(String(user.id ?? user._id ?? ''));
-        if (assignedProjects.length && !formProjectId) setFormProjectId(assignedProjects[0].id);
-        return;
-      }
       const [expData, projData, userData, catData] = await Promise.all([
         ApiClient.getExpenses().catch(() => []),
         ApiClient.getProjects().catch(() => []),
@@ -101,12 +82,10 @@ export default function ExpensesPage() {
   };
 
   useEffect(() => {
-    try { setCurrentUser(JSON.parse(localStorage.getItem('gw_user') || 'null')); } catch {}
     fetchRealExpenses();
   }, []);
 
   const handleApprove = async (id: string) => {
-    if (currentUser?.role === 'project_member') return;
     const note = prompt('Enter approval verification note (optional):', 'Verified and approved by admin');
     if (note === null) return;
     try {
@@ -122,7 +101,6 @@ export default function ExpensesPage() {
   };
 
   const handleReject = async (id: string) => {
-    if (currentUser?.role === 'project_member') return;
     const reason = prompt('Enter rejection reason:');
     if (!reason) return;
     try {
@@ -138,7 +116,6 @@ export default function ExpensesPage() {
   };
 
   const handleDeleteExpense = async (id: string) => {
-    if (currentUser?.role === 'project_member') return;
     if (!confirm('Are you sure you want to permanently delete this expense claim?')) return;
     try {
       await ApiClient.deleteExpense(id);
@@ -170,13 +147,12 @@ export default function ExpensesPage() {
     try {
       const selectedProj = projects.find((p) => p.id === formProjectId);
       const selectedUser = users.find((u) => u.id === formEmployeeId);
-      const employeeId = currentUser?.role === 'project_member' ? String(currentUser.id ?? currentUser._id ?? '') : formEmployeeId;
 
       const payload = {
         projectId: formProjectId,
         projectName: selectedProj?.name || 'Project',
-        employeeId,
-        employeeName: currentUser?.role === 'project_member' ? currentUser.name || currentUser.full_name || currentUser.email : selectedUser?.name || 'Staff',
+        employeeId: formEmployeeId,
+        employeeName: selectedUser?.name || 'Staff',
         categoryId: formCategoryId || undefined,
         categoryName: formCategoryName,
         amount: formAmount,
@@ -185,7 +161,7 @@ export default function ExpensesPage() {
         date: formDate ? new Date(formDate).toISOString() : new Date().toISOString(),
         hasReceipt: Boolean(formReceiptUrl),
         receiptPhotoUrl: formReceiptUrl || null,
-        status: currentUser?.role === 'project_member' ? 'pending' : 'approved',
+        status: 'approved',
       };
 
       await ApiClient.createExpense(payload);
@@ -202,7 +178,6 @@ export default function ExpensesPage() {
   };
 
   const handleOpenEdit = (exp: any) => {
-    if (currentUser?.role === 'project_member') return;
     setExpenseToEdit(exp);
     setFormProjectId(exp.projectId || '');
     setFormEmployeeId(exp.employeeId || '');
@@ -276,15 +251,15 @@ export default function ExpensesPage() {
 
   return (
     <AdminLayout
-      title={currentUser?.role === 'project_member' ? 'My claims' : 'Transaction History'}
-      subtitle={currentUser?.role === 'project_member' ? 'Your submitted expense claims and receipts' : 'Review recorded project expenses, vouchers, and approval status'}
+      title="Transaction History"
+      subtitle="Review recorded project expenses, vouchers, and approval status"
       onRefresh={fetchRealExpenses}
-      onExport={currentUser?.role === 'project_member' ? undefined : handleExportExcel}
+      onExport={handleExportExcel}
       isRefreshing={loading}
     >
       {/* 4 Financial Metric Badges */}
       <div className="w-full max-w-[1440px] mx-auto px-5 py-5 space-y-3">
-      {currentUser?.role === 'project_member' ? <div className="grid grid-cols-2 gap-2"><div className="rounded-xl border border-slate-200 bg-white p-3"><p className="text-xs text-slate-500">My claims</p><p className="mt-1 text-lg font-semibold text-slate-900">{expenses.length}</p></div><div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3"><p className="text-xs text-amber-800">Awaiting review</p><p className="mt-1 text-lg font-semibold text-amber-900">{expenses.filter((expense) => (expense.status || 'pending').toLowerCase() === 'pending').length}</p></div></div> : <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
           <p className="text-[11px] font-semibold text-slate-400">Total Base Direct Cost</p>
           <p className="text-lg font-bold text-slate-900 mt-1">BDT {totalBase.toLocaleString()}</p>
@@ -301,7 +276,7 @@ export default function ExpensesPage() {
           <p className="text-[11px] font-semibold text-emerald-600">Total Gross Expenditures</p>
           <p className="text-lg font-bold text-slate-900 mt-1">BDT {totalGross.toLocaleString()}</p>
         </div>
-      </div>}
+      </div>
 
       {/* Control Bar: Filters, Search & Action Button */}
       <div className="bg-white border border-[#EAEBEF] rounded-xl p-4 shadow-xs">
@@ -336,7 +311,7 @@ export default function ExpensesPage() {
               className="flex items-center gap-2 px-4 py-2 bg-[#0D1117] hover:bg-slate-800 text-white rounded-full text-xs font-bold transition-all shadow-xs"
             >
               <Plus size={14} />
-              <span>{currentUser?.role === 'project_member' ? 'Submit claim' : 'Record Expense'}</span>
+              <span>Record Expense</span>
             </button>
           </div>
         </div>
@@ -346,20 +321,21 @@ export default function ExpensesPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                <th className="py-3 px-3">{currentUser?.role === 'project_member' ? 'Claim & Project' : 'Employee & Details'}</th>
+                <th className="py-3 px-3">Employee & Details</th>
                 <th className="py-3 px-3">Category</th>
                 <th className="py-3 px-3">Base Cost</th>
-                {currentUser?.role !== 'project_member' && <><th className="py-3 px-3">VAT Segment</th><th className="py-3 px-3">Tax / AIT Segment</th></>}
+                <th className="py-3 px-3">VAT Segment</th>
+                <th className="py-3 px-3">Tax / AIT Segment</th>
                 <th className="py-3 px-3">Gross Invoice</th>
                 <th className="py-3 px-3">Receipt</th>
                 <th className="py-3 px-3">Status</th>
-                <th className="py-3 px-3 text-right">{currentUser?.role === 'project_member' ? 'Details' : 'Approval Actions'}</th>
+                <th className="py-3 px-3 text-right">Approval Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-xs">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={currentUser?.role === 'project_member' ? 6 : 9} className="py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={9} className="py-12 text-center text-slate-400 font-medium">
                     {loading ? 'Retrieving expenditure logs...' : 'No claims found matching selected filter.'}
                   </td>
                 </tr>
@@ -389,14 +365,12 @@ export default function ExpensesPage() {
                       </td>
                       <td className="py-3.5 px-3 font-medium text-slate-700">{e.categoryName || 'Expense'}</td>
                       <td className="py-3.5 px-3 font-semibold text-slate-700">BDT {base.toLocaleString()}</td>
-                      {currentUser?.role !== 'project_member' && <>
                       <td className="py-3.5 px-3">
                         <span className="font-bold text-indigo-700">BDT {vat.toLocaleString()}</span>
                       </td>
                       <td className="py-3.5 px-3">
                         <span className="font-bold text-slate-700">BDT {tax.toLocaleString()}</span>
                       </td>
-                      </>}
                       <td className="py-3.5 px-3 font-bold text-slate-900">BDT {gross.toLocaleString()}</td>
                       <td className="py-3.5 px-3">
                         {hasReceipt ? (
@@ -421,14 +395,14 @@ export default function ExpensesPage() {
                           >
                             <Eye size={14} />
                           </button>
-                          {currentUser?.role !== 'project_member' && <button
+                          <button
                             onClick={() => handleOpenEdit(e)}
                             className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-lg transition-colors"
                             title="Edit Claim"
                           >
                             <Edit2 size={13} />
-                          </button>}
-                          {currentUser?.role !== 'project_member' && (e.status || 'pending').toLowerCase() === 'pending' && (
+                          </button>
+                          {(e.status || 'pending').toLowerCase() === 'pending' && (
                             <>
                               <button
                                 onClick={() => handleApprove(e.id)}
@@ -446,13 +420,13 @@ export default function ExpensesPage() {
                               </button>
                             </>
                           )}
-                          {currentUser?.role !== 'project_member' && <button
+                          <button
                             onClick={() => handleDeleteExpense(e.id)}
                             className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
                             title="Delete Record"
                           >
                             <Trash2 size={13} />
-                          </button>}
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -470,7 +444,7 @@ export default function ExpensesPage() {
           <div className="bg-white rounded-[32px] p-6 max-w-xl w-full border border-slate-200 shadow-xl max-h-[90vh] overflow-y-auto animate-in fade-in duration-200">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <div>
-                <h4 className="font-bold text-slate-900 text-base">{currentUser?.role === 'project_member' ? 'Claim details' : 'Expense Claim Audit'}</h4>
+                <h4 className="font-bold text-slate-900 text-base">Expense Claim Audit</h4>
                 <p className="text-xs text-slate-400">Claim ID: {inspectExp.id}</p>
               </div>
               <div className="flex items-center gap-2">
@@ -487,7 +461,7 @@ export default function ExpensesPage() {
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-2xl">
                 <div>
-                  <span className="text-slate-400 block mb-0.5">{currentUser?.role === 'project_member' ? 'Submitted by' : 'Claimant Personnel'}</span>
+                  <span className="text-slate-400 block mb-0.5">Claimant Personnel</span>
                   <span className="font-bold text-slate-900">{inspectExp.employeeName || 'Staff'}</span>
                 </div>
                 <div>
@@ -532,11 +506,11 @@ export default function ExpensesPage() {
 
               {/* Discussion & Audit Comments Thread */}
               <div>
-                  {currentUser?.role !== 'project_member' && <p className="text-slate-700 font-bold mb-2 flex items-center gap-1.5">
+                <p className="text-slate-700 font-bold mb-2 flex items-center gap-1.5">
                   <MessageSquare size={14} className="text-indigo-600" />
                   <span>Audit Discussion & Verification Logs ({inspectExp.comments?.length || 0}):</span>
-                </p>}
-                {currentUser?.role !== 'project_member' && <div className="space-y-2 max-h-40 overflow-y-auto mb-3">
+                </p>
+                <div className="space-y-2 max-h-40 overflow-y-auto mb-3">
                   {(!inspectExp.comments || inspectExp.comments.length === 0) ? (
                     <p className="text-slate-400 py-2 text-center">No discussion entries recorded.</p>
                   ) : (
@@ -558,9 +532,9 @@ export default function ExpensesPage() {
                       </div>
                     ))
                   )}
-                </div>}
+                </div>
 
-                {currentUser?.role !== 'project_member' && <form onSubmit={handleAddComment} className="flex gap-2">
+                <form onSubmit={handleAddComment} className="flex gap-2">
                   <input
                     type="text"
                     value={newComment}
@@ -574,13 +548,13 @@ export default function ExpensesPage() {
                   >
                     <Send size={12} /> Post
                   </button>
-                </form>}
+                </form>
               </div>
             </div>
 
             <div className="mt-6 flex justify-between items-center pt-3 border-t border-slate-100">
               <div className="flex items-center gap-2">
-                {currentUser?.role !== 'project_member' && (inspectExp.status || 'pending').toLowerCase() === 'pending' && (
+                {(inspectExp.status || 'pending').toLowerCase() === 'pending' && (
                   <>
                     <button
                       onClick={() => handleApprove(inspectExp.id)}
@@ -601,7 +575,7 @@ export default function ExpensesPage() {
                 onClick={() => setInspectExp(null)}
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-full text-xs"
               >
-                {currentUser?.role === 'project_member' ? 'Close' : 'Close Audit'}
+                Close Audit
               </button>
             </div>
           </div>
@@ -609,12 +583,12 @@ export default function ExpensesPage() {
       )}
 
       {/* Record / Edit Expense Modal */}
-      {(isCreateModalOpen || (isEditModalOpen && currentUser?.role !== 'project_member')) && (
+      {(isCreateModalOpen || isEditModalOpen) && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-[32px] p-6 max-w-lg w-full border border-slate-200 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <h4 className="font-bold text-slate-900 text-base">
-                {isCreateModalOpen ? (currentUser?.role === 'project_member' ? 'Submit expense claim' : 'Record Project Expense Claim') : 'Edit Expense Claim'}
+                {isCreateModalOpen ? 'Record Project Expense Claim' : 'Edit Expense Claim'}
               </h4>
               <button
                 onClick={() => {
@@ -630,7 +604,7 @@ export default function ExpensesPage() {
 
             <form onSubmit={isCreateModalOpen ? handleCreateSubmit : handleEditSubmit} className="space-y-4 text-xs">
               {isCreateModalOpen && (
-                <div className={`grid gap-3 ${currentUser?.role === 'project_member' ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-slate-700 font-semibold mb-1">Project</label>
                     <select
@@ -646,7 +620,7 @@ export default function ExpensesPage() {
                       ))}
                     </select>
                   </div>
-                  {currentUser?.role !== 'project_member' && <div>
+                  <div>
                     <label className="block text-slate-700 font-semibold mb-1">Claimant Employee</label>
                     <select
                       value={formEmployeeId}
@@ -660,7 +634,7 @@ export default function ExpensesPage() {
                         </option>
                       ))}
                     </select>
-                  </div>}
+                  </div>
                 </div>
               )}
 
@@ -799,7 +773,7 @@ export default function ExpensesPage() {
                   disabled={submitting}
                   className="px-6 py-2 bg-[#0D1117] hover:bg-slate-800 text-white font-bold rounded-full shadow-xs"
                 >
-                  {submitting ? (currentUser?.role === 'project_member' ? 'Submitting…' : 'Recording...') : isCreateModalOpen ? (currentUser?.role === 'project_member' ? 'Submit claim' : 'Record Expense') : 'Save Changes'}
+                  {submitting ? 'Recording...' : isCreateModalOpen ? 'Record Expense' : 'Save Changes'}
                 </button>
               </div>
             </form>
