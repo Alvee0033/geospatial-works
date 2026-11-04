@@ -17,7 +17,9 @@ import {
   Mail,
   Phone,
   Briefcase,
-  Loader2
+  Loader2,
+  Lock,
+  KeyRound
 } from 'lucide-react';
 
 interface ProfileDropdownProps {
@@ -37,6 +39,10 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ currentUser, o
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -120,6 +126,25 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ currentUser, o
     setSavedSuccess(false);
     setErrorMsg(null);
 
+    // Validate password fields if user wants to change password
+    if (newPassword.trim().length > 0 || currentPassword.trim().length > 0) {
+      if (!currentPassword) {
+        setErrorMsg('Please enter your current password to set a new password.');
+        setSaving(false);
+        return;
+      }
+      if (newPassword.length < 6) {
+        setErrorMsg('New password must be at least 6 characters long.');
+        setSaving(false);
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setErrorMsg('New password and confirm password do not match.');
+        setSaving(false);
+        return;
+      }
+    }
+
     try {
       const updated = {
         ...currentUser,
@@ -129,6 +154,14 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ currentUser, o
         phone,
         avatarUrl,
       };
+
+      // If user provided new password, call change password endpoint
+      if (newPassword.trim().length > 0) {
+        await ApiClient.changePassword({
+          currentPassword: currentPassword.trim(),
+          newPassword: newPassword.trim(),
+        });
+      }
 
       // Persist locally for instant hydration
       localStorage.setItem('gw_user', JSON.stringify(updated));
@@ -148,6 +181,9 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ currentUser, o
       }
 
       setSavedSuccess(true);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
       setTimeout(() => {
         setSavedSuccess(false);
         setIsSettingsOpen(false);
@@ -382,6 +418,75 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ currentUser, o
                   <span className="capitalize font-semibold">{currentUser?.role || 'Administrator'}</span>
                   <span className="text-[10px] text-slate-400 ml-auto">Managed by Organization</span>
                 </div>
+              </div>
+
+              {/* Password Change Section */}
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordSection(!showPasswordSection)}
+                  className="flex items-center justify-between w-full py-1 text-xs font-bold text-slate-800 hover:text-emerald-700 transition-colors"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <KeyRound size={13} className="text-slate-400" />
+                    <span>Change Password</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-semibold">
+                    {showPasswordSection ? 'Hide' : '+ Update Password'}
+                  </span>
+                </button>
+
+                {showPasswordSection && (
+                  <div className="mt-2.5 p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                        Current Password
+                      </label>
+                      <div className="relative">
+                        <Lock size={13} className="absolute left-2.5 top-2.5 text-slate-400" />
+                        <input
+                          type="password"
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          placeholder="Enter current password"
+                          className="w-full text-xs rounded-lg border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                        New Password
+                      </label>
+                      <div className="relative">
+                        <Lock size={13} className="absolute left-2.5 top-2.5 text-slate-400" />
+                        <input
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Minimum 6 characters"
+                          className="w-full text-xs rounded-lg border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                        Confirm New Password
+                      </label>
+                      <div className="relative">
+                        <Lock size={13} className="absolute left-2.5 top-2.5 text-slate-400" />
+                        <input
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Re-type new password"
+                          className="w-full text-xs rounded-lg border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}

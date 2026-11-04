@@ -194,6 +194,16 @@ export class ApiClient {
     return payload?.data ?? payload;
   }
 
+  static async changePassword(data: { currentPassword?: string; newPassword: string }) {
+    return this.request<any>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      }),
+    });
+  }
+
   static async getLatestAppRelease() {
     return this.request<any>('/app-releases/latest');
   }

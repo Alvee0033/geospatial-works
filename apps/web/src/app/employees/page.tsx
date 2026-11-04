@@ -205,6 +205,7 @@ function EmployeesContent() {
     setFormDepartment(u.department || 'General');
     setFormDesignation(u.designation || 'Staff');
     setFormRole(u.role || 'project_member');
+    setFormPassword('');
     setFormAssignedProjects(u.assignedProjectIds || u.assigned_project_ids || []);
     setIsEditModalOpen(true);
   };
@@ -248,7 +249,7 @@ function EmployeesContent() {
     if (!userToEdit) return;
     setSubmitting(true);
     try {
-      const payload = {
+      const payload: any = {
         name: formName,
         email: formEmail,
         employeeCode: formEmployeeCode.trim(),
@@ -258,8 +259,12 @@ function EmployeesContent() {
         role: formRole,
         assignedProjectIds: formAssignedProjects,
       };
+      if (formPassword && formPassword.trim().length > 0) {
+        payload.password = formPassword.trim();
+      }
       await ApiClient.updateUser(userToEdit.id, payload);
       setIsEditModalOpen(false);
+      setFormPassword('');
       await fetchUsers();
       await showAlert({
         title: 'Staff Updated',
@@ -967,6 +972,22 @@ function EmployeesContent() {
                   type="text"
                   value={formPhone}
                   onChange={(e) => setFormPhone(e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#10241E]"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase">
+                    Reset Password (Optional)
+                  </label>
+                  <span className="text-[10px] text-slate-400">Leave blank to keep existing password</span>
+                </div>
+                <input
+                  type="password"
+                  placeholder="Enter new password (min. 6 chars)"
+                  value={formPassword}
+                  onChange={(e) => setFormPassword(e.target.value)}
                   className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#10241E]"
                 />
               </div>
