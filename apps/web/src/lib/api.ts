@@ -230,6 +230,22 @@ export class ApiClient {
     });
   }
 
+  static async uploadReleaseChunk(
+    releaseId: string,
+    chunkIndex: number,
+    totalChunks: number,
+    chunkBase64: string,
+  ) {
+    return this.request<{ completed: boolean; totalSize?: number }>(
+      `/app-releases/${releaseId}/upload-chunk`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ chunkIndex, totalChunks, chunkBase64 }),
+      },
+    );
+  }
+
+
   /** Warm frequently used live workspace data after sign-in without delaying navigation. */
   static warmWorkspaceData(): void {
     let role: string | undefined;

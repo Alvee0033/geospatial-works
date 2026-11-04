@@ -93,23 +93,55 @@ export default function AppReleasesPage() {
     reader.readAsDataURL(file);
   };
 
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadStep, setUploadStep] = useState<string>('');
+
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const res = reader.result as string;
+        const comma = res.indexOf(',');
+        resolve(comma !== -1 ? res.substring(comma + 1) : res);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
   const handleCreateRelease = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!versionName.trim()) return;
     setSubmitting(true);
+    setUploadProgress(0);
+    setUploadStep('Creating release record…');
 
     try {
-      await ApiClient.createAppRelease({
+      const created = await ApiClient.createAppRelease({
         versionName: versionName.trim(),
         buildNumber: Number(buildNumber) || 1,
         releaseNotes: releaseNotes.trim() || undefined,
         fileSizeBytes: selectedApkFile ? selectedApkFile.size : 28500000,
         isLatest,
-        apkBase64: apkBase64 || undefined,
         apkFileName: selectedApkFile ? selectedApkFile.name : undefined,
       });
 
-      setToast(`Release ${versionName} published successfully with APK upload!`);
+      if (selectedApkFile && created?.id) {
+        setUploadStep('Uploading APK package in high-speed chunks…');
+        const CHUNK_SIZE = 2.5 * 1024 * 1024; // 2.5 MB chunks
+        const totalChunks = Math.ceil(selectedApkFile.size / CHUNK_SIZE);
+
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, selectedApkFile.size);
+          const chunkBlob = selectedApkFile.slice(start, end);
+          const chunkB64 = await blobToBase64(chunkBlob);
+          await ApiClient.uploadReleaseChunk(created.id, i, totalChunks, chunkB64);
+          setUploadProgress(Math.round(((i + 1) / totalChunks) * 100));
+        }
+      }
+
+      setToast(`Release ${versionName} published successfully with verified APK package!`);
       setTimeout(() => setToast(null), 5000);
       setIsModalOpen(false);
 
@@ -117,7 +149,8 @@ export default function AppReleasesPage() {
       setVersionName('');
       setReleaseNotes('');
       setSelectedApkFile(null);
-      setApkBase64(null);
+      setUploadProgress(0);
+      setUploadStep('');
       await fetchReleases();
     } catch (err: any) {
       alert(`Error publishing release: ${err.message}`);
@@ -125,6 +158,7 @@ export default function AppReleasesPage() {
       setSubmitting(false);
     }
   };
+
 
   const handleDelete = async (id: string, version: string) => {
     if (!confirm(`Are you sure you want to delete release ${version}?`)) return;
@@ -505,6 +539,22 @@ export default function AppReleasesPage() {
                 />
                 <span className="font-medium">Set as active production release</span>
               </label>
+
+              {/* Upload Progress Indicator */}
+              {submitting && (
+                <div className="space-y-1.5 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="flex items-center justify-between text-[11px] text-slate-700 font-medium">
+                    <span className="truncate max-w-[240px]">{uploadStep || 'Uploading APK package…'}</span>
+                    <span className="font-mono font-bold text-slate-900">{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-slate-900 transition-all duration-300 rounded-full"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
