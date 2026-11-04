@@ -248,14 +248,15 @@ export default function AppReleasesPage() {
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2 pt-2 sm:pt-0">
-                <Link
-                  href="/download"
+                <a
+                  href={process.env.NEXT_PUBLIC_DOWNLOAD_PORTAL_URL || 'https://gw-download.203.96.190.78.sslip.io'}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
                 >
-                  <span>Public Page</span>
+                  <span>Download Portal</span>
                   <ExternalLink size={12} className="text-slate-400" />
-                </Link>
+                </a>
                 <a
                   href="/api/v1/app-releases/download-latest"
                   download
@@ -287,11 +288,12 @@ export default function AppReleasesPage() {
           {/* Distribution Stats Card */}
           <div className="rounded-xl border border-slate-200/90 bg-white p-4 shadow-2xs flex flex-col justify-between">
             <div>
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">Public Access URL</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">Dedicated Download Portal</span>
               <p className="text-xs font-mono font-medium text-slate-700 break-all bg-slate-50 p-2 rounded-md border border-slate-100">
-                /download
+                https://gw-download.203.96.190.78.sslip.io
               </p>
             </div>
+
             <div className="pt-2 text-[11px] text-slate-500 flex items-center justify-between">
               <span>Direct Link Support</span>
               <span className="font-semibold text-emerald-600">Active</span>
