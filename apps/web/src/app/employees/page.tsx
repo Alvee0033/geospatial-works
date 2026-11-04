@@ -31,6 +31,7 @@ import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { filterAssignableProjects, type AssignableProject } from '@/lib/projectAssignment';
+import { useAlertModal } from '@/components/ui/AlertModal';
 
 function ProjectAssignmentPicker({
   projects,
@@ -141,7 +142,9 @@ function EmployeesContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'project_manager' | 'project_member'>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending'>(urlFilter === 'pending' ? 'pending' : 'all');
+  const { showAlert, showConfirm } = useAlertModal();
 
   // Approval action feedback
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -224,8 +227,17 @@ function EmployeesContent() {
       await ApiClient.createUser(payload);
       setIsAddModalOpen(false);
       await fetchUsers();
+      await showAlert({
+        title: 'Staff Created',
+        message: `Employee profile for ${formName} was created successfully.`,
+        type: 'success',
+      });
     } catch (e: any) {
-      alert(`Error creating staff: ${e.message}`);
+      await showAlert({
+        title: 'Error Creating Staff',
+        message: e.message,
+        type: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -249,29 +261,67 @@ function EmployeesContent() {
       await ApiClient.updateUser(userToEdit.id, payload);
       setIsEditModalOpen(false);
       await fetchUsers();
+      await showAlert({
+        title: 'Staff Updated',
+        message: `Profile details for ${formName} were updated successfully.`,
+        type: 'success',
+      });
     } catch (e: any) {
-      alert(`Error updating staff: ${e.message}`);
+      await showAlert({
+        title: 'Update Error',
+        message: e.message,
+        type: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteUser = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to deactivate ${name}?`)) return;
+    const confirmed = await showConfirm(
+      `Are you sure you want to deactivate ${name}? They will lose mobile app and dashboard access.`,
+      'Deactivate User'
+    );
+    if (!confirmed) return;
     try {
       await ApiClient.deleteUser(id);
       await fetchUsers();
+      await showAlert({
+        title: 'User Deactivated',
+        message: `${name} has been deactivated.`,
+        type: 'success',
+      });
     } catch (e: any) {
-      alert(`Error: ${e.message}`);
+      await showAlert({
+        title: 'Deactivation Error',
+        message: e.message,
+        type: 'error',
+      });
     }
   };
 
   const handleToggleStatus = async (user: any) => {
+    const newStatus = !user.isActive;
+    const actionLabel = newStatus ? 'activate' : 'deactivate';
+    const confirmed = await showConfirm(
+      `Are you sure you want to ${actionLabel} account for ${user.name || user.email}?`,
+      `${actionLabel === 'activate' ? 'Activate' : 'Deactivate'} Account`
+    );
+    if (!confirmed) return;
     try {
-      await ApiClient.updateUserStatus(user.id, !user.isActive);
+      await ApiClient.updateUserStatus(user.id, newStatus);
       await fetchUsers();
+      await showAlert({
+        title: `Account ${newStatus ? 'Activated' : 'Deactivated'}`,
+        message: `Account status updated for ${user.name || user.email}.`,
+        type: 'success',
+      });
     } catch (e: any) {
-      alert(`Error changing user status: ${e.message}`);
+      await showAlert({
+        title: 'Status Update Error',
+        message: e.message,
+        type: 'error',
+      });
     }
   };
 
@@ -282,8 +332,17 @@ function EmployeesContent() {
       setSuccessToast(`Account approved for ${user.name || user.email}! An approval confirmation email containing the mobile app download link has been dispatched.`);
       setTimeout(() => setSuccessToast(null), 8000);
       await fetchUsers();
+      await showAlert({
+        title: 'Employee Approved',
+        message: `Account approved for ${user.name || user.email}. Approval email with mobile app download instructions was dispatched to ${user.email}.`,
+        type: 'success',
+      });
     } catch (e: any) {
-      alert(`Error approving user: ${e.message}`);
+      await showAlert({
+        title: 'Approval Error',
+        message: e.message,
+        type: 'error',
+      });
     } finally {
       setApprovingId(null);
     }
@@ -315,9 +374,18 @@ function EmployeesContent() {
       if (statusFilter === 'active' && u.isActive === false) return false;
       if (statusFilter === 'pending' && u.isActive !== false) return false;
 
+      if (projectFilter !== 'all') {
+        const assignedIds: string[] = u.assignedProjectIds || u.assigned_project_ids || [];
+        if (projectFilter === 'unassigned') {
+          if (assignedIds.length > 0) return false;
+        } else {
+          if (!assignedIds.includes(projectFilter)) return false;
+        }
+      }
+
       return true;
     });
-  }, [users, searchQuery, roleFilter, departmentFilter, statusFilter]);
+  }, [users, searchQuery, roleFilter, departmentFilter, statusFilter, projectFilter]);
 
   // Bento Statistics
   const activeCount = users.filter((u) => u.isActive !== false).length;
@@ -459,6 +527,42 @@ function EmployeesContent() {
                   </option>
                 ))}
               </select>
+            )}
+
+            {/* Project Assignment Dropdown */}
+            {projects.length > 0 && (
+              <select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                className="px-2.5 py-1 bg-slate-50 border border-slate-200/90 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer max-w-[170px] truncate"
+              >
+                <option value="all">All Projects</option>
+                <option value="unassigned">Unassigned Only</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name || p.projectId || 'Untitled Project'}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/* Clear All Filters */}
+            {(searchQuery || roleFilter !== 'all' || departmentFilter !== 'all' || projectFilter !== 'all' || statusFilter !== 'all') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setRoleFilter('all');
+                  setDepartmentFilter('all');
+                  setProjectFilter('all');
+                  setStatusFilter('all');
+                }}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+                title="Reset all filters"
+              >
+                <X size={12} />
+                <span>Reset</span>
+              </button>
             )}
           </div>
 

@@ -4,6 +4,7 @@ import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { DesktopNoticeModal } from "@/components/layout/DesktopNoticeModal";
 import { RouteTransition } from "@/components/layout/RouteTransition";
+import { AlertModalProvider } from "@/components/ui/AlertModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,7 +41,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <DesktopNoticeModal />
         <ServiceWorkerRegister />
-        <RouteTransition>{children}</RouteTransition>
+        <AlertModalProvider>
+          <RouteTransition>{children}</RouteTransition>
+        </AlertModalProvider>
       </body>
     </html>
   );

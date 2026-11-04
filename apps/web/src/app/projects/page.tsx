@@ -26,8 +26,10 @@ import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { LocationPickerMap } from '@/components/maps/LocationPickerMap';
+import { useAlertModal } from '@/components/ui/AlertModal';
 
 export default function ProjectsPage() {
+  const { showAlert, showConfirm } = useAlertModal();
   const [projects, setProjects] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
@@ -208,7 +210,11 @@ export default function ProjectsPage() {
     e.preventDefault();
     if (uploadingProjectImage) return;
     if (formSiteEnabled && (formSiteLatitude === null || formSiteLongitude === null)) {
-      alert('Choose a site location on the map or turn off the field site option.');
+      await showAlert({
+        title: 'Site Location Required',
+        message: 'Please choose a site location on the interactive map or turn off the field site geofence option.',
+        type: 'warning',
+      });
       return;
     }
     setSubmitting(true);
@@ -260,9 +266,17 @@ export default function ProjectsPage() {
       await ApiClient.createProject(payload);
       setIsCreateModalOpen(false);
       await fetchRealProjects();
-      alert('Project created successfully in the live database');
+      await showAlert({
+        title: 'Project Created',
+        message: 'Project created successfully in the live database.',
+        type: 'success',
+      });
     } catch (err: any) {
-      alert(`Project creation failed: ${err.message}`);
+      await showAlert({
+        title: 'Creation Failed',
+        message: `Project creation failed: ${err.message}`,
+        type: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -273,7 +287,11 @@ export default function ProjectsPage() {
     if (!projectToEdit) return;
     if (uploadingProjectImage) return;
     if (formSiteEnabled && (formSiteLatitude === null || formSiteLongitude === null)) {
-      alert('Choose a site location on the map or turn off the field site option.');
+      await showAlert({
+        title: 'Site Location Required',
+        message: 'Please choose a site location on the interactive map or turn off the field site geofence option.',
+        type: 'warning',
+      });
       return;
     }
     setSubmitting(true);
@@ -326,23 +344,43 @@ export default function ProjectsPage() {
       setIsEditModalOpen(false);
       setProjectToEdit(null);
       await fetchRealProjects();
-      alert('Project updated successfully');
+      await showAlert({
+        title: 'Project Updated',
+        message: 'Project updated successfully.',
+        type: 'success',
+      });
     } catch (err: any) {
-      alert(`Project update failed: ${err.message}`);
+      await showAlert({
+        title: 'Update Failed',
+        message: `Project update failed: ${err.message}`,
+        type: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteProject = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to permanently delete project "${name}" from the database?`)) return;
+    const confirmed = await showConfirm(
+      `Are you sure you want to permanently delete project "${name}" from the database? This action cannot be undone.`,
+      'Delete Project'
+    );
+    if (!confirmed) return;
     try {
       await ApiClient.deleteProject(id);
       await fetchRealProjects();
       if (selectedProject?.id === id) setSelectedProject(null);
-      alert('Project deleted successfully');
+      await showAlert({
+        title: 'Project Deleted',
+        message: `Project "${name}" was successfully deleted.`,
+        type: 'success',
+      });
     } catch (err: any) {
-      alert(`Deletion failed: ${err.message}`);
+      await showAlert({
+        title: 'Deletion Failed',
+        message: `Deletion failed: ${err.message}`,
+        type: 'error',
+      });
     }
   };
 
@@ -352,20 +390,37 @@ export default function ProjectsPage() {
     try {
       await ApiClient.closeProject(id, { closingSummary: summary });
       await fetchRealProjects();
-      alert('Project successfully marked closed');
+      await showAlert({
+        title: 'Project Closed',
+        message: 'Project has been marked as closed.',
+        type: 'success',
+      });
     } catch (err: any) {
-      alert(`Failed to close project: ${err.message}`);
+      await showAlert({
+        title: 'Failed to Close',
+        message: `Failed to close project: ${err.message}`,
+        type: 'error',
+      });
     }
   };
 
   const handleReopenProject = async (id: string) => {
-    if (!confirm('Reopen this closed project?')) return;
+    const confirmed = await showConfirm('Reopen this closed project for active operations?', 'Reopen Project');
+    if (!confirmed) return;
     try {
       await ApiClient.reopenProject(id);
       await fetchRealProjects();
-      alert('Project reopened');
+      await showAlert({
+        title: 'Project Reopened',
+        message: 'Project has been successfully reopened.',
+        type: 'success',
+      });
     } catch (err: any) {
-      alert(`Failed to reopen project: ${err.message}`);
+      await showAlert({
+        title: 'Failed to Reopen',
+        message: `Failed to reopen project: ${err.message}`,
+        type: 'error',
+      });
     }
   };
 
@@ -382,9 +437,17 @@ export default function ProjectsPage() {
       });
       setIsRevenueModalOpen(false);
       await fetchRealProjects();
-      alert('Revenue payment recorded in database');
+      await showAlert({
+        title: 'Payment Recorded',
+        message: 'Revenue milestone payment recorded successfully.',
+        type: 'success',
+      });
     } catch (err: any) {
-      alert(`Failed adding revenue: ${err.message}`);
+      await showAlert({
+        title: 'Payment Failed',
+        message: `Failed adding revenue: ${err.message}`,
+        type: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
