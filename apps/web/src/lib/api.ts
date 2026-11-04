@@ -206,6 +206,8 @@ export class ApiClient {
     downloadUrl?: string;
     fileSizeBytes?: number;
     isLatest?: boolean;
+    apkBase64?: string;
+    apkFileName?: string;
   }) {
     return this.request<any>('/app-releases', {
       method: 'POST',
