@@ -295,7 +295,7 @@ export default function DownloadPage() {
                           <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{r.releaseNotes || 'Update'}</p>
                         </div>
                         <a
-                          href={r.id === 'default' ? '/api/v1/app-releases/download-latest' : `/api/v1/app-releases/${r.id}/download`}
+                          href={r.downloadUrl && r.downloadUrl.startsWith('http') ? r.downloadUrl : (r.id === 'default' ? '/api/v1/app-releases/download-latest' : `/api/v1/app-releases/${r.id}/download`)}
                           download={`geospatial-works-${r.versionName}.apk`}
                           className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-semibold transition-colors"
                         >

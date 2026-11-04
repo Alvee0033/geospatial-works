@@ -395,7 +395,7 @@ export default function AppReleasesPage() {
                       <div className="inline-flex items-center gap-2 justify-end">
                         {/* Direct APK Download Button */}
                         <a
-                          href={r.id === 'default' ? '/api/v1/app-releases/download-latest' : `/api/v1/app-releases/${r.id}/download`}
+                          href={r.downloadUrl && r.downloadUrl.startsWith('http') ? r.downloadUrl : (r.id === 'default' ? '/api/v1/app-releases/download-latest' : `/api/v1/app-releases/${r.id}/download`)}
                           download={`geospatial-works-${r.versionName}.apk`}
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-medium shadow-2xs transition-colors"
                           title={`Download ${r.versionName} APK`}
