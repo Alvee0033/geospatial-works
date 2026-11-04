@@ -33,12 +33,33 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
       body,
     });
 
+    const contentType = backendRes.headers.get('content-type') || 'application/json';
+    const isBinary = contentType.includes('application/vnd.android.package-archive') ||
+                     contentType.includes('application/octet-stream') ||
+                     contentType.includes('image/') ||
+                     contentType.includes('application/pdf');
+
+    const resHeaders: Record<string, string> = {
+      'Content-Type': contentType,
+    };
+
+    const contentDisposition = backendRes.headers.get('content-disposition');
+    if (contentDisposition) {
+      resHeaders['Content-Disposition'] = contentDisposition;
+    }
+
+    if (isBinary) {
+      const buffer = await backendRes.arrayBuffer();
+      return new NextResponse(buffer, {
+        status: backendRes.status,
+        headers: resHeaders,
+      });
+    }
+
     const data = await backendRes.text();
     return new NextResponse(data, {
       status: backendRes.status,
-      headers: {
-        'Content-Type': backendRes.headers.get('content-type') || 'application/json',
-      },
+      headers: resHeaders,
     });
   } catch (error: any) {
     return NextResponse.json({ error: 'Backend Gateway Error', details: error.message }, { status: 502 });
