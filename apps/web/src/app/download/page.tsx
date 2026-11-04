@@ -7,20 +7,20 @@ import {
   Download, 
   Smartphone, 
   ArrowRight,
-  Sparkles,
   Lock,
   Mail,
   UserCheck,
   AlertCircle,
   LogOut,
-  CheckCircle2
+  CheckCircle2,
+  KeyRound,
+  DownloadCloud,
+  CheckCheck
 } from 'lucide-react';
 
 interface ReleaseInfo {
   versionName: string;
   buildNumber: number;
-  releaseNotes?: string;
-  downloadUrl?: string;
   fileSizeBytes?: number;
 }
 
@@ -125,149 +125,211 @@ export default function DownloadPage() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  // Step indicator state
+  const currentStep = currentUser ? (downloadStarted ? 3 : 2) : 1;
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between selection:bg-slate-900 selection:text-white">
-      {/* Clean Minimal Header */}
-      <header className="w-full max-w-md mx-auto px-4 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col justify-between selection:bg-slate-900 selection:text-white">
+      {/* Top Bar */}
+      <header className="w-full max-w-lg mx-auto px-4 pt-6 pb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white font-extrabold flex items-center justify-center text-sm shadow-md">
             GW
           </div>
-          <span className="font-bold text-sm tracking-tight">Geospatial Works</span>
+          <div>
+            <span className="font-extrabold text-sm tracking-tight block text-slate-900 leading-tight">Geospatial Works</span>
+            <span className="text-[11px] text-slate-500 font-medium">Official Mobile Distribution</span>
+          </div>
         </div>
 
         {currentUser && (
           <button
             onClick={handleSignOut}
-            className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 font-medium px-2 py-1 rounded-md hover:bg-slate-200/60 transition-colors"
+            className="text-xs text-slate-500 hover:text-slate-900 flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-xl hover:bg-slate-200/70 transition-all border border-slate-200/80 bg-white shadow-2xs"
           >
-            <LogOut size={13} />
+            <LogOut size={14} />
             <span>Sign out</span>
           </button>
         )}
       </header>
 
       {/* Main Container */}
-      <main className="w-full max-w-md mx-auto px-4 py-4 flex-1 flex flex-col justify-center">
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs">
-          {/* App Header */}
-          <div className="flex items-center gap-3.5 pb-5 border-b border-slate-100">
-            <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs shrink-0">
-              <Smartphone size={24} />
+      <main className="w-full max-w-lg mx-auto px-4 py-4 flex-1 flex flex-col justify-center">
+        {/* Step Progress Header */}
+        <div className="w-full bg-white border border-slate-200/80 rounded-2xl p-4 mb-3.5 shadow-2xs">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {/* Step 1 */}
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all shadow-xs ${
+                currentStep >= 1 
+                  ? 'bg-slate-900 text-white shadow-slate-900/20' 
+                  : 'bg-slate-100 text-slate-400'
+              }`}>
+                {currentUser ? <CheckCheck size={18} /> : <KeyRound size={18} />}
+              </div>
+              <span className="text-[11px] font-bold mt-1.5 text-slate-800">1. Sign In</span>
+              <span className="text-[10px] text-slate-400">Employee Login</span>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all shadow-xs ${
+                currentStep >= 2 
+                  ? 'bg-blue-600 text-white shadow-blue-600/20' 
+                  : 'bg-slate-100 text-slate-400'
+              }`}>
+                <DownloadCloud size={18} />
+              </div>
+              <span className={`text-[11px] font-bold mt-1.5 ${currentStep >= 2 ? 'text-blue-700' : 'text-slate-400'}`}>
+                2. Download
+              </span>
+              <span className="text-[10px] text-slate-400">Direct APK</span>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all shadow-xs ${
+                currentStep >= 3 
+                  ? 'bg-emerald-600 text-white shadow-emerald-600/20' 
+                  : 'bg-slate-100 text-slate-400'
+              }`}>
+                <Smartphone size={18} />
+              </div>
+              <span className={`text-[11px] font-bold mt-1.5 ${currentStep >= 3 ? 'text-emerald-700' : 'text-slate-400'}`}>
+                3. Install
+              </span>
+              <span className="text-[10px] text-slate-400">Start Working</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Card */}
+        <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xs">
+          {/* App Header Snippet */}
+          <div className="flex items-center gap-4 pb-5 border-b border-slate-100">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center text-white shadow-md shrink-0">
+              <Smartphone size={28} />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between">
-                <h1 className="text-base font-bold text-slate-900 truncate">GW Mobile App</h1>
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                <h1 className="text-lg font-extrabold text-slate-900 truncate">GW Mobile App</h1>
+                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                   {release.versionName}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">Android APK • {formatSize(release.fileSizeBytes)}</p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Android Package • {formatSize(release.fileSizeBytes)}</p>
             </div>
           </div>
 
           {/* AUTHENTICATION GATE */}
           {currentUser ? (
-            /* Logged In View */
-            <div className="pt-5 space-y-4">
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2.5 text-xs text-emerald-900">
-                <UserCheck size={16} className="text-emerald-700 shrink-0" />
+            /* Logged In View - FAT BUTTONS */
+            <div className="pt-6 space-y-4">
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 text-xs text-emerald-950">
+                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <UserCheck size={18} />
+                </div>
                 <div className="min-w-0">
-                  <p className="font-semibold truncate">{currentUser.full_name || currentUser.email}</p>
-                  <p className="text-[11px] text-emerald-700">Account verified</p>
+                  <p className="font-bold text-sm truncate">{currentUser.full_name || currentUser.email}</p>
+                  <p className="text-[11px] text-emerald-700 font-semibold uppercase tracking-wider">Account Verified • Ready to Download</p>
                 </div>
               </div>
 
               {downloadStarted && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-2 text-xs text-blue-800">
-                  <CheckCircle2 size={15} className="text-blue-600 shrink-0" />
-                  <span>Download started automatically.</span>
+                <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2.5 text-xs text-blue-900 font-medium">
+                  <CheckCircle2 size={18} className="text-blue-600 shrink-0" />
+                  <span>APK package download is active! Check your browser downloads.</span>
                 </div>
               )}
 
+              {/* FAT DOWNLOAD BUTTON */}
               <button
                 onClick={triggerDownload}
-                className="w-full py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 flex items-center justify-center gap-2 transition-all shadow-xs active:scale-[0.99]"
+                className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-base font-extrabold flex items-center justify-center gap-3 transition-all shadow-lg shadow-slate-900/20 active:scale-[0.98]"
               >
-                <Download size={16} />
+                <Download size={22} className="stroke-[2.5]" />
                 <span>Download APK ({formatSize(release.fileSizeBytes)})</span>
               </button>
 
-              <p className="text-[11px] text-center text-slate-400">
-                Tap to install on any Android smartphone.
-              </p>
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
+                <p className="font-bold text-slate-800">Quick Installation Steps:</p>
+                <p>1. Tap the button above to download the APK file.</p>
+                <p>2. Open your notification panel or Downloads folder and tap the file.</p>
+                <p>3. Allow installation from browser if prompted, then open the app.</p>
+              </div>
             </div>
           ) : (
-            /* Sign In Step */
-            <div className="pt-5 space-y-4">
+            /* Sign In Step - FAT BUTTONS */
+            <div className="pt-6 space-y-5">
               <div>
-                <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Sign in to download</h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Enter your employee credentials to start the download.
+                <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Step 1: Sign in with Employee Account</h2>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Enter your credentials below to unlock the direct APK package download.
                 </p>
               </div>
 
               {authError && (
-                <div className={`p-3 rounded-xl border text-xs leading-relaxed flex items-start gap-2.5 ${
+                <div className={`p-4 rounded-2xl border text-xs leading-relaxed flex items-start gap-3 ${
                   isPendingApproval 
-                    ? 'bg-amber-50 border-amber-200 text-amber-900' 
+                    ? 'bg-amber-50 border-amber-200 text-amber-950' 
                     : 'bg-rose-50 border-rose-200 text-rose-700'
                 }`}>
-                  <AlertCircle size={16} className={`shrink-0 mt-0.5 ${isPendingApproval ? 'text-amber-700' : 'text-rose-600'}`} />
+                  <AlertCircle size={18} className={`shrink-0 mt-0.5 ${isPendingApproval ? 'text-amber-700' : 'text-rose-600'}`} />
                   <div>
-                    <strong className="block font-semibold">
+                    <strong className="block font-bold text-sm">
                       {isPendingApproval ? 'Account Pending Approval' : 'Sign In Error'}
                     </strong>
-                    <span className="text-[11px] opacity-90">{authError}</span>
+                    <span className="text-xs opacity-90 mt-0.5 block">{authError}</span>
                   </div>
                 </div>
               )}
 
-              <form onSubmit={handleSignIn} className="space-y-3">
+              <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Email</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Employee Email</label>
                   <div className="relative flex items-center">
-                    <Mail size={14} className="absolute left-3 text-slate-400" />
+                    <Mail size={16} className="absolute left-3.5 text-slate-400" />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setAuthError(null); }}
                       placeholder="name@company.com"
-                      className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Password</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
                   <div className="relative flex items-center">
-                    <Lock size={14} className="absolute left-3 text-slate-400" />
+                    <Lock size={16} className="absolute left-3.5 text-slate-400" />
                     <input
                       type="password"
                       required
                       value={password}
                       onChange={(e) => { setPassword(e.target.value); setAuthError(null); }}
                       placeholder="••••••••"
-                      className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
                     />
                   </div>
                 </div>
 
+                {/* FAT SIGN IN BUTTON */}
                 <button
                   type="submit"
                   disabled={loadingAuth}
-                  className="w-full py-3 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 flex items-center justify-center gap-1.5 transition-all shadow-xs disabled:opacity-60 disabled:cursor-wait"
+                  className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-sm font-extrabold flex items-center justify-center gap-2 transition-all shadow-lg shadow-slate-900/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
                 >
-                  <span>{loadingAuth ? 'Signing in…' : 'Sign In & Download'}</span>
-                  <ArrowRight size={13} />
+                  <span>{loadingAuth ? 'Verifying Account…' : 'Sign In & Start Download'}</span>
+                  <ArrowRight size={18} className="stroke-[2.5]" />
                 </button>
               </form>
 
               <div className="pt-2 text-center border-t border-slate-100 text-xs text-slate-500">
                 New employee?{' '}
-                <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700">
-                  Create account
+                <Link href="/register" className="font-bold text-slate-900 hover:underline">
+                  Create an account
                 </Link>
               </div>
             </div>
@@ -276,10 +338,11 @@ export default function DownloadPage() {
       </main>
 
       {/* Clean Footer */}
-      <footer className="w-full max-w-md mx-auto px-4 py-5 text-center text-[11px] text-slate-400">
+      <footer className="w-full max-w-lg mx-auto px-4 py-5 text-center text-xs text-slate-400 font-medium">
         <p>&copy; {new Date().getFullYear()} Geospatial Works Ltd.</p>
       </footer>
     </div>
   );
 }
+
 
