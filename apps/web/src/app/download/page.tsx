@@ -57,6 +57,8 @@ export default function DownloadPage() {
     document.body.removeChild(link);
   };
 
+  const [allReleases, setAllReleases] = useState<any[]>([]);
+
   useEffect(() => {
     const token = ApiClient.getToken();
     const storedUser = localStorage.getItem('gw_user');
@@ -76,7 +78,16 @@ export default function DownloadPage() {
         }
       })
       .catch(() => {});
+
+    ApiClient.getAppReleases()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setAllReleases(data);
+        }
+      })
+      .catch(() => {});
   }, []);
+
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -257,7 +268,47 @@ export default function DownloadPage() {
                 <p>2. Open your notification panel or Downloads folder and tap the file.</p>
                 <p>3. Allow installation from browser if prompted, then open the app.</p>
               </div>
+
+              {/* Version History & Past Builds */}
+              {allReleases.length > 0 && (
+                <div className="pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Version History</span>
+                    <span className="text-[10px] text-slate-400">{allReleases.length} available</span>
+                  </div>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {allReleases.map((r) => (
+                      <div
+                        key={r.id}
+                        className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 bg-white text-xs hover:border-slate-300 transition-colors"
+                      >
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-slate-900 font-mono">{r.versionName}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">#{r.buildNumber}</span>
+                            {r.isLatest && (
+                              <span className="text-[9px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
+                                Latest
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{r.releaseNotes || 'Update'}</p>
+                        </div>
+                        <a
+                          href={r.downloadUrl && r.downloadUrl.startsWith('http') ? r.downloadUrl : (r.id === 'default' ? '/api/v1/app-releases/download-latest' : `/api/v1/app-releases/${r.id}/download`)}
+                          download={`geospatial-works-${r.versionName}.apk`}
+                          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-semibold transition-colors"
+                        >
+                          <Download size={12} />
+                          <span>{formatSize(r.fileSizeBytes)}</span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+
           ) : (
             /* Sign In Step - FAT BUTTONS */
             <div className="pt-6 space-y-5">

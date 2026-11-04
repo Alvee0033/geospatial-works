@@ -23,9 +23,10 @@ export const DesktopNoticeModal: React.FC = () => {
     return () => window.removeEventListener('resize', checkDevice);
   }, []);
 
-  // NEVER show desktop blocker on download, login, or registration pages
+  // NEVER show desktop blocker on root, download, login, or registration pages
   if (
     !pathname ||
+    pathname === '/' ||
     pathname.startsWith('/download') ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/register') ||
