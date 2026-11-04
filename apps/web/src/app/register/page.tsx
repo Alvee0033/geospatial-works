@@ -73,20 +73,13 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="pt-2">
               <Link
                 href="/login"
-                className="w-full py-3 bg-[#0D1117] text-white rounded-xl text-xs font-semibold hover:bg-slate-800 flex items-center justify-center gap-1.5 transition-all shadow-xs"
+                className="w-full py-3 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800 flex items-center justify-center gap-1.5 transition-all shadow-xs"
               >
-                <span>Back to Sign In</span>
+                <span>Go to Sign In</span>
                 <ArrowRight size={14} />
-              </Link>
-              <Link
-                href="/download"
-                className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold hover:bg-slate-200 flex items-center justify-center gap-1.5 transition-all"
-              >
-                <Smartphone size={14} />
-                <span>View Mobile App</span>
               </Link>
             </div>
           </div>
@@ -204,21 +197,11 @@ export default function RegisterPage() {
               </button>
             </form>
 
-            <div className="mt-6 flex flex-col gap-2 text-center border-t border-slate-100 pt-5 text-xs text-slate-600">
-              <p>
-                Already have an approved account?{' '}
-                <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-2">
-                  Sign In
-                </Link>
-              </p>
-              <div className="pt-2">
-                <Link
-                  href="/download"
-                  className="inline-flex items-center justify-center gap-1.5 text-slate-500 hover:text-slate-800 text-[11px] font-medium"
-                >
-                  📱 Looking for mobile app downloads? Click here
-                </Link>
-              </div>
+            <div className="mt-5 text-center border-t border-slate-100 pt-4 text-xs text-slate-500">
+              Already have an account?{' '}
+              <Link href="/login" className="font-semibold text-slate-900 hover:underline">
+                Sign in
+              </Link>
             </div>
           </>
         )}

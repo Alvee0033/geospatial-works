@@ -123,22 +123,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 flex flex-col gap-2.5 text-center border-t border-slate-100 pt-5">
-          <p className="text-xs text-slate-600">
-            Need an employee account?{' '}
-            <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700 underline underline-offset-2">
-              Register here
-            </Link>
-          </p>
-          <div className="pt-2">
-            <Link
-              href="/download"
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors"
-            >
-              📱 <span>Download Mobile App (APK)</span>
-            </Link>
-          </div>
-          <p className="text-[10px] text-slate-400 mt-2">Authorized Personnel & Management Access Only</p>
+        <div className="mt-5 text-center border-t border-slate-100 pt-4 text-xs text-slate-500">
+          Need an account?{' '}
+          <Link href="/register" className="font-semibold text-slate-900 hover:underline">
+            Register
+          </Link>
         </div>
       </div>
     </div>

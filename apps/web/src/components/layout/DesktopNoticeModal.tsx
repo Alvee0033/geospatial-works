@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Monitor, Smartphone, AlertTriangle, X } from 'lucide-react';
 
 export const DesktopNoticeModal: React.FC = () => {
+  const pathname = usePathname();
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -20,6 +22,18 @@ export const DesktopNoticeModal: React.FC = () => {
     window.addEventListener('resize', checkDevice);
     return () => window.removeEventListener('resize', checkDevice);
   }, []);
+
+  // NEVER show desktop blocker on download, login, or registration pages
+  if (
+    !pathname ||
+    pathname.startsWith('/download') ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/register') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password')
+  ) {
+    return null;
+  }
 
   if (!isMobileOrTablet || dismissed) return null;
 
