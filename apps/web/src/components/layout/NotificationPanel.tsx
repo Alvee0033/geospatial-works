@@ -42,7 +42,28 @@ export const NotificationPanel: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [desktopPermission, setDesktopPermission] = useState<'default' | 'granted' | 'denied'>('default');
   const panelRef = useRef<HTMLDivElement>(null);
+  const seenIdsRef = useRef<Set<string>>(new Set());
+  const isFirstLoadRef = useRef(true);
+
+  // Check desktop notification permission on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setDesktopPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestDesktopPermission = async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        const res = await Notification.requestPermission();
+        setDesktopPermission(res);
+      } catch (err) {
+        console.error('Failed to request desktop notification permission', err);
+      }
+    }
+  };
 
   // Fetch notifications
   const loadNotifications = async () => {
@@ -53,6 +74,41 @@ export const NotificationPanel: React.FC = () => {
         const sorted = [...data].sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
+
+        // Check for newly arrived unread notifications to trigger native Desktop OS push
+        if (
+          !isFirstLoadRef.current &&
+          typeof window !== 'undefined' &&
+          'Notification' in window &&
+          Notification.permission === 'granted'
+        ) {
+          for (const item of sorted) {
+            if (!item.isRead && !seenIdsRef.current.has(item.id)) {
+              try {
+                const desktopNotif = new Notification(item.title, {
+                  body: item.message || item.fullExplanation || 'New update in Geospatial Works',
+                  icon: '/favicon.ico',
+                });
+                desktopNotif.onclick = () => {
+                  window.focus();
+                  const meta = getTypeMeta(item);
+                  if (meta?.link) {
+                    window.location.href = meta.link;
+                  }
+                };
+              } catch (e) {
+                console.error('Failed to display desktop notification:', e);
+              }
+            }
+          }
+        }
+
+        const newSeen = new Set<string>();
+        for (const item of sorted) {
+          newSeen.add(item.id);
+        }
+        seenIdsRef.current = newSeen;
+        isFirstLoadRef.current = false;
         setNotifications(sorted);
       }
     } catch (err) {
@@ -66,7 +122,7 @@ export const NotificationPanel: React.FC = () => {
     loadNotifications();
     const interval = setInterval(() => {
       loadNotifications();
-    }, 30000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -271,6 +327,23 @@ export const NotificationPanel: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Desktop Push Banner (if permission is default) */}
+          {desktopPermission === 'default' && (
+            <div className="px-3.5 py-2 bg-linear-to-r from-amber-50 to-orange-50 border-b border-amber-200/70 flex items-center justify-between text-xs text-amber-900">
+              <div className="flex items-center gap-1.5 min-w-0 pr-2">
+                <Bell size={13} className="text-amber-600 shrink-0" />
+                <span className="text-[11px] font-semibold truncate">Enable desktop push notifications</span>
+              </div>
+              <button
+                type="button"
+                onClick={requestDesktopPermission}
+                className="px-2 py-0.5 rounded bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] shrink-0 transition-colors shadow-2xs cursor-pointer"
+              >
+                Enable
+              </button>
+            </div>
+          )}
 
           {/* Subheader Filters */}
           <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between text-xs bg-white">
