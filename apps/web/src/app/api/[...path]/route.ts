@@ -1,16 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const BACKEND_BASE = (
+const rawBase = (
+  process.env.BACKEND_INTERNAL_URL ||
   process.env.BACKEND_API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  'https://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io/api'
-).replace(/\/+$/, '').replace(/\/v1$/, '');
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io'
+).replace(/\/+$/, '');
+
+const BACKEND_BASE = rawBase.replace(/\/api\/v1\/?$/, '').replace(/\/api\/?$/, '');
 
 async function handleProxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
-  const endpoint = path.join('/');
+  let endpoint = path.join('/');
+  let resolvedPath = endpoint;
+  if (!resolvedPath.startsWith('api/v1/')) {
+    if (resolvedPath.startsWith('v1/')) {
+      resolvedPath = `api/${resolvedPath}`;
+    } else {
+      resolvedPath = `api/v1/${resolvedPath}`;
+    }
+  }
   const searchParams = req.nextUrl.searchParams.toString();
-  const targetUrl = `${BACKEND_BASE}/${endpoint}${searchParams ? `?${searchParams}` : ''}`;
+  const targetUrl = `${BACKEND_BASE}/${resolvedPath}${searchParams ? `?${searchParams}` : ''}`;
 
   const headers: Record<string, string> = {
     'Content-Type': req.headers.get('content-type') || 'application/json',
@@ -31,7 +43,15 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
       method: req.method,
       headers,
       body,
+      redirect: 'manual',
     });
+
+    if (backendRes.status === 301 || backendRes.status === 302 || backendRes.status === 307 || backendRes.status === 308) {
+      const location = backendRes.headers.get('location');
+      if (location) {
+        return NextResponse.redirect(new URL(location, req.url), backendRes.status);
+      }
+    }
 
     const contentType = backendRes.headers.get('content-type') || 'application/json';
     const isBinary = contentType.includes('application/vnd.android.package-archive') ||
