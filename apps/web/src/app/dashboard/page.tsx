@@ -41,6 +41,7 @@ import { notifyAction } from '@/components/feedback/ActionFeedback';
 import { ExportUtils } from '@/lib/exportUtils';
 import { getDashboardAudience, getDashboardDataKeys, selectPersonalDashboardData } from '@/lib/dashboardRoleData';
 import { PersonalDashboard } from './PersonalDashboard';
+import { DateTimeFilter, DateTimeFilterValue } from '@/components/dashboard/DateTimeFilter';
 
 type ChartMode = 'budget' | 'categories' | 'projects';
 type ChartStyle = 'donut' | 'pie';
@@ -80,6 +81,11 @@ export default function DashboardPage() {
   const [chartStyle, setChartStyle] = useState<ChartStyle>('donut');
   const [period, setPeriod] = useState<Period>('6');
   const [search, setSearch] = useState('');
+  const [dateRange, setDateRange] = useState<DateTimeFilterValue>({
+    from: '',
+    to: '',
+    preset: 'all',
+  });
   const [mounted, setMounted] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [roleResolved, setRoleResolved] = useState(false);
@@ -191,30 +197,112 @@ export default function DashboardPage() {
     return unsubscribe;
   }, [roleResolved, currentUser?.role, fetchData]);
 
+  const fromTimestamp = useMemo(() => (dateRange.from ? new Date(dateRange.from).getTime() : null), [dateRange.from]);
+  const toTimestamp = useMemo(() => (dateRange.to ? new Date(dateRange.to).getTime() : null), [dateRange.to]);
+  const isTimeFiltered = fromTimestamp !== null || toTimestamp !== null;
+
+  const filteredProjects = useMemo(() => {
+    if (!isTimeFiltered) return projects;
+    return projects.filter((project) => {
+      const start = project.startDate || project.start_date || project.createdAt || project.created_at;
+      const end = project.endDate || project.end_date;
+      const sTime = start ? new Date(start).getTime() : null;
+      const eTime = end ? new Date(end).getTime() : null;
+      if (sTime !== null && eTime !== null) {
+        if (fromTimestamp !== null && toTimestamp !== null) return sTime <= toTimestamp && eTime >= fromTimestamp;
+        if (fromTimestamp !== null) return eTime >= fromTimestamp;
+        if (toTimestamp !== null) return sTime <= toTimestamp;
+      }
+      if (sTime !== null) {
+        if (fromTimestamp !== null && toTimestamp !== null) return sTime >= fromTimestamp && sTime <= toTimestamp;
+        if (fromTimestamp !== null) return sTime >= fromTimestamp;
+        if (toTimestamp !== null) return sTime <= toTimestamp;
+      }
+      return true;
+    });
+  }, [projects, isTimeFiltered, fromTimestamp, toTimestamp]);
+
+  const filteredExpenses = useMemo(() => {
+    if (!isTimeFiltered) return expenses;
+    return expenses.filter((expense) => {
+      const raw = expense.date || expense.createdAt || expense.created_at;
+      if (!raw) return true;
+      const t = new Date(raw).getTime();
+      if (fromTimestamp !== null && t < fromTimestamp) return false;
+      if (toTimestamp !== null && t > toTimestamp) return false;
+      return true;
+    });
+  }, [expenses, isTimeFiltered, fromTimestamp, toTimestamp]);
+
+  const filteredAttendance = useMemo(() => {
+    if (!isTimeFiltered) return attendance;
+    return attendance.filter((record) => {
+      const raw = record.date || record.attendanceDate || record.attendance_date || record.createdAt || record.checkInTime || record.check_in_time || record.loginTime;
+      if (!raw) return true;
+      const t = new Date(raw).getTime();
+      if (fromTimestamp !== null && t < fromTimestamp) return false;
+      if (toTimestamp !== null && t > toTimestamp) return false;
+      return true;
+    });
+  }, [attendance, isTimeFiltered, fromTimestamp, toTimestamp]);
+
+  const filteredTasks = useMemo(() => {
+    if (!isTimeFiltered) return tasks;
+    return tasks.filter((task) => {
+      const raw = task.dueDate || task.due_date || task.createdAt || task.created_at;
+      if (!raw) return true;
+      const t = new Date(raw).getTime();
+      if (fromTimestamp !== null && t < fromTimestamp) return false;
+      if (toTimestamp !== null && t > toTimestamp) return false;
+      return true;
+    });
+  }, [tasks, isTimeFiltered, fromTimestamp, toTimestamp]);
+
+  const filteredLeaveRequests = useMemo(() => {
+    if (!isTimeFiltered) return leaveRequests;
+    return leaveRequests.filter((leave) => {
+      const start = leave.startDate || leave.start_date || leave.createdAt;
+      const end = leave.endDate || leave.end_date || start;
+      const sTime = start ? new Date(start).getTime() : null;
+      const eTime = end ? new Date(end).getTime() : null;
+      if (sTime !== null && eTime !== null) {
+        if (fromTimestamp !== null && toTimestamp !== null) return sTime <= toTimestamp && eTime >= fromTimestamp;
+        if (fromTimestamp !== null) return eTime >= fromTimestamp;
+        if (toTimestamp !== null) return sTime <= toTimestamp;
+      }
+      if (sTime !== null) {
+        if (fromTimestamp !== null && toTimestamp !== null) return sTime >= fromTimestamp && sTime <= toTimestamp;
+        if (fromTimestamp !== null) return sTime >= fromTimestamp;
+        if (toTimestamp !== null) return sTime <= toTimestamp;
+      }
+      return true;
+    });
+  }, [leaveRequests, isTimeFiltered, fromTimestamp, toTimestamp]);
+
   const approvedExpenses = useMemo(
-    () => expenses.filter((expense) => String(expense.status || '').toLowerCase() === 'approved'),
-    [expenses]
+    () => filteredExpenses.filter((expense) => String(expense.status || '').toLowerCase() === 'approved'),
+    [filteredExpenses]
   );
   const pendingExpenses = useMemo(
-    () => expenses.filter((expense) => String(expense.status || '').toLowerCase() === 'pending'),
-    [expenses]
+    () => filteredExpenses.filter((expense) => String(expense.status || '').toLowerCase() === 'pending'),
+    [filteredExpenses]
   );
-  const pendingLeaves = useMemo(() => leaveRequests
+  const pendingLeaves = useMemo(() => filteredLeaveRequests
     .filter((leave) => String(leave.status || (leave.isApproved || leave.is_approved ? 'approved' : 'pending')).toLowerCase() === 'pending')
-    .slice(0, 4), [leaveRequests]);
+    .slice(0, 4), [filteredLeaveRequests]);
   const chartProject = useMemo(
-    () => selectedChartProjectId === 'all' ? null : projects.find((project) => project.id === selectedChartProjectId) || null,
-    [projects, selectedChartProjectId]
+    () => (selectedChartProjectId === 'all' ? null : filteredProjects.find((project) => project.id === selectedChartProjectId) || null),
+    [filteredProjects, selectedChartProjectId]
   );
 
-  const totalBudget = projects.reduce((sum, project) => sum + Number(project.budget || project.grossProjectValue || 0), 0);
+  const totalBudget = filteredProjects.reduce((sum, project) => sum + Number(project.budget || project.grossProjectValue || 0), 0);
   const totalSpent = approvedExpenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
   const remainingBudget = Math.max(0, totalBudget - totalSpent);
   const percentSpent = totalBudget ? Math.round((totalSpent / totalBudget) * 100) : 0;
 
   const presentTeam = useMemo(() => {
     const unique = new Map<string, any>();
-    attendance.forEach((record) => {
+    filteredAttendance.forEach((record) => {
       const id = String(record.userId || record.user_id || record.userName || record.user_name || 'staff');
       const name = record.userName || record.user_name || 'Staff member';
       const user = users.find((candidate) => candidate.id === id || candidate.id === record.userId || candidate.id === record.user_id);
@@ -227,7 +315,7 @@ export default function DashboardPage() {
       }
     });
     return Array.from(unique.values());
-  }, [attendance, users]);
+  }, [filteredAttendance, users]);
 
   const today = new Date();
   const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -270,7 +358,7 @@ export default function DashboardPage() {
   [approvedExpenses, chartProject]);
   const chartBudget = chartProject
     ? Number(chartProject.budget || chartProject.grossProjectValue || 0)
-    : projects.reduce((sum, project) => sum + Number(project.budget || project.grossProjectValue || 0), 0);
+    : filteredProjects.reduce((sum, project) => sum + Number(project.budget || project.grossProjectValue || 0), 0);
   const chartSpent = chartExpenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
   const chartRemaining = Math.max(0, chartBudget - chartSpent);
   const chartPercentSpent = chartBudget ? Math.round((chartSpent / chartBudget) * 100) : 0;
@@ -300,18 +388,18 @@ export default function DashboardPage() {
   const projectPieData = useMemo(() => {
     if (chartProject) {
       const selected = Number(chartProject.budget || chartProject.grossProjectValue || 0);
-      const portfolio = projects.reduce((sum, project) => sum + Number(project.budget || project.grossProjectValue || 0), 0);
+      const portfolio = filteredProjects.reduce((sum, project) => sum + Number(project.budget || project.grossProjectValue || 0), 0);
       return [
         { name: chartProject.name, value: selected, color: '#0ea5e9' },
         { name: 'Other projects', value: Math.max(0, portfolio - selected), color: '#cbd5e1' },
       ].filter((entry) => entry.value > 0);
     }
-    return projects.map((project, index) => ({
+    return filteredProjects.map((project, index) => ({
       name: project.name,
       value: Number(project.budget || project.grossProjectValue || 0),
       color: COLORS[(index + 1) % COLORS.length],
     })).filter((entry) => entry.value > 0);
-  }, [chartProject, projects]);
+  }, [chartProject, filteredProjects]);
   const selectedPieData = chartMode === 'budget' ? budgetPieData : chartMode === 'categories' ? categoryPieData : projectPieData;
 
   const cashFlowData = useMemo(() => {
@@ -332,10 +420,12 @@ export default function DashboardPage() {
       const month = values.get(key);
       if (month) month.outflow += Number(expense.amount) || 0;
     });
-    const revenueProjects = chartProject ? [chartProject] : projects;
+    const revenueProjects = chartProject ? [chartProject] : filteredProjects;
     revenueProjects.forEach((project) => (project.revenueEntries || []).forEach((revenue: any) => {
       const date = new Date(revenue.date);
       if (Number.isNaN(date.getTime())) return;
+      if (fromTimestamp !== null && date.getTime() < fromTimestamp) return;
+      if (toTimestamp !== null && date.getTime() > toTimestamp) return;
       const month = values.get(`${date.getFullYear()}-${date.getMonth()}`);
       if (month) month.inflow += Number(revenue.amount) || 0;
     }));
@@ -343,43 +433,43 @@ export default function DashboardPage() {
       month: date.toLocaleDateString('en', { month: 'short' }),
       ...values.get(`${date.getFullYear()}-${date.getMonth()}`),
     }));
-  }, [approvedExpenses, chartProject, period, projects]);
+  }, [approvedExpenses, chartProject, period, filteredProjects, fromTimestamp, toTimestamp]);
 
-  const projectRows = useMemo(() => projects.filter((project) => {
+  const projectRows = useMemo(() => filteredProjects.filter((project) => {
     if (!search) return true;
     const query = search.toLowerCase();
     return String(project.name || '').toLowerCase().includes(query) || String(project.client || '').toLowerCase().includes(query);
-  }), [projects, search]);
+  }), [filteredProjects, search]);
   const approvalRows = useMemo(() => pendingExpenses.filter((expense) => {
     if (!search) return true;
     const query = search.toLowerCase();
     return String(expense.employeeName || expense.employee_name || expense.categoryName || expense.category || '').toLowerCase().includes(query);
   }).slice(0, 5), [pendingExpenses, search]);
-  const deadlineRows = useMemo(() => tasks
+  const deadlineRows = useMemo(() => filteredTasks
     .filter((task) => task.dueDate || task.due_date)
     .filter((task) => String(task.status || '').toLowerCase() !== 'completed')
     .filter((task) => !search || String(task.title || '').toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => new Date(a.dueDate || a.due_date).getTime() - new Date(b.dueDate || b.due_date).getTime())
-    .slice(0, 5), [tasks, search]);
+    .slice(0, 5), [filteredTasks, search]);
   const searchResults = useMemo(() => {
     const terms = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
     if (!terms.length) return [];
     const matches = (value: string) => terms.every((term) => value.toLowerCase().includes(term));
     return [
-      ...projects.filter((project) => matches(`${project.name || ''} ${project.client || ''}`)).map((project) => ({
+      ...filteredProjects.filter((project) => matches(`${project.name || ''} ${project.client || ''}`)).map((project) => ({
         key: `project-${project.id}`, label: project.name, meta: 'Project', href: `/projects/${project.id}`,
       })),
-      ...tasks.filter((task) => matches(`${task.title || ''} ${task.projectName || ''}`)).map((task) => ({
+      ...filteredTasks.filter((task) => matches(`${task.title || ''} ${task.projectName || ''}`)).map((task) => ({
         key: `task-${task.id}`, label: task.title || 'Task', meta: 'Task', href: '/tasks',
       })),
-      ...expenses.filter((expense) => matches(`${expense.categoryName || ''} ${expense.employeeName || ''} ${expense.projectName || ''}`)).map((expense) => ({
+      ...filteredExpenses.filter((expense) => matches(`${expense.categoryName || ''} ${expense.employeeName || ''} ${expense.projectName || ''}`)).map((expense) => ({
         key: `expense-${expense.id}`, label: expense.categoryName || 'Expense', meta: expense.status === 'pending' ? 'Approval' : 'Expense', href: expense.status === 'pending' ? '/approvals' : '/expenses',
       })),
     ].slice(0, 7);
-  }, [search, projects, tasks, expenses]);
+  }, [search, filteredProjects, filteredTasks, filteredExpenses]);
 
   const exportDashboard = () => {
-    const rows = projects.map((project) => {
+    const rows = filteredProjects.map((project) => {
       const projectExpenses = approvedExpenses.filter((expense) =>
         (expense.projectId || expense.project_id) === project.id || expense.projectName === project.name);
       const spent = projectExpenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
@@ -429,6 +519,11 @@ export default function DashboardPage() {
             <p className="mt-0.5 text-xs text-slate-500">Here&apos;s what&apos;s happening across your projects.</p>
           </div>
           <div className="flex items-center gap-2">
+            <DateTimeFilter
+              value={dateRange}
+              onChange={setDateRange}
+            />
+
             <div className="group relative hidden sm:block">
               <Search size={15} className="pointer-events-none absolute left-3 top-[18px] -translate-y-1/2 text-slate-400" />
               <input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === 'Escape') setSearch(''); }} placeholder="Search" aria-label="Search dashboard" className="h-9 w-48 rounded-lg border border-slate-200 bg-white pl-9 pr-8 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100" />
@@ -437,7 +532,7 @@ export default function DashboardPage() {
                 {searchResults.length ? searchResults.map((result) => <Link key={result.key} href={result.href} className="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs hover:bg-slate-50"><span className="truncate font-medium text-slate-800">{result.label}</span><span className="shrink-0 text-[10px] text-slate-400">{result.meta}</span></Link>) : <p className="px-3 py-3 text-xs text-slate-500">No matches</p>}
               </div>}
             </div>
-            <span className="hidden rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 md:inline-flex md:items-center md:gap-2"><CalendarDays size={14} className="text-slate-400" />{todayLabel}</span>
+
             <button type="button" onClick={() => void fetchData()} aria-label="Refresh dashboard" className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50"><RefreshCw size={15} className={loading ? 'animate-spin' : ''} /></button>
             <button type="button" onClick={exportDashboard} aria-label="Export dashboard" className="hidden h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 sm:flex"><Receipt size={15} /></button>
             <NotificationPanel />
@@ -445,10 +540,27 @@ export default function DashboardPage() {
             <Link href="/projects/new" className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white transition hover:bg-indigo-700"><Plus size={15} />New project</Link>
           </div>
         </header>
+
+        {isTimeFiltered && (
+          <div className="flex shrink-0 items-center justify-between gap-3 rounded-lg border border-indigo-200 bg-indigo-50/70 px-3 py-1.5 text-xs text-indigo-900">
+            <span className="flex items-center gap-1.5 font-medium">
+              <CalendarDays size={13} className="text-indigo-600" />
+              Showing filtered data for selected time window ({filteredProjects.length} projects, {filteredExpenses.length} expenses)
+            </span>
+            <button
+              type="button"
+              onClick={() => setDateRange({ from: '', to: '', preset: 'all' })}
+              className="font-semibold text-indigo-700 underline hover:text-indigo-900"
+            >
+              Reset to all time
+            </button>
+          </div>
+        )}
+
         {dataError && <div role="alert" className="flex shrink-0 items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"><span>{dataError}</span><button type="button" onClick={() => void fetchData()} className="font-semibold underline">Retry</button></div>}
 
         <section className="grid shrink-0 grid-cols-2 gap-1.5 sm:grid-cols-3 xl:grid-cols-6" aria-label="Dashboard key metrics">
-          <MetricCard label="Active projects" value={projects.length} detail={`${projects.length} in workspace`} trend={trends.projects} icon={FolderKanban} tone="indigo" />
+          <MetricCard label="Active projects" value={filteredProjects.length} detail={`${filteredProjects.length} in workspace`} trend={trends.projects} icon={FolderKanban} tone="indigo" />
           <MetricCard label="Total budget" value={money(totalBudget)} detail="Current allocation" trend={trends.budget} icon={CircleDollarSign} tone="blue" />
           <MetricCard label="Pending approvals" value={pendingExpenses.length} detail={pendingExpenses.length ? 'Needs review' : 'All caught up'} trend={null} icon={Receipt} tone="amber" />
           <MetricCard label="Team present" value={`${presentTeam.length} / ${users.length}`} detail={`${attendancePercent}% attendance today`} trend={trends.attendance} icon={Users} tone="green" />
