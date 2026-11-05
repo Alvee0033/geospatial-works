@@ -179,7 +179,7 @@ export default function DownloadPage() {
                 {currentUser ? <CheckCheck size={18} /> : <KeyRound size={18} />}
               </div>
               <span className="text-[11px] font-bold mt-1.5 text-slate-800">1. Sign In</span>
-              <span className="text-[10px] text-slate-400">Employee Login</span>
+              <span className="text-[10px] text-slate-400">Work & Admin Login</span>
             </div>
 
             {/* Step 2 */}
@@ -242,7 +242,9 @@ export default function DownloadPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm truncate">{currentUser.full_name || currentUser.email}</p>
-                  <p className="text-[11px] text-emerald-700 font-semibold uppercase tracking-wider">Account Verified • Ready to Download</p>
+                  <p className="text-[11px] text-emerald-700 font-semibold uppercase tracking-wider">
+                    {currentUser.role === 'admin' || currentUser.role === 'main_admin' ? 'Administrator Verified' : 'Account Verified'} • Ready to Download
+                  </p>
                 </div>
               </div>
 
@@ -313,9 +315,9 @@ export default function DownloadPage() {
             /* Sign In Step - FAT BUTTONS */
             <div className="pt-6 space-y-5">
               <div>
-                <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Step 1: Sign in with Employee Account</h2>
+                <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Step 1: Sign in with Work or Admin Account</h2>
                 <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Enter your credentials below to unlock the direct APK package download.
+                  Enter your employee or administrator credentials below to unlock the direct APK package download.
                 </p>
               </div>
 
@@ -337,7 +339,7 @@ export default function DownloadPage() {
 
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Employee Email</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Email Address</label>
                   <div className="relative flex items-center">
                     <Mail size={16} className="absolute left-3.5 text-slate-400" />
                     <input
@@ -345,7 +347,7 @@ export default function DownloadPage() {
                       required
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setAuthError(null); }}
-                      placeholder="name@company.com"
+                      placeholder="admin@gw.com or employee@company.com"
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
                     />
                   </div>

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const BACKEND_BASE = (
   process.env.BACKEND_API_BASE_URL ||
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  'https://mtoam6j7bojzuo6lhsakwfp8.203.96.190.78.sslip.io/api'
+  'https://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io/api'
 ).replace(/\/+$/, '').replace(/\/v1$/, '');
 
 async function handleProxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {

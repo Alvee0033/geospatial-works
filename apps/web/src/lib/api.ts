@@ -1,10 +1,9 @@
 import { clearApiCache, readApiCache, writeApiCache } from '@/lib/pageCache';
 
-const DEFAULT_BACKEND_URL = 'https://mtoam6j7bojzuo6lhsakwfp8.203.96.190.78.sslip.io/api';
+const DEFAULT_BACKEND_URL = 'https://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io/api/v1';
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_BACKEND_URL;
-// The same-origin gateway is mounted at /api/[...path]. Include the backend
-// prefix here so an unset public URL still reaches Nest's /api/v1 routes.
-const API_BASE = typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_API_URL || '/api/v1') : BACKEND_URL;
+// Directly use the backend endpoint when running in browser or server
+const API_BASE = typeof window !== 'undefined' ? (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_BACKEND_URL) : BACKEND_URL;
 
 let serverSideToken: string | null = null;
 const inFlightGetRequests = new Map<string, Promise<unknown>>();
