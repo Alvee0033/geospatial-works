@@ -66,10 +66,10 @@ export const NotificationPanel: React.FC = () => {
   };
 
   // Fetch notifications
-  const loadNotifications = async () => {
+  const loadNotifications = async (silent: boolean = false) => {
     try {
-      setLoading(true);
-      const data = await ApiClient.getNotifications();
+      if (!silent) setLoading(true);
+      const data = await ApiClient.getNotifications({ bypassCache: true });
       if (Array.isArray(data)) {
         const sorted = [...data].sort(
           (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -114,16 +114,139 @@ export const NotificationPanel: React.FC = () => {
     } catch (err) {
       console.error('Failed to load notifications:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadNotifications();
+    loadNotifications(false);
+
+    let eventSource: EventSource | null = null;
+    let reconnectTimer: any = null;
+    let isDestroyed = false;
+
+    const connectSSE = () => {
+      if (isDestroyed || typeof window === 'undefined') return;
+      try {
+        const streamUrl = ApiClient.getNotificationStreamUrl();
+        const token = ApiClient.getToken();
+        if (!token) return;
+
+        eventSource = new EventSource(streamUrl);
+
+        eventSource.onmessage = (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            if (!payload || payload.type === 'ping') return;
+
+            const item: NotificationItem = {
+              id: payload.id || `notif_${Date.now()}`,
+              userId: payload.userId,
+              actorId: payload.actorId,
+              actorName: payload.actorName,
+              actorAvatarUrl: payload.actorAvatarUrl,
+              title: payload.title || 'New Notification',
+              message: payload.message || '',
+              fullExplanation: payload.fullExplanation || payload.message,
+              type: payload.type || 'info',
+              isRead: Boolean(payload.isRead),
+              createdAt: payload.createdAt || new Date().toISOString(),
+              relatedProjectId: payload.relatedProjectId,
+              relatedExpenseId: payload.relatedExpenseId,
+            };
+
+            // Avoid duplicate processing if already seen
+            if (seenIdsRef.current.has(item.id)) return;
+            seenIdsRef.current.add(item.id);
+
+            // Fire native Desktop OS push notification if granted
+            if (
+              typeof window !== 'undefined' &&
+              'Notification' in window &&
+              Notification.permission === 'granted'
+            ) {
+              try {
+                const desktopNotif = new Notification(item.title, {
+                  body: item.message || item.fullExplanation || 'New update in Geospatial Works',
+                  icon: '/favicon.ico',
+                });
+                desktopNotif.onclick = () => {
+                  window.focus();
+                  const meta = getTypeMeta(item);
+                  if (meta?.link) {
+                    window.location.href = meta.link;
+                  }
+                };
+              } catch (e) {
+                console.error('Failed to display desktop notification:', e);
+              }
+            }
+
+            // Instantly prepend new notification with zero latency
+            setNotifications((prev) => [item, ...prev.filter((n) => n.id !== item.id)]);
+
+            // Dispatch global event so dashboards update counts
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('gw-api-data-refreshed', {
+                  detail: { endpoint: '/notifications', item },
+                })
+              );
+            }
+          } catch (parseErr) {
+            console.error('Failed to parse SSE notification payload:', parseErr);
+          }
+        };
+
+        eventSource.onerror = () => {
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          if (!isDestroyed) {
+            reconnectTimer = setTimeout(connectSSE, 3000);
+          }
+        };
+      } catch (err) {
+        console.error('Error establishing notification SSE connection:', err);
+        if (!isDestroyed) {
+          reconnectTimer = setTimeout(connectSSE, 5000);
+        }
+      }
+    };
+
+    connectSSE();
+
+    // Fast fallback silent poll every 4 seconds in background
     const interval = setInterval(() => {
-      loadNotifications();
-    }, 10000);
-    return () => clearInterval(interval);
+      loadNotifications(true);
+    }, 4000);
+
+    // Fast refresh on window focus and tab visibility change
+    const handleVisibility = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        loadNotifications(true);
+      }
+    };
+    const handleFocus = () => loadNotifications(true);
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // Subscribe to internal data refresh events
+    const unsubRefresh = ApiClient.subscribeToDataRefresh?.(() => {
+      loadNotifications(true);
+    });
+
+    return () => {
+      isDestroyed = true;
+      if (eventSource) eventSource.close();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (unsubRefresh) unsubRefresh();
+    };
   }, []);
 
   // Close on click outside
@@ -371,7 +494,7 @@ export const NotificationPanel: React.FC = () => {
             </div>
 
             <button
-              onClick={loadNotifications}
+              onClick={() => loadNotifications(false)}
               disabled={loading}
               className="text-[11px] text-slate-400 hover:text-slate-600 font-semibold"
             >

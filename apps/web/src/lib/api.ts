@@ -51,11 +51,18 @@ export class ApiClient {
     }
   }
 
-  public static async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  public static getNotificationStreamUrl(): string {
+    const token = this.getToken();
+    const base = API_BASE.replace(/\/+$/, '');
+    return `${base}/notifications/stream?token=${encodeURIComponent(token || '')}`;
+  }
+
+  public static async request<T>(endpoint: string, options: RequestInit & { bypassCache?: boolean } = {}): Promise<T> {
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const method = (options.method || 'GET').toUpperCase();
     const cacheKey = `${method}:${cleanEndpoint}`;
-    const isCacheableGet = method === 'GET' && typeof window !== 'undefined';
+    const isLiveEndpoint = cleanEndpoint.startsWith('/notifications') || cleanEndpoint.startsWith('/chat');
+    const isCacheableGet = method === 'GET' && typeof window !== 'undefined' && !options.bypassCache && !isLiveEndpoint;
     const cached = isCacheableGet ? readApiCache<T>(cacheKey) : null;
 
     const executeRequest = async (): Promise<T> => {
@@ -658,8 +665,8 @@ export class ApiClient {
   }
 
   // Notifications API
-  static async getNotifications() {
-    return this.request<any[]>('/notifications');
+  static async getNotifications(options?: { bypassCache?: boolean }) {
+    return this.request<any[]>('/notifications', { cache: 'no-store', bypassCache: true });
   }
 
   static async markNotificationRead(id: string) {
