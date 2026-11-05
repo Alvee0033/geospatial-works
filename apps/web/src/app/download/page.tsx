@@ -138,6 +138,14 @@ export default function DownloadPage() {
     }
 
     fetchReleases();
+
+    // Prevent Chrome / browser from showing "Install Web App" banner to avoid confusing users
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      return false;
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
   }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
