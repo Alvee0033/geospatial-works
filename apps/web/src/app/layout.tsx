@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { RouteTransition } from "@/components/layout/RouteTransition";
 import { AlertModalProvider } from "@/components/ui/AlertModal";
 
@@ -16,14 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GW Admin Portal",
-  description: "Enterprise Management & Field Tracking System",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "GW Admin",
-  },
+  title: "GW App Download Portal",
+  description: "Official Android APK Distribution Portal",
 };
 
 export default function RootLayout({
@@ -38,7 +31,6 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ServiceWorkerRegister />
         <AlertModalProvider>
           <RouteTransition>{children}</RouteTransition>
         </AlertModalProvider>
