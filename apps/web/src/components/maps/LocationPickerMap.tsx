@@ -98,7 +98,7 @@ export function LocationPickerMap({ latitude, longitude, radiusMeters, pinLabel 
     setQuery(result.label.split(',').slice(0, 2).join(',')); setResults([]);
   };
 
-  return <div className="relative h-[340px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+  return <div className="relative h-[340px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100 isolate z-0">
     <div ref={host} className="absolute inset-0" />
     <div ref={searchControls} className="absolute left-3 right-3 top-3 z-[500] max-w-xl">
       <div role="search" className="flex gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">

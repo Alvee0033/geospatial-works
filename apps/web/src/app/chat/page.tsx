@@ -140,7 +140,7 @@ export default function ChatPage() {
     });
   }, [users, currentUser]);
 
-  const fetchChannels = async () => {
+  const fetchChannels = async (targetActiveId?: string) => {
     setLoadingChannels(true);
     try {
       const [chanData, uData, pData] = await Promise.all([
@@ -152,7 +152,9 @@ export default function ChatPage() {
       setUsers(uData || []);
       setProjects(pData || []);
 
-      if (chanData && chanData.length > 0 && !activeChannelId) {
+      if (targetActiveId) {
+        setActiveChannelId(targetActiveId);
+      } else if (chanData && chanData.length > 0 && !activeChannelId) {
         setActiveChannelId(chanData[0].id);
       }
     } catch (e) {
@@ -403,6 +405,9 @@ export default function ChatPage() {
       return;
     }
 
+    // Switch tab to all so the new/existing channel is visible
+    setChannelTypeFilter('all');
+
     // Check if channel already exists with this user
     const existing = channels.find((c) => {
       if (c.type !== 'direct') return false;
@@ -418,8 +423,34 @@ export default function ChatPage() {
     // Otherwise create new direct channel
     try {
       const newChan = await ApiClient.createDirectChannel(userId);
-      await fetchChannels();
-      if (newChan?.id) setActiveChannelId(newChan.id);
+      const targetId = newChan?.id || newChan?.channelId;
+
+      if (targetId) {
+        // Optimistically inject the new channel into state so the chatbox opens instantly
+        const syntheticChannel = {
+          id: targetId,
+          type: 'direct',
+          otherUser: newChan.otherUser || {
+            id: user.id || user._id,
+            fullName: user.name || user.full_name || 'Colleague',
+            avatarUrl: user.avatarUrl || user.avatar_url,
+            role: user.designation || user.role || 'Staff',
+            department: user.department,
+          },
+          lastMessage: null,
+          unreadCount: 0,
+          updatedAt: new Date().toISOString(),
+        };
+
+        setChannels((prev) => {
+          if (prev.some((c) => c.id === targetId)) return prev;
+          return [syntheticChannel, ...prev];
+        });
+        setActiveChannelId(targetId);
+      }
+
+      await fetchChannels(targetId);
+      if (targetId) setActiveChannelId(targetId);
     } catch (err: any) {
       alert(`Could not open conversation with ${user.name || 'user'}: ${err.message}`);
     }
@@ -447,10 +478,14 @@ export default function ChatPage() {
     if (!selectedRecipientId) return;
     try {
       const newChan = await ApiClient.createDirectChannel(selectedRecipientId);
+      const targetId = newChan?.id || newChan?.channelId;
       setIsDirectModalOpen(false);
       setSelectedRecipientId('');
-      await fetchChannels();
-      if (newChan?.id) setActiveChannelId(newChan.id);
+      setContactSearchQuery('');
+      setChannelTypeFilter('all');
+      if (targetId) setActiveChannelId(targetId);
+      await fetchChannels(targetId);
+      if (targetId) setActiveChannelId(targetId);
     } catch (err: any) {
       alert(`Failed to start direct conversation: ${err.message}`);
     }
@@ -460,10 +495,13 @@ export default function ChatPage() {
     if (!selectedProjectId) return;
     try {
       const newChan = await ApiClient.createProjectChannel(selectedProjectId);
+      const targetId = newChan?.id || newChan?.channelId;
       setIsProjectModalOpen(false);
       setSelectedProjectId('');
-      await fetchChannels();
-      if (newChan?.id) setActiveChannelId(newChan.id);
+      setChannelTypeFilter('all');
+      if (targetId) setActiveChannelId(targetId);
+      await fetchChannels(targetId);
+      if (targetId) setActiveChannelId(targetId);
     } catch (err: any) {
       alert(`Failed to create project channel: ${err.message}`);
     }
@@ -1302,7 +1340,7 @@ export default function ChatPage() {
 
       {/* Direct / Contact Message Modal */}
       {isDirectModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[10000] flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -1417,7 +1455,7 @@ export default function ChatPage() {
 
       {/* Project Channel Modal */}
       {isProjectModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[10000] flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Create Project Space</h3>
@@ -1528,7 +1566,7 @@ export default function ChatPage() {
 
       {/* Forward Modal */}
       {forwardModal.isOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[10000] flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
             <div className="flex justify-between items-center pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">

@@ -1137,7 +1137,7 @@ export default function SettingsPage() {
 
       {/* Category Modal */}
       {categoryModal.open && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[10000] flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-xl max-w-xs w-full p-4 space-y-3 shadow-lg">
             <div className="flex justify-between items-center">
               <h3 className="text-xs font-bold text-slate-900">
@@ -1190,7 +1190,7 @@ export default function SettingsPage() {
 
       {/* Shift Modal */}
       {shiftModal.open && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[10000] flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-xl max-w-sm w-full p-4 space-y-3 shadow-lg">
             <div className="flex justify-between items-center">
               <h3 className="text-xs font-bold text-slate-900">
@@ -1328,7 +1328,7 @@ export default function SettingsPage() {
 
       {/* Holiday Modal */}
       {holidayModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[10000] flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-xl max-w-xs w-full p-4 space-y-3 shadow-lg">
             <div className="flex justify-between items-center">
               <h3 className="text-xs font-bold text-slate-900">Add Holiday</h3>
