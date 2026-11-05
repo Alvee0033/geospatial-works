@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { ApiClient } from '@/lib/api';
 import { 
   Download, 
@@ -17,7 +16,7 @@ import {
   DownloadCloud, 
   CheckCheck,
   RefreshCw,
-  Sparkles
+  ShieldCheck
 } from 'lucide-react';
 
 interface ReleaseInfo {
@@ -139,7 +138,7 @@ export default function DownloadPage() {
 
     fetchReleases();
 
-    // Prevent Chrome / browser from showing "Install Web App" banner to avoid confusing users
+    // Prevent browser from showing PWA / Chrome web app install banner
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       return false;
@@ -164,9 +163,10 @@ export default function DownloadPage() {
           localStorage.setItem('gw_user', JSON.stringify(res.user));
           setCurrentUser(res.user);
         }
+        // Auto-trigger direct APK download upon successful verified sign-in
         setTimeout(() => {
           triggerDownload();
-        }, 200);
+        }, 300);
       } else {
         throw new Error('Authentication failed: no token returned.');
       }
@@ -190,12 +190,12 @@ export default function DownloadPage() {
   };
 
   const formatSize = (bytes?: number) => {
-    if (!bytes || bytes <= 0) return '72.0 MB';
+    if (!bytes || bytes <= 0) return '74.5 MB';
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const currentStep = currentUser ? (downloadStarted ? 3 : 2) : 1;
-  const activeVersion = release?.versionName || 'v1.0.8';
+  const activeVersion = release?.versionName || 'v1.0.9';
   const activeSize = formatSize(release?.fileSizeBytes);
   const directUrl = getDirectDownloadUrl();
 
@@ -239,7 +239,7 @@ export default function DownloadPage() {
                 {currentUser ? <CheckCheck size={18} /> : <KeyRound size={18} />}
               </div>
               <span className="text-[11px] font-bold mt-1.5 text-slate-800">1. Sign In</span>
-              <span className="text-[10px] text-slate-400">{currentUser ? 'Verified' : 'Work & Admin'}</span>
+              <span className="text-[10px] text-slate-400">{currentUser ? 'Verified' : 'Required'}</span>
             </div>
 
             {/* Step 2 */}
@@ -254,7 +254,7 @@ export default function DownloadPage() {
               <span className={`text-[11px] font-bold mt-1.5 ${currentStep >= 2 ? 'text-blue-700' : 'text-slate-400'}`}>
                 2. Download
               </span>
-              <span className="text-[10px] text-slate-400">Direct APK</span>
+              <span className="text-[10px] text-slate-400">{currentStep >= 2 ? 'Unlocked' : 'Locked'}</span>
             </div>
 
             {/* Step 3 */}
@@ -296,65 +296,100 @@ export default function DownloadPage() {
             </div>
           </div>
 
-          {/* Quick Direct Download Button (Always accessible) */}
-          <div className="pt-5 pb-2">
-            <a
-              href={directUrl}
-              download={`geospatial-works-${activeVersion}.apk`}
-              onClick={() => setDownloadStarted(true)}
-              className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-base font-extrabold flex items-center justify-center gap-3 transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.98] text-center"
-            >
-              <Download size={22} className="stroke-[2.5]" />
-              <span>Direct Download APK ({activeSize})</span>
-            </a>
-            <p className="text-center text-[11px] text-slate-400 mt-2">
-              Tap above to download directly to your mobile device (Samsung, Xiaomi, Pixel, etc.)
-            </p>
-          </div>
-
-          {downloadStarted && (
-            <div className="mt-3 p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2.5 text-xs text-blue-900 font-medium">
-              <CheckCircle2 size={18} className="text-blue-600 shrink-0" />
-              <span>APK download initiated! Check your browser's Downloads or notification bar.</span>
-            </div>
-          )}
-
-          {/* AUTHENTICATION GATE / DETAILS */}
+          {/* MANDATORY AUTHENTICATION GATE */}
           {currentUser ? (
-            /* Logged In View */
-            <div className="pt-4 space-y-4">
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3 text-xs text-slate-900">
-                <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-xs">
+            /* STEP 2 & 3: UNLOCKED FOR SIGNED IN USERS ONLY */
+            <div className="pt-5 space-y-4">
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 text-xs text-emerald-950">
+                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                   <UserCheck size={18} />
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm truncate">{currentUser.full_name || currentUser.email}</p>
                   <p className="text-[11px] text-emerald-700 font-semibold uppercase tracking-wider">
-                    {currentUser.role === 'admin' || currentUser.role === 'main_admin' ? 'Administrator Account' : 'Employee Account'} • Ready to Use
+                    {currentUser.role === 'admin' || currentUser.role === 'main_admin' ? 'Administrator Verified' : 'Account Verified'} • Download Unlocked
                   </p>
                 </div>
               </div>
 
+              {downloadStarted && (
+                <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2.5 text-xs text-blue-900 font-medium">
+                  <CheckCircle2 size={18} className="text-blue-600 shrink-0" />
+                  <span>APK package download is active! Check your notification panel or Downloads.</span>
+                </div>
+              )}
+
+              {/* DIRECT APK DOWNLOAD BUTTON */}
+              <a
+                href={directUrl}
+                download={`geospatial-works-${activeVersion}.apk`}
+                onClick={() => setDownloadStarted(true)}
+                className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-base font-extrabold flex items-center justify-center gap-3 transition-all shadow-lg shadow-slate-900/20 active:scale-[0.98] text-center"
+              >
+                <Download size={22} className="stroke-[2.5]" />
+                <span>Download APK ({activeSize})</span>
+              </a>
+
+              {/* INSTALLATION STEPS */}
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
                 <p className="font-bold text-slate-800">Quick Installation Steps:</p>
-                <p>1. Tap the green <strong>Direct Download APK</strong> button above.</p>
-                <p>2. Open your notification panel or Downloads folder and tap the downloaded APK.</p>
+                <p>1. Tap the <strong>Download APK</strong> button above.</p>
+                <p>2. Open your notification panel or Downloads folder and tap the file.</p>
                 <p>3. Allow installation from your browser if prompted, then open the app.</p>
                 <p>4. Sign in with your work email and password.</p>
               </div>
+
+              {/* Version History */}
+              {allReleases.length > 0 && (
+                <div className="pt-3 border-t border-slate-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Version History</span>
+                    <span className="text-[10px] text-slate-400">{allReleases.length} releases</span>
+                  </div>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {allReleases.map((r) => (
+                      <div
+                        key={r.id || r.versionName}
+                        className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 bg-white text-xs hover:border-slate-300 transition-colors"
+                      >
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-slate-900 font-mono">{r.versionName}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">#{r.buildNumber}</span>
+                            {r.isLatest && (
+                              <span className="text-[9px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
+                                Latest
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{r.releaseNotes || 'Update'}</p>
+                        </div>
+                        <a
+                          href={r.downloadUrl && r.downloadUrl.startsWith('http') ? r.downloadUrl : BACKEND_DIRECT_DOWNLOAD}
+                          download={`geospatial-works-${r.versionName}.apk`}
+                          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-semibold transition-colors"
+                        >
+                          <Download size={12} />
+                          <span>{formatSize(r.fileSizeBytes)}</span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
-            /* Sign In Step */
-            <div className="pt-4 space-y-4">
-              <div className="border-t border-slate-100 pt-4">
+            /* STEP 1: MANDATORY SIGN IN — NO DOWNLOAD ACCESS WITHOUT SIGNING IN */
+            <div className="pt-5 space-y-4">
+              <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Sparkles size={14} className="text-slate-700" />
+                  <ShieldCheck size={16} className="text-slate-800" />
                   <h2 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-                    Optional: Sign in to Verify Your Account
+                    Step 1: Sign in to Access Download
                   </h2>
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Sign in with your enterprise credentials to confirm profile activation before opening the app.
+                  Authentication is required. Sign in with your work or administrator account to download the official mobile app.
                 </p>
               </div>
 
@@ -374,7 +409,7 @@ export default function DownloadPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSignIn} className="space-y-3">
+              <form onSubmit={handleSignIn} className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
                   <div className="relative flex items-center">
@@ -384,8 +419,8 @@ export default function DownloadPage() {
                       required
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setAuthError(null); }}
-                      placeholder="admin@gw.com or employee@company.com"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                      placeholder="name@company.com"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
                     />
                   </div>
                 </div>
@@ -400,7 +435,7 @@ export default function DownloadPage() {
                       value={password}
                       onChange={(e) => { setPassword(e.target.value); setAuthError(null); }}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
                     />
                   </div>
                 </div>
@@ -408,54 +443,15 @@ export default function DownloadPage() {
                 <button
                   type="submit"
                   disabled={loadingAuth}
-                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 transition-all shadow-md shadow-slate-900/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
+                  className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 transition-all shadow-md shadow-slate-900/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
                 >
-                  <span>{loadingAuth ? 'Verifying Account…' : 'Sign In & Auto-Download'}</span>
+                  <span>{loadingAuth ? 'Verifying Account…' : 'Sign In & Download App'}</span>
                   <ArrowRight size={16} className="stroke-[2.5]" />
                 </button>
               </form>
 
-              <div className="pt-1 text-center border-t border-slate-100 text-xs text-slate-500">
-                New employee? Contact your supervisor or administrator to set up your account.
-              </div>
-            </div>
-          )}
-
-          {/* Version History & Past Builds */}
-          {allReleases.length > 0 && (
-            <div className="pt-5 mt-5 border-t border-slate-100">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Version History</span>
-                <span className="text-[10px] text-slate-400">{allReleases.length} releases</span>
-              </div>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                {allReleases.map((r) => (
-                  <div
-                    key={r.id || r.versionName}
-                    className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 bg-white text-xs hover:border-slate-300 transition-colors"
-                  >
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-slate-900 font-mono">{r.versionName}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">#{r.buildNumber}</span>
-                        {r.isLatest && (
-                          <span className="text-[9px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
-                            Latest
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{r.releaseNotes || 'Update'}</p>
-                    </div>
-                    <a
-                      href={r.downloadUrl && r.downloadUrl.startsWith('http') ? r.downloadUrl : BACKEND_DIRECT_DOWNLOAD}
-                      download={`geospatial-works-${r.versionName}.apk`}
-                      className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-semibold transition-colors"
-                    >
-                      <Download size={12} />
-                      <span>{formatSize(r.fileSizeBytes)}</span>
-                    </a>
-                  </div>
-                ))}
+              <div className="pt-2 text-center border-t border-slate-100 text-xs text-slate-500">
+                Need an account? Contact your supervisor or administrator.
               </div>
             </div>
           )}
