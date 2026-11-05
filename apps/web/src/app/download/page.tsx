@@ -6,22 +6,29 @@ import { ApiClient } from '@/lib/api';
 import { 
   Download, 
   Smartphone, 
-  ArrowRight,
-  Lock,
-  Mail,
-  UserCheck,
-  AlertCircle,
-  LogOut,
-  CheckCircle2,
-  KeyRound,
-  DownloadCloud,
-  CheckCheck
+  ArrowRight, 
+  Lock, 
+  Mail, 
+  UserCheck, 
+  AlertCircle, 
+  LogOut, 
+  CheckCircle2, 
+  KeyRound, 
+  DownloadCloud, 
+  CheckCheck,
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
 
 interface ReleaseInfo {
+  id?: string;
   versionName: string;
   buildNumber: number;
+  downloadUrl?: string;
   fileSizeBytes?: number;
+  releaseNotes?: string;
+  createdAt?: string;
+  isLatest?: boolean;
 }
 
 interface CurrentUser {
@@ -32,12 +39,14 @@ interface CurrentUser {
   is_active?: boolean;
 }
 
+const BACKEND_DIRECT_DOWNLOAD = 'https://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io/api/v1/app-releases/download-latest';
+const BACKEND_DIRECT_LATEST = 'https://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io/api/v1/app-releases/latest';
+const BACKEND_DIRECT_RELEASES = 'https://ihhxbfmr3be3hilklfuvhwyg.203.96.190.78.sslip.io/api/v1/app-releases';
+
 export default function DownloadPage() {
-  const [release, setRelease] = useState<ReleaseInfo>({
-    versionName: 'v1.0.0',
-    buildNumber: 1,
-    fileSizeBytes: 28500000,
-  });
+  const [release, setRelease] = useState<ReleaseInfo | null>(null);
+  const [loadingRelease, setLoadingRelease] = useState(true);
+  const [allReleases, setAllReleases] = useState<ReleaseInfo[]>([]);
 
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [email, setEmail] = useState('');
@@ -47,17 +56,74 @@ export default function DownloadPage() {
   const [isPendingApproval, setIsPendingApproval] = useState(false);
   const [downloadStarted, setDownloadStarted] = useState(false);
 
-  const triggerDownload = () => {
-    setDownloadStarted(true);
-    const link = document.createElement('a');
-    link.href = '/api/v1/app-releases/download-latest';
-    link.download = 'geospatial-works.apk';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const getDirectDownloadUrl = (targetRelease?: ReleaseInfo | null): string => {
+    const rel = targetRelease || release;
+    if (rel?.downloadUrl && rel.downloadUrl.startsWith('http')) {
+      return rel.downloadUrl;
+    }
+    return BACKEND_DIRECT_DOWNLOAD;
   };
 
-  const [allReleases, setAllReleases] = useState<any[]>([]);
+  const triggerDownload = (targetRelease?: ReleaseInfo | null) => {
+    setDownloadStarted(true);
+    const url = getDirectDownloadUrl(targetRelease);
+    window.location.assign(url);
+  };
+
+  const fetchReleases = async () => {
+    setLoadingRelease(true);
+    let latestData: ReleaseInfo | null = null;
+
+    try {
+      const data = await ApiClient.getLatestAppRelease();
+      if (data && data.versionName) {
+        latestData = data;
+      }
+    } catch {
+      // fallback
+    }
+
+    if (!latestData) {
+      try {
+        const res = await fetch(BACKEND_DIRECT_LATEST);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.versionName) {
+            latestData = data;
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching latest release directly:', e);
+      }
+    }
+
+    if (latestData) {
+      setRelease(latestData);
+    }
+    setLoadingRelease(false);
+
+    try {
+      const history = await ApiClient.getAppReleases();
+      if (Array.isArray(history) && history.length > 0) {
+        setAllReleases(history);
+        return;
+      }
+    } catch {
+      // fallback
+    }
+
+    try {
+      const res = await fetch(BACKEND_DIRECT_RELEASES);
+      if (res.ok) {
+        const history = await res.json();
+        if (Array.isArray(history) && history.length > 0) {
+          setAllReleases(history);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     const token = ApiClient.getToken();
@@ -71,23 +137,8 @@ export default function DownloadPage() {
       }
     }
 
-    ApiClient.getLatestAppRelease()
-      .then((data) => {
-        if (data && data.versionName) {
-          setRelease(data);
-        }
-      })
-      .catch(() => {});
-
-    ApiClient.getAppReleases()
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setAllReleases(data);
-        }
-      })
-      .catch(() => {});
+    fetchReleases();
   }, []);
-
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,10 +156,9 @@ export default function DownloadPage() {
           localStorage.setItem('gw_user', JSON.stringify(res.user));
           setCurrentUser(res.user);
         }
-        // Auto-trigger direct APK download upon successful sign-in
         setTimeout(() => {
           triggerDownload();
-        }, 300);
+        }, 200);
       } else {
         throw new Error('Authentication failed: no token returned.');
       }
@@ -132,12 +182,14 @@ export default function DownloadPage() {
   };
 
   const formatSize = (bytes?: number) => {
-    if (!bytes) return '28.5 MB';
+    if (!bytes || bytes <= 0) return '72.0 MB';
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  // Step indicator state
   const currentStep = currentUser ? (downloadStarted ? 3 : 2) : 1;
+  const activeVersion = release?.versionName || 'v1.0.8';
+  const activeSize = formatSize(release?.fileSizeBytes);
+  const directUrl = getDirectDownloadUrl();
 
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col justify-between selection:bg-slate-900 selection:text-white">
@@ -179,7 +231,7 @@ export default function DownloadPage() {
                 {currentUser ? <CheckCheck size={18} /> : <KeyRound size={18} />}
               </div>
               <span className="text-[11px] font-bold mt-1.5 text-slate-800">1. Sign In</span>
-              <span className="text-[10px] text-slate-400">Work & Admin Login</span>
+              <span className="text-[10px] text-slate-400">{currentUser ? 'Verified' : 'Work & Admin'}</span>
             </div>
 
             {/* Step 2 */}
@@ -209,7 +261,7 @@ export default function DownloadPage() {
               <span className={`text-[11px] font-bold mt-1.5 ${currentStep >= 3 ? 'text-emerald-700' : 'text-slate-400'}`}>
                 3. Install
               </span>
-              <span className="text-[10px] text-slate-400">Start Working</span>
+              <span className="text-[10px] text-slate-400">Android Device</span>
             </div>
           </div>
         </div>
@@ -224,100 +276,77 @@ export default function DownloadPage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between">
                 <h1 className="text-lg font-extrabold text-slate-900 truncate">GW Mobile App</h1>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                  {release.versionName}
+                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80 inline-flex items-center gap-1">
+                  {loadingRelease && <RefreshCw size={10} className="animate-spin" />}
+                  {activeVersion}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">Android Package • {formatSize(release.fileSizeBytes)}</p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Android Package • {activeSize}
+                {release?.buildNumber ? ` • Build #${release.buildNumber}` : ''}
+              </p>
             </div>
           </div>
 
-          {/* AUTHENTICATION GATE */}
+          {/* Quick Direct Download Button (Always accessible) */}
+          <div className="pt-5 pb-2">
+            <a
+              href={directUrl}
+              download={`geospatial-works-${activeVersion}.apk`}
+              onClick={() => setDownloadStarted(true)}
+              className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-base font-extrabold flex items-center justify-center gap-3 transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.98] text-center"
+            >
+              <Download size={22} className="stroke-[2.5]" />
+              <span>Direct Download APK ({activeSize})</span>
+            </a>
+            <p className="text-center text-[11px] text-slate-400 mt-2">
+              Tap above to download directly to your mobile device (Samsung, Xiaomi, Pixel, etc.)
+            </p>
+          </div>
+
+          {downloadStarted && (
+            <div className="mt-3 p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2.5 text-xs text-blue-900 font-medium">
+              <CheckCircle2 size={18} className="text-blue-600 shrink-0" />
+              <span>APK download initiated! Check your browser's Downloads or notification bar.</span>
+            </div>
+          )}
+
+          {/* AUTHENTICATION GATE / DETAILS */}
           {currentUser ? (
-            /* Logged In View - FAT BUTTONS */
-            <div className="pt-6 space-y-4">
-              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 text-xs text-emerald-950">
-                <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            /* Logged In View */
+            <div className="pt-4 space-y-4">
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3 text-xs text-slate-900">
+                <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-xs">
                   <UserCheck size={18} />
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm truncate">{currentUser.full_name || currentUser.email}</p>
                   <p className="text-[11px] text-emerald-700 font-semibold uppercase tracking-wider">
-                    {currentUser.role === 'admin' || currentUser.role === 'main_admin' ? 'Administrator Verified' : 'Account Verified'} • Ready to Download
+                    {currentUser.role === 'admin' || currentUser.role === 'main_admin' ? 'Administrator Account' : 'Employee Account'} • Ready to Use
                   </p>
                 </div>
               </div>
 
-              {downloadStarted && (
-                <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2.5 text-xs text-blue-900 font-medium">
-                  <CheckCircle2 size={18} className="text-blue-600 shrink-0" />
-                  <span>APK package download is active! Check your browser downloads.</span>
-                </div>
-              )}
-
-              {/* FAT DOWNLOAD BUTTON */}
-              <button
-                onClick={triggerDownload}
-                className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-base font-extrabold flex items-center justify-center gap-3 transition-all shadow-lg shadow-slate-900/20 active:scale-[0.98]"
-              >
-                <Download size={22} className="stroke-[2.5]" />
-                <span>Download APK ({formatSize(release.fileSizeBytes)})</span>
-              </button>
-
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
                 <p className="font-bold text-slate-800">Quick Installation Steps:</p>
-                <p>1. Tap the button above to download the APK file.</p>
-                <p>2. Open your notification panel or Downloads folder and tap the file.</p>
-                <p>3. Allow installation from browser if prompted, then open the app.</p>
+                <p>1. Tap the green <strong>Direct Download APK</strong> button above.</p>
+                <p>2. Open your notification panel or Downloads folder and tap the downloaded APK.</p>
+                <p>3. Allow installation from your browser if prompted, then open the app.</p>
+                <p>4. Sign in with your work email and password.</p>
               </div>
-
-              {/* Version History & Past Builds */}
-              {allReleases.length > 0 && (
-                <div className="pt-2 border-t border-slate-100">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Version History</span>
-                    <span className="text-[10px] text-slate-400">{allReleases.length} available</span>
-                  </div>
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                    {allReleases.map((r) => (
-                      <div
-                        key={r.id}
-                        className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 bg-white text-xs hover:border-slate-300 transition-colors"
-                      >
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-slate-900 font-mono">{r.versionName}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">#{r.buildNumber}</span>
-                            {r.isLatest && (
-                              <span className="text-[9px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
-                                Latest
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{r.releaseNotes || 'Update'}</p>
-                        </div>
-                        <a
-                          href={r.downloadUrl && r.downloadUrl.startsWith('http') ? r.downloadUrl : (r.id === 'default' ? '/api/v1/app-releases/download-latest' : `/api/v1/app-releases/${r.id}/download`)}
-                          download={`geospatial-works-${r.versionName}.apk`}
-                          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-semibold transition-colors"
-                        >
-                          <Download size={12} />
-                          <span>{formatSize(r.fileSizeBytes)}</span>
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
-
           ) : (
-            /* Sign In Step - FAT BUTTONS */
-            <div className="pt-6 space-y-5">
-              <div>
-                <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Step 1: Sign in with Work or Admin Account</h2>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Enter your employee or administrator credentials below to unlock the direct APK package download.
+            /* Sign In Step */
+            <div className="pt-4 space-y-4">
+              <div className="border-t border-slate-100 pt-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <Sparkles size={14} className="text-slate-700" />
+                  <h2 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+                    Optional: Sign in to Verify Your Account
+                  </h2>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Sign in with your enterprise credentials to confirm profile activation before opening the app.
                 </p>
               </div>
 
@@ -337,9 +366,9 @@ export default function DownloadPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSignIn} className="space-y-4">
+              <form onSubmit={handleSignIn} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Email Address</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
                   <div className="relative flex items-center">
                     <Mail size={16} className="absolute left-3.5 text-slate-400" />
                     <input
@@ -348,13 +377,13 @@ export default function DownloadPage() {
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setAuthError(null); }}
                       placeholder="admin@gw.com or employee@company.com"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
                   <div className="relative flex items-center">
                     <Lock size={16} className="absolute left-3.5 text-slate-400" />
                     <input
@@ -363,27 +392,62 @@ export default function DownloadPage() {
                       value={password}
                       onChange={(e) => { setPassword(e.target.value); setAuthError(null); }}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                      className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
                     />
                   </div>
                 </div>
 
-                {/* FAT SIGN IN BUTTON */}
                 <button
                   type="submit"
                   disabled={loadingAuth}
-                  className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-sm font-extrabold flex items-center justify-center gap-2 transition-all shadow-lg shadow-slate-900/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
+                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 transition-all shadow-md shadow-slate-900/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
                 >
-                  <span>{loadingAuth ? 'Verifying Account…' : 'Sign In & Start Download'}</span>
-                  <ArrowRight size={18} className="stroke-[2.5]" />
+                  <span>{loadingAuth ? 'Verifying Account…' : 'Sign In & Auto-Download'}</span>
+                  <ArrowRight size={16} className="stroke-[2.5]" />
                 </button>
               </form>
 
-              <div className="pt-2 text-center border-t border-slate-100 text-xs text-slate-500">
-                New employee?{' '}
-                <Link href="/register" className="font-bold text-slate-900 hover:underline">
-                  Create an account
-                </Link>
+              <div className="pt-1 text-center border-t border-slate-100 text-xs text-slate-500">
+                New employee? Contact your supervisor or administrator to set up your account.
+              </div>
+            </div>
+          )}
+
+          {/* Version History & Past Builds */}
+          {allReleases.length > 0 && (
+            <div className="pt-5 mt-5 border-t border-slate-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Version History</span>
+                <span className="text-[10px] text-slate-400">{allReleases.length} releases</span>
+              </div>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {allReleases.map((r) => (
+                  <div
+                    key={r.id || r.versionName}
+                    className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 bg-white text-xs hover:border-slate-300 transition-colors"
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-slate-900 font-mono">{r.versionName}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">#{r.buildNumber}</span>
+                        {r.isLatest && (
+                          <span className="text-[9px] font-semibold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">
+                            Latest
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">{r.releaseNotes || 'Update'}</p>
+                    </div>
+                    <a
+                      href={r.downloadUrl && r.downloadUrl.startsWith('http') ? r.downloadUrl : BACKEND_DIRECT_DOWNLOAD}
+                      download={`geospatial-works-${r.versionName}.apk`}
+                      className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-semibold transition-colors"
+                    >
+                      <Download size={12} />
+                      <span>{formatSize(r.fileSizeBytes)}</span>
+                    </a>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -397,5 +461,3 @@ export default function DownloadPage() {
     </div>
   );
 }
-
-

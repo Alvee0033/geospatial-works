@@ -43,7 +43,15 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
       method: req.method,
       headers,
       body,
+      redirect: 'manual',
     });
+
+    if (backendRes.status === 301 || backendRes.status === 302 || backendRes.status === 307 || backendRes.status === 308) {
+      const location = backendRes.headers.get('location');
+      if (location) {
+        return NextResponse.redirect(new URL(location, req.url), backendRes.status);
+      }
+    }
 
     const contentType = backendRes.headers.get('content-type') || 'application/json';
     const isBinary = contentType.includes('application/vnd.android.package-archive') ||
