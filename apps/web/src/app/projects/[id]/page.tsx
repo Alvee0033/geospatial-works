@@ -30,6 +30,11 @@ import {
   CheckSquare,
   MessageSquare,
   ChevronRight,
+  Eye,
+  Search,
+  Filter,
+  X,
+  ExternalLink,
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
@@ -44,6 +49,12 @@ function ProjectDetailContent() {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'budget' | 'team' | 'expenses' | 'revenue' | 'tasks'>('overview');
+
+  // Expense filters & inspect modal
+  const [expenseSearch, setExpenseSearch] = useState('');
+  const [expenseCategoryFilter, setExpenseCategoryFilter] = useState('all');
+  const [expenseStatusFilter, setExpenseStatusFilter] = useState('all');
+  const [inspectExpense, setInspectExpense] = useState<any | null>(null);
 
   // Modals
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -149,8 +160,14 @@ function ProjectDetailContent() {
   // Financial calculations
   const grossValue = Number(project.grossProjectValue || project.gross_project_value || 0);
   const agreedBudget = Number(project.budget || 0);
-  const advanceReceived = Number(project.advanceReceived || project.advance_received || 0);
-  const amountReceived = Number(project.amountReceived || project.amount_received || advanceReceived);
+  const advanceReceived = Number(
+    project.advanceReceived ?? project.advance_received ?? project.amountReceived ?? project.amount_received ?? 0
+  );
+  
+  // Calculate total revenue received: sum of all recorded revenue entries, or fallback to advance received
+  const revenueEntries: any[] = project.revenueEntries || project.revenue_entries || [];
+  const totalRevenuesRecorded = revenueEntries.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+  const amountReceived = totalRevenuesRecorded > 0 ? totalRevenuesRecorded : advanceReceived;
   const receivable = Math.max(0, grossValue - amountReceived);
 
   // Expense calculations
@@ -180,13 +197,20 @@ function ProjectDetailContent() {
 
   // Category Budgets vs Actual
   const rawCatBudgets: Record<string, number> = project.categoryBudgets || project.category_budgets || {};
-  const standardCategoryKeys = ['equipment', 'transportation', 'food', 'accommodation', 'officecost', 'officebenefit'];
   
-  // Clean meta keys
+  // Clean meta keys and ensure categories with expenses are also represented
   const categoryBudgets: Record<string, number> = {};
   Object.entries(rawCatBudgets).forEach(([k, v]) => {
     if (!k.startsWith('_meta_')) {
       categoryBudgets[k] = Number(v) || 0;
+    }
+  });
+
+  // Also include any category present in projectExpenses that might not have a cap set
+  projectExpenses.forEach((e) => {
+    const cat = (e.categoryName || e.category_name || e.category || '').toLowerCase().trim();
+    if (cat && categoryBudgets[cat] === undefined) {
+      categoryBudgets[cat] = 0;
     }
   });
 
@@ -757,7 +781,9 @@ function ProjectDetailContent() {
                 {Object.entries(categoryBudgets).map(([category, allocated]) => {
                   const spent = getSpentByCategory(category);
                   const remaining = Math.max(0, allocated - spent);
-                  const burnPct = allocated > 0 ? (spent / allocated) * 100 : 0;
+                  const hasCap = allocated > 0;
+                  const isOverCap = hasCap ? spent > allocated : spent > 0;
+                  const burnPct = hasCap ? (spent / allocated) * 100 : (spent > 0 ? 100 : 0);
                   const colors = getCategoryColor(category);
 
                   return (
@@ -769,10 +795,14 @@ function ProjectDetailContent() {
                         <span className={`text-[9px] font-black uppercase tracking-wider capitalize ${colors.text}`}>
                           {category}
                         </span>
-                        <span className={`text-[8px] font-bold px-1 py-0.5 rounded-full ${
-                          burnPct > 100 ? 'bg-rose-100 text-rose-700' : 'bg-white/80 text-slate-700'
+                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
+                          isOverCap
+                            ? 'bg-rose-100 text-rose-700 font-extrabold'
+                            : burnPct >= 90
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-white/80 text-slate-700'
                         }`}>
-                          {burnPct.toFixed(0)}%
+                          {!hasCap && spent > 0 ? 'No Cap (Active)' : `${burnPct.toFixed(0)}%`}
                         </span>
                       </div>
 
@@ -781,7 +811,7 @@ function ProjectDetailContent() {
                           Spent <span className="font-black text-slate-900 font-mono">৳{spent.toLocaleString()}</span>
                         </span>
                         <span className="text-slate-400">
-                          Cap <span className="font-bold text-slate-700 font-mono">৳{allocated.toLocaleString()}</span>
+                          Cap <span className="font-bold text-slate-700 font-mono">{hasCap ? `৳${allocated.toLocaleString()}` : 'None'}</span>
                         </span>
                       </div>
 
@@ -789,12 +819,14 @@ function ProjectDetailContent() {
                         <div className="w-full bg-slate-200/80 h-1.5 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all duration-500 ${
-                              burnPct > 100 ? 'bg-rose-600' : colors.bar
+                              isOverCap ? 'bg-rose-500' : colors.bar
                             }`}
-                            style={{ width: `${Math.min(100, burnPct)}%` }}
+                            style={{ width: `${Math.min(100, Math.max(spent > 0 ? 8 : 0, burnPct))}%` }}
                           />
                         </div>
-                        <span className="shrink-0 text-[8px] font-medium text-slate-400">Rem ৳{remaining.toLocaleString()}</span>
+                        <span className="shrink-0 text-[8px] font-medium text-slate-400">
+                          {hasCap ? `Rem ৳${remaining.toLocaleString()}` : (spent > 0 ? `৳${spent.toLocaleString()} spent` : 'Rem ৳0')}
+                        </span>
                       </div>
                     </div>
                   );
@@ -857,79 +889,177 @@ function ProjectDetailContent() {
         )}
 
         {/* TAB 4: Project Claims & Expenses */}
-        {activeTab === 'expenses' && (
-          <div className="bg-white border border-[#EAEBEF] rounded-3xl p-6 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Project Field Expenditures</h3>
-                <p className="text-xs text-slate-400">Verified voucher claims attributed directly to this cost code</p>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Claims Count</span>
-                <p className="text-sm font-bold text-slate-900">{projectExpenses.length} Records</p>
-              </div>
-            </div>
+        {activeTab === 'expenses' && (() => {
+          // Available categories for filter dropdown
+          const availableCategories = Array.from(
+            new Set(projectExpenses.map((e) => e.categoryName || e.category_name || e.category || 'General'))
+          );
 
-            {projectExpenses.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 text-xs">
-                No expense claims logged under this project code yet.
+          // Apply filters
+          const filteredExpenses = projectExpenses.filter((e) => {
+            const matchesSearch =
+              !expenseSearch.trim() ||
+              (e.employeeName || e.employee_name || '').toLowerCase().includes(expenseSearch.toLowerCase()) ||
+              (e.note || e.description || '').toLowerCase().includes(expenseSearch.toLowerCase()) ||
+              String(e.amount || '').includes(expenseSearch);
+
+            const cat = (e.categoryName || e.category_name || e.category || 'General').toLowerCase();
+            const matchesCategory =
+              expenseCategoryFilter === 'all' || cat === expenseCategoryFilter.toLowerCase();
+
+            const status = (e.status || 'pending').toLowerCase();
+            const matchesStatus =
+              expenseStatusFilter === 'all' || status === expenseStatusFilter.toLowerCase();
+
+            return matchesSearch && matchesCategory && matchesStatus;
+          });
+
+          return (
+            <div className="bg-white border border-[#EAEBEF] rounded-3xl p-6 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Project Field Expenditures</h3>
+                  <p className="text-xs text-slate-400">Verified voucher claims attributed directly to this cost code</p>
+                </div>
+                <div className="flex items-center gap-4 text-right">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Filtered Sum</span>
+                    <p className="text-sm font-black text-emerald-600 font-mono">
+                      ৳{filteredExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="h-8 w-px bg-slate-200" />
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Claims Count</span>
+                    <p className="text-sm font-bold text-slate-900">{filteredExpenses.length} / {projectExpenses.length}</p>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50/80 border-b border-slate-100 text-slate-400 uppercase tracking-wider font-semibold">
-                    <tr>
-                      <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Claimant</th>
-                      <th className="py-3 px-4">Category</th>
-                      <th className="py-3 px-4">Description</th>
-                      <th className="py-3 px-4 text-right">Amount (৳)</th>
-                      <th className="py-3 px-4 text-center">Receipt</th>
-                      <th className="py-3 px-4 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {projectExpenses.map((exp) => (
-                      <tr key={exp.id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="py-3.5 px-4 font-mono text-slate-600">
-                          {exp.date ? new Date(exp.date).toLocaleDateString() : 'N/A'}
-                        </td>
-                        <td className="py-3.5 px-4 font-bold text-slate-900">
-                          {exp.employeeName || exp.employee_name || 'Staff'}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold text-[11px] capitalize">
-                            {exp.categoryName || exp.category_name || exp.category || 'Expense'}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate">
-                          {exp.note || exp.description || '—'}
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-black font-mono text-slate-900">
-                          ৳{(Number(exp.amount) || 0).toLocaleString()}
-                        </td>
-                        <td className="py-3.5 px-4 text-center">
-                          {exp.receiptPhotoUrl || exp.receipt_photo_url || exp.receiptUrl || exp.receipt_url ? (
-                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                              Attached
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                              Missing
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4 text-center">
-                          <StatusBadge status={exp.status} />
-                        </td>
-                      </tr>
+
+              {/* Filters & Search Toolbar */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={expenseSearch}
+                    onChange={(e) => setExpenseSearch(e.target.value)}
+                    placeholder="Search claimant, description, amount..."
+                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-400"
+                  />
+                  {expenseSearch && (
+                    <button
+                      onClick={() => setExpenseSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Filter size={14} className="text-slate-400" />
+                  <select
+                    value={expenseCategoryFilter}
+                    onChange={(e) => setExpenseCategoryFilter(e.target.value)}
+                    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 capitalize focus:outline-none focus:border-indigo-400"
+                  >
+                    <option value="all">All Categories</option>
+                    {availableCategories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
                     ))}
-                  </tbody>
-                </table>
+                  </select>
+
+                  <select
+                    value={expenseStatusFilter}
+                    onChange={(e) => setExpenseStatusFilter(e.target.value)}
+                    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 capitalize focus:outline-none focus:border-indigo-400"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="paid">Paid</option>
+                  </select>
+                </div>
               </div>
-            )}
-          </div>
-        )}
+
+              {filteredExpenses.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 text-xs">
+                  {projectExpenses.length === 0
+                    ? 'No expense claims logged under this project code yet.'
+                    : 'No expenses match the selected filters.'}
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50/80 border-b border-slate-100 text-slate-400 uppercase tracking-wider font-semibold">
+                      <tr>
+                        <th className="py-3 px-4">Date</th>
+                        <th className="py-3 px-4">Claimant</th>
+                        <th className="py-3 px-4">Category</th>
+                        <th className="py-3 px-4">Description</th>
+                        <th className="py-3 px-4 text-right">Amount (৳)</th>
+                        <th className="py-3 px-4 text-center">Receipt</th>
+                        <th className="py-3 px-4 text-center">Status</th>
+                        <th className="py-3 px-4 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredExpenses.map((exp) => (
+                        <tr key={exp.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="py-3.5 px-4 font-mono text-slate-600">
+                            {exp.date ? new Date(exp.date).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="py-3.5 px-4 font-bold text-slate-900">
+                            {exp.employeeName || exp.employee_name || 'Staff'}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold text-[11px] capitalize">
+                              {exp.categoryName || exp.category_name || exp.category || 'Expense'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate">
+                            {exp.note || exp.description || '—'}
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-black font-mono text-slate-900">
+                            ৳{(Number(exp.amount) || 0).toLocaleString()}
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            {exp.receiptPhotoUrl || exp.receipt_photo_url || exp.receiptUrl || exp.receipt_url ? (
+                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                Attached
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                                Missing
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <StatusBadge status={exp.status} />
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <button
+                              onClick={() => setInspectExpense(exp)}
+                              title="View Expense Details & Voucher"
+                              className="p-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-slate-600 transition-colors inline-flex items-center justify-center gap-1 font-bold text-[11px]"
+                            >
+                              <Eye size={14} />
+                              <span className="hidden sm:inline">Details</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* TAB 5: Revenue & Milestones */}
         {activeTab === 'revenue' && (
@@ -1408,6 +1538,152 @@ function ProjectDetailContent() {
                   className="px-6 py-2 bg-[#0D1117] text-white rounded-full text-xs font-bold hover:bg-slate-800 disabled:opacity-50"
                 >
                   {submitting ? 'Updating...' : project.isClosed || project.is_closed ? 'Reopen Project' : 'Confirm Close'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Expense Claim Inspection Details Modal */}
+        {inspectExpense && (
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-3xl p-6 max-w-lg w-full border border-slate-200 shadow-xl max-h-[90vh] overflow-y-auto space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <Receipt size={18} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">Voucher Claim Inspection</h4>
+                    <p className="text-[11px] text-slate-400 font-mono">
+                      Ref #{String(inspectExpense.id || '').slice(0, 8)} •{' '}
+                      {inspectExpense.date ? new Date(inspectExpense.date).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setInspectExpense(null)}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5 p-3 bg-slate-50/80 rounded-2xl border border-slate-100 text-xs">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                    Claimant Personnel
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {inspectExpense.employeeName || inspectExpense.employee_name || 'Staff Member'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                    Category Cap Tag
+                  </span>
+                  <span className="font-semibold text-slate-800 capitalize">
+                    {inspectExpense.categoryName || inspectExpense.category_name || inspectExpense.category || 'General'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                    Claim Status
+                  </span>
+                  <StatusBadge status={inspectExpense.status} />
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                    Total Voucher Amount
+                  </span>
+                  <span className="font-mono font-black text-emerald-600 text-sm">
+                    ৳{(Number(inspectExpense.amount) || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Justification Note */}
+              <div className="p-3 bg-slate-50/80 rounded-2xl border border-slate-100 text-xs">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  Claim Justification / Description
+                </span>
+                <p className="text-slate-700 leading-relaxed font-medium">
+                  {inspectExpense.note || inspectExpense.description || 'No detailed note was provided with this voucher claim.'}
+                </p>
+              </div>
+
+              {/* Attached Receipt Photo */}
+              {(inspectExpense.receiptPhotoUrl || inspectExpense.receipt_photo_url || inspectExpense.receiptUrl || inspectExpense.receipt_url) ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                    <span className="flex items-center gap-1.5">
+                      <Receipt size={14} className="text-indigo-600" />
+                      Commercial Voucher Photo
+                    </span>
+                    <a
+                      href={inspectExpense.receiptPhotoUrl || inspectExpense.receipt_photo_url || inspectExpense.receiptUrl || inspectExpense.receipt_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-[11px]"
+                    >
+                      <ExternalLink size={12} /> Open Full Size
+                    </a>
+                  </div>
+                  <div className="p-2 bg-slate-100/70 rounded-2xl border border-slate-200 flex justify-center overflow-hidden">
+                    <img
+                      src={inspectExpense.receiptPhotoUrl || inspectExpense.receipt_photo_url || inspectExpense.receiptUrl || inspectExpense.receipt_url}
+                      alt="Expense voucher"
+                      className="max-h-72 w-auto object-contain rounded-xl shadow-xs"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200/60 text-center text-amber-800 text-xs">
+                  <AlertTriangle size={16} className="mx-auto text-amber-500 mb-1" />
+                  No physical or digital receipt photo was attached to this claim.
+                </div>
+              )}
+
+              {/* Audit Comments Thread */}
+              {inspectExpense.comments && inspectExpense.comments.length > 0 && (
+                <div className="space-y-2 text-xs">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Audit Remarks ({inspectExpense.comments.length})
+                  </span>
+                  <div className="space-y-2 max-h-36 overflow-y-auto">
+                    {inspectExpense.comments.map((c: any, idx: number) => (
+                      <div key={idx} className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-2">
+                        <UserAvatar
+                          src={c.avatarUrl || c.userAvatarUrl}
+                          name={c.userName || 'Administrator'}
+                          size="sm"
+                          shape="rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="font-bold text-slate-900 text-xs">{c.userName || 'Admin'}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                            </span>
+                          </div>
+                          <p className="text-slate-700 text-xs">{c.comment || c.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setInspectExpense(null)}
+                  className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-full text-xs transition-colors"
+                >
+                  Close Inspection
                 </button>
               </div>
             </div>
