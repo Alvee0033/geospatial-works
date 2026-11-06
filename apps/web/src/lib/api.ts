@@ -330,6 +330,62 @@ export class ApiClient {
     });
   }
 
+  static async getProjectMembers(id: string) {
+    return this.request<any[]>(`/projects/${id}/members`);
+  }
+
+  static async getMyProjectPermissions(id: string) {
+    return this.request<{
+      isSystemAdmin?: boolean;
+      isCreator?: boolean;
+      isMember?: boolean;
+      roleInProject: string;
+      permissions: {
+        canViewBudget: boolean;
+        canRecordRevenue: boolean;
+        canViewExpenses: boolean;
+        canCreateExpenses: boolean;
+        canApproveExpenses: boolean;
+        canManageTasks: boolean;
+        canUpdateProgress: boolean;
+        canManageTeam: boolean;
+        canEditProject: boolean;
+        canViewAttendance: boolean;
+      };
+    }>(`/projects/${id}/my-permissions`);
+  }
+
+  static async addOrUpdateProjectMember(
+    id: string,
+    data: {
+      userId: string;
+      roleInProject?: string;
+      permissions?: Partial<{
+        canViewBudget: boolean;
+        canRecordRevenue: boolean;
+        canViewExpenses: boolean;
+        canCreateExpenses: boolean;
+        canApproveExpenses: boolean;
+        canManageTasks: boolean;
+        canUpdateProgress: boolean;
+        canManageTeam: boolean;
+        canEditProject: boolean;
+        canViewAttendance: boolean;
+      }>;
+    }
+  ) {
+    return this.request<any[]>(`/projects/${id}/members`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async removeProjectMember(id: string, userId: string) {
+    return this.request<any>(`/projects/${id}/members/${userId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Expenses API
   static async getExpenses(params: Record<string, string> = {}) {
     const qs = new URLSearchParams(params).toString();

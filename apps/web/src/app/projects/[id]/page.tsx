@@ -35,8 +35,95 @@ import {
   Filter,
   X,
   ExternalLink,
+  ShieldCheck,
+  Shield,
+  Sliders,
+  XCircle,
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+
+const ROLE_PRESETS = [
+  {
+    name: 'Site Lead',
+    role: 'Site Lead',
+    perms: {
+      canViewBudget: true,
+      canRecordRevenue: true,
+      canViewExpenses: true,
+      canCreateExpenses: true,
+      canApproveExpenses: true,
+      canManageTasks: true,
+      canUpdateProgress: true,
+      canManageTeam: true,
+      canEditProject: true,
+      canViewAttendance: true,
+    },
+  },
+  {
+    name: 'Field Auditor',
+    role: 'Field Auditor',
+    perms: {
+      canViewBudget: true,
+      canRecordRevenue: false,
+      canViewExpenses: true,
+      canCreateExpenses: false,
+      canApproveExpenses: true,
+      canManageTasks: false,
+      canUpdateProgress: false,
+      canManageTeam: false,
+      canEditProject: false,
+      canViewAttendance: true,
+    },
+  },
+  {
+    name: 'Site Engineer',
+    role: 'Site Engineer',
+    perms: {
+      canViewBudget: false,
+      canRecordRevenue: false,
+      canViewExpenses: true,
+      canCreateExpenses: true,
+      canApproveExpenses: false,
+      canManageTasks: true,
+      canUpdateProgress: true,
+      canManageTeam: false,
+      canEditProject: false,
+      canViewAttendance: true,
+    },
+  },
+  {
+    name: 'Field Crew',
+    role: 'Field Crew',
+    perms: {
+      canViewBudget: false,
+      canRecordRevenue: false,
+      canViewExpenses: true,
+      canCreateExpenses: true,
+      canApproveExpenses: false,
+      canManageTasks: false,
+      canUpdateProgress: false,
+      canManageTeam: false,
+      canEditProject: false,
+      canViewAttendance: true,
+    },
+  },
+  {
+    name: 'Observer',
+    role: 'Observer',
+    perms: {
+      canViewBudget: true,
+      canRecordRevenue: false,
+      canViewExpenses: true,
+      canCreateExpenses: false,
+      canApproveExpenses: false,
+      canManageTasks: false,
+      canUpdateProgress: false,
+      canManageTeam: false,
+      canEditProject: false,
+      canViewAttendance: true,
+    },
+  },
+];
 
 function ProjectDetailContent() {
   const router = useRouter();
@@ -49,6 +136,26 @@ function ProjectDetailContent() {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'budget' | 'team' | 'expenses' | 'revenue' | 'tasks'>('overview');
+
+  // Project Members & Permissions State
+  const [projectMembers, setProjectMembers] = useState<any[]>([]);
+  const [myPermissions, setMyPermissions] = useState<any>(null);
+  const [isMemberAccessModalOpen, setIsMemberAccessModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<any | null>(null);
+  const [targetUserId, setTargetUserId] = useState('');
+  const [customRoleTitle, setCustomRoleTitle] = useState('Site Lead');
+  const [memberPerms, setMemberPerms] = useState({
+    canViewBudget: true,
+    canRecordRevenue: false,
+    canViewExpenses: true,
+    canCreateExpenses: true,
+    canApproveExpenses: false,
+    canManageTasks: false,
+    canUpdateProgress: false,
+    canManageTeam: false,
+    canEditProject: false,
+    canViewAttendance: true,
+  });
 
   // Expense filters & inspect modal
   const [expenseSearch, setExpenseSearch] = useState('');
@@ -101,10 +208,12 @@ function ProjectDetailContent() {
         }
       }
 
-      const [proj, pTasks, users] = await Promise.all([
+      const [proj, pTasks, users, pMembers, myPerms] = await Promise.all([
         ApiClient.getProjectById(projectId).catch(() => null),
         ApiClient.getTasks(projectId).catch(() => []),
         ApiClient.getUsers().catch(() => []),
+        ApiClient.getProjectMembers(projectId).catch(() => []),
+        ApiClient.getMyProjectPermissions(projectId).catch(() => null),
       ]);
 
       if (proj) {
@@ -115,6 +224,8 @@ function ProjectDetailContent() {
       setExpenses(allExp || []);
       setTasks(pTasks || []);
       setAllUsers(users || []);
+      setProjectMembers(pMembers || (proj?.members || []));
+      setMyPermissions(myPerms);
     } catch (e) {
       console.error('Failed to load project details:', e);
     } finally {
@@ -237,9 +348,181 @@ function ProjectDetailContent() {
     return { border: 'border-rose-200', bg: 'bg-rose-50/50', bar: 'bg-rose-500', text: 'text-rose-700' };
   };
 
-  // Team members
+  // Team members calculation & permissions
   const memberIds: string[] = project.teamMemberIds || project.team_member_ids || [];
   const assignedUsers = allUsers.filter((u) => memberIds.includes(u.id));
+
+  // Merged project members list
+  const displayMembers = (projectMembers && projectMembers.length > 0)
+    ? projectMembers.map((m: any) => {
+        const u = m.user || allUsers.find((user) => user.id === (m.userId || m.user_id)) || {};
+        return {
+          id: m.id || m.userId || m.user_id,
+          userId: m.userId || m.user_id,
+          name: u.name || m.fullName || m.full_name || 'Staff Member',
+          email: u.email || m.email || '',
+          avatarUrl: u.avatarUrl || u.avatar_url || m.avatarUrl || m.avatar_url,
+          roleInProject: m.roleInProject || m.role_in_project || 'Member',
+          department: u.department || u.designation || 'Project Personnel',
+          permissions: m.permissions || {
+            canViewBudget: Boolean(m.canViewBudget ?? m.can_view_budget ?? true),
+            canRecordRevenue: Boolean(m.canRecordRevenue ?? m.can_record_revenue ?? false),
+            canViewExpenses: Boolean(m.canViewExpenses ?? m.can_view_expenses ?? true),
+            canCreateExpenses: Boolean(m.canCreateExpenses ?? m.can_create_expenses ?? true),
+            canApproveExpenses: Boolean(m.canApproveExpenses ?? m.can_approve_expenses ?? false),
+            canManageTasks: Boolean(m.canManageTasks ?? m.can_manage_tasks ?? false),
+            canUpdateProgress: Boolean(m.canUpdateProgress ?? m.can_update_progress ?? false),
+            canManageTeam: Boolean(m.canManageTeam ?? m.can_manage_team ?? false),
+            canEditProject: Boolean(m.canEditProject ?? m.can_edit_project ?? false),
+            canViewAttendance: Boolean(m.canViewAttendance ?? m.can_view_attendance ?? true),
+          },
+        };
+      })
+    : assignedUsers.map((u) => ({
+        id: u.id,
+        userId: u.id,
+        name: u.name || 'Staff Member',
+        email: u.email || '',
+        avatarUrl: u.avatarUrl || u.avatar_url,
+        roleInProject: 'Member',
+        department: u.department || u.designation || 'Project Personnel',
+        permissions: {
+          canViewBudget: true,
+          canRecordRevenue: false,
+          canViewExpenses: true,
+          canCreateExpenses: true,
+          canApproveExpenses: false,
+          canManageTasks: false,
+          canUpdateProgress: false,
+          canManageTeam: false,
+          canEditProject: false,
+          canViewAttendance: true,
+        },
+      }));
+
+  // Authorizations
+  const canManageTeam = Boolean(
+    myPermissions?.isSystemAdmin ||
+    myPermissions?.isCreator ||
+    myPermissions?.permissions?.canManageTeam
+  );
+
+  const canApproveClaims = Boolean(
+    myPermissions?.isSystemAdmin ||
+    myPermissions?.isCreator ||
+    myPermissions?.permissions?.canApproveExpenses
+  );
+
+  const openAddMemberModal = () => {
+    setEditingMember(null);
+    const available = allUsers.find((u) => !displayMembers.some((m: any) => m.userId === u.id)) || allUsers[0];
+    setTargetUserId(available?.id || '');
+    setCustomRoleTitle('Site Lead');
+    setMemberPerms({
+      canViewBudget: true,
+      canRecordRevenue: false,
+      canViewExpenses: true,
+      canCreateExpenses: true,
+      canApproveExpenses: false,
+      canManageTasks: false,
+      canUpdateProgress: false,
+      canManageTeam: false,
+      canEditProject: false,
+      canViewAttendance: true,
+    });
+    setIsMemberAccessModalOpen(true);
+  };
+
+  const openEditMemberModal = (member: any) => {
+    setEditingMember(member);
+    setTargetUserId(member.userId);
+    setCustomRoleTitle(member.roleInProject || 'Member');
+    setMemberPerms({
+      canViewBudget: Boolean(member.permissions?.canViewBudget),
+      canRecordRevenue: Boolean(member.permissions?.canRecordRevenue),
+      canViewExpenses: Boolean(member.permissions?.canViewExpenses),
+      canCreateExpenses: Boolean(member.permissions?.canCreateExpenses),
+      canApproveExpenses: Boolean(member.permissions?.canApproveExpenses),
+      canManageTasks: Boolean(member.permissions?.canManageTasks),
+      canUpdateProgress: Boolean(member.permissions?.canUpdateProgress),
+      canManageTeam: Boolean(member.permissions?.canManageTeam),
+      canEditProject: Boolean(member.permissions?.canEditProject),
+      canViewAttendance: Boolean(member.permissions?.canViewAttendance),
+    });
+    setIsMemberAccessModalOpen(true);
+  };
+
+  const handleSaveMemberAccess = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!targetUserId) {
+      alert('Please select an employee.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await ApiClient.addOrUpdateProjectMember(project.id, {
+        userId: targetUserId,
+        roleInProject: customRoleTitle.trim() || 'Member',
+        permissions: memberPerms,
+      });
+      setIsMemberAccessModalOpen(false);
+      setEditingMember(null);
+      await loadProjectData();
+    } catch (err: any) {
+      console.error('Failed to update member access:', err);
+      alert(err.message || 'Failed to save member permissions.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRemoveMember = async (userId: string, userName: string) => {
+    if (!confirm(`Are you sure you want to remove ${userName} from this project?`)) return;
+    setSubmitting(true);
+    try {
+      await ApiClient.removeProjectMember(project.id, userId);
+      await loadProjectData();
+    } catch (err: any) {
+      console.error('Failed to remove member:', err);
+      alert(err.message || 'Failed to remove member.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleApproveExpense = async (expenseId: string, note = 'Approved by authorized project personnel') => {
+    setSubmitting(true);
+    try {
+      await ApiClient.approveExpense(expenseId, note);
+      if (inspectExpense && inspectExpense.id === expenseId) {
+        setInspectExpense({ ...inspectExpense, status: 'approved' });
+      }
+      await loadProjectData();
+    } catch (err: any) {
+      console.error('Failed to approve expense:', err);
+      alert(err.message || 'Failed to approve claim.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRejectExpense = async (expenseId: string, defaultReason = 'Rejected by authorized project personnel') => {
+    const reason = prompt('Enter rejection reason for this voucher claim:', defaultReason);
+    if (!reason) return;
+    setSubmitting(true);
+    try {
+      await ApiClient.rejectExpense(expenseId, reason);
+      if (inspectExpense && inspectExpense.id === expenseId) {
+        setInspectExpense({ ...inspectExpense, status: 'rejected' });
+      }
+      await loadProjectData();
+    } catch (err: any) {
+      console.error('Failed to reject expense:', err);
+      alert(err.message || 'Failed to reject claim.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Handler: Add Revenue
   const handleAddRevenue = async (e: React.FormEvent) => {
@@ -298,7 +581,7 @@ function ProjectDetailContent() {
     }
   };
 
-  // Handler: Assign Team Members
+  // Handler: Assign Team Members (Legacy bulk)
   const handleSaveTeamMembers = async () => {
     setSubmitting(true);
     try {
@@ -560,7 +843,7 @@ function ProjectDetailContent() {
           {[
             { id: 'overview', label: 'Overview', icon: Briefcase },
             { id: 'budget', label: `Budget by Category (${Object.keys(categoryBudgets).length})`, icon: DollarSign },
-            { id: 'team', label: `Team Members (${assignedUsers.length})`, icon: Users },
+            { id: 'team', label: `Team & Roles (${displayMembers.length})`, icon: Users },
             { id: 'expenses', label: `Expenses (${projectExpenses.length})`, icon: Receipt },
             { id: 'revenue', label: `Invoices & Payments (${(project.revenueEntries || []).length})`, icon: TrendingUp },
             { id: 'tasks', label: `Tasks (${tasks.length})`, icon: CheckSquare },
@@ -842,48 +1125,134 @@ function ProjectDetailContent() {
           <div className="bg-white border border-[#EAEBEF] rounded-3xl p-6 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-base font-bold text-slate-900">Project Staff & Key Personnel</h3>
-                <p className="text-xs text-slate-400">Engineers and surveyors authorized to log GPS attendance and expenses</p>
+                <h3 className="text-base font-bold text-slate-900">Project Personnel & Role Assignments</h3>
+                <p className="text-xs text-slate-400">Custom project-level roles and granular authority matrix (Expense approval, budget access, progress)</p>
               </div>
-              <button
-                onClick={() => setIsAssignModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#0D1117] text-white text-xs font-bold rounded-full hover:bg-slate-800 transition-all shadow-sm"
-              >
-                <UserPlus size={15} />
-                Manage Personnel Assignments
-              </button>
+              <div className="flex items-center gap-2">
+                {canManageTeam && (
+                  <button
+                    onClick={openAddMemberModal}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-full transition-all shadow-sm"
+                  >
+                    <UserPlus size={15} />
+                    Assign Member & Permissions
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsAssignModalOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-full transition-all"
+                >
+                  <Users size={15} />
+                  Bulk Select
+                </button>
+              </div>
             </div>
 
-            {assignedUsers.length === 0 ? (
+            {displayMembers.length === 0 ? (
               <div className="text-center py-12 text-slate-400 text-xs">
-                No team members assigned to this project yet. Click "Manage Personnel Assignments" to add team members.
+                No team members assigned to this project yet. Click "Assign Member & Permissions" to add personnel.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {assignedUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl flex items-center justify-between gap-3 hover:border-slate-300 transition-all"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <UserAvatar
-                        src={user.avatarUrl || user.avatar_url}
-                        name={user.name || 'Staff'}
-                        size="md"
-                        shape="rounded"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
-                        <p className="text-[10px] text-slate-400 truncate">{user.designation || user.role}</p>
-                        <p className="text-[10px] text-indigo-600 truncate">{user.email}</p>
-                      </div>
-                    </div>
+                {displayMembers.map((member: any) => {
+                  const p = member.permissions || {};
+                  return (
+                    <div
+                      key={member.userId}
+                      className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl flex flex-col justify-between gap-3 hover:border-slate-300 transition-all shadow-2xs"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <UserAvatar
+                            src={member.avatarUrl}
+                            name={member.name || 'Staff'}
+                            size="md"
+                            shape="rounded"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-900 truncate">{member.name}</p>
+                            <p className="text-[10px] text-slate-400 truncate">{member.department || 'Project Staff'}</p>
+                            <p className="text-[10px] text-indigo-600 truncate">{member.email}</p>
+                          </div>
+                        </div>
 
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Active
-                    </span>
-                  </div>
-                ))}
+                        <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-800 border border-violet-200 shrink-0">
+                          {member.roleInProject || 'Member'}
+                        </span>
+                      </div>
+
+                      {/* Permissions Tags */}
+                      <div className="flex flex-wrap gap-1 pt-1 border-t border-slate-200/60">
+                        {p.canApproveExpenses && (
+                          <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
+                            <ShieldCheck size={11} className="text-emerald-700" />
+                            Claims Approver
+                          </span>
+                        )}
+                        {p.canViewBudget && (
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-700">
+                            Budget
+                          </span>
+                        )}
+                        {p.canRecordRevenue && (
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
+                            Revenue
+                          </span>
+                        )}
+                        {p.canCreateExpenses && (
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                            Submit Claims
+                          </span>
+                        )}
+                        {p.canManageTasks && (
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">
+                            Tasks
+                          </span>
+                        )}
+                        {p.canUpdateProgress && (
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-800">
+                            Progress %
+                          </span>
+                        )}
+                        {p.canManageTeam && (
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-fuchsia-100 text-fuchsia-800">
+                            Team Admin
+                          </span>
+                        )}
+                        {p.canEditProject && (
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">
+                            Edit Proj
+                          </span>
+                        )}
+                        {p.canViewAttendance && (
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-teal-100 text-teal-800">
+                            Attendance
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Action buttons */}
+                      {canManageTeam && (
+                        <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-100">
+                          <button
+                            onClick={() => openEditMemberModal(member)}
+                            className="px-2.5 py-1 bg-white border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 rounded-lg text-[10px] font-bold text-slate-700 transition-colors inline-flex items-center gap-1 shadow-2xs"
+                          >
+                            <Sliders size={12} />
+                            Edit Permissions
+                          </button>
+                          <button
+                            onClick={() => handleRemoveMember(member.userId, member.name)}
+                            className="p-1 bg-white border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors shadow-2xs"
+                            title="Remove Member from Project"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1043,14 +1412,36 @@ function ProjectDetailContent() {
                             <StatusBadge status={exp.status} />
                           </td>
                           <td className="py-3.5 px-4 text-center">
-                            <button
-                              onClick={() => setInspectExpense(exp)}
-                              title="View Expense Details & Voucher"
-                              className="p-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-slate-600 transition-colors inline-flex items-center justify-center gap-1 font-bold text-[11px]"
-                            >
-                              <Eye size={14} />
-                              <span className="hidden sm:inline">Details</span>
-                            </button>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => setInspectExpense(exp)}
+                                title="View Expense Details & Voucher"
+                                className="p-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg text-slate-600 transition-colors inline-flex items-center justify-center gap-1 font-bold text-[11px]"
+                              >
+                                <Eye size={14} />
+                                <span className="hidden sm:inline">Details</span>
+                              </button>
+                              {canApproveClaims && exp.status === 'pending' && (
+                                <>
+                                  <button
+                                    onClick={() => handleApproveExpense(exp.id)}
+                                    disabled={submitting}
+                                    title="Approve Claim"
+                                    className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg transition-colors inline-flex items-center justify-center disabled:opacity-50"
+                                  >
+                                    <CheckCircle2 size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleRejectExpense(exp.id)}
+                                    disabled={submitting}
+                                    title="Reject Claim"
+                                    className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg transition-colors inline-flex items-center justify-center disabled:opacity-50"
+                                  >
+                                    <XCircle size={14} />
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -1316,6 +1707,258 @@ function ProjectDetailContent() {
                     className="px-5 py-2 bg-[#0D1117] text-white rounded-full font-bold hover:bg-slate-800 disabled:opacity-50"
                   >
                     {submitting ? 'Saving...' : 'Update Progress'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: Project Member Role & Permissions */}
+        {isMemberAccessModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    {editingMember ? 'Edit Project Role & Permissions' : 'Assign Project Member & Permissions'}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Define custom title and granular checkbox permissions for this project
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsMemberAccessModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 p-1"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveMemberAccess} className="space-y-4 text-xs">
+                {/* User Selection */}
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">
+                    Select Team Member *
+                  </label>
+                  {editingMember ? (
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+                      <UserAvatar
+                        src={editingMember.avatarUrl}
+                        name={editingMember.name || 'Staff'}
+                        size="sm"
+                        shape="circle"
+                      />
+                      <div>
+                        <p className="text-xs font-bold text-slate-900">{editingMember.name}</p>
+                        <p className="text-[10px] text-slate-500">{editingMember.email}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <select
+                      value={targetUserId}
+                      onChange={(e) => setTargetUserId(e.target.value)}
+                      required
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
+                    >
+                      <option value="">-- Choose employee --</option>
+                      {allUsers.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name} ({u.email}) - {u.designation || u.department || 'Staff'}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                {/* Custom Role Input & Presets */}
+                <div>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">
+                    Project Role Title (Free Text) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={customRoleTitle}
+                    onChange={(e) => setCustomRoleTitle(e.target.value)}
+                    placeholder="e.g., Site Lead, Field Auditor, Quality Inspector, Senior Surveyor..."
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-500"
+                  />
+                  
+                  {/* Preset Pills */}
+                  <div className="mt-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                      Quick Role Presets:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {ROLE_PRESETS.map((preset) => (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => {
+                            setCustomRoleTitle(preset.role);
+                            setMemberPerms(preset.perms as any);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors ${
+                            customRoleTitle.toLowerCase() === preset.role.toLowerCase()
+                              ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                              : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-600'
+                          }`}
+                        >
+                          {preset.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 10 Granular Checkboxes */}
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <label className="block font-bold text-slate-900 uppercase">
+                      Operational Permissions Matrix (10 Checkboxes)
+                    </label>
+                    <span className="text-[10px] text-slate-400">Granular project access</span>
+                  </div>
+
+                  {/* Crucial: Expense Approval Permission */}
+                  <div
+                    onClick={() =>
+                      setMemberPerms({
+                        ...memberPerms,
+                        canApproveExpenses: !memberPerms.canApproveExpenses,
+                      })
+                    }
+                    className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
+                      memberPerms.canApproveExpenses
+                        ? 'bg-emerald-50/80 border-emerald-300 text-emerald-950 shadow-xs'
+                        : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/60 text-slate-700'
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-lg flex items-center justify-center border mt-0.5 shrink-0 ${
+                        memberPerms.canApproveExpenses
+                          ? 'bg-emerald-600 border-emerald-600 text-white'
+                          : 'border-slate-300 bg-white'
+                      }`}
+                    >
+                      {memberPerms.canApproveExpenses && <Check size={12} strokeWidth={3} />}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <ShieldCheck
+                          size={14}
+                          className={memberPerms.canApproveExpenses ? 'text-emerald-700' : 'text-slate-400'}
+                        />
+                        <span className="font-black text-xs">
+                          can_approve_expenses: Approve & Reject Project Expenses
+                        </span>
+                      </div>
+                      <p className="text-[11px] opacity-80 mt-0.5 leading-snug">
+                        Authorizes this person to receive instant expense alerts, review voucher photos, and approve or reject field claims for this project.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Remaining 9 Checkboxes in 2-Column Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {[
+                      {
+                        key: 'canViewBudget',
+                        label: 'can_view_budget',
+                        desc: 'View project budget caps & allocations',
+                      },
+                      {
+                        key: 'canRecordRevenue',
+                        label: 'can_record_revenue',
+                        desc: 'Log received invoices & milestones',
+                      },
+                      {
+                        key: 'canViewExpenses',
+                        label: 'can_view_expenses',
+                        desc: 'View project expenditures ledger',
+                      },
+                      {
+                        key: 'canCreateExpenses',
+                        label: 'can_create_expenses',
+                        desc: 'Submit field expense claims',
+                      },
+                      {
+                        key: 'canManageTasks',
+                        label: 'can_manage_tasks',
+                        desc: 'Create, assign & edit tasks',
+                      },
+                      {
+                        key: 'canUpdateProgress',
+                        label: 'can_update_progress',
+                        desc: 'Adjust project completion percentage',
+                      },
+                      {
+                        key: 'canManageTeam',
+                        label: 'can_manage_team',
+                        desc: 'Assign members & edit project roles',
+                      },
+                      {
+                        key: 'canEditProject',
+                        label: 'can_edit_project',
+                        desc: 'Edit project details & site coordinates',
+                      },
+                      {
+                        key: 'canViewAttendance',
+                        label: 'can_view_attendance',
+                        desc: 'View team attendance & GPS logs',
+                      },
+                    ].map((item) => {
+                      const isChecked = Boolean((memberPerms as any)[item.key]);
+                      return (
+                        <div
+                          key={item.key}
+                          onClick={() =>
+                            setMemberPerms({
+                              ...memberPerms,
+                              [item.key]: !isChecked,
+                            })
+                          }
+                          className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-start gap-2.5 ${
+                            isChecked
+                              ? 'bg-indigo-50/70 border-indigo-200 text-indigo-950'
+                              : 'bg-slate-50/50 border-slate-150 hover:bg-slate-100/60 text-slate-700'
+                          }`}
+                        >
+                          <div
+                            className={`w-4 h-4 rounded-md flex items-center justify-center border mt-0.5 shrink-0 ${
+                              isChecked
+                                ? 'bg-indigo-600 border-indigo-600 text-white'
+                                : 'border-slate-300 bg-white'
+                            }`}
+                          >
+                            {isChecked && <Check size={10} strokeWidth={3} />}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-bold text-[11px] block truncate">{item.label}</span>
+                            <span className="text-[10px] text-slate-400 block leading-tight">{item.desc}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsMemberAccessModalOpen(false)}
+                    className="px-4 py-2 border rounded-full text-slate-600 hover:bg-slate-50 text-xs font-bold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 bg-indigo-600 text-white rounded-full text-xs font-bold hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
+                  >
+                    {submitting ? 'Saving...' : 'Save Member Permissions'}
                   </button>
                 </div>
               </form>
@@ -1678,7 +2321,29 @@ function ProjectDetailContent() {
                 </div>
               )}
 
-              <div className="flex justify-end pt-2 border-t border-slate-100">
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                {canApproveClaims && inspectExpense.status === 'pending' && (
+                  <>
+                    <button
+                      type="button"
+                      disabled={submitting}
+                      onClick={() => handleRejectExpense(inspectExpense.id)}
+                      className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-full text-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                    >
+                      <XCircle size={14} />
+                      Reject Claim
+                    </button>
+                    <button
+                      type="button"
+                      disabled={submitting}
+                      onClick={() => handleApproveExpense(inspectExpense.id)}
+                      className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-full text-xs transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                    >
+                      <CheckCircle2 size={14} />
+                      Approve Claim
+                    </button>
+                  </>
+                )}
                 <button
                   type="button"
                   onClick={() => setInspectExpense(null)}
