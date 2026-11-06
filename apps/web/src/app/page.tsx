@@ -14,9 +14,14 @@ import {
   CheckCircle2, 
   KeyRound, 
   DownloadCloud, 
-  CheckCheck,
-  RefreshCw,
-  ShieldCheck
+  CheckCheck, 
+  RefreshCw, 
+  ShieldCheck,
+  User,
+  Building2,
+  Briefcase,
+  Phone,
+  UserPlus
 } from 'lucide-react';
 
 interface ReleaseInfo {
@@ -47,13 +52,30 @@ export default function DownloadPage() {
   const [loadingRelease, setLoadingRelease] = useState(true);
   const [allReleases, setAllReleases] = useState<ReleaseInfo[]>([]);
 
+  // Authenticated State
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [downloadStarted, setDownloadStarted] = useState(false);
+
+  // Tab State: 'signin' | 'register'
+  const [authTab, setAuthTab] = useState<'signin' | 'register'>('signin');
+
+  // Sign In Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loadingAuth, setLoadingAuth] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isPendingApproval, setIsPendingApproval] = useState(false);
-  const [downloadStarted, setDownloadStarted] = useState(false);
+
+  // Register Form State
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regDepartment, setRegDepartment] = useState('');
+  const [regDesignation, setRegDesignation] = useState('');
+  const [regPhone, setRegPhone] = useState('');
+  const [loadingReg, setLoadingReg] = useState(false);
+  const [regError, setRegError] = useState<string | null>(null);
+  const [regSuccess, setRegSuccess] = useState(false);
 
   const getDirectDownloadUrl = (targetRelease?: ReleaseInfo | null): string => {
     const rel = targetRelease || release;
@@ -183,6 +205,33 @@ export default function DownloadPage() {
     }
   };
 
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loadingReg) return;
+    setLoadingReg(true);
+    setRegError(null);
+    setRegSuccess(false);
+
+    try {
+      await ApiClient.register({
+        name: regName.trim(),
+        email: regEmail.trim(),
+        password: regPassword,
+        department: regDepartment.trim() || undefined,
+        designation: regDesignation.trim() || undefined,
+        phone: regPhone.trim() || undefined,
+      });
+      setRegSuccess(true);
+      // Pre-fill email for easy sign in
+      setEmail(regEmail.trim());
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      setRegError(msg);
+    } finally {
+      setLoadingReg(false);
+    }
+  };
+
   const handleSignOut = () => {
     ApiClient.clearToken();
     setCurrentUser(null);
@@ -238,7 +287,7 @@ export default function DownloadPage() {
               }`}>
                 {currentUser ? <CheckCheck size={18} /> : <KeyRound size={18} />}
               </div>
-              <span className="text-[11px] font-bold mt-1.5 text-slate-800">1. Sign In</span>
+              <span className="text-[11px] font-bold mt-1.5 text-slate-800">1. Account</span>
               <span className="text-[10px] text-slate-400">{currentUser ? 'Verified' : 'Required'}</span>
             </div>
 
@@ -379,80 +428,284 @@ export default function DownloadPage() {
               )}
             </div>
           ) : (
-            /* STEP 1: MANDATORY SIGN IN — NO DOWNLOAD ACCESS WITHOUT SIGNING IN */
+            /* STEP 1: MANDATORY AUTHENTICATION / REGISTRATION GATE */
             <div className="pt-5 space-y-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <ShieldCheck size={16} className="text-slate-800" />
-                  <h2 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-                    Step 1: Sign in to Access Download
-                  </h2>
-                </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Authentication is required. Sign in with your work or administrator account to download the official mobile app.
-                </p>
+              {/* Tab Navigation: Sign In vs Create Account */}
+              <div className="flex p-1 bg-slate-100 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => { setAuthTab('signin'); setAuthError(null); }}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                    authTab === 'signin'
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <KeyRound size={14} />
+                  <span>Sign In</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAuthTab('register'); setRegError(null); setRegSuccess(false); }}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                    authTab === 'register'
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <UserPlus size={14} />
+                  <span>Create Account</span>
+                </button>
               </div>
 
-              {authError && (
-                <div className={`p-4 rounded-2xl border text-xs leading-relaxed flex items-start gap-3 ${
-                  isPendingApproval 
-                    ? 'bg-amber-50 border-amber-200 text-amber-950' 
-                    : 'bg-rose-50 border-rose-200 text-rose-700'
-                }`}>
-                  <AlertCircle size={18} className={`shrink-0 mt-0.5 ${isPendingApproval ? 'text-amber-700' : 'text-rose-600'}`} />
+              {authTab === 'signin' ? (
+                /* SIGN IN FORM */
+                <div className="space-y-4">
                   <div>
-                    <strong className="block font-bold text-sm">
-                      {isPendingApproval ? 'Account Pending Approval' : 'Sign In Error'}
-                    </strong>
-                    <span className="text-xs opacity-90 mt-0.5 block">{authError}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <ShieldCheck size={16} className="text-slate-800" />
+                      <h2 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+                        Step 1: Sign in to Access Download
+                      </h2>
+                    </div>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Authentication is required. Sign in with your work credentials to unlock the mobile app download.
+                    </p>
                   </div>
+
+                  {authError && (
+                    <div className={`p-4 rounded-2xl border text-xs leading-relaxed flex items-start gap-3 ${
+                      isPendingApproval 
+                        ? 'bg-amber-50 border-amber-200 text-amber-950' 
+                        : 'bg-rose-50 border-rose-200 text-rose-700'
+                    }`}>
+                      <AlertCircle size={18} className={`shrink-0 mt-0.5 ${isPendingApproval ? 'text-amber-700' : 'text-rose-600'}`} />
+                      <div>
+                        <strong className="block font-bold text-sm">
+                          {isPendingApproval ? 'Account Pending Approval' : 'Sign In Error'}
+                        </strong>
+                        <span className="text-xs opacity-90 mt-0.5 block">{authError}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleSignIn} className="space-y-3.5">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+                      <div className="relative flex items-center">
+                        <Mail size={16} className="absolute left-3.5 text-slate-400" />
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => { setEmail(e.target.value); setAuthError(null); }}
+                          placeholder="name@company.com"
+                          className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
+                      <div className="relative flex items-center">
+                        <Lock size={16} className="absolute left-3.5 text-slate-400" />
+                        <input
+                          type="password"
+                          required
+                          value={password}
+                          onChange={(e) => { setPassword(e.target.value); setAuthError(null); }}
+                          placeholder="••••••••"
+                          className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loadingAuth}
+                      className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 transition-all shadow-md shadow-slate-900/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
+                    >
+                      <span>{loadingAuth ? 'Verifying Account…' : 'Sign In & Download App'}</span>
+                      <ArrowRight size={16} className="stroke-[2.5]" />
+                    </button>
+                  </form>
+
+                  <div className="pt-2 text-center border-t border-slate-100 text-xs text-slate-500">
+                    Don&apos;t have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setAuthTab('register'); setRegError(null); }}
+                      className="font-bold text-slate-900 hover:underline"
+                    >
+                      Create account
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* CREATE ACCOUNT FORM */
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <UserPlus size={16} className="text-slate-800" />
+                      <h2 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+                        Create New Employee Account
+                      </h2>
+                    </div>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Register your official account to get authorized for the mobile app and ERP system.
+                    </p>
+                  </div>
+
+                  {regSuccess ? (
+                    <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-3">
+                      <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-xs">
+                        <CheckCircle2 size={24} />
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-sm text-emerald-950">Registration Submitted!</h3>
+                        <p className="text-xs text-emerald-800 mt-1 leading-relaxed">
+                          Your account request for <strong>{regEmail}</strong> has been registered. If your account is pre-approved, you can sign in immediately to download the app.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setAuthTab('signin'); setRegSuccess(false); }}
+                        className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+                      >
+                        Proceed to Sign In & Download
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {regError && (
+                        <div className="p-4 rounded-2xl border bg-rose-50 border-rose-200 text-rose-700 text-xs leading-relaxed flex items-start gap-3">
+                          <AlertCircle size={18} className="shrink-0 mt-0.5 text-rose-600" />
+                          <div>
+                            <strong className="block font-bold text-sm">Registration Failed</strong>
+                            <span className="text-xs opacity-90 mt-0.5 block">{regError}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleRegister} className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
+                          <div className="relative flex items-center">
+                            <User size={16} className="absolute left-3.5 text-slate-400" />
+                            <input
+                              type="text"
+                              required
+                              value={regName}
+                              onChange={(e) => setRegName(e.target.value)}
+                              placeholder="e.g. John Doe"
+                              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Official Work Email *</label>
+                          <div className="relative flex items-center">
+                            <Mail size={16} className="absolute left-3.5 text-slate-400" />
+                            <input
+                              type="email"
+                              required
+                              value={regEmail}
+                              onChange={(e) => setRegEmail(e.target.value)}
+                              placeholder="name@company.com"
+                              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Password *</label>
+                          <div className="relative flex items-center">
+                            <Lock size={16} className="absolute left-3.5 text-slate-400" />
+                            <input
+                              type="password"
+                              required
+                              minLength={3}
+                              value={regPassword}
+                              onChange={(e) => setRegPassword(e.target.value)}
+                              placeholder="Minimum 3 characters"
+                              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Department</label>
+                            <div className="relative flex items-center">
+                              <Building2 size={16} className="absolute left-3.5 text-slate-400" />
+                              <input
+                                type="text"
+                                value={regDepartment}
+                                onChange={(e) => setRegDepartment(e.target.value)}
+                                placeholder="e.g. Survey"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">Designation</label>
+                            <div className="relative flex items-center">
+                              <Briefcase size={16} className="absolute left-3.5 text-slate-400" />
+                              <input
+                                type="text"
+                                value={regDesignation}
+                                onChange={(e) => setRegDesignation(e.target.value)}
+                                placeholder="e.g. Officer"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
+                          <div className="relative flex items-center">
+                            <Phone size={16} className="absolute left-3.5 text-slate-400" />
+                            <input
+                              type="tel"
+                              value={regPhone}
+                              onChange={(e) => setRegPhone(e.target.value)}
+                              placeholder="+880 1..."
+                              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-3 text-[11px] text-amber-800 leading-relaxed">
+                          ℹ️ <strong>Notice:</strong> Accounts may require administrator authorization before full access is activated.
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={loadingReg}
+                          className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 transition-all shadow-md shadow-slate-900/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
+                        >
+                          <span>{loadingReg ? 'Submitting Registration…' : 'Create Account'}</span>
+                          <ArrowRight size={16} className="stroke-[2.5]" />
+                        </button>
+                      </form>
+
+                      <div className="pt-2 text-center border-t border-slate-100 text-xs text-slate-500">
+                        Already have an account?{' '}
+                        <button
+                          type="button"
+                          onClick={() => { setAuthTab('signin'); setRegError(null); }}
+                          className="font-bold text-slate-900 hover:underline"
+                        >
+                          Sign in
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
-
-              <form onSubmit={handleSignIn} className="space-y-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-                  <div className="relative flex items-center">
-                    <Mail size={16} className="absolute left-3.5 text-slate-400" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => { setEmail(e.target.value); setAuthError(null); }}
-                      placeholder="name@company.com"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
-                  <div className="relative flex items-center">
-                    <Lock size={16} className="absolute left-3.5 text-slate-400" />
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => { setPassword(e.target.value); setAuthError(null); }}
-                      placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-500 transition-all font-medium"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loadingAuth}
-                  className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-extrabold flex items-center justify-center gap-2 transition-all shadow-md shadow-slate-900/20 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
-                >
-                  <span>{loadingAuth ? 'Verifying Account…' : 'Sign In & Download App'}</span>
-                  <ArrowRight size={16} className="stroke-[2.5]" />
-                </button>
-              </form>
-
-              <div className="pt-2 text-center border-t border-slate-100 text-xs text-slate-500">
-                Need an account? Contact your supervisor or administrator.
-              </div>
             </div>
           )}
         </div>
