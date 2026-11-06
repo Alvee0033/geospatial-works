@@ -118,21 +118,21 @@ export default function ProjectsPage() {
     setFormClient('');
     setFormClientType('government');
     setFormAssignmentType('direct_consultancy');
-    setFormGrossValue(50000);
-    setFormAdvanceReceived(10000);
-    setFormTaxRate(0.25);
-    setFormOfficeBenefitRate(0.3);
+    setFormGrossValue(0);
+    setFormAdvanceReceived(0);
+    setFormTaxRate(0.10);
+    setFormOfficeBenefitRate(0.30);
     setFormStartDate(new Date().toISOString().split('T')[0]);
     setFormEndDate('');
     setFormStatus('ongoing');
     setFormTeamMembers([]);
-    setBudgetFood(5000);
-    setBudgetEquipment(5000);
-    setBudgetTransportation(5000);
-    setBudgetAccommodation(5000);
-    setBudgetOfficeCost(5000);
-    setBudgetConsultancy(5000);
-    setBudgetOfficeBenefit(9000);
+    setBudgetFood(0);
+    setBudgetEquipment(0);
+    setBudgetTransportation(0);
+    setBudgetAccommodation(0);
+    setBudgetOfficeCost(0);
+    setBudgetConsultancy(0);
+    setBudgetOfficeBenefit(0);
   };
 
   const handleOpenCreate = () => {
@@ -948,9 +948,10 @@ export default function ProjectsPage() {
                   <label className="block text-slate-700 font-semibold mb-1">Gross Project Value (BDT)</label>
                   <input
                     type="number"
-                    required
-                    value={formGrossValue}
-                    onChange={(e) => setFormGrossValue(parseFloat(e.target.value) || 0)}
+                    min="0"
+                    placeholder="0"
+                    value={formGrossValue || ''}
+                    onChange={(e) => setFormGrossValue(e.target.value === '' ? 0 : parseFloat(e.target.value))}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold"
                   />
                 </div>
@@ -958,8 +959,10 @@ export default function ProjectsPage() {
                   <label className="block text-slate-700 font-semibold mb-1">Advance Received (BDT)</label>
                   <input
                     type="number"
-                    value={formAdvanceReceived}
-                    onChange={(e) => setFormAdvanceReceived(parseFloat(e.target.value) || 0)}
+                    min="0"
+                    placeholder="0"
+                    value={formAdvanceReceived || ''}
+                    onChange={(e) => setFormAdvanceReceived(e.target.value === '' ? 0 : parseFloat(e.target.value))}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold"
                   />
                 </div>
@@ -1006,8 +1009,10 @@ export default function ProjectsPage() {
                     <span className="text-[10px] text-slate-500 font-medium">Food</span>
                     <input
                       type="number"
-                      value={budgetFood}
-                      onChange={(e) => setBudgetFood(parseFloat(e.target.value) || 0)}
+                      min="0"
+                      placeholder="0"
+                      value={budgetFood || ''}
+                      onChange={(e) => setBudgetFood(e.target.value === '' ? 0 : parseFloat(e.target.value))}
                       className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                     />
                   </div>
@@ -1015,8 +1020,10 @@ export default function ProjectsPage() {
                     <span className="text-[10px] text-slate-500 font-medium">Equipment</span>
                     <input
                       type="number"
-                      value={budgetEquipment}
-                      onChange={(e) => setBudgetEquipment(parseFloat(e.target.value) || 0)}
+                      min="0"
+                      placeholder="0"
+                      value={budgetEquipment || ''}
+                      onChange={(e) => setBudgetEquipment(e.target.value === '' ? 0 : parseFloat(e.target.value))}
                       className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                     />
                   </div>
@@ -1024,8 +1031,10 @@ export default function ProjectsPage() {
                     <span className="text-[10px] text-slate-500 font-medium">Transportation</span>
                     <input
                       type="number"
-                      value={budgetTransportation}
-                      onChange={(e) => setBudgetTransportation(parseFloat(e.target.value) || 0)}
+                      min="0"
+                      placeholder="0"
+                      value={budgetTransportation || ''}
+                      onChange={(e) => setBudgetTransportation(e.target.value === '' ? 0 : parseFloat(e.target.value))}
                       className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                     />
                   </div>
@@ -1033,8 +1042,10 @@ export default function ProjectsPage() {
                     <span className="text-[10px] text-slate-500 font-medium">Accommodation</span>
                     <input
                       type="number"
-                      value={budgetAccommodation}
-                      onChange={(e) => setBudgetAccommodation(parseFloat(e.target.value) || 0)}
+                      min="0"
+                      placeholder="0"
+                      value={budgetAccommodation || ''}
+                      onChange={(e) => setBudgetAccommodation(e.target.value === '' ? 0 : parseFloat(e.target.value))}
                       className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                     />
                   </div>
@@ -1042,8 +1053,10 @@ export default function ProjectsPage() {
                     <span className="text-[10px] text-slate-500 font-medium">Office Cost</span>
                     <input
                       type="number"
-                      value={budgetOfficeCost}
-                      onChange={(e) => setBudgetOfficeCost(parseFloat(e.target.value) || 0)}
+                      min="0"
+                      placeholder="0"
+                      value={budgetOfficeCost || ''}
+                      onChange={(e) => setBudgetOfficeCost(e.target.value === '' ? 0 : parseFloat(e.target.value))}
                       className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                     />
                   </div>
@@ -1051,8 +1064,21 @@ export default function ProjectsPage() {
                     <span className="text-[10px] text-slate-500 font-medium">Consultancy</span>
                     <input
                       type="number"
-                      value={budgetConsultancy}
-                      onChange={(e) => setBudgetConsultancy(parseFloat(e.target.value) || 0)}
+                      min="0"
+                      placeholder="0"
+                      value={budgetConsultancy || ''}
+                      onChange={(e) => setBudgetConsultancy(e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                      className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-500 font-medium">Office Benefit</span>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={budgetOfficeBenefit || ''}
+                      onChange={(e) => setBudgetOfficeBenefit(e.target.value === '' ? 0 : parseFloat(e.target.value))}
                       className="w-full p-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                     />
                   </div>

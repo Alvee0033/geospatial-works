@@ -462,7 +462,7 @@ export default function NewProjectPage() {
                       min="0"
                       placeholder="0"
                       value={budgetEquipment || ''}
-                      onChange={(e) => setBudgetEquipment(Number(e.target.value) || 0)}
+                      onChange={(e) => setBudgetEquipment(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -476,7 +476,7 @@ export default function NewProjectPage() {
                       min="0"
                       placeholder="0"
                       value={budgetTransportation || ''}
-                      onChange={(e) => setBudgetTransportation(Number(e.target.value) || 0)}
+                      onChange={(e) => setBudgetTransportation(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -490,7 +490,7 @@ export default function NewProjectPage() {
                       min="0"
                       placeholder="0"
                       value={budgetFood || ''}
-                      onChange={(e) => setBudgetFood(Number(e.target.value) || 0)}
+                      onChange={(e) => setBudgetFood(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -504,7 +504,7 @@ export default function NewProjectPage() {
                       min="0"
                       placeholder="0"
                       value={budgetAccommodation || ''}
-                      onChange={(e) => setBudgetAccommodation(Number(e.target.value) || 0)}
+                      onChange={(e) => setBudgetAccommodation(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -518,7 +518,7 @@ export default function NewProjectPage() {
                       min="0"
                       placeholder="0"
                       value={budgetOfficeCost || ''}
-                      onChange={(e) => setBudgetOfficeCost(Number(e.target.value) || 0)}
+                      onChange={(e) => setBudgetOfficeCost(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -610,7 +610,7 @@ export default function NewProjectPage() {
                       min="0"
                       placeholder="0"
                       value={grossProjectValue || ''}
-                      onChange={(e) => setGrossProjectValue(Number(e.target.value) || 0)}
+                      onChange={(e) => setGrossProjectValue(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
                     />
                   </div>
@@ -643,8 +643,9 @@ export default function NewProjectPage() {
                           step="0.01"
                           min="0"
                           max="1"
-                          value={taxRate}
-                          onChange={(e) => setTaxRate(Number(e.target.value) || 0)}
+                          placeholder="0"
+                          value={taxRate || ''}
+                          onChange={(e) => setTaxRate(e.target.value === '' ? 0 : Number(e.target.value))}
                           className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
                         />
                         <span className="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">
@@ -663,8 +664,9 @@ export default function NewProjectPage() {
                           step="0.01"
                           min="0"
                           max="1"
-                          value={incomeTaxRate}
-                          onChange={(e) => setIncomeTaxRate(Number(e.target.value) || 0)}
+                          placeholder="0"
+                          value={incomeTaxRate || ''}
+                          onChange={(e) => setIncomeTaxRate(e.target.value === '' ? 0 : Number(e.target.value))}
                           className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
                         />
                         <span className="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">
@@ -685,7 +687,7 @@ export default function NewProjectPage() {
                         min="0"
                         placeholder="0"
                         value={advanceReceived || ''}
-                        onChange={(e) => setAdvanceReceived(Number(e.target.value) || 0)}
+                        onChange={(e) => setAdvanceReceived(e.target.value === '' ? 0 : Number(e.target.value))}
                         className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
                       />
                     </div>
@@ -700,8 +702,9 @@ export default function NewProjectPage() {
                           step="0.01"
                           min="0"
                           max="1"
-                          value={officeBenefitRate}
-                          onChange={(e) => setOfficeBenefitRate(Number(e.target.value) || 0)}
+                          placeholder="0"
+                          value={officeBenefitRate || ''}
+                          onChange={(e) => setOfficeBenefitRate(e.target.value === '' ? 0 : Number(e.target.value))}
                           className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
                         />
                         <span className="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">

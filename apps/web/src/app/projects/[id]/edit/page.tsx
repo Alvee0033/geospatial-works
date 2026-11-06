@@ -46,9 +46,9 @@ function EditProjectContent() {
   const [incomeTaxRate, setIncomeTaxRate] = useState<number>(0);
   const [officeBenefitRate, setOfficeBenefitRate] = useState<number>(0.30);
 
-  const [grossProjectValue, setGrossProjectValue] = useState<number>(100000);
-  const [advanceReceived, setAdvanceReceived] = useState<number>(25000);
-  const [amountReceived, setAmountReceived] = useState<number>(25000);
+  const [grossProjectValue, setGrossProjectValue] = useState<number>(0);
+  const [advanceReceived, setAdvanceReceived] = useState<number>(0);
+  const [amountReceived, setAmountReceived] = useState<number>(0);
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -58,14 +58,14 @@ function EditProjectContent() {
   const [siteRadiusMeters, setSiteRadiusMeters] = useState(200);
 
   // Category Budgets
-  const [budgetEquipment, setBudgetEquipment] = useState<number>(15000);
-  const [budgetTransportation, setBudgetTransportation] = useState<number>(15000);
-  const [budgetFood, setBudgetFood] = useState<number>(10000);
-  const [budgetAccommodation, setBudgetAccommodation] = useState<number>(10000);
-  const [budgetOfficeCost, setBudgetOfficeCost] = useState<number>(10000);
+  const [budgetEquipment, setBudgetEquipment] = useState<number>(0);
+  const [budgetTransportation, setBudgetTransportation] = useState<number>(0);
+  const [budgetFood, setBudgetFood] = useState<number>(0);
+  const [budgetAccommodation, setBudgetAccommodation] = useState<number>(0);
+  const [budgetOfficeCost, setBudgetOfficeCost] = useState<number>(0);
   const [customCategories, setCustomCategories] = useState<{ name: string; amount: number }[]>([]);
   const [newCatName, setNewCatName] = useState('');
-  const [newCatAmount, setNewCatAmount] = useState<number>(5000);
+  const [newCatAmount, setNewCatAmount] = useState<number>(0);
 
   // Team Selection
   const [selectedTeamMemberIds, setSelectedTeamMemberIds] = useState<string[]>([]);
@@ -513,8 +513,9 @@ function EditProjectContent() {
                     <input
                       type="number"
                       min="0"
-                      value={budgetEquipment}
-                      onChange={(e) => setBudgetEquipment(Number(e.target.value) || 0)}
+                      placeholder="0"
+                      value={budgetEquipment || ''}
+                      onChange={(e) => setBudgetEquipment(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -526,8 +527,9 @@ function EditProjectContent() {
                     <input
                       type="number"
                       min="0"
-                      value={budgetTransportation}
-                      onChange={(e) => setBudgetTransportation(Number(e.target.value) || 0)}
+                      placeholder="0"
+                      value={budgetTransportation || ''}
+                      onChange={(e) => setBudgetTransportation(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -539,8 +541,9 @@ function EditProjectContent() {
                     <input
                       type="number"
                       min="0"
-                      value={budgetFood}
-                      onChange={(e) => setBudgetFood(Number(e.target.value) || 0)}
+                      placeholder="0"
+                      value={budgetFood || ''}
+                      onChange={(e) => setBudgetFood(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -552,8 +555,9 @@ function EditProjectContent() {
                     <input
                       type="number"
                       min="0"
-                      value={budgetAccommodation}
-                      onChange={(e) => setBudgetAccommodation(Number(e.target.value) || 0)}
+                      placeholder="0"
+                      value={budgetAccommodation || ''}
+                      onChange={(e) => setBudgetAccommodation(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -565,8 +569,9 @@ function EditProjectContent() {
                     <input
                       type="number"
                       min="0"
-                      value={budgetOfficeCost}
-                      onChange={(e) => setBudgetOfficeCost(Number(e.target.value) || 0)}
+                      placeholder="0"
+                      value={budgetOfficeCost || ''}
+                      onChange={(e) => setBudgetOfficeCost(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
@@ -652,8 +657,9 @@ function EditProjectContent() {
                     <input
                       type="number"
                       min="0"
-                      value={grossProjectValue}
-                      onChange={(e) => setGrossProjectValue(Number(e.target.value) || 0)}
+                      placeholder="0"
+                      value={grossProjectValue || ''}
+                      onChange={(e) => setGrossProjectValue(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-3.5 py-2.5 bg-white border border-indigo-100 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-400"
                     />
                   </div>
@@ -683,8 +689,8 @@ function EditProjectContent() {
                         step="0.01"
                         min="0"
                         max="1"
-                        value={taxRate}
-                        onChange={(e) => setTaxRate(Number(e.target.value) || 0)}
+                        value={taxRate || ''}
+                        onChange={(e) => setTaxRate(e.target.value === '' ? 0 : Number(e.target.value))}
                         className="w-full px-3 py-2 bg-white border border-indigo-100 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-400"
                       />
                     </div>
@@ -698,8 +704,9 @@ function EditProjectContent() {
                       <input
                         type="number"
                         min="0"
-                        value={advanceReceived}
-                        onChange={(e) => setAdvanceReceived(Number(e.target.value) || 0)}
+                        placeholder="0"
+                        value={advanceReceived || ''}
+                        onChange={(e) => setAdvanceReceived(e.target.value === '' ? 0 : Number(e.target.value))}
                         className="w-full px-3 py-2 bg-white border border-indigo-100 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-400"
                       />
                     </div>
@@ -713,8 +720,9 @@ function EditProjectContent() {
                         step="0.01"
                         min="0"
                         max="1"
-                        value={incomeTaxRate}
-                        onChange={(e) => setIncomeTaxRate(Number(e.target.value) || 0)}
+                        placeholder="0"
+                        value={incomeTaxRate || ''}
+                        onChange={(e) => setIncomeTaxRate(e.target.value === '' ? 0 : Number(e.target.value))}
                         className="w-full px-3 py-2 bg-white border border-indigo-100 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-400"
                       />
                     </div>
@@ -728,8 +736,9 @@ function EditProjectContent() {
                         step="0.01"
                         min="0"
                         max="1"
-                        value={officeBenefitRate}
-                        onChange={(e) => setOfficeBenefitRate(Number(e.target.value) || 0)}
+                        placeholder="0"
+                        value={officeBenefitRate || ''}
+                        onChange={(e) => setOfficeBenefitRate(e.target.value === '' ? 0 : Number(e.target.value))}
                         className="w-full px-3 py-2 bg-white border border-indigo-100 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-indigo-400"
                       />
                     </div>

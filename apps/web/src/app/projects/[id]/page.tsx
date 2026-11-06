@@ -195,21 +195,22 @@ function ProjectDetailContent() {
   const budgetUtilization = agreedBudget > 0 ? (totalSpent / agreedBudget) * 100 : 0;
   const completionPercentage = Number(project.progressPercentage || project.progress_percentage || 0);
 
-  // Category Budgets vs Actual
+  // Category Budgets vs Actual (Direct Field Expenditure lines)
   const rawCatBudgets: Record<string, number> = project.categoryBudgets || project.category_budgets || {};
   
-  // Clean meta keys and ensure categories with expenses are also represented
+  // Clean meta keys and internal officebenefit (which is an internal overhead provision, not a field expense line)
   const categoryBudgets: Record<string, number> = {};
   Object.entries(rawCatBudgets).forEach(([k, v]) => {
-    if (!k.startsWith('_meta_')) {
+    const norm = k.toLowerCase().trim();
+    if (!norm.startsWith('_meta_') && norm !== 'officebenefit' && norm !== 'office_benefit') {
       categoryBudgets[k] = Number(v) || 0;
     }
   });
 
-  // Also include any category present in projectExpenses that might not have a cap set
+  // Also include any active category present in projectExpenses that might not have a cap set
   projectExpenses.forEach((e) => {
     const cat = (e.categoryName || e.category_name || e.category || '').toLowerCase().trim();
-    if (cat && categoryBudgets[cat] === undefined) {
+    if (cat && cat !== 'officebenefit' && cat !== 'office_benefit' && categoryBudgets[cat] === undefined) {
       categoryBudgets[cat] = 0;
     }
   });
