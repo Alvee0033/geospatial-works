@@ -76,9 +76,22 @@ function ProjectDetailContent() {
   const loadProjectData = async () => {
     setLoading(true);
     try {
-      const [proj, allExp, pTasks, users] = await Promise.all([
+      let allExp: any[] = [];
+      try {
+        allExp = await ApiClient.getExpenses({ projectId });
+      } catch (e) {
+        console.warn('Direct expense fetch by projectId failed, falling back:', e);
+      }
+      if (!allExp || allExp.length === 0) {
+        try {
+          allExp = await ApiClient.getExpenses();
+        } catch (e) {
+          console.warn('Fallback expense fetch failed:', e);
+        }
+      }
+
+      const [proj, pTasks, users] = await Promise.all([
         ApiClient.getProjectById(projectId).catch(() => null),
-        ApiClient.getExpenses({ projectId }).catch(() => []),
         ApiClient.getTasks(projectId).catch(() => []),
         ApiClient.getUsers().catch(() => []),
       ]);
@@ -141,9 +154,21 @@ function ProjectDetailContent() {
   const receivable = Math.max(0, grossValue - amountReceived);
 
   // Expense calculations
-  const projectExpenses = expenses.filter(
-    (e) => e.projectId === project.id || e.project_id === project.id || e.projectId === project.projectId
-  );
+  const projectExpenses = expenses.filter((e) => {
+    const pId = String(project.id || '').toLowerCase();
+    const pCode = String(project.projectId || project.project_code || project.projectCode || '').toLowerCase();
+    const pName = String(project.name || '').toLowerCase();
+
+    const eProjId = String(e.projectId || e.project_id || '').toLowerCase();
+    const eProjCode = String(e.projectCode || e.project_code || '').toLowerCase();
+    const eProjName = String(e.projectName || e.project_name || '').toLowerCase();
+
+    return (
+      (pId && (eProjId === pId || eProjCode === pId)) ||
+      (pCode && (eProjId === pCode || eProjCode === pCode)) ||
+      (pName && eProjName === pName)
+    );
+  });
   const totalSpent = projectExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   const approvedSpent = projectExpenses
     .filter((e) => e.status === 'approved' || e.status === 'paid')
@@ -169,8 +194,8 @@ function ProjectDetailContent() {
     const norm = catName.toLowerCase().replace(/[^a-z]/g, '');
     return projectExpenses
       .filter((e) => {
-        const c = (e.category || '').toLowerCase().replace(/[^a-z]/g, '');
-        return c === norm || (norm === 'officecost' && c === 'office');
+        const c = (e.categoryName || e.category_name || e.category || '').toLowerCase().replace(/[^a-z]/g, '');
+        return c === norm || (norm === 'officecost' && (c === 'office' || c === 'officecost')) || (norm === 'officebenefit' && c === 'officebenefit');
       })
       .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   };
@@ -874,17 +899,17 @@ function ProjectDetailContent() {
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold text-[11px] capitalize">
-                            {exp.category}
+                            {exp.categoryName || exp.category_name || exp.category || 'Expense'}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate">
-                          {exp.description}
+                          {exp.note || exp.description || '—'}
                         </td>
                         <td className="py-3.5 px-4 text-right font-black font-mono text-slate-900">
                           ৳{(Number(exp.amount) || 0).toLocaleString()}
                         </td>
                         <td className="py-3.5 px-4 text-center">
-                          {exp.receiptUrl || exp.receipt_url ? (
+                          {exp.receiptPhotoUrl || exp.receipt_photo_url || exp.receiptUrl || exp.receipt_url ? (
                             <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
                               Attached
                             </span>
