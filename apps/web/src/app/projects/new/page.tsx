@@ -20,7 +20,95 @@ import {
   Check,
   AlertCircle,
   HelpCircle,
+  ShieldCheck,
+  Shield,
+  Sliders,
+  X,
+  CheckCircle2,
 } from 'lucide-react';
+
+const ROLE_PRESETS = [
+  {
+    name: 'Site Lead',
+    role: 'Site Lead',
+    perms: {
+      canViewBudget: true,
+      canRecordRevenue: true,
+      canViewExpenses: true,
+      canCreateExpenses: true,
+      canApproveExpenses: true,
+      canManageTasks: true,
+      canUpdateProgress: true,
+      canManageTeam: true,
+      canEditProject: true,
+      canViewAttendance: true,
+    },
+  },
+  {
+    name: 'Field Auditor',
+    role: 'Field Auditor',
+    perms: {
+      canViewBudget: true,
+      canRecordRevenue: false,
+      canViewExpenses: true,
+      canCreateExpenses: false,
+      canApproveExpenses: true,
+      canManageTasks: false,
+      canUpdateProgress: false,
+      canManageTeam: false,
+      canEditProject: false,
+      canViewAttendance: true,
+    },
+  },
+  {
+    name: 'Site Engineer',
+    role: 'Site Engineer',
+    perms: {
+      canViewBudget: false,
+      canRecordRevenue: false,
+      canViewExpenses: true,
+      canCreateExpenses: true,
+      canApproveExpenses: false,
+      canManageTasks: true,
+      canUpdateProgress: true,
+      canManageTeam: false,
+      canEditProject: false,
+      canViewAttendance: true,
+    },
+  },
+  {
+    name: 'Field Crew',
+    role: 'Field Crew',
+    perms: {
+      canViewBudget: false,
+      canRecordRevenue: false,
+      canViewExpenses: true,
+      canCreateExpenses: true,
+      canApproveExpenses: false,
+      canManageTasks: false,
+      canUpdateProgress: false,
+      canManageTeam: false,
+      canEditProject: false,
+      canViewAttendance: true,
+    },
+  },
+  {
+    name: 'Observer',
+    role: 'Observer',
+    perms: {
+      canViewBudget: true,
+      canRecordRevenue: false,
+      canViewExpenses: true,
+      canCreateExpenses: false,
+      canApproveExpenses: false,
+      canManageTasks: false,
+      canUpdateProgress: false,
+      canManageTeam: false,
+      canEditProject: false,
+      canViewAttendance: true,
+    },
+  },
+];
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -134,11 +222,104 @@ export default function NewProjectPage() {
     setCustomCategories(customCategories.filter((_, i) => i !== index));
   };
 
+  // Member Roles & Permissions state
+  const [memberConfigs, setMemberConfigs] = useState<
+    Record<
+      string,
+      {
+        roleInProject: string;
+        permissions: {
+          canViewBudget: boolean;
+          canRecordRevenue: boolean;
+          canViewExpenses: boolean;
+          canCreateExpenses: boolean;
+          canApproveExpenses: boolean;
+          canManageTasks: boolean;
+          canUpdateProgress: boolean;
+          canManageTeam: boolean;
+          canEditProject: boolean;
+          canViewAttendance: boolean;
+        };
+      }
+    >
+  >({});
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
+  const [modalRoleTitle, setModalRoleTitle] = useState('Site Engineer');
+  const [modalPerms, setModalPerms] = useState({
+    canViewBudget: false,
+    canRecordRevenue: false,
+    canViewExpenses: true,
+    canCreateExpenses: true,
+    canApproveExpenses: false,
+    canManageTasks: true,
+    canUpdateProgress: true,
+    canManageTeam: false,
+    canEditProject: false,
+    canViewAttendance: true,
+  });
+
+  const openMemberConfigModal = (userId: string) => {
+    const existing = memberConfigs[userId];
+    if (existing) {
+      setModalRoleTitle(existing.roleInProject || 'Site Engineer');
+      setModalPerms({ ...existing.permissions });
+    } else {
+      setModalRoleTitle('Site Engineer');
+      setModalPerms({
+        canViewBudget: false,
+        canRecordRevenue: false,
+        canViewExpenses: true,
+        canCreateExpenses: true,
+        canApproveExpenses: false,
+        canManageTasks: true,
+        canUpdateProgress: true,
+        canManageTeam: false,
+        canEditProject: false,
+        canViewAttendance: true,
+      });
+    }
+    setEditingUserId(userId);
+    setIsMemberModalOpen(true);
+  };
+
+  const saveMemberConfig = () => {
+    if (!editingUserId) return;
+    setMemberConfigs((prev) => ({
+      ...prev,
+      [editingUserId]: {
+        roleInProject: modalRoleTitle.trim() || 'Site Engineer',
+        permissions: { ...modalPerms },
+      },
+    }));
+    setIsMemberModalOpen(false);
+  };
+
   const toggleTeamMember = (id: string) => {
     if (selectedTeamMemberIds.includes(id)) {
       setSelectedTeamMemberIds(selectedTeamMemberIds.filter((m) => m !== id));
     } else {
       setSelectedTeamMemberIds([...selectedTeamMemberIds, id]);
+      if (!memberConfigs[id]) {
+        setMemberConfigs((prev) => ({
+          ...prev,
+          [id]: {
+            roleInProject: 'Site Engineer',
+            permissions: {
+              canViewBudget: false,
+              canRecordRevenue: false,
+              canViewExpenses: true,
+              canCreateExpenses: true,
+              canApproveExpenses: false,
+              canManageTasks: true,
+              canUpdateProgress: true,
+              canManageTeam: false,
+              canEditProject: false,
+              canViewAttendance: true,
+            },
+          },
+        }));
+      }
     }
   };
 
@@ -175,6 +356,29 @@ export default function NewProjectPage() {
         categoryBudgets[c.name] = c.amount;
       });
 
+      const membersPayload = selectedTeamMemberIds.map((userId) => {
+        const config = memberConfigs[userId] || {
+          roleInProject: 'Site Engineer',
+          permissions: {
+            canViewBudget: false,
+            canRecordRevenue: false,
+            canViewExpenses: true,
+            canCreateExpenses: true,
+            canApproveExpenses: false,
+            canManageTasks: true,
+            canUpdateProgress: true,
+            canManageTeam: false,
+            canEditProject: false,
+            canViewAttendance: true,
+          },
+        };
+        return {
+          userId,
+          roleInProject: config.roleInProject,
+          permissions: config.permissions,
+        };
+      });
+
       const payload = {
         name: name.trim(),
         description: description.trim(),
@@ -197,6 +401,7 @@ export default function NewProjectPage() {
         start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
         end_date: endDate ? new Date(endDate).toISOString() : new Date().toISOString(),
         team_member_ids: selectedTeamMemberIds,
+        members: membersPayload,
         status: status,
         site_latitude: siteLatitude,
         site_longitude: siteLongitude,
@@ -782,42 +987,82 @@ export default function NewProjectPage() {
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:border-violet-500"
                 />
 
-                <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1">
+                <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
                   {filteredUsers.map((user) => {
                     const isSelected = selectedTeamMemberIds.includes(user.id);
+                    const cfg = memberConfigs[user.id];
+                    const roleTitle = cfg?.roleInProject || 'Site Engineer';
+                    const canApprove = cfg?.permissions?.canApproveExpenses || false;
+
                     return (
                       <div
                         key={user.id}
                         onClick={() => toggleTeamMember(user.id)}
-                        className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all border ${
+                        className={`p-2.5 rounded-2xl cursor-pointer transition-all border ${
                           isSelected
-                            ? 'bg-violet-50/80 border-violet-200 text-violet-900'
+                            ? 'bg-violet-50/80 border-violet-200 text-violet-900 shadow-xs'
                             : 'bg-white border-slate-100 hover:bg-slate-50 text-slate-700'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div
-                            className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${
-                              isSelected ? 'bg-violet-600 text-white' : 'bg-slate-200 text-slate-600'
-                            }`}
-                          >
-                            {(user.name || 'U').substring(0, 2).toUpperCase()}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div
+                              className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${
+                                isSelected ? 'bg-violet-600 text-white' : 'bg-slate-200 text-slate-600'
+                              }`}
+                            >
+                              {(user.name || 'U').substring(0, 2).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold truncate text-slate-900">{user.name}</p>
+                              <p className="text-[10px] text-slate-400 truncate">{user.department || user.email}</p>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold truncate">{user.name}</p>
-                            <p className="text-[10px] text-slate-400 truncate">{user.department || user.email}</p>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {isSelected && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openMemberConfigModal(user.id);
+                                }}
+                                className="px-2 py-1 rounded-lg bg-violet-100 hover:bg-violet-200 text-violet-800 text-[10px] font-bold flex items-center gap-1 transition-all"
+                                title="Configure Project Role & Permissions"
+                              >
+                                <Sliders size={11} />
+                                <span>Access</span>
+                              </button>
+                            )}
+
+                            <div
+                              className={`w-5 h-5 rounded-lg flex items-center justify-center border transition-colors ${
+                                isSelected
+                                  ? 'bg-violet-600 border-violet-600 text-white'
+                                  : 'border-slate-300 bg-white'
+                              }`}
+                            >
+                              {isSelected && <Check size={12} strokeWidth={3} />}
+                            </div>
                           </div>
                         </div>
 
-                        <div
-                          className={`w-5 h-5 rounded-lg flex items-center justify-center border transition-colors ${
-                            isSelected
-                              ? 'bg-violet-600 border-violet-600 text-white'
-                              : 'border-slate-300 bg-white'
-                          }`}
-                        >
-                          {isSelected && <Check size={12} strokeWidth={3} />}
-                        </div>
+                        {isSelected && (
+                          <div className="mt-2 pt-2 border-t border-violet-100/80 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="px-2 py-0.5 rounded-md bg-white border border-violet-200 text-violet-700 font-bold text-[10px]">
+                                {roleTitle}
+                              </span>
+                              {canApprove && (
+                                <span className="px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center gap-1">
+                                  <ShieldCheck size={10} />
+                                  <span>Approver</span>
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[9px] text-slate-400 font-medium">Click Access to customize</span>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -826,6 +1071,235 @@ export default function NewProjectPage() {
             </div>
           </div>
         </form>
+
+        {/* Member Role & Permissions Modal */}
+        {isMemberModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Configure Role & Permissions</h3>
+                  <p className="text-xs text-slate-400">
+                    Assign custom title and 10 granular checkbox permissions for this project
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMemberModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Editing User Banner */}
+              {editingUserId && (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-violet-600 text-white flex items-center justify-center font-bold text-xs">
+                    {(users.find((u) => u.id === editingUserId)?.name || 'U').substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-900">
+                      {users.find((u) => u.id === editingUserId)?.name}
+                    </p>
+                    <p className="text-[10px] text-slate-500 truncate">
+                      {users.find((u) => u.id === editingUserId)?.email}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Role Title Input & Presets */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Project Role Title (Free Text) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={modalRoleTitle}
+                  onChange={(e) => setModalRoleTitle(e.target.value)}
+                  placeholder="e.g., Site Lead, Field Auditor, Quality Inspector, Senior Surveyor..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-violet-500 focus:bg-white"
+                />
+
+                {/* Preset Pills */}
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                    Quick Role Presets:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ROLE_PRESETS.map((preset) => (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => {
+                          setModalRoleTitle(preset.role);
+                          setModalPerms({ ...preset.perms });
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors ${
+                          modalRoleTitle.toLowerCase() === preset.role.toLowerCase()
+                            ? 'bg-violet-50 border-violet-300 text-violet-700'
+                            : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-600'
+                        }`}
+                      >
+                        {preset.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 10 Granular Checkboxes */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 text-xs">
+                <div className="flex items-center justify-between">
+                  <label className="block font-bold text-slate-900 uppercase tracking-wider">
+                    Permissions Matrix (10 Checkboxes)
+                  </label>
+                  <span className="text-[10px] text-slate-400">Custom capabilities</span>
+                </div>
+
+                {/* 1. Crucial: Expense Approval Permission */}
+                <div
+                  onClick={() =>
+                    setModalPerms({
+                      ...modalPerms,
+                      canApproveExpenses: !modalPerms.canApproveExpenses,
+                    })
+                  }
+                  className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
+                    modalPerms.canApproveExpenses
+                      ? 'bg-emerald-50/80 border-emerald-300 text-emerald-950 shadow-xs'
+                      : 'bg-slate-50/60 border-slate-200 hover:bg-slate-100/60 text-slate-700'
+                  }`}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-lg flex items-center justify-center border mt-0.5 shrink-0 ${
+                      modalPerms.canApproveExpenses
+                        ? 'bg-emerald-600 border-emerald-600 text-white'
+                        : 'border-slate-300 bg-white'
+                    }`}
+                  >
+                    {modalPerms.canApproveExpenses && <Check size={12} strokeWidth={3} />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-slate-900">Approve Expenses</span>
+                      <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 text-[9px] font-bold rounded-sm">
+                        Authority
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500">
+                      User receives approval notifications and can review & approve/reject project expense claims.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Remaining 9 Permissions in 2-column grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    {
+                      key: 'canViewBudget',
+                      label: 'View Budget',
+                      desc: 'Access total budget, expenses, & financial health',
+                    },
+                    {
+                      key: 'canRecordRevenue',
+                      label: 'Record Revenue',
+                      desc: 'Record milestone payments and project revenue',
+                    },
+                    {
+                      key: 'canViewExpenses',
+                      label: 'View Expenses',
+                      desc: 'See all submitted project expenses',
+                    },
+                    {
+                      key: 'canCreateExpenses',
+                      label: 'Create Expenses',
+                      desc: 'Submit new project expense claims for reimbursement',
+                    },
+                    {
+                      key: 'canManageTasks',
+                      label: 'Manage Tasks',
+                      desc: 'Create, assign, edit, and close project tasks',
+                    },
+                    {
+                      key: 'canUpdateProgress',
+                      label: 'Update Progress',
+                      desc: 'Update project completion percentage and site logs',
+                    },
+                    {
+                      key: 'canManageTeam',
+                      label: 'Manage Team',
+                      desc: 'Assign members and adjust project member roles',
+                    },
+                    {
+                      key: 'canEditProject',
+                      label: 'Edit Project',
+                      desc: 'Update project settings, dates, and site location',
+                    },
+                    {
+                      key: 'canViewAttendance',
+                      label: 'View Attendance',
+                      desc: 'Monitor team attendance logs and geofence check-ins',
+                    },
+                  ].map((perm) => {
+                    const isChecked = (modalPerms as any)[perm.key];
+                    return (
+                      <div
+                        key={perm.key}
+                        onClick={() =>
+                          setModalPerms({
+                            ...modalPerms,
+                            [perm.key]: !isChecked,
+                          })
+                        }
+                        className={`p-2.5 rounded-xl border cursor-pointer transition-all flex items-start gap-2.5 ${
+                          isChecked
+                            ? 'bg-violet-50/60 border-violet-200 text-violet-950'
+                            : 'bg-slate-50/40 border-slate-200 hover:bg-slate-100/50 text-slate-600'
+                        }`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-md flex items-center justify-center border mt-0.5 shrink-0 ${
+                            isChecked
+                              ? 'bg-violet-600 border-violet-600 text-white'
+                              : 'border-slate-300 bg-white'
+                          }`}
+                        >
+                          {isChecked && <Check size={10} strokeWidth={3} />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-[11px] text-slate-900 leading-tight">{perm.label}</p>
+                          <p className="text-[9px] text-slate-400 leading-tight mt-0.5">{perm.desc}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsMemberModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveMemberConfig}
+                  className="px-4 py-2 rounded-xl bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 shadow-sm flex items-center gap-1.5"
+                >
+                  <Check size={14} />
+                  <span>Apply Access</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );
