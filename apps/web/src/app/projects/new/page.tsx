@@ -720,9 +720,7 @@ export default function NewProjectPage() {
                     }`}>
                       <span>VAT Deduction ({Math.round(taxRate * 100)}%):</span>
                       <span className={`font-mono ${taxStatus !== 'included' ? 'text-rose-700 font-bold' : 'font-semibold text-slate-800'}`}>
-                        {taxStatus === 'included' 
-                          ? `৳${Math.round(grossProjectValue * taxRate).toLocaleString()}` 
-                          : `${Math.round(taxRate * 100)}%`}
+                        ৳{Math.round(grossProjectValue * taxRate).toLocaleString()}
                       </span>
                     </div>
                     <div className={`flex justify-between items-center py-1 px-2 rounded-xl transition-all ${
@@ -732,9 +730,7 @@ export default function NewProjectPage() {
                     }`}>
                       <span>IT Deduction ({Math.round(incomeTaxRate * 100)}%):</span>
                       <span className={`font-mono ${taxStatus !== 'included' ? 'text-rose-700 font-bold' : 'font-semibold text-slate-800'}`}>
-                        {taxStatus === 'included' 
-                          ? `৳${Math.round(grossProjectValue * incomeTaxRate).toLocaleString()}` 
-                          : `${Math.round(incomeTaxRate * 100)}%`}
+                        ৳{Math.round(grossProjectValue * incomeTaxRate).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between text-slate-600 pt-1 border-t border-emerald-200/50">

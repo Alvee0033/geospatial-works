@@ -748,9 +748,7 @@ function EditProjectContent() {
                     }`}>
                       <span>VAT Provision ({Math.round(taxRate * 100)}%):</span>
                       <span className={`font-mono ${taxStatus !== 'included' ? 'text-rose-700 font-bold' : 'font-bold text-slate-900'}`}>
-                        {taxStatus === 'included' 
-                          ? `৳${Math.round(vatProvision).toLocaleString()}` 
-                          : `${Math.round(taxRate * 100)}%`}
+                        ৳{Math.round(grossProjectValue * taxRate).toLocaleString()}
                       </span>
                     </div>
                     <div className={`flex justify-between items-center py-1 px-2 rounded-xl transition-all ${
@@ -760,9 +758,7 @@ function EditProjectContent() {
                     }`}>
                       <span>Income Tax Provision ({Math.round(incomeTaxRate * 100)}%):</span>
                       <span className={`font-mono ${taxStatus !== 'included' ? 'text-rose-700 font-bold' : 'font-bold text-slate-900'}`}>
-                        {taxStatus === 'included' 
-                          ? `৳${Math.round(incomeTaxProvision).toLocaleString()}` 
-                          : `${Math.round(incomeTaxRate * 100)}%`}
+                        ৳{Math.round(grossProjectValue * incomeTaxRate).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between text-slate-500">
