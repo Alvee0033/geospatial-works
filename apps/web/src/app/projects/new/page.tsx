@@ -42,9 +42,9 @@ export default function NewProjectPage() {
   const [incomeTaxRate, setIncomeTaxRate] = useState<number>(0.05); // 5% Income Tax (IT)
   const [officeBenefitRate, setOfficeBenefitRate] = useState<number>(0.30); // 30%
 
-  const [grossProjectValue, setGrossProjectValue] = useState<number>(100000);
-  const [advanceReceived, setAdvanceReceived] = useState<number>(25000);
-  const [amountReceived, setAmountReceived] = useState<number>(25000);
+  const [grossProjectValue, setGrossProjectValue] = useState<number>(0);
+  const [advanceReceived, setAdvanceReceived] = useState<number>(0);
+  const [amountReceived, setAmountReceived] = useState<number>(0);
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -54,14 +54,14 @@ export default function NewProjectPage() {
   const [siteRadiusMeters, setSiteRadiusMeters] = useState(200);
 
   // Category Budgets
-  const [budgetEquipment, setBudgetEquipment] = useState<number>(15000);
-  const [budgetTransportation, setBudgetTransportation] = useState<number>(15000);
-  const [budgetFood, setBudgetFood] = useState<number>(10000);
-  const [budgetAccommodation, setBudgetAccommodation] = useState<number>(10000);
-  const [budgetOfficeCost, setBudgetOfficeCost] = useState<number>(10000);
+  const [budgetEquipment, setBudgetEquipment] = useState<number>(0);
+  const [budgetTransportation, setBudgetTransportation] = useState<number>(0);
+  const [budgetFood, setBudgetFood] = useState<number>(0);
+  const [budgetAccommodation, setBudgetAccommodation] = useState<number>(0);
+  const [budgetOfficeCost, setBudgetOfficeCost] = useState<number>(0);
   const [customCategories, setCustomCategories] = useState<{ name: string; amount: number }[]>([]);
   const [newCatName, setNewCatName] = useState('');
-  const [newCatAmount, setNewCatAmount] = useState<number>(5000);
+  const [newCatAmount, setNewCatAmount] = useState<number>(0);
 
   // Team Selection
   const [selectedTeamMemberIds, setSelectedTeamMemberIds] = useState<string[]>([]);
@@ -460,7 +460,8 @@ export default function NewProjectPage() {
                     <input
                       type="number"
                       min="0"
-                      value={budgetEquipment}
+                      placeholder="0"
+                      value={budgetEquipment || ''}
                       onChange={(e) => setBudgetEquipment(Number(e.target.value) || 0)}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
@@ -473,7 +474,8 @@ export default function NewProjectPage() {
                     <input
                       type="number"
                       min="0"
-                      value={budgetTransportation}
+                      placeholder="0"
+                      value={budgetTransportation || ''}
                       onChange={(e) => setBudgetTransportation(Number(e.target.value) || 0)}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
@@ -486,7 +488,8 @@ export default function NewProjectPage() {
                     <input
                       type="number"
                       min="0"
-                      value={budgetFood}
+                      placeholder="0"
+                      value={budgetFood || ''}
                       onChange={(e) => setBudgetFood(Number(e.target.value) || 0)}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
@@ -499,7 +502,8 @@ export default function NewProjectPage() {
                     <input
                       type="number"
                       min="0"
-                      value={budgetAccommodation}
+                      placeholder="0"
+                      value={budgetAccommodation || ''}
                       onChange={(e) => setBudgetAccommodation(Number(e.target.value) || 0)}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
@@ -512,7 +516,8 @@ export default function NewProjectPage() {
                     <input
                       type="number"
                       min="0"
-                      value={budgetOfficeCost}
+                      placeholder="0"
+                      value={budgetOfficeCost || ''}
                       onChange={(e) => setBudgetOfficeCost(Number(e.target.value) || 0)}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
@@ -603,7 +608,8 @@ export default function NewProjectPage() {
                     <input
                       type="number"
                       min="0"
-                      value={grossProjectValue}
+                      placeholder="0"
+                      value={grossProjectValue || ''}
                       onChange={(e) => setGrossProjectValue(Number(e.target.value) || 0)}
                       className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
                     />
@@ -677,7 +683,8 @@ export default function NewProjectPage() {
                       <input
                         type="number"
                         min="0"
-                        value={advanceReceived}
+                        placeholder="0"
+                        value={advanceReceived || ''}
                         onChange={(e) => setAdvanceReceived(Number(e.target.value) || 0)}
                         className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500 transition-all"
                       />
@@ -706,16 +713,28 @@ export default function NewProjectPage() {
 
                   {/* Summary Breakdown Box in Light Palette */}
                   <div className="p-4 bg-emerald-50/50 border border-emerald-200/70 rounded-2xl space-y-2 text-xs">
-                    <div className="flex justify-between text-slate-600">
+                    <div className={`flex justify-between items-center py-1 px-2 rounded-xl transition-all ${
+                      taxStatus !== 'included' 
+                        ? 'bg-rose-50 border border-rose-200 text-rose-700 font-bold' 
+                        : 'text-slate-600'
+                    }`}>
                       <span>VAT Deduction ({Math.round(taxRate * 100)}%):</span>
-                      <span className="font-mono font-semibold text-slate-800">
-                        ৳{Math.round(taxStatus === 'included' ? grossProjectValue * taxRate : 0).toLocaleString()}
+                      <span className={`font-mono ${taxStatus !== 'included' ? 'text-rose-700 font-bold' : 'font-semibold text-slate-800'}`}>
+                        {taxStatus === 'included' 
+                          ? `৳${Math.round(grossProjectValue * taxRate).toLocaleString()}` 
+                          : `${Math.round(taxRate * 100)}%`}
                       </span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
+                    <div className={`flex justify-between items-center py-1 px-2 rounded-xl transition-all ${
+                      taxStatus !== 'included' 
+                        ? 'bg-rose-50 border border-rose-200 text-rose-700 font-bold' 
+                        : 'text-slate-600'
+                    }`}>
                       <span>IT Deduction ({Math.round(incomeTaxRate * 100)}%):</span>
-                      <span className="font-mono font-semibold text-slate-800">
-                        ৳{Math.round(taxStatus === 'included' ? grossProjectValue * incomeTaxRate : 0).toLocaleString()}
+                      <span className={`font-mono ${taxStatus !== 'included' ? 'text-rose-700 font-bold' : 'font-semibold text-slate-800'}`}>
+                        {taxStatus === 'included' 
+                          ? `৳${Math.round(grossProjectValue * incomeTaxRate).toLocaleString()}` 
+                          : `${Math.round(incomeTaxRate * 100)}%`}
                       </span>
                     </div>
                     <div className="flex justify-between text-slate-600 pt-1 border-t border-emerald-200/50">

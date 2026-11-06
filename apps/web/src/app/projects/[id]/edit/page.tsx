@@ -741,13 +741,29 @@ function EditProjectContent() {
                       <span>Project Value Excl. IT-VAT:</span>
                       <span className="font-mono font-bold text-slate-900">৳{expectedNetRevenue.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between text-slate-500">
-                      <span>VAT Provision:</span>
-                      <span className="font-mono font-bold text-slate-900">৳{vatProvision.toLocaleString()}</span>
+                    <div className={`flex justify-between items-center py-1 px-2 rounded-xl transition-all ${
+                      taxStatus !== 'included' 
+                        ? 'bg-rose-50 border border-rose-200 text-rose-700 font-bold' 
+                        : 'text-slate-500'
+                    }`}>
+                      <span>VAT Provision ({Math.round(taxRate * 100)}%):</span>
+                      <span className={`font-mono ${taxStatus !== 'included' ? 'text-rose-700 font-bold' : 'font-bold text-slate-900'}`}>
+                        {taxStatus === 'included' 
+                          ? `৳${Math.round(vatProvision).toLocaleString()}` 
+                          : `${Math.round(taxRate * 100)}%`}
+                      </span>
                     </div>
-                    <div className="flex justify-between text-slate-500">
-                      <span>Income Tax Provision:</span>
-                      <span className="font-mono font-bold text-slate-900">৳{incomeTaxProvision.toLocaleString()}</span>
+                    <div className={`flex justify-between items-center py-1 px-2 rounded-xl transition-all ${
+                      taxStatus !== 'included' 
+                        ? 'bg-rose-50 border border-rose-200 text-rose-700 font-bold' 
+                        : 'text-slate-500'
+                    }`}>
+                      <span>Income Tax Provision ({Math.round(incomeTaxRate * 100)}%):</span>
+                      <span className={`font-mono ${taxStatus !== 'included' ? 'text-rose-700 font-bold' : 'font-bold text-slate-900'}`}>
+                        {taxStatus === 'included' 
+                          ? `৳${Math.round(incomeTaxProvision).toLocaleString()}` 
+                          : `${Math.round(incomeTaxRate * 100)}%`}
+                      </span>
                     </div>
                     <div className="flex justify-between text-slate-500">
                       <span>Direct Operational Budget:</span>
