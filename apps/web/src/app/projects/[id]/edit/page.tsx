@@ -783,7 +783,7 @@ function EditProjectContent() {
                       <span className={`font-mono font-bold ${expectedRevenue < 0 ? 'text-rose-700' : 'text-emerald-700'}`}>৳{Math.round(expectedRevenue).toLocaleString()}</span>
                     </div>
                     <div className="border-t border-indigo-100 pt-2 flex justify-between text-sm font-bold">
-                      <span className="text-indigo-700">Total Agreed Budget:</span>
+                      <span className="text-indigo-700">Total Project Budget:</span>
                       <span className="font-mono text-indigo-700">৳{Math.round(calculatedTotalBudget).toLocaleString()}</span>
                     </div>
                   </div>

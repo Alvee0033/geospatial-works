@@ -753,7 +753,7 @@ export default function NewProjectPage() {
                       <span className={`font-mono font-bold ${expectedRevenue < 0 ? 'text-rose-700' : 'text-emerald-800'}`}>৳{Math.round(expectedRevenue).toLocaleString()}</span>
                     </div>
                     <div className="border-t border-emerald-300/80 pt-2 flex justify-between text-sm font-bold">
-                      <span className="text-emerald-950 font-extrabold">Total Agreed Budget:</span>
+                      <span className="text-emerald-950 font-extrabold">Total Project Budget:</span>
                       <span className="font-mono text-emerald-800 font-extrabold">৳{Math.round(calculatedTotalBudget).toLocaleString()}</span>
                     </div>
                   </div>

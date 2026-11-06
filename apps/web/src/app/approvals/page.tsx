@@ -38,8 +38,9 @@ export default function ApprovalsQueuePage() {
   const [selectedExpenseIds, setSelectedExpenseIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Voucher preview modal
+  // Voucher preview & inspection modal
   const [previewVoucherUrl, setPreviewVoucherUrl] = useState<string | null>(null);
+  const [inspectExpense, setInspectExpense] = useState<any | null>(null);
 
   // Rejection modal
   const [itemToReject, setItemToReject] = useState<{ id: string; type: 'expense' | 'leave'; name: string } | null>(null);
@@ -73,7 +74,9 @@ export default function ApprovalsQueuePage() {
 
   const filteredExpenses = pendingExpenses.filter((e) => {
     const amount = Number(e.amount) || 0;
-    const hasReceipt = Boolean(e.receiptUrl || e.receipt_url);
+    const hasReceipt = Boolean(
+      e.receiptPhotoUrl || e.receipt_photo_url || e.receiptUrl || e.receipt_url || e.hasReceipt
+    );
 
     if (filterType === 'highAmount' && amount <= 5000) return false;
     if (filterType === 'noReceipt' && hasReceipt) return false;
@@ -83,8 +86,8 @@ export default function ApprovalsQueuePage() {
       const q = searchQuery.toLowerCase();
       const name = (e.employeeName || e.employee_name || '').toLowerCase();
       const proj = (e.projectName || e.project_name || e.projectId || '').toLowerCase();
-      const cat = (e.category || '').toLowerCase();
-      const desc = (e.description || '').toLowerCase();
+      const cat = (e.categoryName || e.category_name || e.category || '').toLowerCase();
+      const desc = (e.note || e.description || '').toLowerCase();
       if (!name.includes(q) && !proj.includes(q) && !cat.includes(q) && !desc.includes(q)) {
         return false;
       }
@@ -234,7 +237,18 @@ export default function ApprovalsQueuePage() {
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Missing Receipts</p>
               <p className="text-2xl font-black text-rose-600 mt-1">
-                {pendingExpenses.filter((e) => !e.receiptUrl && !e.receipt_url).length}
+                {
+                  pendingExpenses.filter(
+                    (e) =>
+                      !Boolean(
+                        e.receiptPhotoUrl ||
+                          e.receipt_photo_url ||
+                          e.receiptUrl ||
+                          e.receipt_url ||
+                          e.hasReceipt
+                      )
+                  ).length
+                }
               </p>
             </div>
             <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
@@ -386,11 +400,23 @@ export default function ApprovalsQueuePage() {
                     <tbody className="divide-y divide-slate-100">
                       {filteredExpenses.map((exp) => {
                         const isSelected = selectedExpenseIds.includes(exp.id);
-                        const hasReceipt = Boolean(exp.receiptUrl || exp.receipt_url);
-                        const receiptUrl = exp.receiptUrl || exp.receipt_url;
+                        const receiptUrl =
+                          exp.receiptPhotoUrl ||
+                          exp.receipt_photo_url ||
+                          exp.receiptUrl ||
+                          exp.receipt_url;
+                        const hasReceipt = Boolean(receiptUrl || exp.hasReceipt);
                         const matchedUser = users.find(
-                          (u) => u.id === (exp.userId || exp.user_id) || u.name === (exp.employeeName || exp.employee_name)
+                          (u) =>
+                            u.id === (exp.userId || exp.user_id) ||
+                            u.name === (exp.employeeName || exp.employee_name)
                         );
+                        const categoryName =
+                          exp.categoryName ||
+                          exp.category_name ||
+                          exp.category ||
+                          'General';
+                        const noteText = exp.note || exp.description || '—';
 
                         return (
                           <tr
@@ -411,13 +437,20 @@ export default function ApprovalsQueuePage() {
                             <td className="py-4 px-4">
                               <div className="flex items-center gap-2.5">
                                 <UserAvatar
-                                  src={exp.employeeAvatar || exp.userAvatar || matchedUser?.avatarUrl || matchedUser?.avatar_url}
+                                  src={
+                                    exp.employeeAvatar ||
+                                    exp.userAvatar ||
+                                    matchedUser?.avatarUrl ||
+                                    matchedUser?.avatar_url
+                                  }
                                   name={exp.employeeName || exp.employee_name || 'Staff'}
                                   size="sm"
                                   shape="rounded"
                                 />
                                 <div>
-                                  <p className="font-bold text-slate-900">{exp.employeeName || exp.employee_name || 'Staff'}</p>
+                                  <p className="font-bold text-slate-900">
+                                    {exp.employeeName || exp.employee_name || 'Staff'}
+                                  </p>
                                   <p className="text-[10px] text-slate-400 font-mono">
                                     {exp.date ? new Date(exp.date).toLocaleDateString() : 'N/A'}
                                   </p>
@@ -432,15 +465,15 @@ export default function ApprovalsQueuePage() {
                             <td className="py-4 px-4">
                               <span
                                 className={`inline-block px-2.5 py-0.5 rounded-full font-bold text-[11px] border capitalize ${getCategoryBadgeClass(
-                                  exp.category
+                                  categoryName
                                 )}`}
                               >
-                                {exp.category}
+                                {categoryName}
                               </span>
                             </td>
 
                             <td className="py-4 px-4 max-w-xs">
-                              <p className="text-slate-800 font-medium truncate">{exp.description}</p>
+                              <p className="text-slate-800 font-medium truncate">{noteText}</p>
                               {exp.justification && (
                                 <p className="text-[11px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded mt-1 inline-block">
                                   Note: {exp.justification}
@@ -449,7 +482,7 @@ export default function ApprovalsQueuePage() {
                             </td>
 
                             <td className="py-4 px-4 text-center">
-                              {hasReceipt ? (
+                              {receiptUrl ? (
                                 <button
                                   type="button"
                                   onClick={() => setPreviewVoucherUrl(receiptUrl)}
@@ -472,6 +505,14 @@ export default function ApprovalsQueuePage() {
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   type="button"
+                                  onClick={() => setInspectExpense(exp)}
+                                  className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1 transition-all shadow-xs"
+                                  title="Inspect Expense Details"
+                                >
+                                  <Eye size={13} /> Details
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={() => handleApproveExpense(exp.id)}
                                   disabled={submitting}
                                   className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-xl transition-all shadow-xs"
@@ -485,7 +526,7 @@ export default function ApprovalsQueuePage() {
                                     setItemToReject({
                                       id: exp.id,
                                       type: 'expense',
-                                      name: `${exp.employeeName || 'Staff'} - ৳${exp.amount}`,
+                                      name: `${exp.employeeName || exp.employee_name || 'Staff'} - ৳${exp.amount}`,
                                     })
                                   }
                                   disabled={submitting}
@@ -604,6 +645,205 @@ export default function ApprovalsQueuePage() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* MODAL: Expense Claim Inspection Details */}
+        {inspectExpense && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <Receipt size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">Voucher Claim Inspection</h3>
+                    <p className="text-[11px] text-slate-400 font-mono">
+                      Ref #{String(inspectExpense.id || '').slice(0, 8)} •{' '}
+                      {inspectExpense.date ? new Date(inspectExpense.date).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setInspectExpense(null)}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              {/* Grid Summary */}
+              <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                    Claimant Personnel
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {inspectExpense.employeeName || inspectExpense.employee_name || 'Staff Member'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                    Project / Cost Code
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {inspectExpense.projectName || inspectExpense.project_name || inspectExpense.projectId || 'General Overhead'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                    Category Tag
+                  </span>
+                  <span className="font-semibold text-slate-800 capitalize">
+                    {inspectExpense.categoryName || inspectExpense.category_name || inspectExpense.category || 'General'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                    Total Voucher Amount
+                  </span>
+                  <span className="font-mono font-black text-emerald-600 text-sm">
+                    ৳{(Number(inspectExpense.amount) || 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Justification & Note */}
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Claim Justification / Description
+                </span>
+                <p className="text-slate-700 leading-relaxed font-medium">
+                  {inspectExpense.note || inspectExpense.description || 'No detailed note was provided with this voucher claim.'}
+                </p>
+                {inspectExpense.justification && (
+                  <p className="text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg mt-1 font-medium">
+                    Remark: {inspectExpense.justification}
+                  </p>
+                )}
+              </div>
+
+              {/* Attached Voucher Slip */}
+              {(inspectExpense.receiptPhotoUrl ||
+                inspectExpense.receipt_photo_url ||
+                inspectExpense.receiptUrl ||
+                inspectExpense.receipt_url) ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                    <span className="flex items-center gap-1.5">
+                      <Receipt size={14} className="text-indigo-600" />
+                      Commercial Voucher Slip
+                    </span>
+                    <a
+                      href={
+                        inspectExpense.receiptPhotoUrl ||
+                        inspectExpense.receipt_photo_url ||
+                        inspectExpense.receiptUrl ||
+                        inspectExpense.receipt_url
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-[11px]"
+                    >
+                      <ExternalLink size={12} /> Open Full Size
+                    </a>
+                  </div>
+                  <div className="p-2 bg-slate-900 rounded-2xl border border-slate-200 flex justify-center overflow-hidden">
+                    <img
+                      src={
+                        inspectExpense.receiptPhotoUrl ||
+                        inspectExpense.receipt_photo_url ||
+                        inspectExpense.receiptUrl ||
+                        inspectExpense.receipt_url
+                      }
+                      alt="Expense voucher"
+                      className="max-h-72 w-auto object-contain rounded-xl shadow-xs"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200/60 text-center text-amber-800 text-xs">
+                  <AlertTriangle size={16} className="mx-auto text-amber-500 mb-1" />
+                  No physical or digital receipt photo was attached to this claim.
+                </div>
+              )}
+
+              {/* Audit Comments Thread */}
+              {inspectExpense.comments && inspectExpense.comments.length > 0 && (
+                <div className="space-y-2 text-xs">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Audit Remarks ({inspectExpense.comments.length})
+                  </span>
+                  <div className="space-y-2 max-h-36 overflow-y-auto">
+                    {inspectExpense.comments.map((c: any, idx: number) => (
+                      <div key={idx} className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-2">
+                        <UserAvatar
+                          src={c.avatarUrl || c.userAvatarUrl}
+                          name={c.userName || 'Administrator'}
+                          size="sm"
+                          shape="rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="font-bold text-slate-900 text-xs">{c.userName || 'Admin'}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                            </span>
+                          </div>
+                          <p className="text-slate-700 text-xs">{c.comment || c.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setInspectExpense(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-full text-xs transition-colors"
+                >
+                  Close
+                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const exp = inspectExpense;
+                      setInspectExpense(null);
+                      setItemToReject({
+                        id: exp.id,
+                        type: 'expense',
+                        name: `${exp.employeeName || exp.employee_name || 'Staff'} - ৳${exp.amount}`,
+                      });
+                    }}
+                    disabled={submitting}
+                    className="px-4 py-2 bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white rounded-full text-xs font-bold transition-all flex items-center gap-1"
+                  >
+                    <X size={13} strokeWidth={2.5} /> Reject
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const expId = inspectExpense.id;
+                      setInspectExpense(null);
+                      handleApproveExpense(expId);
+                    }}
+                    disabled={submitting}
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold transition-all flex items-center gap-1 shadow-xs"
+                  >
+                    <Check size={13} strokeWidth={2.5} /> Approve Claim
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
