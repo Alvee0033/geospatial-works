@@ -1234,17 +1234,20 @@ export default function SettingsPage() {
                       {formatHour(shiftModal.shift.morningStartHour)}
                     </span>
                   </div>
-                  <input
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={shiftModal.shift.morningStartHour}
+                  <select
+                    value={shiftModal.shift.morningStartHour ?? 9}
                     onChange={(e) => setShiftModal({
                       ...shiftModal,
                       shift: { ...shiftModal.shift, morningStartHour: Number(e.target.value) }
                     })}
-                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-semibold"
-                  />
+                    className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  >
+                    {Array.from({ length: 24 }).map((_, h) => (
+                      <option key={h} value={h}>
+                        {formatHour(h)} ({String(h).padStart(2, '0')}:00)
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-0.5">
@@ -1253,17 +1256,20 @@ export default function SettingsPage() {
                       {formatHour(shiftModal.shift.afternoonEndHour)}
                     </span>
                   </div>
-                  <input
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={shiftModal.shift.afternoonEndHour}
+                  <select
+                    value={shiftModal.shift.afternoonEndHour ?? 18}
                     onChange={(e) => setShiftModal({
                       ...shiftModal,
                       shift: { ...shiftModal.shift, afternoonEndHour: Number(e.target.value) }
                     })}
-                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-semibold"
-                  />
+                    className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  >
+                    {Array.from({ length: 24 }).map((_, h) => (
+                      <option key={h} value={h}>
+                        {formatHour(h)} ({String(h).padStart(2, '0')}:00)
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -1277,10 +1283,7 @@ export default function SettingsPage() {
                         {formatHour(shiftModal.shift.breakStartHour ?? shiftModal.shift.morningEndHour ?? 13)}
                       </span>
                     </div>
-                    <input
-                      type="number"
-                      min="0"
-                      max="23"
+                    <select
                       value={shiftModal.shift.breakStartHour ?? shiftModal.shift.morningEndHour ?? 13}
                       onChange={(e) => {
                         const val = Number(e.target.value);
@@ -1293,8 +1296,14 @@ export default function SettingsPage() {
                           }
                         });
                       }}
-                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold"
-                    />
+                      className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    >
+                      {Array.from({ length: 24 }).map((_, h) => (
+                        <option key={h} value={h}>
+                          {formatHour(h)} ({String(h).padStart(2, '0')}:00)
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-0.5">
@@ -1303,10 +1312,7 @@ export default function SettingsPage() {
                         {formatHour(shiftModal.shift.breakEndHour ?? shiftModal.shift.afternoonStartHour ?? 14)}
                       </span>
                     </div>
-                    <input
-                      type="number"
-                      min="0"
-                      max="23"
+                    <select
                       value={shiftModal.shift.breakEndHour ?? shiftModal.shift.afternoonStartHour ?? 14}
                       onChange={(e) => {
                         const val = Number(e.target.value);
@@ -1319,8 +1325,14 @@ export default function SettingsPage() {
                           }
                         });
                       }}
-                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold"
-                    />
+                      className="w-full px-2 py-1.5 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    >
+                      {Array.from({ length: 24 }).map((_, h) => (
+                        <option key={h} value={h}>
+                          {formatHour(h)} ({String(h).padStart(2, '0')}:00)
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
