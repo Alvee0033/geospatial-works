@@ -330,58 +330,23 @@ export class ApiClient {
     });
   }
 
-  static async getProjectMembers(id: string) {
-    return this.request<any[]>(`/projects/${id}/members`);
+  static async getProjectMembers(projectId: string) {
+    return this.request<any[]>(`/projects/${projectId}/members`);
   }
 
-  static async getMyProjectPermissions(id: string) {
-    return this.request<{
-      isSystemAdmin?: boolean;
-      isCreator?: boolean;
-      isMember?: boolean;
-      roleInProject: string;
-      permissions: {
-        canViewBudget: boolean;
-        canRecordRevenue: boolean;
-        canViewExpenses: boolean;
-        canCreateExpenses: boolean;
-        canApproveExpenses: boolean;
-        canManageTasks: boolean;
-        canUpdateProgress: boolean;
-        canManageTeam: boolean;
-        canEditProject: boolean;
-        canViewAttendance: boolean;
-      };
-    }>(`/projects/${id}/my-permissions`);
+  static async getMyProjectPermissions(projectId: string) {
+    return this.request<any>(`/projects/${projectId}/my-permissions`);
   }
 
-  static async addOrUpdateProjectMember(
-    id: string,
-    data: {
-      userId: string;
-      roleInProject?: string;
-      permissions?: Partial<{
-        canViewBudget: boolean;
-        canRecordRevenue: boolean;
-        canViewExpenses: boolean;
-        canCreateExpenses: boolean;
-        canApproveExpenses: boolean;
-        canManageTasks: boolean;
-        canUpdateProgress: boolean;
-        canManageTeam: boolean;
-        canEditProject: boolean;
-        canViewAttendance: boolean;
-      }>;
-    }
-  ) {
-    return this.request<any[]>(`/projects/${id}/members`, {
+  static async addOrUpdateProjectMember(projectId: string, data: { userId: string; roleInProject?: string; permissions?: any }) {
+    return this.request<any>(`/projects/${projectId}/members`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  static async removeProjectMember(id: string, userId: string) {
-    return this.request<any>(`/projects/${id}/members/${userId}`, {
+  static async removeProjectMember(projectId: string, userId: string) {
+    return this.request<any>(`/projects/${projectId}/members/${userId}`, {
       method: 'DELETE',
     });
   }
@@ -471,6 +436,24 @@ export class ApiClient {
     });
   }
 
+  static async overrideAttendance(data: {
+    userIds: string[];
+    startDate?: string;
+    endDate?: string;
+    dates?: string[];
+    status?: 'present' | 'late' | 'half_day' | 'confirmed_absent' | string;
+    sessionType?: 'all' | 'morning' | 'afternoon' | string;
+    workMode?: 'office' | 'field' | 'home' | 'home_office' | string;
+    skipWeekends?: boolean;
+    skipHolidays?: boolean;
+    notes?: string;
+  }) {
+    return this.request<any>('/attendance/override', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   static async recordCheckIn(data: {
     userId?: string;
     latitude: number;
@@ -480,6 +463,8 @@ export class ApiClient {
     notes?: string;
     deviceInfo?: string;
     date?: string;
+    workMode?: 'office' | 'home' | 'home_office' | 'field';
+    status?: string;
   }) {
     return this.request<any>('/attendance/check-in', {
       method: 'POST',
@@ -759,6 +744,38 @@ export class ApiClient {
   static async revertFromBackup(backupId: string) {
     return this.request<{ success: boolean }>(`/admin/data-backups/${backupId}/revert`, {
       method: 'POST',
+    });
+  }
+
+  // Work Location Assignment API
+  static async getWorkLocationAssignments(startDate?: string, endDate?: string, userId?: string) {
+    const params = new URLSearchParams();
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+    if (userId) params.set('userId', userId);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return this.request<any[]>(`/attendance/work-locations${qs}`, { bypassCache: true });
+  }
+
+  static async assignWorkLocations(data: {
+    userIds: string[];
+    startDate: string;
+    endDate?: string;
+    workLocation: 'office' | 'home' | 'field';
+    projectId?: string;
+    notes?: string;
+  }) {
+    return this.request<any>('/attendance/work-locations/assign', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      bypassCache: true,
+    });
+  }
+
+  static async deleteWorkLocationAssignment(id: string) {
+    return this.request<any>(`/attendance/work-locations/${id}`, {
+      method: 'DELETE',
+      bypassCache: true,
     });
   }
 }

@@ -14,8 +14,10 @@ interface AttendanceShift {
   id?: string;
   name: string;
   morningStartHour: number;
-  morningEndHour: number;
-  afternoonStartHour: number;
+  breakStartHour?: number;
+  breakEndHour?: number;
+  morningEndHour?: number;
+  afternoonStartHour?: number;
   afternoonEndHour: number;
   weekendDays: number[];
   isDefault: boolean;
@@ -51,6 +53,14 @@ interface CategoryItem {
 }
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+export function formatHour(hour?: number): string {
+  if (hour === undefined || hour === null || isNaN(hour)) return '—';
+  const cleanH = ((Math.floor(hour) % 24) + 24) % 24;
+  const period = cleanH < 12 ? 'AM' : 'PM';
+  const displayH = cleanH === 0 ? 12 : cleanH > 12 ? cleanH - 12 : cleanH;
+  return `${displayH}:00 ${period}`;
+}
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'schedule' | 'payroll' | 'benefits' | 'categories' | 'storage' | 'audit' | 'danger'>('schedule');
@@ -558,15 +568,15 @@ export default function SettingsPage() {
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="bg-white border border-slate-200/80 px-2 py-1.5 rounded">
-                        <span className="text-[10px] text-slate-500 block uppercase font-bold">Morning Cutoff</span>
+                        <span className="text-[10px] text-slate-500 block uppercase font-bold">Work Hours</span>
                         <span className="font-bold text-slate-800 text-[11px]">
-                          {shift.morningStartHour}:00 - {shift.morningEndHour}:00
+                          {formatHour(shift.morningStartHour)} – {formatHour(shift.afternoonEndHour)}
                         </span>
                       </div>
                       <div className="bg-white border border-slate-200/80 px-2 py-1.5 rounded">
-                        <span className="text-[10px] text-slate-500 block uppercase font-bold">Afternoon Resume</span>
-                        <span className="font-bold text-slate-800 text-[11px]">
-                          {shift.afternoonStartHour}:00 - {shift.afternoonEndHour}:00
+                        <span className="text-[10px] text-amber-600 block uppercase font-bold">Break Time</span>
+                        <span className="font-bold text-amber-900 text-[11px]">
+                          {formatHour(shift.breakStartHour ?? shift.morningEndHour ?? 13)} – {formatHour(shift.breakEndHour ?? shift.afternoonStartHour ?? 14)}
                         </span>
                       </div>
                     </div>
@@ -574,7 +584,8 @@ export default function SettingsPage() {
                     <div className="flex items-center gap-1 pt-0.5">
                       <span className="text-[10px] font-bold text-slate-400 mr-1">Off:</span>
                       {DAY_NAMES.map((day, dIdx) => {
-                        const isOff = (shift.weekendDays || []).includes(dIdx);
+                        const dayNum = dIdx + 1;
+                        const isOff = (shift.weekendDays || []).includes(dayNum);
                         return (
                           <span
                             key={day}
@@ -1217,7 +1228,12 @@ export default function SettingsPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Morning (0-23h)</label>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Shift Start</label>
+                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.2 rounded">
+                      {formatHour(shiftModal.shift.morningStartHour)}
+                    </span>
+                  </div>
                   <input
                     type="number"
                     min="0"
@@ -1227,42 +1243,16 @@ export default function SettingsPage() {
                       ...shiftModal,
                       shift: { ...shiftModal.shift, morningStartHour: Number(e.target.value) }
                     })}
-                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-semibold"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Cutoff (0-23h)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={shiftModal.shift.morningEndHour}
-                    onChange={(e) => setShiftModal({
-                      ...shiftModal,
-                      shift: { ...shiftModal.shift, morningEndHour: Number(e.target.value) }
-                    })}
-                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">Resume (0-23h)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="23"
-                    value={shiftModal.shift.afternoonStartHour}
-                    onChange={(e) => setShiftModal({
-                      ...shiftModal,
-                      shift: { ...shiftModal.shift, afternoonStartHour: Number(e.target.value) }
-                    })}
-                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-0.5">End (0-23h)</label>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Shift End</label>
+                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.2 rounded">
+                      {formatHour(shiftModal.shift.afternoonEndHour)}
+                    </span>
+                  </div>
                   <input
                     type="number"
                     min="0"
@@ -1272,8 +1262,66 @@ export default function SettingsPage() {
                       ...shiftModal,
                       shift: { ...shiftModal.shift, afternoonEndHour: Number(e.target.value) }
                     })}
-                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-semibold"
                   />
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-amber-50/70 border border-amber-200/70 rounded-lg space-y-1.5">
+                <span className="text-[10px] font-bold text-amber-900 uppercase block">Break Time Selection</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <label className="text-[10px] font-semibold text-slate-600">Break From</label>
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.2 rounded">
+                        {formatHour(shiftModal.shift.breakStartHour ?? shiftModal.shift.morningEndHour ?? 13)}
+                      </span>
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={shiftModal.shift.breakStartHour ?? shiftModal.shift.morningEndHour ?? 13}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setShiftModal({
+                          ...shiftModal,
+                          shift: {
+                            ...shiftModal.shift,
+                            breakStartHour: val,
+                            morningEndHour: val,
+                          }
+                        });
+                      }}
+                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <label className="text-[10px] font-semibold text-slate-600">Break To</label>
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.2 rounded">
+                        {formatHour(shiftModal.shift.breakEndHour ?? shiftModal.shift.afternoonStartHour ?? 14)}
+                      </span>
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={shiftModal.shift.breakEndHour ?? shiftModal.shift.afternoonStartHour ?? 14}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setShiftModal({
+                          ...shiftModal,
+                          shift: {
+                            ...shiftModal.shift,
+                            breakEndHour: val,
+                            afternoonStartHour: val,
+                          }
+                        });
+                      }}
+                      className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-semibold"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1281,7 +1329,8 @@ export default function SettingsPage() {
                 <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Weekend Days (Off)</label>
                 <div className="flex flex-wrap gap-1">
                   {DAY_NAMES.map((day, idx) => {
-                    const isSelected = shiftModal.shift.weekendDays.includes(idx);
+                    const dayNum = idx + 1;
+                    const isSelected = shiftModal.shift.weekendDays.includes(dayNum);
                     return (
                       <button
                         key={day}
@@ -1289,8 +1338,8 @@ export default function SettingsPage() {
                         onClick={() => {
                           const current = [...shiftModal.shift.weekendDays];
                           const newDays = isSelected 
-                            ? current.filter(d => d !== idx)
-                            : [...current, idx];
+                            ? current.filter(d => d !== dayNum)
+                            : [...current, dayNum];
                           setShiftModal({
                             ...shiftModal,
                             shift: { ...shiftModal.shift, weekendDays: newDays }
