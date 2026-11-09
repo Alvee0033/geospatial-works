@@ -5,6 +5,14 @@ const apiInternalUrl = process.env.BACKEND_INTERNAL_URL || 'http://localhost:400
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  turbopack: {
+    rules: {
+      '*.css': {
+        loaders: ['@tailwindcss/turbopack'],
+        as: '*.css',
+      },
+    },
+  },
   async rewrites() {
     return [
       {
