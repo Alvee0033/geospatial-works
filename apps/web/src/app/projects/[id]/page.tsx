@@ -52,9 +52,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   if (!project) notFound();
 
-  // Fetch other projects for related section
-  const apiProjects = await CmsApi.getProjects().catch(() => []);
-  const pool = apiProjects.length > 0 ? apiProjects : ALL_PROJECTS;
+  // Fetch other projects strictly from verified presentation catalog
+  const pool = ALL_PROJECTS;
   const relatedProjects = pool.filter((p) => p.slug !== id).slice(0, 3);
 
   return (

@@ -113,8 +113,8 @@ export default function WspLandingView({
       title: 'Gabtoli Inter-District Bus Terminal Modernization',
       category: 'Transit & Municipal Facility',
       description: 'Digital surveying, 3D structural modeling, and comprehensive improvement planning of Gabtoli Bus Terminal.',
-      imageUrl: '/ppt-projects/gabtoli-terminal-hero.jpg',
-      slug: 'gabtoli-bus-terminal-modernization',
+      imageUrl: '/projects-extracted/page_16/img_02.jpg',
+      slug: 'page-16-passenger-facilities-modernization-at-gabtoli',
     },
     {
       id: 'p2',
@@ -122,8 +122,8 @@ export default function WspLandingView({
       title: 'Gulshan-1 Intersection to Progati Sarani Highway & Drain Improvement',
       category: 'Road & Highway Survey',
       description: 'Construction of RCC median, subsurface drain, pedestrian footpath, passenger sheds, grill fencing, and traffic signs along Road 130 and 134.',
-      imageUrl: '/ppt-projects/gulshan-link-road-hero.jpg',
-      slug: 'gulshan-badda-link-road',
+      imageUrl: '/projects-extracted/page_18/img_02.jpg',
+      slug: 'page-18-gulshan-1-intersection-to-progati-sarani-high',
     },
     {
       id: 'p3',
@@ -131,8 +131,8 @@ export default function WspLandingView({
       title: 'Mohakhali Inter-District Bus Terminal Modernization',
       category: 'Transit & Municipal Facility',
       description: 'Comprehensive civil modernization: waiting areas, ticket counters, sanitation blocks, boundary walls, and passenger traffic flow optimization.',
-      imageUrl: '/ppt-projects/mohakhali-terminal-hero.jpg',
-      slug: 'mohakhali-bus-terminal-modernization',
+      imageUrl: '/projects-extracted/page_20/img_02.jpg',
+      slug: 'page-20-passenger-facilities-modernization-at-mohakha',
     },
     {
       id: 'p4',
@@ -140,8 +140,8 @@ export default function WspLandingView({
       title: 'LTP of Sanitary Landfill at Moheshkhali Solid Waste Management',
       category: 'Environmental & Civil Design',
       description: 'Structural engineering design and reinforcement details for Leachate Treatment Plant (LTP) safeguarding coastal groundwater.',
-      imageUrl: '/ppt-projects/moheshkhali-landfill-ltp-output1.png',
-      slug: 'moheshkhali-sanitary-landfill-swm',
+      imageUrl: '/projects-extracted/page_24/img_02.png',
+      slug: 'page-23-ltp-of-sanitary-landfill-at-moheshkhali-solid',
     },
     {
       id: 'p5',
@@ -149,8 +149,8 @@ export default function WspLandingView({
       title: 'Pilot Research Project for Irrigation Water Management (WEB-AIS)',
       category: 'Agricultural Water Management & GIS',
       description: 'Canal distribution mapping, TBM network setup, and multi-spectral NDVI remote sensing under WEB-AIS pilot research.',
-      imageUrl: '/ppt-projects/badc-web-ais-hero.jpg',
-      slug: 'badc-web-ais-project',
+      imageUrl: '/projects-extracted/page_25/img_02.jpg',
+      slug: 'page-25-web-ais-pilot-research-project-on-irrigation',
     },
     {
       id: 'p6',
@@ -158,8 +158,8 @@ export default function WspLandingView({
       title: 'Installation of Water-Level Gauge Readers & Topographic Survey',
       category: 'Hydrology & River Survey',
       description: 'Installation and calibration of river water level gauge readers at three locations in Gangarampur with topographic cross-sections.',
-      imageUrl: '/ppt-projects/badc-gangarampur-survey.jpg',
-      slug: 'badc-gangarampur-water-gauge-survey',
+      imageUrl: '/projects-extracted/page_27/img_02.jpg',
+      slug: 'page-27-installation-of-water-level-gauge-readers---t',
     },
     {
       id: 'p7',
@@ -167,8 +167,8 @@ export default function WspLandingView({
       title: 'Abdulpur Railway Bypass Topographic & UAV Survey',
       category: 'Railway & Drone Photogrammetry',
       description: 'Sub-centimeter RTK topographic and UAV photogrammetry survey producing DSM, DTM, and 0.25m interval contours for railway bypass.',
-      imageUrl: '/ppt-projects/abdulpur-bypass-hero.jpg',
-      slug: 'abdulpur-railway-bypass',
+      imageUrl: '/projects-extracted/page_29/img_02.jpg',
+      slug: 'page-29-abdulpur-railway-bypass-topographic---uav-pho',
     },
     {
       id: 'p8',
@@ -176,8 +176,8 @@ export default function WspLandingView({
       title: 'Bus Route Rationalization & Arterial Corridor Concept Design',
       category: 'Urban Transport Planning & GIS',
       description: 'Drone corridor photogrammetry, classified traffic count surveys, and corridor restructuring concept designs.',
-      imageUrl: '/ppt-projects/dtca-bus-rationalization-hero.jpg',
-      slug: 'dtca-bus-route-rationalization',
+      imageUrl: '/projects-extracted/page_31/img_01.jpg',
+      slug: 'page-31-bus-route-rationalization---corridor-concept',
     },
   ];
 

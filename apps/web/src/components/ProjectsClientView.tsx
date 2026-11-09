@@ -33,19 +33,8 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
 
   const allRealProjects = ALL_PROJECTS;
 
-  // Seamlessly merge initial database projects with verified catalog
-  const projects = useMemo(() => {
-    const map = new Map<string, ProjectItem>();
-    allRealProjects.forEach((p) => map.set(p.slug, p));
-    initialProjects.forEach((p) => {
-      if (p.slug && map.has(p.slug)) {
-        map.set(p.slug, { ...map.get(p.slug)!, ...p });
-      } else if (p.slug) {
-        map.set(p.slug, p);
-      }
-    });
-    return Array.from(map.values());
-  }, [initialProjects]);
+  // STRICTLY only the real projects extracted from the presentation (No legacy database demo placeholders)
+  const projects = allRealProjects;
 
   const categories = [
     { label: 'All Projects (17)', value: 'All' },
@@ -82,7 +71,7 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
   const heroDescription =
     wysiwyg?.heroDescription ||
     'From the Bangladesh Railway connectivity network to inter-district bus terminals, RCC girder bridges, and high-rise towers, explore our physical engineering milestones.';
-  const heroImage = wysiwyg?.heroImage || '/real-media/hero-corridor-infrastructure.jpg';
+  const heroImage = wysiwyg?.heroImage || '/projects-extracted/page_31/img_01.jpg';
 
   // Featured Landmark Projects List (filtered by milestone or top selected)
   const milestoneProjects = useMemo(() => {
