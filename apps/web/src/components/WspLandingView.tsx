@@ -483,8 +483,7 @@ export default function WspLandingView({
                 alt={currentSlide.heading || 'Geospatial Works Landscape'}
                 loading="eager"
                 decoding="async"
-                // @ts-expect-error fetchPriority is standard in modern HTML
-                fetchPriority="high"
+                {...({ fetchPriority: 'high' } as Record<string, string>)}
                 initial={activeSlide === 0 ? { opacity: 1, scale: 1 } : { opacity: 0.2, scale: 1.04 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
