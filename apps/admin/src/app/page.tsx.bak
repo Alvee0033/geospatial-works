@@ -1,0 +1,1037 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import {
+  Layers,
+  Sparkles,
+  Plus,
+  Trash2,
+  Save,
+  CheckCircle2,
+  Eye,
+  RefreshCw,
+  FolderKanban,
+  FileText,
+  Mail,
+  Sliders,
+  ArrowRight,
+  ExternalLink,
+  ShieldCheck,
+  Database,
+  ArrowUpRight,
+  Upload,
+  Image as ImageIcon,
+  Check,
+  Search,
+  Filter,
+  Copy,
+} from 'lucide-react';
+import { MediaPickerModal } from '../components/MediaPickerModal';
+
+interface HeroSlide {
+  id: string;
+  eyebrow: string;
+  heading: string;
+  description: string;
+  imageUrl: string;
+  primaryActionText: string;
+  primaryActionHref: string;
+  secondaryActionText: string;
+  secondaryActionHref: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+interface PageSection {
+  id: string;
+  pageKey: string;
+  sectionKey: string;
+  title: string;
+  subtitle?: string;
+  content: Record<string, any>;
+  isActive: boolean;
+}
+
+interface ServiceItem {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  description: string;
+  features: string[];
+  imageUrl?: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+interface ProjectItem {
+  id: string;
+  slug: string;
+  title: string;
+  client: string;
+  category: string;
+  location?: string;
+  description: string;
+  deliverables?: string;
+  imageUrl?: string;
+  isMilestone: boolean;
+  sortOrder: number;
+}
+
+interface InquiryItem {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  serviceType?: string;
+  message: string;
+  status: string;
+  internalNotes?: string;
+  createdAt: string;
+}
+
+const API_BASE = '/api';
+
+export default function GeospatialWorksAdminDashboard() {
+  const [activeTab, setActiveTab] = useState<'hero' | 'sections' | 'services' | 'projects' | 'media' | 'inquiries'>('hero');
+  const [loading, setLoading] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  // Data states
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
+  const [sections, setSections] = useState<PageSection[]>([]);
+  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [inquiries, setInquiries] = useState<InquiryItem[]>([]);
+  const [mediaList, setMediaList] = useState<{ uploaded: any[]; stock: any[] }>({ uploaded: [], stock: [] });
+
+  // Media Picker state
+  const [mediaModalOpen, setMediaModalOpen] = useState(false);
+  const [mediaTargetCallback, setMediaTargetCallback] = useState<((url: string) => void) | null>(null);
+
+  // Search/filter states
+  const [projectSearch, setProjectSearch] = useState('');
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [slidesRes, sectionsRes, servicesRes, projectsRes, inquiriesRes, mediaRes] = await Promise.all([
+        fetch(`${API_BASE}/cms/hero-slides`),
+        fetch(`${API_BASE}/cms/sections/home`),
+        fetch(`${API_BASE}/services`),
+        fetch(`${API_BASE}/projects`),
+        fetch(`${API_BASE}/contact/admin/inquiries`),
+        fetch(`${API_BASE}/media/library`),
+      ]);
+
+      if (slidesRes.ok) setHeroSlides(await slidesRes.json());
+      if (sectionsRes.ok) setSections(await sectionsRes.json());
+      if (servicesRes.ok) setServices(await servicesRes.json());
+      if (projectsRes.ok) setProjects(await projectsRes.json());
+      if (inquiriesRes.ok) setInquiries(await inquiriesRes.json());
+      if (mediaRes.ok) setMediaList(await mediaRes.json());
+    } catch (err) {
+      console.error('Failed to load CMS data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const triggerFeedback = (msg: string) => {
+    setSaveSuccess(msg);
+    setTimeout(() => setSaveSuccess(null), 3500);
+  };
+
+  const openImagePicker = (onSelect: (url: string) => void) => {
+    setMediaTargetCallback(() => onSelect);
+    setMediaModalOpen(true);
+  };
+
+  // Hero Slide Handlers
+  const handleUpdateSlide = async (slide: HeroSlide) => {
+    try {
+      const res = await fetch(`${API_BASE}/cms/admin/hero-slides/${slide.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(slide),
+      });
+      if (res.ok) {
+        triggerFeedback('Hero Slide updated in PostgreSQL!');
+        loadData();
+      }
+    } catch (e) {
+      alert('Error updating slide');
+    }
+  };
+
+  const handleAddSlide = async () => {
+    try {
+      const newSlide = {
+        eyebrow: 'PRECISION • PERSPECTIVE • PROGRESS',
+        heading: 'Pioneering Geospatial Engineering in Bangladesh',
+        description: 'Advanced RTK GNSS surveying, LiDAR photogrammetry, and spatial analysis for national infrastructure.',
+        imageUrl: '/delta-hero-v2.webp',
+        primaryActionText: 'Explore Our Services',
+        primaryActionHref: '/services',
+        secondaryActionText: 'Get in Touch',
+        secondaryActionHref: '/contact',
+        sortOrder: heroSlides.length + 1,
+        isActive: true,
+      };
+      const res = await fetch(`${API_BASE}/cms/admin/hero-slides`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSlide),
+      });
+      if (res.ok) {
+        triggerFeedback('New hero slide created!');
+        loadData();
+      }
+    } catch (e) {
+      alert('Error adding slide');
+    }
+  };
+
+  const handleDeleteSlide = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this slide?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/cms/admin/hero-slides/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        triggerFeedback('Hero slide deleted.');
+        loadData();
+      }
+    } catch (e) {
+      alert('Error deleting slide');
+    }
+  };
+
+  // Page Section Handlers
+  const handleUpdateSection = async (pageKey: string, sectionKey: string, section: PageSection) => {
+    try {
+      const res = await fetch(`${API_BASE}/cms/admin/sections/${pageKey}/${sectionKey}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: section.title,
+          subtitle: section.subtitle,
+          content: section.content,
+          isActive: section.isActive,
+        }),
+      });
+      if (res.ok) {
+        triggerFeedback('Page section saved to PostgreSQL!');
+        loadData();
+      }
+    } catch (e) {
+      alert('Error updating section');
+    }
+  };
+
+  // Service Handlers
+  const handleUpdateService = async (svc: ServiceItem) => {
+    try {
+      const res = await fetch(`${API_BASE}/services/admin/${svc.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(svc),
+      });
+      if (res.ok) {
+        triggerFeedback(`Service "${svc.title}" saved!`);
+        loadData();
+      }
+    } catch (e) {
+      alert('Error updating service');
+    }
+  };
+
+  // Project Handlers
+  const handleUpdateProject = async (proj: ProjectItem) => {
+    try {
+      const res = await fetch(`${API_BASE}/projects/admin/${proj.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(proj),
+      });
+      if (res.ok) {
+        triggerFeedback(`Project "${proj.title}" saved!`);
+        loadData();
+      }
+    } catch (e) {
+      alert('Error updating project');
+    }
+  };
+
+  // Inquiry Status Handler
+  const handleUpdateInquiryStatus = async (id: string, status: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/contact/admin/inquiries/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        triggerFeedback('Inquiry status updated!');
+        loadData();
+      }
+    } catch (e) {
+      alert('Error updating status');
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedUrl(text);
+    setTimeout(() => setCopiedUrl(null), 2500);
+  };
+
+  const filteredProjects = projects.filter(
+    (p) =>
+      p.title.toLowerCase().includes(projectSearch.toLowerCase()) ||
+      p.client.toLowerCase().includes(projectSearch.toLowerCase()) ||
+      p.category.toLowerCase().includes(projectSearch.toLowerCase())
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-100 text-slate-900 font-sans flex flex-col">
+      {/* Top Navigation Bar */}
+      <header className="bg-[#0B1F44] text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded bg-[#1B4B9D] flex items-center justify-center font-black text-white text-base">
+              GW
+            </div>
+            <div className="leading-tight">
+              <span className="font-extrabold text-base tracking-tight text-white flex items-center gap-2">
+                GEOSPATIAL WORKS <span className="bg-[#F4382D] text-white text-[10px] px-2 py-0.5 rounded font-black tracking-wider uppercase">CMS Studio</span>
+              </span>
+              <p className="text-[11px] text-slate-300">Live PostgreSQL Dynamic Page & Content Engine</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-xs bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 px-3 py-1.5 rounded-full font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              PostgreSQL :5433 (Connected)
+            </div>
+
+            <button
+              onClick={loadData}
+              disabled={loading}
+              className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition"
+            >
+              <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh
+            </button>
+
+            <a
+              href="http://localhost:3001"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-bold bg-[#1B4B9D] hover:bg-[#004AAD] text-white px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow"
+            >
+              <Eye size={13} /> View Live Website <ArrowUpRight size={13} />
+            </a>
+          </div>
+        </div>
+
+        {/* Global Tab Switcher */}
+        <div className="max-w-7xl mx-auto px-6 flex gap-1 border-t border-slate-800/80 bg-[#07152f]">
+          {[
+            { id: 'hero', label: 'Hero Carousel', icon: Layers, count: heroSlides.length },
+            { id: 'sections', label: 'Page Sections', icon: FileText, count: sections.length },
+            { id: 'services', label: 'Services (6)', icon: Sparkles, count: services.length },
+            { id: 'projects', label: 'Projects & Milestones', icon: FolderKanban, count: projects.length },
+            { id: 'media', label: 'Media Library & Uploads', icon: ImageIcon, count: mediaList.uploaded.length + mediaList.stock.length },
+            { id: 'inquiries', label: 'Client Inquiries', icon: Mail, count: inquiries.length },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition ${
+                  isActive
+                    ? 'border-[#F4382D] text-white bg-slate-800/50'
+                    : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/20'
+                }`}
+              >
+                <Icon size={14} className={isActive ? 'text-[#F4382D]' : 'text-slate-400'} />
+                {tab.label}
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                    isActive ? 'bg-[#F4382D] text-white' : 'bg-slate-800 text-slate-400'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </header>
+
+      {/* Floating Save Notification */}
+      {saveSuccess && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-emerald-400 text-sm font-bold animate-bounce">
+          <CheckCircle2 size={18} />
+          {saveSuccess}
+        </div>
+      )}
+
+      {/* Main Admin Workspace */}
+      <main className="max-w-7xl mx-auto w-full px-6 py-8 flex-1">
+        {/* ===================== HERO CAROUSEL EDITOR ===================== */}
+        {activeTab === 'hero' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Hero Section Carousel</h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Manage high-res photographic slides, headlines, and call-to-actions rendered on the homepage.
+                </p>
+              </div>
+              <button
+                onClick={handleAddSlide}
+                className="bg-[#1B4B9D] hover:bg-[#004AAD] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition shadow"
+              >
+                <Plus size={15} /> Add New Slide
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {heroSlides.map((slide, index) => (
+                <div
+                  key={slide.id}
+                  className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:border-[#1B4B9D]/50 transition space-y-4"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="w-7 h-7 rounded-lg bg-slate-100 text-[#1B4B9D] font-black text-xs flex items-center justify-center">
+                        #{index + 1}
+                      </span>
+                      <span className="text-sm font-bold text-slate-800">{slide.heading || 'Untitled Slide'}</span>
+                      {slide.isActive ? (
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full">
+                          ACTIVE
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-slate-100 text-slate-600 font-extrabold px-2 py-0.5 rounded-full">
+                          INACTIVE
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleDeleteSlide(slide.id)}
+                        className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition"
+                        title="Delete Slide"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Visual Preview & Image Picker */}
+                    <div className="space-y-3">
+                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
+                        Background Image
+                      </label>
+                      <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 group bg-slate-900">
+                        <img
+                          src={slide.imageUrl}
+                          alt=""
+                          className="w-full h-full object-cover group-hover:opacity-80 transition"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openImagePicker((newUrl) => {
+                              const updated = { ...slide, imageUrl: newUrl };
+                              setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                              handleUpdateSlide(updated);
+                            })
+                          }
+                          className="absolute inset-0 m-auto w-max h-max bg-[#1B4B9D]/90 hover:bg-[#1B4B9D] text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition shadow flex items-center gap-1.5"
+                        >
+                          <ImageIcon size={14} /> Change Photo
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={slide.imageUrl}
+                        onChange={(e) => {
+                          const updated = { ...slide, imageUrl: e.target.value };
+                          setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                        }}
+                        className="w-full text-xs font-mono p-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600"
+                        placeholder="Image URL"
+                      />
+                    </div>
+
+                    {/* Content Fields */}
+                    <div className="md:col-span-2 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-600 uppercase">Eyebrow Tagline</label>
+                          <input
+                            type="text"
+                            value={slide.eyebrow}
+                            onChange={(e) => {
+                              const updated = { ...slide, eyebrow: e.target.value };
+                              setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                            }}
+                            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-semibold mt-1"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-600 uppercase">Display Order</label>
+                          <input
+                            type="number"
+                            value={slide.sortOrder}
+                            onChange={(e) => {
+                              const updated = { ...slide, sortOrder: parseInt(e.target.value) || 1 };
+                              setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                            }}
+                            className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg mt-1"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-600 uppercase">Main Headline</label>
+                        <input
+                          type="text"
+                          value={slide.heading}
+                          onChange={(e) => {
+                            const updated = { ...slide, heading: e.target.value };
+                            setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                          }}
+                          className="w-full text-sm font-bold p-2.5 bg-slate-50 border border-slate-200 rounded-lg mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-600 uppercase">Description Paragraph</label>
+                        <textarea
+                          rows={2}
+                          value={slide.description}
+                          onChange={(e) => {
+                            const updated = { ...slide, description: e.target.value };
+                            setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                          }}
+                          className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg mt-1 leading-relaxed"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-600 uppercase">Primary Button</label>
+                          <div className="flex gap-2 mt-1">
+                            <input
+                              type="text"
+                              value={slide.primaryActionText}
+                              onChange={(e) => {
+                                const updated = { ...slide, primaryActionText: e.target.value };
+                                setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                              }}
+                              className="w-1/2 text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg"
+                              placeholder="Text"
+                            />
+                            <input
+                              type="text"
+                              value={slide.primaryActionHref}
+                              onChange={(e) => {
+                                const updated = { ...slide, primaryActionHref: e.target.value };
+                                setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                              }}
+                              className="w-1/2 text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg"
+                              placeholder="Link"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-600 uppercase">Secondary Button</label>
+                          <div className="flex gap-2 mt-1">
+                            <input
+                              type="text"
+                              value={slide.secondaryActionText}
+                              onChange={(e) => {
+                                const updated = { ...slide, secondaryActionText: e.target.value };
+                                setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                              }}
+                              className="w-1/2 text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg"
+                              placeholder="Text"
+                            />
+                            <input
+                              type="text"
+                              value={slide.secondaryActionHref}
+                              onChange={(e) => {
+                                const updated = { ...slide, secondaryActionHref: e.target.value };
+                                setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                              }}
+                              className="w-1/2 text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg"
+                              placeholder="Link"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={slide.isActive}
+                            onChange={(e) => {
+                              const updated = { ...slide, isActive: e.target.checked };
+                              setHeroSlides(heroSlides.map((s) => (s.id === slide.id ? updated : s)));
+                            }}
+                            className="w-4 h-4 rounded text-[#1B4B9D]"
+                          />
+                          Show in Carousel
+                        </label>
+
+                        <button
+                          onClick={() => handleUpdateSlide(slide)}
+                          className="bg-[#1B4B9D] hover:bg-[#004AAD] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition shadow"
+                        >
+                          <Save size={14} /> Save Slide to DB
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ===================== PAGE SECTIONS EDITOR ===================== */}
+        {activeTab === 'sections' && (
+          <div className="space-y-6">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <h2 className="text-xl font-bold text-slate-900">Page Copy & Section Content</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Live editable textual blocks across the homepage, about narrative, and corporate statistics.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {sections.map((section) => (
+                <div key={section.id} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs uppercase px-2 py-0.5 bg-slate-100 rounded text-slate-600 font-bold">
+                        {section.pageKey} / {section.sectionKey}
+                      </span>
+                      <h3 className="text-sm font-bold text-slate-800">{section.title}</h3>
+                    </div>
+                    <button
+                      onClick={() => handleUpdateSection(section.pageKey, section.sectionKey, section)}
+                      className="bg-[#1B4B9D] hover:bg-[#004AAD] text-white text-xs font-bold px-4 py-1.5 rounded-xl flex items-center gap-1.5 transition shadow"
+                    >
+                      <Save size={14} /> Save Section
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 uppercase">Section Title</label>
+                      <input
+                        type="text"
+                        value={section.title}
+                        onChange={(e) => {
+                          const updated = { ...section, title: e.target.value };
+                          setSections(sections.map((s) => (s.id === section.id ? updated : s)));
+                        }}
+                        className="w-full text-sm font-bold p-2.5 bg-slate-50 border border-slate-200 rounded-lg mt-1"
+                      />
+                    </div>
+
+                    {section.subtitle !== undefined && (
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-600 uppercase">Subtitle / Subtext</label>
+                        <input
+                          type="text"
+                          value={section.subtitle || ''}
+                          onChange={(e) => {
+                            const updated = { ...section, subtitle: e.target.value };
+                            setSections(sections.map((s) => (s.id === section.id ? updated : s)));
+                          }}
+                          className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg mt-1"
+                        />
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 uppercase">Structured JSON Content</label>
+                      <textarea
+                        rows={6}
+                        value={JSON.stringify(section.content, null, 2)}
+                        onChange={(e) => {
+                          try {
+                            const parsed = JSON.parse(e.target.value);
+                            const updated = { ...section, content: parsed };
+                            setSections(sections.map((s) => (s.id === section.id ? updated : s)));
+                          } catch (err) {
+                            // wait for valid json
+                          }
+                        }}
+                        className="w-full text-xs font-mono p-3 bg-slate-900 text-emerald-400 rounded-lg mt-1 border border-slate-800"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ===================== SERVICES EDITOR ===================== */}
+        {activeTab === 'services' && (
+          <div className="space-y-6">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <h2 className="text-xl font-bold text-slate-900">Core Engineering Services</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                6 core service capabilities verified from the corporate profile presentation.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {services.map((svc) => (
+                <div key={svc.id} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <span className="text-xs font-bold text-[#1B4B9D] uppercase tracking-wider">{svc.category}</span>
+                    <button
+                      onClick={() => handleUpdateService(svc)}
+                      className="bg-[#1B4B9D] hover:bg-[#004AAD] text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition"
+                    >
+                      <Save size={13} /> Save
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 uppercase">Service Title</label>
+                    <input
+                      type="text"
+                      value={svc.title}
+                      onChange={(e) => {
+                        const updated = { ...svc, title: e.target.value };
+                        setServices(services.map((s) => (s.id === svc.id ? updated : s)));
+                      }}
+                      className="w-full text-sm font-bold p-2 bg-slate-50 border border-slate-200 rounded-lg mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 uppercase">Overview</label>
+                    <textarea
+                      rows={2}
+                      value={svc.description}
+                      onChange={(e) => {
+                        const updated = { ...svc, description: e.target.value };
+                        setServices(services.map((s) => (s.id === svc.id ? updated : s)));
+                      }}
+                      className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 uppercase">Key Features (One per line)</label>
+                    <textarea
+                      rows={3}
+                      value={svc.features?.join('\n') || ''}
+                      onChange={(e) => {
+                        const updated = { ...svc, features: e.target.value.split('\n').filter(Boolean) };
+                        setServices(services.map((s) => (s.id === svc.id ? updated : s)));
+                      }}
+                      className="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg mt-1"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ===================== PROJECTS PORTFOLIO ===================== */}
+        {activeTab === 'projects' && (
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">National Project Portfolio ({projects.length})</h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Verified consulting and survey contracts across Bangladesh.
+                </p>
+              </div>
+
+              <div className="relative w-full md:w-72">
+                <Search size={15} className="absolute left-3 top-3 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search project or client..."
+                  value={projectSearch}
+                  onChange={(e) => setProjectSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredProjects.map((proj) => (
+                <div
+                  key={proj.id}
+                  className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3 flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-blue-50 text-[#1B4B9D]">
+                        {proj.category}
+                      </span>
+                      {proj.isMilestone && (
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                          MILESTONE
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900 leading-snug line-clamp-2">{proj.title}</h3>
+                    <p className="text-xs font-semibold text-slate-600">Client: {proj.client}</p>
+                    <p className="text-[11px] text-slate-500 line-clamp-2">{proj.description}</p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={proj.isMilestone}
+                        onChange={(e) => {
+                          const updated = { ...proj, isMilestone: e.target.checked };
+                          setProjects(projects.map((p) => (p.id === proj.id ? updated : p)));
+                          handleUpdateProject(updated);
+                        }}
+                        className="rounded text-[#1B4B9D]"
+                      />
+                      Feature on Home
+                    </label>
+
+                    <button
+                      onClick={() => handleUpdateProject(proj)}
+                      className="text-xs bg-[#1B4B9D] hover:bg-[#004AAD] text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition"
+                    >
+                      <Save size={12} /> Save
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ===================== MEDIA LIBRARY & UPLOADS ===================== */}
+        {activeTab === 'media' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Media Library & File Assets</h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Upload drone imagery, survey photography, and brand graphics.
+                </p>
+              </div>
+
+              <button
+                onClick={() => openImagePicker(() => loadData())}
+                className="bg-[#1B4B9D] hover:bg-[#004AAD] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 transition shadow"
+              >
+                <Upload size={14} /> Upload New Image
+              </button>
+            </div>
+
+            {/* Uploaded Assets */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                User Uploaded Files ({mediaList.uploaded.length})
+              </h3>
+              {mediaList.uploaded.length === 0 ? (
+                <div className="bg-white p-8 rounded-2xl border border-dashed border-slate-300 text-center text-xs text-slate-500">
+                  No uploaded files yet. Use the Upload button above to add new imagery.
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {mediaList.uploaded.map((item) => (
+                    <div
+                      key={item.url}
+                      className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm group"
+                    >
+                      <div className="aspect-video relative bg-slate-900 overflow-hidden">
+                        <img src={item.url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" />
+                      </div>
+                      <div className="p-3 flex items-center justify-between">
+                        <span className="text-[11px] font-mono text-slate-600 truncate max-w-[120px]">
+                          {item.filename}
+                        </span>
+                        <button
+                          onClick={() => copyToClipboard(item.url)}
+                          className="text-xs text-[#1B4B9D] hover:underline flex items-center gap-1"
+                        >
+                          {copiedUrl === item.url ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                          Copy URL
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* High-Res Stock Assets */}
+            <div className="space-y-3 pt-4">
+              <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                High-Res Brand Imagery ({mediaList.stock.length})
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {mediaList.stock.map((item) => (
+                  <div
+                    key={item.url}
+                    className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm group"
+                  >
+                    <div className="aspect-video relative bg-slate-900 overflow-hidden">
+                      <img src={item.url} alt="" className="w-full h-full object-cover group-hover:scale-105 transition" />
+                    </div>
+                    <div className="p-3 flex items-center justify-between">
+                      <span className="text-[11px] font-mono text-slate-600 truncate max-w-[120px]">
+                        {item.filename}
+                      </span>
+                      <button
+                        onClick={() => copyToClipboard(item.url)}
+                        className="text-xs text-[#1B4B9D] hover:underline flex items-center gap-1"
+                      >
+                        {copiedUrl === item.url ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                        Copy URL
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ===================== CLIENT INQUIRIES & LEADS ===================== */}
+        {activeTab === 'inquiries' && (
+          <div className="space-y-6">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Client Inquiries & Project Leads ({inquiries.length})</h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Incoming quotation requests submitted via the public Contact form.
+                </p>
+              </div>
+
+              <button
+                onClick={async () => {
+                  const testLead = {
+                    fullName: 'Engr. Rafiqul Islam (Project Director, LGED)',
+                    email: 'rafiq.islam@lged.gov.bd',
+                    phone: '+880 1711-234567',
+                    serviceType: 'Drone Photogrammetry & LiDAR',
+                    message: 'Requesting technical proposal and bathymetric quotation for Teesta River Basin LiDAR mapping (150 sq km).',
+                  };
+                  await fetch(`${API_BASE}/contact/inquiry`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testLead),
+                  });
+                  triggerFeedback('Test Lead recorded in PostgreSQL!');
+                  loadData();
+                }}
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl transition border border-slate-300"
+              >
+                + Test Lead Simulation
+              </button>
+            </div>
+
+            {inquiries.length === 0 ? (
+              <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-500 text-sm">
+                No inquiries received yet. Submit one from the public Contact page to test.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {inquiries.map((inq) => (
+                  <div
+                    key={inq.id}
+                    className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6"
+                  >
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-sm text-slate-900">{inq.fullName}</span>
+                        <span
+                          className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                            inq.status === 'NEW'
+                              ? 'bg-rose-100 text-rose-800'
+                              : inq.status === 'CONTACTED'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-emerald-100 text-emerald-800'
+                          }`}
+                        >
+                          {inq.status}
+                        </span>
+                        <span className="text-[11px] text-slate-400">
+                          {new Date(inq.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600">
+                        <a href={`mailto:${inq.email}`} className="text-[#1B4B9D] hover:underline font-semibold">
+                          {inq.email}
+                        </a>
+                        {inq.phone && <span>Phone: {inq.phone}</span>}
+                        {inq.serviceType && (
+                          <span className="bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-semibold">
+                            Req: {inq.serviceType}
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed">
+                        "{inq.message}"
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={inq.status}
+                        onChange={(e) => handleUpdateInquiryStatus(inq.id, e.target.value)}
+                        className="text-xs font-bold p-2 bg-slate-50 border border-slate-200 rounded-xl"
+                      >
+                        <option value="NEW">Status: NEW</option>
+                        <option value="CONTACTED">Status: CONTACTED</option>
+                        <option value="RESOLVED">Status: RESOLVED</option>
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Global Image Picker Modal */}
+      <MediaPickerModal
+        isOpen={mediaModalOpen}
+        onClose={() => setMediaModalOpen(false)}
+        onSelect={(url) => {
+          if (mediaTargetCallback) mediaTargetCallback(url);
+          setMediaModalOpen(false);
+        }}
+      />
+    </div>
+  );
+}
+

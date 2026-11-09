@@ -1,13 +1,29 @@
+import React from 'react';
 import CorporateShell from '@/components/CorporateShell';
-import { ProjectListing } from '@/components/CorporateListings';
-import { InteriorCta, InteriorHero } from '@/components/InteriorDesign';
+import ProjectsClientView from '@/components/ProjectsClientView';
+import { CmsApi } from '@/lib/cms-api';
 import '../corporate.css';
-import '../interior.css';
 
-export default function ProjectsPage() {
-  return <CorporateShell><main className="interior-page interior-projects">
-    <InteriorHero eyebrow="OUR WORK" title="Projects" description="See where our surveys and maps have helped teams understand a place." image="/inner/banner-projects.webp" mobileImage="/inner/bridge-aerial.webp" imageAlt="Aerial view of a bridge crossing a river" />
-    <section className="interior-section reveal"><div className="interior-shell"><ProjectListing /></div></section>
-    <InteriorCta title="Have a place you need to understand?" />
-  </main></CorporateShell>;
+export const revalidate = 10;
+
+export const metadata = {
+  title: 'Our Projects & National Impact | Geospatial Works Bangladesh',
+  description:
+    'Explore 15+ verified infrastructure projects across Bangladesh: Bangladesh Railway alignments, DNCC bus terminals, RCC girder bridges, and high-rise architectural landmarks.',
+};
+
+export default async function ProjectsPage() {
+  const [projects, sections] = await Promise.all([
+    CmsApi.getProjects().catch(() => []),
+    CmsApi.getSections('impact').catch(() => ({} as Record<string, any>)),
+  ]);
+  const wysiwyg = (sections as Record<string, any>)['full_page_wysiwyg']?.content;
+
+  return (
+    <CorporateShell>
+      <main className="wsp-projects-main min-h-screen bg-white">
+        <ProjectsClientView initialProjects={projects} wysiwyg={wysiwyg} />
+      </main>
+    </CorporateShell>
+  );
 }

@@ -40,7 +40,7 @@ export function InteriorCta({ title, description = 'Tell us what you need to und
   description?: string;
   image?: string;
 }) {
-  return <section className="interior-cta" style={{ backgroundImage: `linear-gradient(90deg,rgba(4,38,37,.95),rgba(4,38,37,.68)),url('${image}')` }}>
+  return <section className="interior-cta" style={{ backgroundImage: `linear-gradient(90deg,rgba(11,31,68,.95),rgba(15,43,92,.75)),url('${image}')` }}>
     <div className="interior-shell interior-cta-inner"><div><span className="interior-kicker">LET’S WORK TOGETHER</span><h2>{title}</h2><p>{description}</p></div><Link href="/contact" className="interior-action">Start a conversation <ArrowUpRight size={17} aria-hidden="true" /></Link></div>
   </section>;
 }

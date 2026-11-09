@@ -1,0 +1,33 @@
+import { OnApplicationBootstrap } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { User } from '../../entities/user.entity';
+import { HeroSlide } from '../../entities/hero-slide.entity';
+import { PageSection } from '../../entities/page-section.entity';
+import { Service } from '../../entities/service.entity';
+import { Project } from '../../entities/project.entity';
+import { Equipment } from '../../entities/equipment.entity';
+import { Partner } from '../../entities/partner.entity';
+import { JobPost } from '../../entities/job-post.entity';
+import { JobApplication } from '../../entities/job-application.entity';
+export declare class SeedService implements OnApplicationBootstrap {
+    private readonly userRepository;
+    private readonly heroSlideRepository;
+    private readonly pageSectionRepository;
+    private readonly serviceRepository;
+    private readonly projectRepository;
+    private readonly equipmentRepository;
+    private readonly partnerRepository;
+    private readonly jobPostRepository;
+    private readonly applicationRepository;
+    private readonly logger;
+    constructor(userRepository: Repository<User>, heroSlideRepository: Repository<HeroSlide>, pageSectionRepository: Repository<PageSection>, serviceRepository: Repository<Service>, projectRepository: Repository<Project>, equipmentRepository: Repository<Equipment>, partnerRepository: Repository<Partner>, jobPostRepository: Repository<JobPost>, applicationRepository: Repository<JobApplication>);
+    onApplicationBootstrap(): Promise<void>;
+    private seedAdminUser;
+    private seedHeroSlides;
+    private seedPageSections;
+    private seedServices;
+    private seedProjects;
+    private seedEquipment;
+    private seedPartners;
+    private seedJobPosts;
+}

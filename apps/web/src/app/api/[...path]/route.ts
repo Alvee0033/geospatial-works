@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 const BACKEND_BASE =
   process.env.BACKEND_INTERNAL_URL
     ? `${process.env.BACKEND_INTERNAL_URL.replace(/\/$/, '')}/api/v1`
-    : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://xqeqm4yyv7fqxryrkm6phk55.163.227.239.97.sslip.io/api/v1');
+    : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api/v1');
 
 async function handleProxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
-  const endpoint = path.join('/');
+  const rawEndpoint = path.join('/');
+  const endpoint = rawEndpoint.startsWith('v1/') ? rawEndpoint.replace(/^v1\//, '') : rawEndpoint;
   const searchParams = req.nextUrl.searchParams.toString();
   const targetUrl = `${BACKEND_BASE}/${endpoint}${searchParams ? `?${searchParams}` : ''}`;
 

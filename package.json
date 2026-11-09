@@ -4,5 +4,8 @@
   "scripts": {
     "build": "cd apps/web && npm install && npm run build",
     "start": "cd apps/web && npm run start"
+  },
+  "dependencies": {
+    "framer-motion": "^14.10.1"
   }
 }
