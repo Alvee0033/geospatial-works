@@ -147,10 +147,26 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
               </span>
             </div>
 
-            {/* Right: Beautiful Selector Toggle & Navigation */}
-            <div className="flex items-center flex-wrap gap-2.5 sm:self-auto">
-              {/* Selector Pills / Quick Toggle */}
-              <div className="flex items-center bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs">
+            {/* Right: Responsive Selector Toggle & Navigation */}
+            <div className="flex items-center flex-wrap gap-2 sm:gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
+              {/* Mobile/Tablet Dropdown Selector */}
+              <div className="block lg:hidden flex-1 min-w-[140px] max-w-[240px]">
+                <select
+                  aria-label="Select featured project"
+                  value={featuredIndex % milestoneProjects.length}
+                  onChange={(e) => setFeaturedIndex(Number(e.target.value))}
+                  className="w-full bg-white text-[12px] font-semibold text-neutral-800 border border-neutral-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-black shadow-2xs truncate"
+                >
+                  {milestoneProjects.map((fp, idx) => (
+                    <option key={fp.id || idx} value={idx}>
+                      0{idx + 1}. {fp.title.split('—')[0].split(':')[0]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Desktop Selector Pills */}
+              <div className="hidden lg:flex items-center bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs">
                 {milestoneProjects.slice(0, 5).map((fp, idx) => {
                   const isCurrent = idx === (featuredIndex % milestoneProjects.length);
                   return (
@@ -166,7 +182,7 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
                       title={fp.title}
                     >
                       <span>0{idx + 1}</span>
-                      <span className="hidden lg:inline ml-1.5 font-medium max-w-[120px] truncate inline-block align-bottom">
+                      <span className="hidden xl:inline ml-1.5 font-medium max-w-[120px] truncate inline-block align-bottom">
                         {fp.title.split('—')[0].split(':')[0]}
                       </span>
                     </button>
@@ -175,7 +191,7 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
               </div>
 
               {/* Prev / Next Step Arrows */}
-              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs">
+              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs shrink-0">
                 <button
                   type="button"
                   onClick={() => setFeaturedIndex((prev) => (prev > 0 ? prev - 1 : milestoneProjects.length - 1))}
@@ -201,10 +217,10 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
               <button
                 type="button"
                 onClick={() => setShowFeatured(!showFeatured)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-neutral-100 border border-neutral-200 rounded-xl text-[11px] font-bold text-neutral-700 transition cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-neutral-100 border border-neutral-200 rounded-xl text-[11px] font-bold text-neutral-700 transition cursor-pointer shadow-2xs shrink-0"
                 title={showFeatured ? 'Collapse featured card' : 'Expand featured card'}
               >
-                <span>{showFeatured ? 'Hide Spotlight' : 'Show Spotlight'}</span>
+                <span>{showFeatured ? 'Hide' : 'Show'}</span>
                 <ChevronDown
                   size={14}
                   className={`transition-transform duration-200 ${showFeatured ? 'rotate-180' : ''}`}

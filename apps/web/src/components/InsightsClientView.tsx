@@ -176,10 +176,26 @@ export default function InsightsClientView() {
               </span>
             </div>
 
-            {/* Right: Beautiful Selector Toggle & Navigation */}
-            <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 sm:self-auto max-w-full">
-              {/* Quick Selector Pills - horizontally scrollable on mobile */}
-              <div className="flex items-center bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs overflow-x-auto max-w-full scrollbar-none no-scrollbar">
+            {/* Right: Responsive Selector Toggle & Navigation */}
+            <div className="flex items-center flex-wrap gap-2 sm:gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
+              {/* Mobile/Tablet Dropdown Selector */}
+              <div className="block lg:hidden flex-1 min-w-[140px] max-w-[240px]">
+                <select
+                  aria-label="Select featured insight"
+                  value={featuredIndex % featuredList.length}
+                  onChange={(e) => setFeaturedIndex(Number(e.target.value))}
+                  className="w-full bg-white text-[12px] font-semibold text-neutral-800 border border-neutral-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-black shadow-2xs truncate"
+                >
+                  {featuredList.map((fa, idx) => (
+                    <option key={fa.id || idx} value={idx}>
+                      0{idx + 1}. {fa.category} — {fa.title.slice(0, 30)}...
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Desktop Selector Pills */}
+              <div className="hidden lg:flex items-center bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs">
                 {featuredList.slice(0, 5).map((fa, idx) => {
                   const isCurrent = idx === (featuredIndex % featuredList.length);
                   return (
@@ -187,7 +203,7 @@ export default function InsightsClientView() {
                       key={fa.id || idx}
                       type="button"
                       onClick={() => setFeaturedIndex(idx)}
-                      className={`px-2.5 sm:px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                      className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                         isCurrent
                           ? 'bg-[#141212] text-white shadow-xs'
                           : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
@@ -195,7 +211,7 @@ export default function InsightsClientView() {
                       title={fa.title}
                     >
                       <span>0{idx + 1}</span>
-                      <span className="hidden sm:inline ml-1.5 font-medium max-w-[100px] truncate inline-block align-bottom">
+                      <span className="hidden xl:inline ml-1.5 font-medium max-w-[110px] truncate inline-block align-bottom">
                         {fa.category}
                       </span>
                     </button>
@@ -230,10 +246,10 @@ export default function InsightsClientView() {
               <button
                 type="button"
                 onClick={() => setShowFeatured(!showFeatured)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-neutral-100 border border-neutral-200 rounded-xl text-[11px] font-bold text-neutral-700 transition cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-neutral-100 border border-neutral-200 rounded-xl text-[11px] font-bold text-neutral-700 transition cursor-pointer shadow-2xs shrink-0"
                 title={showFeatured ? 'Collapse featured story' : 'Expand featured story'}
               >
-                <span>{showFeatured ? 'Hide Spotlight' : 'Show Spotlight'}</span>
+                <span>{showFeatured ? 'Hide' : 'Show'}</span>
                 <ChevronDown
                   size={14}
                   className={`transition-transform duration-200 ${showFeatured ? 'rotate-180' : ''}`}
