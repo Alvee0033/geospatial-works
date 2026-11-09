@@ -177,9 +177,9 @@ export default function InsightsClientView() {
             </div>
 
             {/* Right: Beautiful Selector Toggle & Navigation */}
-            <div className="flex items-center flex-wrap gap-2.5 sm:self-auto">
-              {/* Quick Selector Pills */}
-              <div className="flex items-center bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs">
+            <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 sm:self-auto max-w-full">
+              {/* Quick Selector Pills - horizontally scrollable on mobile */}
+              <div className="flex items-center bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs overflow-x-auto max-w-full scrollbar-none no-scrollbar">
                 {featuredList.slice(0, 5).map((fa, idx) => {
                   const isCurrent = idx === (featuredIndex % featuredList.length);
                   return (
@@ -187,7 +187,7 @@ export default function InsightsClientView() {
                       key={fa.id || idx}
                       type="button"
                       onClick={() => setFeaturedIndex(idx)}
-                      className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                      className={`px-2.5 sm:px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                         isCurrent
                           ? 'bg-[#141212] text-white shadow-xs'
                           : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'
@@ -195,7 +195,7 @@ export default function InsightsClientView() {
                       title={fa.title}
                     >
                       <span>0{idx + 1}</span>
-                      <span className="hidden lg:inline ml-1.5 font-medium max-w-[120px] truncate inline-block align-bottom">
+                      <span className="hidden sm:inline ml-1.5 font-medium max-w-[100px] truncate inline-block align-bottom">
                         {fa.category}
                       </span>
                     </button>
@@ -204,7 +204,7 @@ export default function InsightsClientView() {
               </div>
 
               {/* Prev / Next Step Arrows */}
-              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs">
+              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-neutral-200 shadow-2xs shrink-0">
                 <button
                   type="button"
                   onClick={() => setFeaturedIndex((prev) => (prev > 0 ? prev - 1 : featuredList.length - 1))}
