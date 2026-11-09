@@ -48,7 +48,7 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
   }, [initialProjects]);
 
   const categories = [
-    { label: 'All Projects (50+)', value: 'All' },
+    { label: 'All Projects (35)', value: 'All' },
     { label: 'Roads & Highways', value: 'Road' },
     { label: 'Transit & Terminals', value: 'Transit' },
     { label: 'Railways & Geodesy', value: 'Railway' },

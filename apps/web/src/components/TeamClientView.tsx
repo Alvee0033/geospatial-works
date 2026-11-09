@@ -94,11 +94,13 @@ export default function TeamClientView() {
                 alt={leader.name}
                 className="w-full h-full object-cover object-top filter brightness-105 group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-2">
-                <span className="text-[9.5px] font-mono text-[#FB1D10] font-bold uppercase tracking-wider block">
-                  BUET 1997 • IEB Fellow F-8790
-                </span>
-              </div>
+              {leader && (
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-2">
+                  <span className="text-[9.5px] font-mono text-[#FB1D10] font-bold uppercase tracking-wider block">
+                    {leader.credentials.split('•')[0]?.trim() || 'Senior Consultant'}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Content Details */}
