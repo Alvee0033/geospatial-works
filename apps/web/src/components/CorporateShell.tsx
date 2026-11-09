@@ -11,7 +11,11 @@ import {
   Menu,
   Globe,
   ArrowRight,
-  Check
+  Check,
+  Hash,
+  MapPin,
+  Sparkles,
+  CornerDownLeft
 } from 'lucide-react';
 
 type MenuKey = 'who-we-are' | 'what-we-do' | 'insights' | 'careers' | 'projects' | 'news' | 'innovators' | null;
@@ -757,41 +761,170 @@ export default function CorporateShell({ children }: { children: React.ReactNode
         {/* =========================================================================
             WSP FULL-WIDTH SEARCH BAR SLIDE-DOWN
             ========================================================================= */}
+        {/* =========================================================================
+            MODERN COMMAND-CENTER SEARCH MODAL OVERLAY
+            Spacious, high-legibility, quick category tags and direct project/service suggestions
+            ========================================================================= */}
         {searchOpen && (
-          <div className="wsp-search-bar absolute top-full left-0 w-full bg-[#141212] border-t border-b border-white/10 px-6 sm:px-8 lg:px-12 py-5 shadow-2xl z-50 animate-in fade-in duration-150">
-            <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-6">
-              <div className="flex items-center gap-4 flex-1">
-                <Search size={22} className="text-[#F4382D] shrink-0" />
+          <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 sm:px-6">
+            {/* Backdrop with rich blur */}
+            <div
+              className="fixed inset-0 bg-black/75 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
+              onClick={() => setSearchOpen(false)}
+            />
+
+            {/* Modal Dialog Card */}
+            <div className="relative w-full max-w-3xl bg-[#12141A] border border-white/15 shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 text-white">
+              {/* Header / Input Field */}
+              <div className="p-4 sm:p-6 border-b border-white/10 flex items-center gap-3 sm:gap-4 bg-white/[0.02]">
+                <Search size={24} className="text-[#3B82F6] shrink-0" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search services, national projects, LiDAR datasets, or technical reports..."
-                  className="w-full bg-transparent text-white placeholder-neutral-500 text-base md:text-lg outline-none font-medium"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchQuery.trim()) {
+                      window.location.href = `/projects?search=${encodeURIComponent(searchQuery.trim())}`;
+                    }
+                  }}
+                  placeholder="Search projects, services, LiDAR mapping, or client tenders..."
+                  className="w-full bg-transparent text-white placeholder-neutral-500 text-lg sm:text-xl outline-none font-medium"
                   autoFocus
                 />
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(false)}
+                  className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                  aria-label="Close search"
+                >
+                  <X size={20} />
+                </button>
               </div>
 
-              <div className="flex items-center gap-4">
+              {/* Quick Keyword / Category Filter Tags */}
+              <div className="px-5 py-3.5 bg-black/40 border-b border-white/5 flex items-center gap-2 overflow-x-auto scrollbar-none">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 shrink-0 flex items-center gap-1">
+                  <Sparkles size={12} className="text-[#FB1D10]" />
+                  <span>Popular:</span>
+                </span>
+                {[
+                  'Topographic Survey',
+                  'Drone LiDAR',
+                  'BADC WEB-AIS',
+                  'DNCC Terminals',
+                  'Railway Bypass',
+                  'Bathymetry',
+                ].map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery(tag);
+                      window.location.href = `/projects?search=${encodeURIComponent(tag)}`;
+                    }}
+                    className="px-2.5 py-1 bg-white/5 hover:bg-white/15 border border-white/10 text-neutral-300 hover:text-white text-[11px] font-mono tracking-wide whitespace-nowrap transition-colors cursor-pointer"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Modal Body */}
+              <div className="p-5 sm:p-6 max-h-[60vh] overflow-y-auto space-y-6">
+                {/* Quick Section: Primary Destinations */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-bold block">
+                    Fast Navigation
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <Link
+                      href="/projects"
+                      onClick={() => setSearchOpen(false)}
+                      className="p-3 bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-[#3B82F6]/50 flex items-center justify-between group transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center border border-[#3B82F6]/30">
+                          <MapPin size={16} />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-bold text-white group-hover:text-[#3B82F6] transition-colors">
+                            Explore Verified Projects
+                          </p>
+                          <p className="text-[11px] text-neutral-400">
+                            35+ national infrastructure benchmarks
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight size={16} className="text-neutral-500 group-hover:text-white transition-colors" />
+                    </Link>
+
+                    <Link
+                      href="/services"
+                      onClick={() => setSearchOpen(false)}
+                      className="p-3 bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-[#FB1D10]/50 flex items-center justify-between group transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-[#FB1D10]/10 text-[#FB1D10] flex items-center justify-center border border-[#FB1D10]/30">
+                          <Hash size={16} />
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-bold text-white group-hover:text-[#FB1D10] transition-colors">
+                            Engineering Capabilities
+                          </p>
+                          <p className="text-[11px] text-neutral-400">
+                            RTK Geodesy, UAV LiDAR &amp; Bathymetry
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight size={16} className="text-neutral-500 group-hover:text-white transition-colors" />
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Live Filtered Project Matches */}
+                {searchQuery.trim().length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-white/10">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#3B82F6] font-bold block">
+                      Search Query Results
+                    </span>
+                    <div className="space-y-2">
+                      <Link
+                        href={`/projects?search=${encodeURIComponent(searchQuery.trim())}`}
+                        onClick={() => setSearchOpen(false)}
+                        className="w-full p-3.5 bg-[#3B82F6]/15 hover:bg-[#3B82F6]/25 border border-[#3B82F6]/40 flex items-center justify-between group transition-all"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Search size={18} className="text-[#3B82F6]" />
+                          <span className="text-[13px] font-semibold text-white">
+                            View all results for &ldquo;{searchQuery}&rdquo; in Projects Database
+                          </span>
+                        </div>
+                        <CornerDownLeft size={16} className="text-[#3B82F6]" />
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer Bar */}
+              <div className="px-5 py-3 bg-black/60 border-t border-white/10 flex items-center justify-between text-[11px] text-neutral-400 font-mono">
+                <div className="flex items-center gap-3">
+                  <span>Press <kbd className="px-1.5 py-0.5 bg-white/10 border border-white/20 text-white rounded-xs">ENTER</kbd> to search</span>
+                  <span>•</span>
+                  <span><kbd className="px-1.5 py-0.5 bg-white/10 border border-white/20 text-white rounded-xs">ESC</kbd> to dismiss</span>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
                     if (searchQuery.trim()) {
                       window.location.href = `/projects?search=${encodeURIComponent(searchQuery.trim())}`;
+                    } else {
+                      window.location.href = '/projects';
                     }
                   }}
-                  className="wsp-btn wsp-btn-solid text-[13px] py-2 px-5 hidden sm:inline-block"
+                  className="text-[#3B82F6] hover:text-white font-bold transition-colors cursor-pointer"
                 >
-                  Search
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSearchOpen(false)}
-                  className="text-neutral-400 hover:text-white p-1 cursor-pointer flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-wider"
-                  aria-label="Close search"
-                >
-                  <span>Close</span>
-                  <X size={18} />
+                  View All Projects &rarr;
                 </button>
               </div>
             </div>
