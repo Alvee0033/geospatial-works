@@ -1,405 +1,426 @@
 [
   {
-    "id": "ppt-1",
+    "id": "gabtoli-bus-terminal-modernization",
+    "title": "Passenger Facilities Modernization at Gabtoli Inter-District Bus Terminal",
     "slug": "gabtoli-bus-terminal-modernization",
-    "title": "Gabtoli Inter-District Bus Terminal Modernization",
     "client": "Dhaka North City Corporation (DNCC)",
-    "category": "Transit & Municipal Facility",
-    "location": "Gabtoli, Dhaka (58.527 Acres / 0.236 km\u00b2)",
-    "description": "Digital surveying, drone survey covering 58.527 acres (0.236 sq km), and comprehensive improvement planning of Gabtoli Bus Terminal, Dhaka. Scope included designing two terminal buildings, expanding and reorganizing bus counters, bus circulation planning, existing and new storm-water drainage design, detailed design drawings, and Bill of Quantities (BOQ).",
-    "deliverables": "Topographic survey, 3D model outputs, ground and 1st floor architectural plans, ETABS 3D structural model, storm-water drainage design, and BOQ cost estimation.",
+    "category": "CIVIL & ARCHITECTURAL",
+    "disciplines": [
+      "Civil Engineering",
+      "Digital Survey",
+      "Architectural Design"
+    ],
+    "sector": "Urban Transportation",
+    "location": "Gabtoli, Dhaka",
+    "timeline": "Completed 2025",
+    "featured": true,
+    "heroImage": "/ppt-projects/gabtoli-terminal-hero.jpg",
+    "images": [
+      "/ppt-projects/gabtoli-terminal-hero.jpg",
+      "/ppt-projects/gabtoli-survey-3d.png",
+      "/ppt-projects/gabtoli-etabs-model.png"
+    ],
+    "description": "The project involved digital surveying and comprehensive improvement planning for Gabtoli Bus Terminal, addressing existing traffic congestion and operational bottlenecks. Prepared detailed architectural floor plans for modern ticket counters, comfortable passenger waiting lounges, sanitary facilities, drainage systems, and optimized pedestrian walkways.",
+    "overview": "Comprehensive modern passenger terminal facility planning, digital topographic survey, and structural engineering design under Dhaka North City Corporation.",
+    "challenges": [
+      "Severe operational congestion during peak transit hours",
+      "Sub-optimal passenger circulation and inadequate waiting amenities",
+      "Complex drainage integration into existing Dhaka municipal stormwater network"
+    ],
+    "approach": [
+      "Conducted millimeter-precision digital survey across the entire terminal apron",
+      "Designed segregated ticket counter zones, multi-tier waiting lounges, and dedicated passenger walkways",
+      "Engineered heavy-duty RCC stormwater drainage network with palisading and retention"
+    ],
+    "results": [
+      "Complete architectural drawings and structural engineering models",
+      "Optimized bus and passenger circulation layout eliminating major gridlock points",
+      "Comprehensive BOQ, BOM, and tender documentation delivered on schedule"
+    ],
+    "toolsUsed": [
+      "Total Station",
+      "RTK GNSS",
+      "ETABS",
+      "AutoCAD Civil 3D"
+    ],
+    "deliverables": [
+      "Architectural Plans",
+      "Structural Design",
+      "Drainage Design",
+      "BOQ & Cost Estimate"
+    ],
     "imageUrl": "/ppt-projects/gabtoli-terminal-hero.jpg",
-    "isMilestone": true,
-    "sortOrder": 1
+    "isMilestone": true
   },
   {
-    "id": "ppt-2",
-    "slug": "gulshan-badda-link-road-improvement",
-    "title": "Gulshan-1 Intersection to Progati Sarani Highway & Drain Improvement",
+    "id": "gulshan-badda-link-road",
+    "title": "Road Improvement Works on Gulshan-Badda Link Road (Progati Sarani Corridor)",
+    "slug": "gulshan-badda-link-road",
     "client": "Dhaka North City Corporation (DNCC)",
-    "category": "Road & Highway Survey",
-    "location": "Gulshan-1 to Progati Sarani, Dhaka (71.64 Acres / 1.019 km)",
-    "description": "Road infrastructure improvement works under DNCC, including construction of RCC medians, drainage systems, footpaths, passenger sheds, grill fencing, and traffic signs along Gulshan-1 Intersection to Progati Sarani (Gulshan-Badda Link Road). Includes Road No. 130 (Part) and Road No. 134, lake-side palisading system for bank protection and soil erosion control covering 71.64 acres (1.019 km length), and BOQ.",
-    "deliverables": "Centerline alignment profiles, cross-sections, 3D model of waiting shelters, drain layout plans, lake-side palisading protection details, and BOQ documentation.",
+    "category": "ROAD & TRANSPORT",
+    "disciplines": [
+      "Highway Engineering",
+      "Topographic Survey",
+      "Drainage Design"
+    ],
+    "sector": "Urban Transportation",
+    "location": "Gulshan-1 to Progati Sarani, Dhaka",
+    "timeline": "Completed 2025",
+    "featured": true,
+    "heroImage": "/ppt-projects/gulshan-link-road-hero.jpg",
+    "images": [
+      "/ppt-projects/gulshan-link-road-hero.jpg",
+      "/ppt-projects/gulshan-shelter-3d.png",
+      "/ppt-projects/gulshan-drain-section.png",
+      "/ppt-projects/gulshan-road-section.png"
+    ],
+    "description": "Road infrastructure improvement works under Dhaka North City Corporation along the critical Gulshan-1 to Progati Sarani corridor. Scope included geometric road alignment, construction of RCC medians, drainage network, pedestrian walkways, passenger shelters, and installation of durable drop palisading.",
+    "overview": "Urban arterial road geometry restructuring, passenger waiting infrastructure, and drainage redesign along high-density corridor in Dhaka.",
+    "challenges": [
+      "Extremely high live traffic volume during survey and alignment execution",
+      "Severe waterlogging during monsoon along link road intersections",
+      "Constrained right-of-way with high commercial encroachment"
+    ],
+    "approach": [
+      "Detailed corridor topographic mapping using RTK GNSS and robotic stations",
+      "Engineered RCC covered storm drains with integrated pedestrian walkways",
+      "Designed modern weather-resistant passenger waiting shelters and durable medians"
+    ],
+    "results": [
+      "Eliminated water stagnation along the corridor through gravity-fed RCC drainage",
+      "Enhanced pedestrian safety and bus passenger comfort with modern shelters",
+      "Delivered complete cross-sections, pavement design, and BOQ schedules"
+    ],
+    "toolsUsed": [
+      "RTK GNSS",
+      "AutoCAD Civil 3D",
+      "Structural CAD",
+      "Total Station"
+    ],
+    "deliverables": [
+      "Corridor Alignment Drawings",
+      "Drainage Network Sections",
+      "Passenger Shelter CAD",
+      "Measured BOQ"
+    ],
     "imageUrl": "/ppt-projects/gulshan-link-road-hero.jpg",
-    "isMilestone": true,
-    "sortOrder": 2
+    "isMilestone": true
   },
   {
-    "id": "ppt-3",
+    "id": "mohakhali-bus-terminal-modernization",
+    "title": "Passenger Facilities Modernization at Mohakhali Inter-District Bus Terminal",
     "slug": "mohakhali-bus-terminal-modernization",
-    "title": "Mohakhali Inter-District Bus Terminal Modernization",
     "client": "Dhaka North City Corporation (DNCC)",
-    "category": "Transit & Municipal Facility",
-    "location": "Mohakhali, Dhaka (37.152 Acres / 0.15 km\u00b2)",
-    "description": "Digital surveying, drone survey covering 37.152 acres (0.15 sq km), and comprehensive modernization of Mohakhali Bus Terminal. Scope included expansion and reorganization of AC and Non-AC bus counters, bus circulation plan, drainage improvement, new storm-water lines, detailed design drawings, and BOQ.",
-    "deliverables": "Topographic survey, AC & Non-AC bus counter floor plans, 3D model outputs, drainage hydraulic profiles, palisading sections, and structural BOQ.",
+    "category": "CIVIL & ARCHITECTURAL",
+    "disciplines": [
+      "Civil Engineering",
+      "Digital Survey",
+      "Architectural Design"
+    ],
+    "sector": "Urban Transportation",
+    "location": "Mohakhali, Dhaka",
+    "timeline": "Completed 2025",
+    "featured": true,
+    "heroImage": "/ppt-projects/mohakhali-terminal-hero.jpg",
+    "images": [
+      "/ppt-projects/mohakhali-terminal-hero.jpg",
+      "/ppt-projects/mohakhali-survey-plan.png",
+      "/ppt-projects/mohakhali-bus-counter-3d.png",
+      "/ppt-projects/mohakhali-drain-detail.png",
+      "/ppt-projects/mohakhali-palisading-detail.png"
+    ],
+    "description": "Comprehensive digital surveying, structural engineering, and passenger facility modernization at Mohakhali Inter-District Bus Terminal. Included dedicated AC and Non-AC ticket counters, modern waiting lounges, upgraded restrooms, RCC perimeter stormwater drains, palisading, and internal roadway improvements.",
+    "overview": "Upgradation of one of Dhaka\u2019s busiest inter-district transport hubs with modern ticketing facilities, sanitary amenities, and heavy drainage infrastructure.",
+    "challenges": [
+      "Continuous 24/7 bus operations during digital survey and engineering study",
+      "Runoff drainage deficiency leading to pavement deterioration",
+      "Overcrowded informal ticketing structures blocking emergency passageways"
+    ],
+    "approach": [
+      "High-precision digital surveying to map exact boundaries and existing utilities",
+      "Architectural floor plans separating AC and Non-AC ticketing wings",
+      "Engineered heavy-load RCC box drains and slope protection palisading"
+    ],
+    "results": [
+      "Approved architectural floor plans and structural engineering designs",
+      "Robust perimeter drainage layout safeguarding terminal pavement life",
+      "Full tender-ready BOQ, specifications, and construction schedules"
+    ],
+    "toolsUsed": [
+      "Total Station",
+      "RTK GNSS",
+      "Civil 3D",
+      "ETABS"
+    ],
+    "deliverables": [
+      "Terminal Master Layout",
+      "AC/Non-AC Counter Plans",
+      "Palisading & Drain Details",
+      "Cost Estimates"
+    ],
     "imageUrl": "/ppt-projects/mohakhali-terminal-hero.jpg",
-    "isMilestone": true,
-    "sortOrder": 3
+    "isMilestone": true
   },
   {
-    "id": "ppt-4",
-    "slug": "moheshkhali-sanitary-landfill-ltp",
-    "title": "Moheshkhali Sanitary Landfill Leachate Treatment Plant (LTP)",
-    "client": "LGED / JICA / Nippon Koei Bangladesh Ltd. / OSMO Corporation",
-    "category": "Environmental & Waste Engineering",
+    "id": "moheshkhali-sanitary-landfill-swm",
+    "title": "LTP of Sanitary Landfill at Moheshkhali Solid Waste Management",
+    "slug": "moheshkhali-sanitary-landfill-swm",
+    "client": "Local Government Engineering Department (LGED) / OSMO CORPORATION",
+    "category": "ENVIRONMENTAL & CIVIL",
+    "disciplines": [
+      "Structural Design",
+      "Environmental Engineering",
+      "Civil Drawings"
+    ],
+    "sector": "Waste Management",
     "location": "Moheshkhali, Cox\u2019s Bazar",
-    "description": "Structural design and preparation of drawings for the LTP (Landfill Treatment Plant) of the sanitary landfill under the Moheshkhali Solid Waste Management (SWM) project funded by JICA, implemented under LGED, and monitored by Nippon Koei Bangladesh Ltd. Serving waste management facilities for the Rohingya community. Included manual structural calculations, maximum bending moment, maximum shear force, and reinforcement requirements.",
-    "deliverables": "Reinforced concrete design drawings, manual structural calculation sheets, maximum bending moment and shear force assessments, and technical review reports.",
+    "timeline": "April 2025 - May 2025",
+    "featured": true,
+    "heroImage": "/ppt-projects/moheshkhali-landfill-ltp-output1.png",
+    "images": [
+      "/ppt-projects/moheshkhali-landfill-ltp-output1.png",
+      "/ppt-projects/moheshkhali-landfill-ltp-output2.png"
+    ],
+    "description": "The project involved the structural design and preparation of complete engineering drawings for the Leachate Treatment Plant (LTP) under the Moheshkhali Solid Waste Management initiative, safeguarding coastal groundwater and surrounding delicate ecosystems.",
+    "overview": "Structural engineering design and hydraulic calculations for an advanced Leachate Treatment Plant at Moheshkhali Sanitary Landfill.",
+    "challenges": [
+      "Highly corrosive leachate environment requiring chemical-resistant reinforced concrete design",
+      "Coastal saline subsoil conditions demanding specialized foundation engineering",
+      "Strict zero-leakage environmental compliance standards"
+    ],
+    "approach": [
+      "Finite element structural analysis for reinforced concrete retaining basins and tanks",
+      "Selected sulfate-resistant cement and specialized concrete cover specifications",
+      "Generated complete structural reinforcement schedules and fabrication details"
+    ],
+    "results": [
+      "Fully certified structural drawings for all LTP holding and treatment cells",
+      "Hydraulic design accommodating peak monsoon precipitation volumes",
+      "Full BOQ and structural construction specifications delivered to LGED"
+    ],
+    "toolsUsed": [
+      "ETABS",
+      "AutoCAD Structural",
+      "Geotechnical Soil Analysis Software"
+    ],
+    "deliverables": [
+      "LTP Structural Drawings",
+      "Foundation Design",
+      "Reinforcement Schedules",
+      "BOQ & Specifications"
+    ],
     "imageUrl": "/ppt-projects/moheshkhali-landfill-ltp-output1.png",
-    "isMilestone": true,
-    "sortOrder": 4
+    "isMilestone": true
   },
   {
-    "id": "ppt-5",
-    "slug": "badc-web-ais-pilot-project",
+    "id": "badc-web-ais-project",
     "title": "Pilot Research Project for Irrigation Water Management (WEB-AIS)",
+    "slug": "badc-web-ais-project",
     "client": "Bangladesh Agricultural Development Corporation (BADC)",
-    "category": "Agricultural Water Management & GIS",
-    "location": "Manikganj Region (208.37 km\u00b2 Across 23 Unions & 260 Mouzas)",
-    "description": "Pilot research project to improve irrigation management and agricultural planning through an integrated geospatial information system covering 208.37 km\u00b2 across 23 unions and 260 mouzas in Manikganj. Included GNSS/RTK surveying, UAV mapping, photogrammetry, and cadastral digitization documenting 142.02 km\u00b2 agricultural land, 536.12 km irrigation canals, and 9,834 irrigation pumps.",
-    "deliverables": "High-resolution orthomosaics, elevation models, land-cover maps, irrigation networks, groundwater pump inventories, TBM & GCP grid distribution, and enterprise Web-GIS database.",
+    "category": "WATER RESOURCES & GIS",
+    "disciplines": [
+      "GIS Modeling",
+      "Remote Sensing",
+      "Hydrographic Survey"
+    ],
+    "sector": "Water Resources",
+    "location": "Manikganj, Bangladesh",
+    "timeline": "Completed 2025",
+    "featured": true,
+    "heroImage": "/ppt-projects/badc-web-ais-hero.jpg",
+    "images": [
+      "/ppt-projects/badc-web-ais-hero.jpg",
+      "/ppt-projects/badc-canal-distribution-map.png",
+      "/ppt-projects/badc-lulc-map.png",
+      "/ppt-projects/badc-tbm-gcp-setup.png"
+    ],
+    "description": "The WEB-AIS pilot research project aims to improve irrigation water management and agricultural productivity using spatial data. Survey activities included canal distribution mapping, TBM establishment, Land Use / Land Cover (LULC) classification, and multispectral NDVI vegetation health calculation across major agricultural command areas.",
+    "overview": "Integrated web-based agricultural information system and field geospatial survey optimizing canal irrigation distribution across Manikganj.",
+    "challenges": [
+      "Extensive, fragmented canal command networks across rural terrain",
+      "Need for seasonal vegetation vigor tracking to optimize irrigation delivery",
+      "Establishing unified geodetic TBMs across vast agricultural acreage"
+    ],
+    "approach": [
+      "Tied field survey to Survey of Bangladesh geodetic benchmarks using static GNSS",
+      "Detailed canal alignment and cross-sectional profile surveys",
+      "Processed multi-spectral satellite imagery to map LULC and compute NDVI vegetation health indices"
+    ],
+    "results": [
+      "Comprehensive irrigation canal distribution GIS maps and geodatabase",
+      "Precise canal slope profiles enabling gravity-assisted water distribution planning",
+      "Multi-seasonal NDVI baseline reports assessing crop health and water efficiency"
+    ],
+    "toolsUsed": [
+      "RTK GNSS",
+      "ArcGIS Pro / QGIS",
+      "Multi-spectral Remote Sensing",
+      "Total Station"
+    ],
+    "deliverables": [
+      "Canal Distribution Maps",
+      "LULC Classification Maps",
+      "NDVI Vegetation Health Dataset",
+      "GIS Geodatabase"
+    ],
     "imageUrl": "/ppt-projects/badc-web-ais-hero.jpg",
-    "isMilestone": true,
-    "sortOrder": 5
+    "isMilestone": true
   },
   {
-    "id": "ppt-6",
-    "slug": "badc-gangarampur-gauge-readers",
-    "title": "Installation of Water-Level Gauge Readers in Gangarampur",
+    "id": "badc-gangarampur-water-gauge-survey",
+    "title": "Installation of Water-Level Gauge Readers & Topographic Survey at Gangarampur",
+    "slug": "badc-gangarampur-water-gauge-survey",
     "client": "Bangladesh Agricultural Development Corporation (BADC)",
-    "category": "Hydrographic & Bathymetric Survey",
-    "location": "Gangarampur Union, Batiaghata Upazila, Khulna District",
-    "description": "Installation and adjustment of river water level gauge readers at three monitoring locations in Gangarampur under BADC. Conducted levelling surveys to establish accurate Reduced Levels (RLs), RTK GNSS observations for precise coordinates and elevations, temporary benchmarks (TBM), measured existing water depths, and constructed bamboo support platforms at Jhopjhopia River, Guiyer Canal Opening, and Guiyer Canal Y-section.",
-    "deliverables": "Geodetic Reduced Levels (RLs), temporary benchmark records, depth measurements, and water level calibration records.",
+    "category": "WATER RESOURCES & GIS",
+    "disciplines": [
+      "Hydrology",
+      "Topographic Survey",
+      "Gauge Calibration"
+    ],
+    "sector": "Water Resources",
+    "location": "Gangarampur, Manikganj",
+    "timeline": "Completed 2025",
+    "featured": true,
+    "heroImage": "/ppt-projects/badc-gangarampur-survey.jpg",
+    "images": [
+      "/ppt-projects/badc-gangarampur-survey.jpg",
+      "/ppt-projects/badc-jhopjhopia-river.jpg"
+    ],
+    "description": "The project involved the installation, calibration, and adjustment of river water level gauge readers at three critical river locations in Gangarampur under BADC. Topographic surveys were conducted alongside river level monitoring to understand seasonal flow variations and riverbed scour dynamics.",
+    "overview": "Precision hydrographic water-level gauge installation and riverine topographic survey for surface irrigation planning under BADC.",
+    "challenges": [
+      "Dynamic tidal fluctuations and high river velocity during monsoon gauge setting",
+      "Precise benchmark datum transfer across wide river banks",
+      "Ensuring structural stability of gauge posts against floating debris and current"
+    ],
+    "approach": [
+      "Established permanent TBMs on reinforced structures on both river banks",
+      "Installed durable, graduated water level gauges calibrated to national PWD datum",
+      "Conducted topographic cross-sections of river approach channels and banks"
+    ],
+    "results": [
+      "Accurate, real-time river stage monitoring infrastructure in place",
+      "Topographic contour surveys of riverbanks and adjacent irrigation inlets",
+      "Standardized hydrological data stream for BADC irrigation intake management"
+    ],
+    "toolsUsed": [
+      "Auto-Level",
+      "RTK GNSS",
+      "Digital Echo Sounder",
+      "Total Station"
+    ],
+    "deliverables": [
+      "Gauge Calibration Certificates",
+      "River Cross-Section Drawings",
+      "Topographic Contour Maps",
+      "Hydrological Report"
+    ],
     "imageUrl": "/ppt-projects/badc-gangarampur-survey.jpg",
-    "isMilestone": true,
-    "sortOrder": 6
+    "isMilestone": true
   },
   {
-    "id": "ppt-7",
-    "slug": "abdulpur-railway-bypass-rcipf",
-    "title": "Abdulpur Railway Bypass under RCIPF Subproject 2",
-    "client": "Bangladesh Railway / Oriental Consultants Global (OCG) / ADB",
-    "category": "Railway Infrastructure & Photogrammetry",
-    "location": "Lalpur Upazila, Natore District (40 Acres)",
-    "description": "Comprehensive topographic and physical feature survey across 40 acres in Lalpur Upazila under ADB Loan No: 6030 BAN for railway alignment planning and engineering design. Integrated UAV photogrammetry, RTK GNSS, and Electronic Total Station (ETS) surveys using 17 Ground Control Points (GCPs) and DJI Matrice 4E UAV.",
-    "deliverables": "Georeferenced orthomosaics, Digital Surface Model (DSM), Digital Terrain Model (DTM), 20 cm interval contour maps, cross-sections, LULC maps, utility maps, and railway infrastructure maps with centimetre-level vertical accuracy.",
+    "id": "abdulpur-railway-bypass",
+    "title": "Abdulpur Railway Bypass Topographic & UAV Photogrammetry Survey",
+    "slug": "abdulpur-railway-bypass",
+    "client": "Bangladesh Railway / Oriental Consultants Global (OCG)",
+    "category": "RAILWAY & INFRASTRUCTURE",
+    "disciplines": [
+      "UAV Drone Survey",
+      "Railway Engineering",
+      "Photogrammetry"
+    ],
+    "sector": "Rail Transportation",
+    "location": "Abdulpur Bypass Station, Natore",
+    "timeline": "Completed 2025",
+    "featured": true,
+    "heroImage": "/ppt-projects/abdulpur-bypass-hero.jpg",
+    "images": [
+      "/ppt-projects/abdulpur-bypass-hero.jpg",
+      "/ppt-projects/abdulpur-dsm-ortho.png",
+      "/ppt-projects/abdulpur-contours-lulc.png"
+    ],
+    "description": "The Abdulpur Railway Bypass Project under subproject 2 of Railway Connectivity Improvement Preparatory Facility (RCIPF) involved high-precision topographic surveying and RTK-enabled drone photogrammetry. Generated millimeter-accuracy DSM, DTM, orthomosaics, 0.25m interval contours, and land use classification to support bypass rail alignment design.",
+    "overview": "High-precision corridor photogrammetry and ground RTK survey for landmark railway bypass engineering under Bangladesh Railway.",
+    "challenges": [
+      "Strict accuracy requirements for track geometry and turnout alignments",
+      "Active rail operations requiring strict safety protocols during aerial and ground surveys",
+      "Complex terrain with dense vegetation requiring multi-layer filtering for true ground DTM"
+    ],
+    "approach": [
+      "Deployed RTK-enabled multirotor drone with surveyed ground control points (GCPs)",
+      "Processed imagery into high-density 3D point cloud and extracted bare-earth DTM",
+      "Generated 0.25m contour models and detailed right-of-way topographic maps"
+    ],
+    "results": [
+      "Sub-centimeter accurate 3D digital surface and terrain models (DSM/DTM)",
+      "High-resolution orthomosaics covering the entire railway corridor",
+      "Civil 3D alignment files accepted directly by international consulting engineers (OCG)"
+    ],
+    "toolsUsed": [
+      "DJI Enterprise RTK Drone",
+      "DJI Terra / Pix4D",
+      "Trimble RTK GNSS",
+      "AutoCAD Civil 3D"
+    ],
+    "deliverables": [
+      "High-Res Orthomosaic (TIF)",
+      "Bare-Earth DTM & DSM",
+      "0.25m Contour CAD",
+      "Land Use Classification Map"
+    ],
     "imageUrl": "/ppt-projects/abdulpur-bypass-hero.jpg",
-    "isMilestone": true,
-    "sortOrder": 7
+    "isMilestone": true
   },
   {
-    "id": "ppt-8",
-    "slug": "dtca-greater-dhaka-bus-depot-feasibility",
-    "title": "Bus Route Rationalization & Implementation Plan for Dhaka",
+    "id": "dtca-bus-route-rationalization",
+    "title": "Bus Route Rationalization & Arterial Corridor Concept Design",
+    "slug": "dtca-bus-route-rationalization",
     "client": "Dhaka Transport Coordination Authority (DTCA) / IMAGE",
-    "category": "Urban Transport Planning & GIS",
-    "location": "Dhaka City Corridors (8,686.886 Acres / 35.15 km\u00b2 / 150.265 km Length)",
-    "description": "Concept design and implementation plan for bus route rationalization and company-based operation in Dhaka. Activities included Traffic Count Surveys, UAV drone surveys covering 8,686.886 acres (35.15 sq km and 150.265 km length), and Origin\u2013Destination (OD) surveys at major intersections integrating UAV photogrammetry, RTK GNSS, Ground Control Points, and DJI Matrice 4E UAV.",
-    "deliverables": "Georeferenced orthomosaics, Digital Surface Model (DSM), traffic count analytics, OD passenger survey models, and concept transit routing maps.",
+    "category": "URBAN TRANSPORT",
+    "disciplines": [
+      "Drone Corridor Survey",
+      "Traffic Engineering",
+      "Urban Planning"
+    ],
+    "sector": "Urban Transportation",
+    "location": "Dhaka Metropolitan Corridors",
+    "timeline": "Completed 2025",
+    "featured": true,
+    "heroImage": "/ppt-projects/dtca-bus-rationalization-hero.jpg",
+    "images": [
+      "/ppt-projects/dtca-bus-rationalization-hero.jpg",
+      "/ppt-projects/dtca-dsm-ortho-outputs.png"
+    ],
+    "description": "Preparation of Concept Design & Implementation Plan for Bus Route Rationalization and Corridor Improvement. Survey activities included classified manual traffic count surveys, UAV-based corridor photogrammetry, topographic survey, and digital surface modeling (DSM) to restructure public bus transit operations.",
+    "overview": "Multi-modal urban transport study integrating drone corridor photogrammetry, traffic surveys, and geometric concept design across major Dhaka corridors.",
+    "challenges": [
+      "Dense, chaotic urban corridor traffic with high pedestrian and vehicular friction",
+      "Restricted airspace requiring rigorous CAAB safety protocols and early morning flight windows",
+      "Integrating complex multi-junction turning movement counts with high-res spatial data"
+    ],
+    "approach": [
+      "Executed coordinated dawn UAV photogrammetry missions along key arterial corridors",
+      "Conducted 16-hour classified video and manual traffic volume surveys at critical junctions",
+      "Built high-resolution digital surface models and corridor cross-sections"
+    ],
+    "results": [
+      "Complete corridor orthomosaics and 3D terrain elevation models",
+      "Junction geometry and dedicated bus lane concept design layouts",
+      "Comprehensive traffic flow and corridor capacity analysis report delivered to DTCA"
+    ],
+    "toolsUsed": [
+      "DJI RTK Enterprise UAV",
+      "Classified Traffic Counters",
+      "Pix4D",
+      "Civil 3D"
+    ],
+    "deliverables": [
+      "Corridor Orthomosaics",
+      "3D Digital Surface Models",
+      "Traffic Volume Data",
+      "Bus Corridor Concept Designs"
+    ],
     "imageUrl": "/ppt-projects/dtca-bus-rationalization-hero.jpg",
-    "isMilestone": true,
-    "sortOrder": 8
-  },
-  {
-    "id": "ppt-9",
-    "slug": "lged-sirtp-csmart-800km",
-    "title": "Sustainable & Integrated Rural Transport (SIRTP/CSmaRT) 800 km Survey",
-    "client": "Local Government Engineering Department (LGED) / PRC-IMAGE",
-    "category": "Road & Highway Survey",
-    "location": "National Rural Road Corridors (800 km)",
-    "description": "800 km road survey and Temporary Benchmark (TBM) setup using RTK GNSS receivers under the Sustainable and Integrated Rural Transport Improvement Project (SIRTP) and Climate Smart Rural Transport (CSmaRT) project by LGED.",
-    "deliverables": "800 km centerline alignments, geodetic TBM coordinate registries, cross-sectional terrain profiles, and rural transport GIS database.",
-    "imageUrl": "/ppt-projects/ppt-task-road-rtk-survey.jpg",
-    "isMilestone": true,
-    "sortOrder": 9
-  },
-  {
-    "id": "ppt-10",
-    "slug": "bpdb-power-pole-survey",
-    "title": "BPDB LT & HT Power Distribution Pole Survey (100,000 Poles)",
-    "client": "Bangladesh Power Development Board (BPDB) / CEGIS",
-    "category": "Power Infrastructure & Geodesy",
-    "location": "Mymensingh, Ghatura, Datiara & 64 Districts",
-    "description": "Sub-consultancy by CEGIS for BPDB. Collected RTK coordinate data for approximately 100,000 Low Tension (LT) and High Tension (HT) power distribution poles in Phase 1 & 2, alongside 10,000 Ground Control Points (GCP) across 64 districts.",
-    "deliverables": "Geospatial utility network shapefiles, RTK coordinate registries for 100,000 poles, substation asset GIS database, and 64-district GCP registry.",
-    "imageUrl": "/ppt-projects/ppt-task-water-level-gauge.jpg",
-    "isMilestone": true,
-    "sortOrder": 10
-  },
-  {
-    "id": "ppt-11",
-    "slug": "mouza-plot-national-land-zoning",
-    "title": "Mouza & Plot Based National Digital Land Zoning Project",
-    "client": "Ministry of Land / CEGIS",
-    "category": "Land Zoning & Digital Cadastral Mapping",
-    "location": "National Coverage, 64 Districts, Bangladesh",
-    "description": "Ground control point collection, satellite image rectification, and parcel-level cadastral boundary demarcation for the Mouza & Plot Based National Digital Land Zoning Project under the Ministry of Land across Phase 1 & Phase 2 in sub-consultancy with CEGIS.",
-    "deliverables": "Rectified mouza sheet geodatabase, agricultural and commercial zoning classification maps, and parcel-level spatial layers.",
-    "imageUrl": "/ppt-projects/ppt-task-mangrove-survey.png",
-    "isMilestone": true,
-    "sortOrder": 11
-  },
-  {
-    "id": "ppt-12",
-    "slug": "lged-450km-road-survey",
-    "title": "450 km Detail Road Survey using RTK GNSS",
-    "client": "Local Government Engineering Department (LGED) / IMAGE",
-    "category": "Road & Highway Survey",
-    "location": "National Road Network, Bangladesh (450 km)",
-    "description": "Ongoing extensive 450 km detail road survey using RTK GNSS receivers for road design, pavement condition assessment, and widening documentation under LGED.",
-    "deliverables": "Horizontal alignments, cross-sectional elevation data, culvert and drainage structure inventories, and CAD engineering plans.",
-    "imageUrl": "/ppt-projects/ppt-task-road-rtk-survey.jpg",
-    "isMilestone": true,
-    "sortOrder": 12
-  },
-  {
-    "id": "ppt-13",
-    "slug": "pahartoli-ger-shop-railway-survey",
-    "title": "Detail Topographic Survey at GER Shop, Pahartoli under RCIPF",
-    "client": "Bangladesh Railway / Oriental Consultants Global Co., Ltd. (OCG)",
-    "category": "Railway Infrastructure & Photogrammetry",
-    "location": "GER Shop, Pahartoli, Chattogram",
-    "description": "Detail topographic survey using RTK and RTK-enabled UAV under RCIPF project at GER shop, Pahartoli, Chattogram by Bangladesh Railway Department in partnership with Oriental Consultants Global Co., Ltd.",
-    "deliverables": "Sub-centimeter rail alignment coordinates, workshop building footprints, 3D point cloud, and comprehensive yard topography drawings.",
-    "imageUrl": "/ppt-projects/ppt-task-railway-ger-shop.png",
-    "isMilestone": false,
-    "sortOrder": 13
-  },
-  {
-    "id": "ppt-14",
-    "slug": "shibganj-pourashava-ugip",
-    "title": "Improving Urban Governance & Infrastructure (UGIIP), Shibganj Pourashava",
-    "client": "Local Government Engineering Department (LGED) / IMAGE",
-    "category": "Municipal & Urban Governance",
-    "location": "Shibganj Pourashava, Chapai Nawabganj",
-    "description": "Topographic, drainage, and municipal infrastructure survey under the Improving Urban Governance & Infrastructure Project (UGIIP) for Shibganj Pourashava by LGED.",
-    "deliverables": "Town-wide topographic baseline map, municipal road network inventory, drainage master plan contours, and CAD drawings.",
-    "imageUrl": "/ppt-projects/ppt-task-urban-pourashava-survey.png",
-    "isMilestone": false,
-    "sortOrder": 14
-  },
-  {
-    "id": "ppt-15",
-    "slug": "chhatak-ropeway-transportation-survey",
-    "title": "Chhatak Ropeway Transportation Survey Project",
-    "client": "MEC",
-    "category": "Topographic & Infrastructure Survey",
-    "location": "Chhatak, Sunamganj",
-    "description": "Detailed alignment survey, topographic profiling, and structural foundation measurement for the industrial ropeway transit corridor in Chhatak.",
-    "deliverables": "Corridor centerline profile, pylon foundation coordinates, digital elevation model, and topographic plan.",
-    "imageUrl": "/ppt-projects/ppt-task-road-rtk-survey.jpg",
-    "isMilestone": false,
-    "sortOrder": 15
-  },
-  {
-    "id": "ppt-16",
-    "slug": "udd-pirojpur-gcp-survey",
-    "title": "GCP Data Collection for 4 Upazilas in Pirojpur",
-    "client": "Urban Development Directorate (UDD) / PlanTED",
-    "category": "Geodetic Ground Control & Topographic Survey",
-    "location": "Pirojpur District (4 Upazilas)",
-    "description": "Ground Control Point (GCP) data collection and static GNSS network adjustments across four upazilas in Pirojpur district under UDD.",
-    "deliverables": "Permanent geodetic monument coordinates, SOB benchmark tie-in documentation, and orthomosaic rectification GCP datasets.",
-    "imageUrl": "/ppt-projects/badc-tbm-gcp-grid.jpg",
-    "isMilestone": false,
-    "sortOrder": 16
-  },
-  {
-    "id": "ppt-17",
-    "slug": "bsmrmu-maritime-university-tbm",
-    "title": "TBM Verification & Establishment in BSMR Maritime University Project",
-    "client": "Bangabandhu Sheikh Mujibur Rahman Maritime University / General Survey",
-    "category": "Geodetic Baseline & Vertical Control",
-    "location": "BSMRMU Campus, Bangladesh",
-    "description": "TBM verification and establishment for the master campus development of Bangabandhu Sheikh Mujibur Rahman Maritime University.",
-    "deliverables": "Calibrated TBM elevation certificates, closed-loop optical leveling traverse logs, and geodetic network map.",
-    "imageUrl": "/ppt-projects/badc-tbm-gcp-grid.jpg",
-    "isMilestone": false,
-    "sortOrder": 17
-  },
-  {
-    "id": "ppt-18",
-    "slug": "bwdb-bhola-tbm-establishment",
-    "title": "TBM Establishment in Char Kolatoli & Char Jahiruddin for BWDB Bhola",
-    "client": "Bangladesh Water Development Board (BWDB) / General Survey",
-    "category": "Riverine Geodetic & Bathymetric Survey",
-    "location": "Bhola (Char Kolatoli & Char Jahiruddin)",
-    "description": "Establishment of temporary benchmarks across Char Kolatoli and Char Jahiruddin under BWDB Bhola for river training and embankment works.",
-    "deliverables": "Coastal benchmark monument coordinates, tidal datum tie-in charts, and riverbank topographic cross-sections.",
-    "imageUrl": "/ppt-projects/badc-jhopjhopia-river.jpg",
-    "isMilestone": false,
-    "sortOrder": 18
-  },
-  {
-    "id": "ppt-19",
-    "slug": "tejgaon-truck-terminal-project",
-    "title": "Tejgaon Truck Terminal Project by DNCC",
-    "client": "Dhaka North City Corporation (DNCC) / BETS",
-    "category": "Transit & Municipal Facility",
-    "location": "Tejgaon, Dhaka",
-    "description": "Detailed topographic and physical feature survey for the modern reconfiguration of Tejgaon Truck Terminal under DNCC.",
-    "deliverables": "Total station and RTK GNSS boundary survey, physical feature map, and parking bay layout drawings.",
-    "imageUrl": "/ppt-projects/gabtoli-digital-survey.jpg",
-    "isMilestone": false,
-    "sortOrder": 19
-  },
-  {
-    "id": "ppt-20",
-    "slug": "ecb-jahimuddin-road-survey",
-    "title": "ECB\u2013Jahimuddin Detail Road Survey Project",
-    "client": "24 Engineering Division, Bangladesh Army / Geo-Static Survey",
-    "category": "Road & Highway Survey",
-    "location": "Dhaka Cantonment - Mirpur Corridor",
-    "description": "Detail road survey project executed for 24 Engineering Construction Brigade of Bangladesh Army along the ECB\u2013Jahimuddin corridor.",
-    "deliverables": "Centerline alignment coordinates, longitudinal and cross-sectional level sheets, and as-built roadway CAD drawings.",
-    "imageUrl": "/ppt-projects/gulshan-road-section.jpg",
-    "isMilestone": false,
-    "sortOrder": 20
-  },
-  {
-    "id": "ppt-21",
-    "slug": "gangni-pourashava-road-improvement",
-    "title": "Road Improvement Project for Gangni Pourashava, Meherpur",
-    "client": "Local Government Engineering Department (LGED)",
-    "category": "Road & Highway Survey",
-    "location": "Gangni Pourashava, Meherpur",
-    "description": "Detailed engineering topographic survey for municipal road widening, pavement rehabilitation, and road-side drainage improvements in Gangni Pourashava by LGED.",
-    "deliverables": "Road centerline profile, pavement cross-sections, drainage outfall invert levels, and quantities estimation documentation.",
-    "imageUrl": "/ppt-projects/ppt-task-road-rtk-survey.jpg",
-    "isMilestone": false,
-    "sortOrder": 21
-  },
-  {
-    "id": "ppt-22",
-    "slug": "meherpur-pourashava-road-improvement",
-    "title": "Road Improvement Project for Meherpur Pourashava",
-    "client": "Local Government Engineering Department (LGED)",
-    "category": "Road & Highway Survey",
-    "location": "Meherpur Pourashava",
-    "description": "Topographic and engineering survey for urban road widening, asphalt overlaying, and drainage infrastructure development for Meherpur Pourashava by LGED.",
-    "deliverables": "Topographic base maps, road corridor alignment profiles, drain layout plans, and civil drafting outputs.",
-    "imageUrl": "/ppt-projects/ppt-task-road-rtk-survey.jpg",
-    "isMilestone": false,
-    "sortOrder": 22
-  },
-  {
-    "id": "ppt-23",
-    "slug": "brahmaputra-river-islampur-bridge",
-    "title": "Bathymetry & RTK Survey for Proposed Islampur Bridge on Brahmaputra River",
-    "client": "Local Government Engineering Department (LGED) / EQMS",
-    "category": "Bridge Engineering & Bathymetry",
-    "location": "Brahmaputra River, Islampur, Jamalpur",
-    "description": "Bathymetry and RTK survey for proposed Islampur Bridge on Brahmaputra River, Jamalpur project by LGED.",
-    "deliverables": "Riverbed depth contours, river cross-sections, flow velocity profiles, and bridge approach embankment topography.",
-    "imageUrl": "/ppt-projects/ppt-task-bridge-bathymetry-1.jpg",
-    "isMilestone": false,
-    "sortOrder": 23
-  },
-  {
-    "id": "ppt-24",
-    "slug": "gopalganj-economic-zone-gcp",
-    "title": "GCP Collection for Gopalganj Economic Zone 1 Project",
-    "client": "Bangladesh Economic Zones Authority (BEZA) / CEGIS",
-    "category": "Geodetic Ground Control & Topographic Survey",
-    "location": "Gopalganj Economic Zone 1",
-    "description": "Ground Control Point (GCP) collection and geodetic reference survey for the Gopalganj Economic Zone 1 project by BEZA.",
-    "deliverables": "High-order geodetic control monuments, coordinates in BTM datum, and site boundary control certificates.",
-    "imageUrl": "/ppt-projects/badc-tbm-gcp-grid.jpg",
-    "isMilestone": false,
-    "sortOrder": 24
-  },
-  {
-    "id": "ppt-25",
-    "slug": "khoksha-bridge-kushtia-bathymetry",
-    "title": "Bathymetry & RTK Survey for Proposed Khoksha Bridge, Kushtia",
-    "client": "Local Government Engineering Department (LGED) / EQMS",
-    "category": "Bridge Engineering & Bathymetry",
-    "location": "Khoksha, Kushtia",
-    "description": "Bathymetry and RTK survey for the proposed Khoksha Bridge, Kushtia project by LGED.",
-    "deliverables": "Riverbed digital terrain models, water depth sounding grids, bridge axis cross-sections, and approach road topography.",
-    "imageUrl": "/ppt-projects/ppt-task-bridge-bathymetry-2.jpg",
-    "isMilestone": false,
-    "sortOrder": 25
-  },
-  {
-    "id": "ppt-26",
-    "slug": "doara-bazar-bridge-sunamganj",
-    "title": "Bathymetry & RTK Survey for Proposed Doara Bazar Bridge, Sunamganj",
-    "client": "Local Government Engineering Department (LGED) / EQMS",
-    "category": "Bridge Engineering & Bathymetry",
-    "location": "Doara Bazar, Sunamganj",
-    "description": "Bathymetry and RTK survey for proposed Doara Bazar Bridge, Sunamganj project by LGED.",
-    "deliverables": "Underwater elevation contours, river cross-sections at 25m intervals, hydrographic survey reports, and approach alignment plans.",
-    "imageUrl": "/ppt-projects/ppt-task-bridge-bathymetry-1.jpg",
-    "isMilestone": false,
-    "sortOrder": 26
-  },
-  {
-    "id": "ppt-27",
-    "slug": "rangabali-bridge-patuakhali",
-    "title": "Bathymetry & RTK Survey for Proposed Rangabali Bridge, Patuakhali",
-    "client": "Local Government Engineering Department (LGED) / EQMS",
-    "category": "Bridge Engineering & Bathymetry",
-    "location": "Rangabali, Patuakhali",
-    "description": "Bathymetry and RTK survey for proposed Rangabali Bridge, Patuakhali project by LGED.",
-    "deliverables": "Tidal-adjusted bathymetric chart, scour depth analysis data, coastline topographic drawings, and pier positioning coordinates.",
-    "imageUrl": "/ppt-projects/ppt-task-bridge-bathymetry-2.jpg",
-    "isMilestone": false,
-    "sortOrder": 27
-  },
-  {
-    "id": "ppt-28",
-    "slug": "breb-substation-static-survey",
-    "title": "GCP Collection Using Static Survey Mode in BREB Substations in Dhaka Zone",
-    "client": "Bangladesh Rural Electrification Board (BREB) / IMAGE",
-    "category": "Power Infrastructure & Geodesy",
-    "location": "Dhaka Zone Substations",
-    "description": "GCP collection using Static Survey mode in different substations of BREB in Dhaka Zone by Bangladesh Rural Electrification Board.",
-    "deliverables": "Static baseline post-processing reports, sub-centimeter geodetic pillar coordinates, and substation boundary CAD layouts.",
-    "imageUrl": "/ppt-projects/badc-tbm-gcp-grid.jpg",
-    "isMilestone": false,
-    "sortOrder": 28
-  },
-  {
-    "id": "ppt-29",
-    "slug": "deep-nagar-silicon-city-bridge",
-    "title": "Bathymetry & RTK Survey for Proposed LGED Bridge (Deep Nagar to Silicon City)",
-    "client": "Local Government Engineering Department (LGED) / EQMS",
-    "category": "Bridge Engineering & Bathymetry",
-    "location": "Deep Nagar - Silicon City, Dhaka",
-    "description": "Bathymetry and RTK survey for proposed LGED bridge to connect Deep Nagar & Silicon City project by LGED.",
-    "deliverables": "Canal bed cross-sections, bank topography, hydraulic clearances, and bridge alignment drawings.",
-    "imageUrl": "/ppt-projects/ppt-task-bridge-bathymetry-1.jpg",
-    "isMilestone": false,
-    "sortOrder": 29
-  },
-  {
-    "id": "ppt-30",
-    "slug": "coastal-mangrove-forest-uav",
-    "title": "Survey & Assessment of Newly Accreted Land in Coastal Mangrove Forest",
-    "client": "Bangladesh Forest Department / BONDHU FOUNDATION",
-    "category": "Environmental & Waste Engineering",
-    "location": "Coastal Mangrove Forest Areas, Bangladesh",
-    "description": "Survey and assessment of newly accreted land in coastal mangrove forest areas using RTK-enabled UAV by Bangladesh Forest Department.",
-    "deliverables": "High-resolution aerial orthomosaics, accretion boundary maps, vegetation canopy indices (NDVI), and forest geodatabase.",
-    "imageUrl": "/ppt-projects/ppt-task-mangrove-survey.png",
-    "isMilestone": false,
-    "sortOrder": 30
-  },
-  {
-    "id": "ppt-31",
-    "slug": "pourashava-survey-southwestern-districts",
-    "title": "Survey of Pourashava across Meherpur, Chuadanga, Kushtia, Jhenaidah, Jashore",
-    "client": "Local Government Engineering Department (LGED) / Pourashava Authorities",
-    "category": "Municipal & Urban Governance",
-    "location": "Meherpur, Chuadanga, Kushtia, Jhenaidah, Jashore",
-    "description": "Continuous topographic, road asset, and urban drainage infrastructure survey across multiple pourashavas in southwestern Bangladesh under LGED.",
-    "deliverables": "Town base maps, road corridor profiles, drainage master plans, and municipal GIS layers.",
-    "imageUrl": "/ppt-projects/ppt-task-urban-pourashava-survey.png",
-    "isMilestone": false,
-    "sortOrder": 31
+    "isMilestone": true
   }
 ]

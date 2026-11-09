@@ -22,7 +22,7 @@ export default async function ProjectsPage() {
   return (
     <CorporateShell>
       <main className="wsp-projects-main min-h-screen bg-white">
-        <ProjectsClientView initialProjects={projects} wysiwyg={wysiwyg} />
+        <ProjectsClientView initialProjects={projects as any} wysiwyg={wysiwyg} />
       </main>
     </CorporateShell>
   );

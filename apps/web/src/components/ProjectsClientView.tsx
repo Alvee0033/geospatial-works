@@ -48,14 +48,12 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
   }, [initialProjects]);
 
   const categories = [
-    { label: 'All Projects (31)', value: 'All' },
-    { label: 'Roads & Highways', value: 'Road' },
-    { label: 'Transit & Terminals', value: 'Transit' },
-    { label: 'Railways & Photogrammetry', value: 'Railway' },
-    { label: 'Bridges & Bathymetry', value: 'Bridge' },
-    { label: 'Geodetic Control & Power', value: 'Geodetic' },
-    { label: 'Water Management & GIS', value: 'Water' },
-    { label: 'Environmental & Waste', value: 'Environmental' },
+    { label: 'All Projects (8)', value: 'All' },
+    { label: 'Civil & Architectural', value: 'Civil' },
+    { label: 'Road & Transport', value: 'Road' },
+    { label: 'Railway & Drone', value: 'Railway' },
+    { label: 'Water Resources & GIS', value: 'Water' },
+    { label: 'Environmental & Civil', value: 'Environmental' },
   ];
 
   const filteredProjects = useMemo(() => {
