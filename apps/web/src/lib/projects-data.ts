@@ -2,7 +2,9 @@ import rawProjects from '@/data/projects.json';
 
 export interface ProjectItem {
   id: string;
+  page?: number;
   title: string;
+  subtitle?: string;
   slug: string;
   client: string;
   category: string;
@@ -11,6 +13,7 @@ export interface ProjectItem {
   location: string;
   timeline: string;
   featured: boolean;
+  heroImage?: string;
   imageUrl?: string;
   isMilestone?: boolean;
   images: string[];

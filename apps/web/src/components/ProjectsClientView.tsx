@@ -48,12 +48,12 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
   }, [initialProjects]);
 
   const categories = [
-    { label: 'All Projects (8)', value: 'All' },
+    { label: 'All Projects (17)', value: 'All' },
     { label: 'Civil & Architectural', value: 'Civil' },
     { label: 'Road & Transport', value: 'Road' },
-    { label: 'Railway & Drone', value: 'Railway' },
+    { label: 'Rapid Mapping & Drone', value: 'Rapid' },
     { label: 'Water Resources & GIS', value: 'Water' },
-    { label: 'Environmental & Civil', value: 'Environmental' },
+    { label: 'Environmental & Waste', value: 'Environmental' },
   ];
 
   const filteredProjects = useMemo(() => {
