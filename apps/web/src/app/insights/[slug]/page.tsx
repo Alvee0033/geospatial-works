@@ -213,6 +213,73 @@ const fullArticles: Record<string, ArticleDetail> = {
       },
     ],
   },
+  'dtca-bus-route-rationalization': {
+    slug: 'dtca-bus-route-rationalization',
+    title: 'Rapid Deployment of DJI Matrice 4E UAV Photogrammetry for DTCA Bus Route Rationalization',
+    category: 'Case Study',
+    date: '26.09.30',
+    readTime: '6 min read',
+    author: {
+      name: 'Geospatial Engineering Team',
+      role: 'Aerial Survey & Traffic Planning',
+      image: '/inner/team-02.webp',
+    },
+    summary: 'Execution of 35.15 sq km UAV drone and traffic OD survey across 150 km of Dhaka arterial transit corridors in 30 days.',
+    imageUrl: '/projects-extracted/page_31/img_01.jpg',
+    content: [
+      {
+        heading: 'Rapid Turnaround for Megacity Transit Restructuring',
+        body: [
+          'Dhaka Transport Coordination Authority (DTCA) commissioned Geospatial Works to execute comprehensive corridor drone photogrammetry and traffic counts to modernize bus route networks across Dhaka.',
+          'Deploying RTK-enabled enterprise drone fleets during early dawn windows permitted complete orthomosaic surface capture without disrupting heavy daytime traffic.',
+        ],
+      },
+    ],
+  },
+  'abdulpur-railway-bypass': {
+    slug: 'abdulpur-railway-bypass',
+    title: 'Generating 0.20cm Digital Terrain Models & High-Resolution Orthomosaics for Railway Bypasses',
+    category: 'Technical Bulletin',
+    date: '26.08.15',
+    readTime: '5 min read',
+    author: {
+      name: 'Tanvir Hossain',
+      role: 'Lead Geodetic Surveyor & Photogrammetrist',
+      image: '/inner/team-02.webp',
+    },
+    summary: 'Sub-centimeter RTK topographic and UAV photogrammetry survey producing DSM, DTM, and 0.20m interval contours for Bangladesh Railway bypass under RCIPF.',
+    imageUrl: '/projects-extracted/page_29/img_02.jpg',
+    content: [
+      {
+        heading: 'Millimeter Geodetic Control for Railway Infrastructure',
+        body: [
+          'Under the ADB-funded RCIPF subproject 2, our surveyors completed rigorous corridor mapping and bare-earth DTM extraction within 14 days, directly facilitating international alignment engineering.',
+        ],
+      },
+    ],
+  },
+  'coastal-mangrove-assessment': {
+    slug: 'coastal-mangrove-assessment',
+    title: 'Coastal Mangrove Accretion Assessment Using RTK-Enabled UAVs for Bangladesh Forest Department',
+    category: 'Environmental Research',
+    date: '26.07.10',
+    readTime: '5 min read',
+    author: {
+      name: 'Farhana Akter',
+      role: 'Director of GIS & Remote Sensing',
+      image: '/inner/team-03.webp',
+    },
+    summary: 'Monitoring newly accreted coastal silt formations and mangrove afforestation canopy health using multi-spectral drone analytics.',
+    imageUrl: '/projects-extracted/page_25/img_02.jpg',
+    content: [
+      {
+        heading: 'Coastal Delta Dynamics and Mangrove Ecosystems',
+        body: [
+          'High-precision multispectral sensor flights allowed rapid NDVI calculation and accretion land-cover mapping across difficult intertidal delta zones.',
+        ],
+      },
+    ],
+  },
 };
 
 export async function generateStaticParams() {
