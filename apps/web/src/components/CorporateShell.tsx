@@ -130,7 +130,7 @@ const megaMenuData: Record<string, MegaMenuContent> = {
     showViewAll: true,
     categoryTitle: 'Key Sectors & Contracts',
     items: [
-      { label: 'All Projects (35+)', href: '/projects' },
+      { label: 'All Projects', href: '/projects' },
       { label: 'Water & River Delta Infrastructure', href: '/projects?sector=Water', hasArrow: true },
       { label: 'Highways & Elevated Corridors', href: '/projects?sector=Transport', hasArrow: true },
       { label: 'Municipal Water Networks & Digital Twins', href: '/projects?sector=GIS', hasArrow: true },
@@ -138,10 +138,10 @@ const megaMenuData: Record<string, MegaMenuContent> = {
       { label: 'Subsurface Utility Corridors', href: '/projects?sector=Utility', hasArrow: true },
     ],
     featuredLabel: 'Featured Project',
-    featuredTitle: 'Dhaka WASA Water Supply Network Geodatabase',
-    featuredDesc: 'Comprehensive subsurface pipeline mapping and GIS database integration for over 450 km of municipal distribution lines.',
-    featuredImage: '/hero-poster.jpg',
-    featuredHref: '/projects/badc-web-ais-pilot-project',
+    featuredTitle: 'Gabtoli Inter-District Bus Terminal Modernization',
+    featuredDesc: 'Passenger facilities modernization, 3D structural modeling, and civil drainage design under DNCC.',
+    featuredImage: '/projects-extracted/page_16/img_02.jpg',
+    featuredHref: '/projects/page-16-passenger-facilities-modernization-at-gabtoli',
   },
   'news': {
     leadHeading: 'Stay updated with Geospatial Works field milestones, contract awards, and engineering press releases.',

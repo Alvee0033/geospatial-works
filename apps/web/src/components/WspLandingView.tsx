@@ -57,7 +57,7 @@ export default function WspLandingView({
       heading: 'WHERE ENGINEERING MEETS PRECISION',
       eyebrow: 'GEOSPATIAL WORKS BANGLADESH',
       description: 'Integrated engineering, geospatial, and precision surveying consultancy delivering technical solutions for national infrastructure, spatial planning, and delta resource management.',
-      imageUrl: '/ppt-projects/dtca-bus-rationalization-hero.jpg',
+      imageUrl: '/projects-extracted/page_31/img_01.jpg',
       primaryActionText: 'Explore our services',
       primaryActionHref: '/services',
     },
@@ -66,7 +66,7 @@ export default function WspLandingView({
       heading: 'CONNECTING SPATIAL DATA TO ENGINEERING DESIGN',
       eyebrow: 'PRECISION • INNOVATION • SUSTAINABILITY',
       description: 'From high-density UAV photogrammetry and RTK GNSS observations to civil structural engineering and GIS digital twins across national landmarks.',
-      imageUrl: '/ppt-projects/gabtoli-terminal-hero.jpg',
+      imageUrl: '/projects-extracted/page_16/img_02.jpg',
       primaryActionText: 'View verified projects',
       primaryActionHref: '/projects',
     },
@@ -75,13 +75,25 @@ export default function WspLandingView({
       heading: 'FROM FIELD DATA ACQUISITION TO 3D VISUALIZATION',
       eyebrow: 'SOB BENCHMARK COMPLIANCE',
       description: 'Supporting national highways, railway bypasses, inter-district bus terminals, sanitary landfills, and agricultural irrigation networks across all divisions of Bangladesh.',
-      imageUrl: '/ppt-projects/gulshan-link-road-hero.jpg',
+      imageUrl: '/projects-extracted/page_18/img_02.jpg',
       primaryActionText: 'Connect with our team',
       primaryActionHref: '/contact',
     },
+    {
+      id: '4',
+      heading: 'SUB-CENTIMETER GEODETIC CONTROL & DRONE PHOTOGRAMMETRY',
+      eyebrow: 'RAILWAY & HIGHWAY INFRASTRUCTURE',
+      description: 'Rigorous ground control networks and bare-earth digital terrain modeling powering major rail bypasses and urban transport corridors.',
+      imageUrl: '/projects-extracted/page_29/img_02.jpg',
+      primaryActionText: 'Discover projects',
+      primaryActionHref: '/projects',
+    },
   ];
 
-  const slides = heroSlides && heroSlides.length > 0 ? heroSlides : defaultSlides;
+  // Strictly use defaultSlides if heroSlides from DB still reference old demo images like delta-hero or geospatial-river-hero
+  const slides = heroSlides && heroSlides.length > 0 && !heroSlides.some(s => s.imageUrl?.includes('delta-hero') || s.imageUrl?.includes('geospatial-river-hero'))
+    ? heroSlides
+    : defaultSlides;
   const currentSlide = slides[activeSlide] || slides[0];
 
   // If active slide is video or any slide is video mode, hero shows dedicated single cinematic slide without auto-rotating carousel
@@ -1262,21 +1274,21 @@ export default function WspLandingView({
               {[
                 {
                   title: 'Rapid Deployment of DJI Matrice 4E UAV Photogrammetry for DTCA Bus Route Rationalization',
-                  img: '/real-media/insight-drone-dtca-survey.jpg',
+                  img: '/projects-extracted/page_31/img_01.jpg',
                   slug: 'dtca-bus-route-rationalization',
                   tag: 'UAV PHOTOGRAMMETRY',
                   isBlue: true,
                 },
                 {
                   title: 'Generating 0.20cm Digital Terrain Models & High-Resolution Orthomosaics for Railway Bypasses',
-                  img: '/real-media/insight-dsm-corridor-mapping.jpg',
+                  img: '/projects-extracted/page_29/img_02.jpg',
                   slug: 'abdulpur-railway-bypass',
                   tag: 'TERRAIN MODELING',
                   isBlue: false,
                 },
                 {
                   title: 'Coastal Mangrove Accretion Assessment Using RTK-Enabled UAVs for Bangladesh Forest Department',
-                  img: '/real-media/insight-coastal-mangrove-uav.jpg',
+                  img: '/projects-extracted/page_25/img_02.jpg',
                   slug: 'coastal-mangrove-assessment',
                   tag: 'REMOTE SENSING',
                   isBlue: true,
