@@ -500,7 +500,7 @@ export function SettingsView({
         <div className="flex items-center gap-2">
           {subTab === 'contact' && (
             <a
-              href="http://localhost:3001/contact"
+              href="https://geospatialworks.com.bd/contact"
               target="_blank"
               rel="noopener noreferrer"
               className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"

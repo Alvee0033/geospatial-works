@@ -77,7 +77,7 @@ export function JobApplicationModal({ isOpen, onClose, job, onSuccess }: JobAppl
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('http://localhost:4000/api/v1/media/upload', {
+      const res = await fetch('/api/media/upload', {
         method: 'POST',
         body: formData,
       });
@@ -108,7 +108,7 @@ export function JobApplicationModal({ isOpen, onClose, job, onSuccess }: JobAppl
     setErrorMsg('');
 
     try {
-      const res = await fetch('http://localhost:4000/api/v1/careers/apply', {
+      const res = await fetch('/api/careers/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

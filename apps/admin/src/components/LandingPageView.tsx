@@ -496,7 +496,7 @@ export function LandingPageView({
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('http://localhost:4000/api/v1/media/upload', {
+      const res = await fetch('/api/media/upload', {
         method: 'POST',
         body: formData,
       });

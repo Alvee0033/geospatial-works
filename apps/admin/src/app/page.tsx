@@ -905,16 +905,6 @@ export default function AdminPage() {
         body: JSON.stringify(payload),
       });
 
-      // Also persist to Web local JSON endpoint
-      await fetch("http://localhost:3001/api/team", {
-        method: editingTeamMember ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...payload,
-          id: editingTeamMember?.id || payload.slug,
-        }),
-      }).catch(() => {});
-
       if (res.ok) {
         triggerFeedback(editingTeamMember ? "Team member & CV updated!" : "New team member & CV created!");
         setTeamDrawerOpen(false);
@@ -928,7 +918,7 @@ export default function AdminPage() {
         const err = await res.json().catch(() => ({}));
         triggerFeedback(err.message || "Error saving team member", "error");
       }
-    } catch (err) {
+    } catch (err: any) {
       triggerFeedback("Error saving team member: " + err.message, "error");
     }
   };
@@ -940,10 +930,6 @@ export default function AdminPage() {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
-
-      await fetch(`http://localhost:3001/api/team?id=${encodeURIComponent(id)}`, {
-        method: "DELETE",
-      }).catch(() => {});
 
       if (res.ok) {
         triggerFeedback(`Removed ${name} from leadership directory.`);

@@ -67,16 +67,16 @@ export function Header({
   };
 
   const liveHref: Record<AdminTab, string> = {
-    dashboard: 'http://localhost:3001',
-    landing: 'http://localhost:3001',
-    team: 'http://localhost:3001/team',
-    projects: 'http://localhost:3001/projects',
-    services: 'http://localhost:3001/services',
-    news: 'http://localhost:3001/insights',
-    about: 'http://localhost:3001/about',
-    careers: 'http://localhost:3001/career',
-    inquiries: 'http://localhost:3001/contact',
-    settings: 'http://localhost:3001',
+    dashboard: 'https://geospatialworks.com.bd',
+    landing: 'https://geospatialworks.com.bd',
+    team: 'https://geospatialworks.com.bd/team',
+    projects: 'https://geospatialworks.com.bd/projects',
+    services: 'https://geospatialworks.com.bd/services',
+    news: 'https://geospatialworks.com.bd/insights',
+    about: 'https://geospatialworks.com.bd/about',
+    careers: 'https://geospatialworks.com.bd/career',
+    inquiries: 'https://geospatialworks.com.bd/contact',
+    settings: 'https://geospatialworks.com.bd',
   };
 
   return (
@@ -123,7 +123,7 @@ export function Header({
           className="flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition shadow-2xs"
         >
           <Globe size={14} className="text-slate-500" />
-          <span>Live Site (3001)</span>
+          <span>Live Site</span>
           <ArrowUpRight size={13} className="text-slate-400" />
         </a>
 

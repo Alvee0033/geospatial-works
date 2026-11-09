@@ -188,7 +188,7 @@ export default function CareerPage() {
 
   // Fetch dynamic jobs from API
   useEffect(() => {
-    fetch('http://localhost:4000/api/v1/careers/jobs')
+    fetch('/api/careers/jobs')
       .then((res) => {
         if (!res.ok) throw new Error('API failed');
         return res.json();

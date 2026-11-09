@@ -137,7 +137,7 @@ export function AboutView({
 
         {/* Quick link to live page */}
         <a
-          href={`http://localhost:3001${subMenus.find((s) => s.id === subTab)?.route || '/about/our-story'}`}
+          href={`https://geospatialworks.com.bd${subMenus.find((s) => s.id === subTab)?.route || '/about/our-story'}`}
           target="_blank"
           rel="noopener noreferrer"
           className="hidden sm:flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-slate-500 hover:text-indigo-600 rounded-md hover:bg-slate-50 transition shrink-0"

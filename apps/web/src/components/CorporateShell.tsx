@@ -200,7 +200,7 @@ export default function CorporateShell({ children }: { children: React.ReactNode
 
   // Fetch actual live news & articles and projects from API
   useEffect(() => {
-    fetch('http://localhost:4000/api/v1/articles')
+    fetch('/api/articles')
       .then((res) => {
         if (!res.ok) throw new Error('API failed');
         return res.json();
@@ -214,7 +214,7 @@ export default function CorporateShell({ children }: { children: React.ReactNode
         console.warn('Using default news articles:', err);
       });
 
-    fetch('http://localhost:4000/api/v1/projects')
+    fetch('/api/projects')
       .then((res) => {
         if (!res.ok) throw new Error('API failed');
         return res.json();

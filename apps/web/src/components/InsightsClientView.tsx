@@ -79,7 +79,7 @@ export default function InsightsClientView() {
   const [showFeatured, setShowFeatured] = useState<boolean>(true);
 
   React.useEffect(() => {
-    fetch('http://localhost:4000/api/v1/articles')
+    fetch('/api/articles')
       .then((res) => {
         if (!res.ok) throw new Error('API failed');
         return res.json();

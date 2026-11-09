@@ -92,7 +92,7 @@ export function TeamView({
 
         <div className="flex items-center gap-2.5 shrink-0">
           <a
-            href="http://localhost:3001/team"
+            href="https://geospatialworks.com.bd/team"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs"

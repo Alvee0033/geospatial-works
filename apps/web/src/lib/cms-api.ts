@@ -1,6 +1,6 @@
 const API_BASE = typeof window === 'undefined'
-  ? (process.env.BACKEND_INTERNAL_URL ? `${process.env.BACKEND_INTERNAL_URL}/api/v1` : 'http://localhost:4000/api/v1')
-  : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api/v1');
+  ? (process.env.BACKEND_INTERNAL_URL ? `${process.env.BACKEND_INTERNAL_URL}/api/v1` : 'https://gw-api.203.96.190.78.sslip.io/api/v1')
+  : (process.env.NEXT_PUBLIC_API_BASE_URL || '/api');
 
 export interface HeroSlideData {
   id: string;

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const BACKEND_BASE =
   process.env.BACKEND_INTERNAL_URL
     ? `${process.env.BACKEND_INTERNAL_URL.replace(/\/$/, '')}/api/v1`
-    : (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api/v1');
+    : (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://gw-api.203.96.190.78.sslip.io/api/v1');
 
 async function handleProxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
