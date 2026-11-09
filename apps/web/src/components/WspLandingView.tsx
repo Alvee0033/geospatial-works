@@ -464,7 +464,7 @@ export default function WspLandingView({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ opacity: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }}
+                transition={{ opacity: { duration: 0.5 } }}
                 className="absolute inset-0 w-full h-full"
               >
                 <video
@@ -479,14 +479,18 @@ export default function WspLandingView({
             ) : (
               <motion.img
                 key={currentSlide.id || activeSlide}
-                src={currentSlide.imageUrl || '/real-media/hero-corridor-infrastructure.jpg'}
+                src={currentSlide.imageUrl ? currentSlide.imageUrl.replace(/\.(jpg|png|jpeg)$/i, '.webp') : '/real-media/hero-corridor-infrastructure.webp'}
                 alt={currentSlide.heading || 'Geospatial Works Landscape'}
-                initial={{ opacity: 0, scale: 1.08 }}
+                loading="eager"
+                decoding="async"
+                // @ts-expect-error fetchPriority is standard in modern HTML
+                fetchPriority="high"
+                initial={activeSlide === 0 ? { opacity: 1, scale: 1 } : { opacity: 0.2, scale: 1.04 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.02 }}
+                exit={{ opacity: 0 }}
                 transition={{
-                  opacity: { duration: 1.2, ease: [0.16, 1, 0.3, 1] },
-                  scale: { duration: 7, ease: 'easeOut' },
+                  opacity: { duration: 0.4, ease: 'easeOut' },
+                  scale: { duration: 6, ease: 'easeOut' },
                 }}
                 className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-center will-change-transform"
               />
