@@ -235,84 +235,122 @@ export class SeedService implements OnApplicationBootstrap {
   }
 
   private async seedProjects() {
-    const count = await this.projectRepository.count();
-    if (count === 0) {
-      await this.projectRepository.save([
-        {
-          slug: 'badc-web-ais-project',
-          title: 'Pilot Research Project for Irrigation Water Management (WEB-AIS)',
-          client: 'Bangladesh Agricultural Development Corporation (BADC)',
-          category: 'WATER RESOURCES & GIS',
-          location: 'Manikganj & Gangarampur',
-          description: 'Reinstallation and adjustment of river water level gauge readers at Krishnapur, Chailla Burundi, and Uttar Jamsha. Topographic survey and NDVI vegetation health remote sensing analysis.',
-          deliverables: 'Real-time water level data, GIS web platform integration, high-precision contour maps.',
-          imageUrl: '/geospatial-river-hero.webp',
-          isMilestone: true,
-          sortOrder: 1,
-        },
-        {
-          slug: 'lged-450km-road-survey',
-          title: 'Approx 450 km Detail Road Survey using RTK GNSS',
-          client: 'Local Government Engineering Department (LGED) / IMAGE',
-          category: 'ROAD & TRANSPORT',
-          location: 'Multiple Districts, Bangladesh',
-          description: 'Extensive road corridor mapping, horizontal alignment verification, and road asset inventory using high-precision RTK GNSS receivers.',
-          deliverables: 'Centerline alignments, cross-sections, digital elevation models, civil engineering CAD deliverables.',
-          imageUrl: '/real-media/service-uav-drone-lidar.png',
-          isMilestone: true,
-          sortOrder: 2,
-        },
-        {
-          slug: 'railway-rcipf-topographic-survey',
-          title: 'Topographic Survey using RTK & UAV under RCIPF Project',
-          client: 'Bangladesh Railway / Oriental Consultants Global (OCG)',
-          category: 'RAILWAY & INFRASTRUCTURE',
-          location: 'Pahartoli GER Shop (Chattogram) & Abdulpur Bypass',
-          description: 'Detailed engineering topographic surveys utilizing RTK GNSS and RTK-enabled UAV drone flights for locomotive workshop modernization and railway bypass alignment.',
-          deliverables: 'Sub-centimeter rail alignment coordinates, 3D point clouds, facility contour plans.',
-          imageUrl: '/inner/field-team.webp',
-          isMilestone: true,
-          sortOrder: 3,
-        },
-        {
-          slug: 'national-digital-land-zoning',
-          title: 'Mouza & Plot Based National Digital Land Zoning Project (Phase 1 & 2)',
-          client: 'Ministry of Land / CEGIS',
-          category: 'LAND ZONING & GIS',
-          location: 'National Coverage',
-          description: 'High-precision mouza boundary and agricultural/commercial plot demarcation, satellite image rectification, and geodatabase creation.',
-          deliverables: 'Geodatabase with parcel-level land use classifications and digital zoning maps.',
-          imageUrl: '/real-media/service-gis-remote-sensing.png',
-          isMilestone: true,
-          sortOrder: 4,
-        },
-        {
-          slug: 'dtca-200km-dscc-road-survey',
-          title: 'Approx 200 km Road Survey using RTK and UAV under DSCC',
-          client: 'Dhaka Transport Coordination Authority (DTCA) / IMAGE',
-          category: 'URBAN TRANSPORT',
-          location: 'Dhaka South City Corporation',
-          description: 'Dense urban corridor mapping, intersection geometric layout, and right-of-way demarcation using RTK GNSS and drone photogrammetry.',
-          deliverables: 'As-built drawings, urban right-of-way maps, drainage network surveys.',
-          imageUrl: '/inner/banner-projects.webp',
-          isMilestone: false,
-          sortOrder: 5,
-        },
-        {
-          slug: 'dncc-bus-terminals-modernization',
-          title: 'Passenger Facilities Modernization at Gabtoli & Mohakhali Bus Terminals',
-          client: 'Dhaka North City Corporation (DNCC)',
-          category: 'CIVIL & ARCHITECTURAL',
-          location: 'Dhaka (Gabtoli & Mohakhali)',
-          description: 'Survey, architectural layout, and engineering design for ticket counters, waiting lounges, sanitary facilities, drainage systems, and passenger passageways.',
-          deliverables: 'Architectural drawings, structural engineering designs, BOQ and cost estimates.',
-          imageUrl: '/inner/banner-services.webp',
-          isMilestone: false,
-          sortOrder: 6,
-        },
-      ]);
-      this.logger.log('Projects seeded.');
+    const defaultProjects = [
+      {
+        slug: 'gabtoli-bus-terminal-modernization',
+        title: 'Passenger Facilities Modernization at Gabtoli Inter-District Bus Terminal',
+        client: 'Dhaka North City Corporation (DNCC)',
+        category: 'CIVIL & ARCHITECTURAL',
+        location: 'Gabtoli, Dhaka',
+        description: 'Digital surveying, 3D structural modeling, and comprehensive improvement planning of Gabtoli Bus Terminal.',
+        deliverables: 'Architectural Plans, Structural Design, Drainage Design, BOQ & Cost Estimate',
+        imageUrl: '/ppt-projects/gabtoli-terminal-hero.jpg',
+        isMilestone: true,
+        sortOrder: 1,
+      },
+      {
+        slug: 'gulshan-badda-link-road',
+        title: 'Road Improvement Works on Gulshan-Badda Link Road (Progati Sarani Corridor)',
+        client: 'Dhaka North City Corporation (DNCC)',
+        category: 'ROAD & TRANSPORT',
+        location: 'Gulshan-1 to Progati Sarani, Dhaka',
+        description: 'Road infrastructure improvement works under Dhaka North City Corporation along the critical Gulshan-1 to Progati Sarani corridor.',
+        deliverables: 'Corridor Alignment Drawings, Drainage Network Sections, Passenger Shelter CAD, Measured BOQ',
+        imageUrl: '/ppt-projects/gulshan-link-road-hero.jpg',
+        isMilestone: true,
+        sortOrder: 2,
+      },
+      {
+        slug: 'mohakhali-bus-terminal-modernization',
+        title: 'Passenger Facilities Modernization at Mohakhali Inter-District Bus Terminal',
+        client: 'Dhaka North City Corporation (DNCC)',
+        category: 'CIVIL & ARCHITECTURAL',
+        location: 'Mohakhali, Dhaka',
+        description: 'Comprehensive digital surveying, structural engineering, and passenger facility modernization at Mohakhali Inter-District Bus Terminal.',
+        deliverables: 'Terminal Master Layout, AC/Non-AC Counter Plans, Palisading & Drain Details, Cost Estimates',
+        imageUrl: '/ppt-projects/mohakhali-terminal-hero.jpg',
+        isMilestone: true,
+        sortOrder: 3,
+      },
+      {
+        slug: 'moheshkhali-sanitary-landfill-swm',
+        title: 'LTP of Sanitary Landfill at Moheshkhali Solid Waste Management',
+        client: 'Local Government Engineering Department (LGED) / OSMO CORPORATION',
+        category: 'ENVIRONMENTAL & CIVIL',
+        location: 'Moheshkhali, Cox’s Bazar',
+        description: 'The project involved the structural design and preparation of complete engineering drawings for the Leachate Treatment Plant (LTP).',
+        deliverables: 'LTP Structural Drawings, Foundation Design, Reinforcement Schedules, BOQ & Specifications',
+        imageUrl: '/ppt-projects/moheshkhali-landfill-ltp-output1.png',
+        isMilestone: true,
+        sortOrder: 4,
+      },
+      {
+        slug: 'badc-web-ais-project',
+        title: 'Pilot Research Project for Irrigation Water Management (WEB-AIS)',
+        client: 'Bangladesh Agricultural Development Corporation (BADC)',
+        category: 'WATER RESOURCES & GIS',
+        location: 'Manikganj, Bangladesh',
+        description: 'The WEB-AIS pilot research project aims to improve irrigation water management and agricultural productivity using spatial data.',
+        deliverables: 'Canal Distribution Maps, LULC Classification Maps, NDVI Vegetation Health Dataset, GIS Geodatabase',
+        imageUrl: '/ppt-projects/badc-web-ais-hero.jpg',
+        isMilestone: true,
+        sortOrder: 5,
+      },
+      {
+        slug: 'badc-gangarampur-water-gauge-survey',
+        title: 'Installation of Water-Level Gauge Readers & Topographic Survey at Gangarampur',
+        client: 'Bangladesh Agricultural Development Corporation (BADC)',
+        category: 'WATER RESOURCES & GIS',
+        location: 'Gangarampur, Manikganj',
+        description: 'Installation, calibration, and adjustment of river water level gauge readers at three critical river locations in Gangarampur under BADC.',
+        deliverables: 'Gauge Calibration Certificates, River Cross-Section Drawings, Topographic Contour Maps, Hydrological Report',
+        imageUrl: '/ppt-projects/badc-gangarampur-survey.jpg',
+        isMilestone: true,
+        sortOrder: 6,
+      },
+      {
+        slug: 'abdulpur-railway-bypass',
+        title: 'Abdulpur Railway Bypass Topographic & UAV Photogrammetry Survey',
+        client: 'Bangladesh Railway / Oriental Consultants Global (OCG)',
+        category: 'RAILWAY & INFRASTRUCTURE',
+        location: 'Abdulpur Bypass Station, Natore',
+        description: 'Sub-centimeter RTK topographic and UAV photogrammetry survey producing DSM, DTM, and 0.25m interval contours for railway bypass under RCIPF.',
+        deliverables: 'High-Res Orthomosaic (TIF), Bare-Earth DTM & DSM, 0.25m Contour CAD, Land Use Classification Map',
+        imageUrl: '/ppt-projects/abdulpur-bypass-hero.jpg',
+        isMilestone: true,
+        sortOrder: 7,
+      },
+      {
+        slug: 'dtca-bus-route-rationalization',
+        title: 'Bus Route Rationalization & Arterial Corridor Concept Design',
+        client: 'Dhaka Transport Coordination Authority (DTCA) / IMAGE',
+        category: 'URBAN TRANSPORT',
+        location: 'Dhaka Metropolitan Corridors',
+        description: 'Preparation of Concept Design & Implementation Plan for Bus Route Rationalization and Corridor Improvement using drone and traffic surveys.',
+        deliverables: 'Corridor Orthomosaics, 3D Digital Surface Models, Traffic Volume Data, Bus Corridor Concept Designs',
+        imageUrl: '/ppt-projects/dtca-bus-rationalization-hero.jpg',
+        isMilestone: true,
+        sortOrder: 8,
+      },
+    ];
+
+    for (const proj of defaultProjects) {
+      const existing = await this.projectRepository.findOne({ where: { slug: proj.slug } });
+      if (!existing) {
+        await this.projectRepository.save(proj);
+      } else {
+        await this.projectRepository.update({ slug: proj.slug }, proj);
+      }
     }
+    // Remove extraneous projects not in the 8 PPT projects
+    const validSlugs = defaultProjects.map((p) => p.slug);
+    const allInDb = await this.projectRepository.find();
+    for (const p of allInDb) {
+      if (!validSlugs.includes(p.slug)) {
+        await this.projectRepository.delete({ id: p.id });
+      }
+    }
+    this.logger.log('Projects seeded and synced with the 8 core PPT projects.');
   }
 
   private async seedEquipment() {
