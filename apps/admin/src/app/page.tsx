@@ -1178,12 +1178,9 @@ export default function AdminPage() {
 
   if (isAuthenticated === null) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-[#070d18] text-white select-none">
-        <div className="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4 animate-pulse shadow-lg shadow-indigo-500/20">
-          <ShieldCheck size={32} />
-        </div>
-        <div className="text-base font-bold tracking-tight">Verifying Encrypted Session...</div>
-        <div className="text-xs text-slate-400 mt-1">Geospatial Works Enterprise Security Gateway</div>
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-50 text-slate-800 select-none">
+        <div className="w-10 h-10 border-3 border-slate-200 border-t-slate-800 rounded-full animate-spin mb-3" />
+        <div className="text-sm font-medium text-slate-600">Loading...</div>
       </div>
     );
   }

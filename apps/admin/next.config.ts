@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 import path from 'path';
 
-const apiInternalUrl = process.env.BACKEND_INTERNAL_URL || 'http://localhost:4000';
+const apiInternalUrl = process.env.BACKEND_INTERNAL_URL || 'https://gw-api.203.96.190.78.sslip.io';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
