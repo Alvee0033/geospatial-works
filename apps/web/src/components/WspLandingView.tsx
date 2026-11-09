@@ -491,7 +491,7 @@ export default function WspLandingView({
             ) : (
               <motion.img
                 key={currentSlide.id || activeSlide}
-                src={currentSlide.imageUrl ? currentSlide.imageUrl.replace(/\.(jpg|png|jpeg)$/i, '.webp') : '/real-media/hero-corridor-infrastructure.webp'}
+                src={currentSlide.imageUrl || '/projects-extracted/page_31/img_01.jpg'}
                 alt={currentSlide.heading || 'Geospatial Works Landscape'}
                 loading="eager"
                 decoding="async"
