@@ -50,14 +50,14 @@ export default function WspLandingView({
     restDelta: 0.001,
   });
 
-  // Default slides extracted directly from Company Profile & Draft 2 PPTs
+  // Default slides extracted directly from Company Profile PPT
   const defaultSlides = [
     {
       id: '1',
       heading: 'WHERE ENGINEERING MEETS PRECISION',
       eyebrow: 'GEOSPATIAL WORKS BANGLADESH',
       description: 'Integrated engineering, geospatial, and precision surveying consultancy delivering technical solutions for national infrastructure, spatial planning, and delta resource management.',
-      imageUrl: '/real-media/hero-corridor-infrastructure.jpg',
+      imageUrl: '/ppt-projects/dtca-bus-rationalization-hero.jpg',
       primaryActionText: 'Explore our services',
       primaryActionHref: '/services',
     },
@@ -65,8 +65,8 @@ export default function WspLandingView({
       id: '2',
       heading: 'CONNECTING SPATIAL DATA TO ENGINEERING DESIGN',
       eyebrow: 'PRECISION • INNOVATION • SUSTAINABILITY',
-      description: 'From high-density UAV photogrammetry and RTK GNSS observations to civil structural engineering and GIS digital twins across 35+ national landmarks.',
-      imageUrl: '/real-media/hero-geospatial-landscape.jpg',
+      description: 'From high-density UAV photogrammetry and RTK GNSS observations to civil structural engineering and GIS digital twins across national landmarks.',
+      imageUrl: '/ppt-projects/gabtoli-terminal-hero.jpg',
       primaryActionText: 'View verified projects',
       primaryActionHref: '/projects',
     },
@@ -75,7 +75,7 @@ export default function WspLandingView({
       heading: 'FROM FIELD DATA ACQUISITION TO 3D VISUALIZATION',
       eyebrow: 'SOB BENCHMARK COMPLIANCE',
       description: 'Supporting national highways, railway bypasses, inter-district bus terminals, sanitary landfills, and agricultural irrigation networks across all divisions of Bangladesh.',
-      imageUrl: '/real-media/project-dncc-gulshan-link-road.jpg',
+      imageUrl: '/ppt-projects/gulshan-link-road-hero.jpg',
       primaryActionText: 'Connect with our team',
       primaryActionHref: '/contact',
     },
@@ -105,60 +105,60 @@ export default function WspLandingView({
   const cultureSec = sections['home:culture_summary'] || sections['culture_summary'] || {};
   const touchSec = sections['home:keep_in_touch'] || sections['keep_in_touch'] || {};
 
-  // 100% Real Projects from Company Profile & Draft 2 Presentations
+  // 100% Real Projects from Company Profile PPT
   const defaultProjects = [
     {
       id: 'p1',
       location: 'DHAKA NORTH CITY CORPORATION (DNCC)',
       title: 'Gabtoli Inter-District Bus Terminal Modernization',
-      category: 'Municipal & Transit Facility',
+      category: 'Transit & Municipal Facility',
       description: 'Digital surveying, 3D structural modeling, and comprehensive improvement planning of Gabtoli Bus Terminal.',
-      imageUrl: '/real-media/project-dncc-gabtoli-real.jpg',
+      imageUrl: '/ppt-projects/gabtoli-terminal-hero.jpg',
       slug: 'gabtoli-bus-terminal-modernization',
     },
     {
       id: 'p2',
       location: 'BANGLADESH RAILWAY • RCIPF (ADB LOAN NO: 6030 BAN)',
       title: 'Abdulpur Railway Bypass & Pahartoli GER Shop Alignment Survey',
-      category: 'UAV Photogrammetry & RTK Geodesy',
+      category: 'Railway Infrastructure & Photogrammetry',
       description: 'Detail topographic survey using RTK and RTK-enabled UAV under RCIPF subproject 2 for railway connectivity improvement in partnership with Oriental Consultants Global.',
-      imageUrl: '/real-media/slide_13_img_050.jpg',
+      imageUrl: '/ppt-projects/abdulpur-bypass-hero.jpg',
       slug: 'abdulpur-railway-bypass-rcipf',
     },
     {
       id: 'p3',
       location: 'DHAKA NORTH CITY CORPORATION (DNCC)',
       title: 'Mohakhali Inter-District Bus Terminal Modernization',
-      category: 'Municipal & Transit Facility',
+      category: 'Transit & Municipal Facility',
       description: 'Comprehensive civil modernization: waiting areas, ticket counters, sanitation blocks, boundary walls, and passenger traffic flow optimization.',
-      imageUrl: '/real-media/project-dncc-mohakhali-real.jpg',
+      imageUrl: '/ppt-projects/mohakhali-terminal-hero.jpg',
       slug: 'mohakhali-bus-terminal-modernization',
     },
     {
       id: 'p4',
       location: 'GULSHAN-BADDA LINK ROAD • DNCC',
       title: 'Gulshan-1 Intersection to Progati Sarani Highway & Drain Improvement',
-      category: 'Road, Footpath & Drainage Construction',
+      category: 'Road & Highway Survey',
       description: 'Construction of RCC median, subsurface drain, pedestrian footpath, passenger sheds, grill fencing, and traffic signs along Road 130 and 134.',
-      imageUrl: '/real-media/project-dncc-gulshan-link-real.jpg',
+      imageUrl: '/ppt-projects/gulshan-link-road-hero.jpg',
       slug: 'gulshan-badda-link-road-improvement',
     },
     {
       id: 'p5',
       location: 'COASTAL MANGROVE BELT • BANGLADESH FOREST DEPARTMENT',
       title: 'Survey of Newly Accreted Land in Coastal Mangrove Forest',
-      category: 'Coastal Accretion & UAV Remote Sensing',
+      category: 'Environmental & Waste Engineering',
       description: 'Survey and assessment of newly accreted coastal land in dynamic mangrove forest areas using RTK-enabled UAV drone flights and multispectral imagery.',
-      imageUrl: '/real-media/insight-coastal-mangrove-uav.jpg',
+      imageUrl: '/ppt-projects/ppt-task-mangrove-survey.png',
       slug: 'coastal-mangrove-forest-uav',
     },
     {
       id: 'p6',
       location: 'DHAKA TRANSPORT COORDINATION AUTHORITY (DTCA)',
       title: 'Bus Route Rationalization & Implementation Plan for Dhaka',
-      category: 'Transport Planning & GIS Network Analysis',
+      category: 'Urban Transport Planning & GIS',
       description: 'Concept design, route network GIS spatial analysis, and operational implementation plan for capital city bus route rationalization.',
-      imageUrl: '/real-media/insight-drone-dtca-survey.jpg',
+      imageUrl: '/ppt-projects/dtca-bus-rationalization-hero.jpg',
       slug: 'dtca-greater-dhaka-bus-depot-feasibility',
     },
     {
@@ -167,16 +167,16 @@ export default function WspLandingView({
       title: 'Mouza & Plot Based National Digital Land Zoning Project',
       category: 'Land Zoning & Digital Cadastral Mapping',
       description: 'Ground control point collection, satellite image rectification, and mouza parcel boundary demarcation across Phase 1 & 2.',
-      imageUrl: '/real-media/slide_25_img_106.jpg',
+      imageUrl: '/ppt-projects/badc-tbm-gcp-grid.jpg',
       slug: 'mouza-plot-national-land-zoning',
     },
     {
       id: 'p8',
       location: 'KHULNA & BARISHAL DIVISION • BADC',
       title: 'Agricultural Information System (WEB-AIS) & Canal Water Profiling',
-      category: 'Hydrographic & Bathymetric Survey',
+      category: 'Agricultural Water Management & GIS',
       description: 'Hydrographic depth investigations, tidal water gauge observations, and digital elevation profiling across southern river basins.',
-      imageUrl: '/real-media/project-badc-jhopjhopia-river.jpg',
+      imageUrl: '/ppt-projects/badc-web-ais-hero.jpg',
       slug: 'badc-web-ais-pilot-project',
     },
   ];
