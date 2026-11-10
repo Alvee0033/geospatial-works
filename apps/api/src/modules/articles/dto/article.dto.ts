@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsInt } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsInt, IsObject } from 'class-validator';
 
 export class CreateArticleDto {
   @ApiProperty()
@@ -41,6 +41,10 @@ export class CreateArticleDto {
   @IsString()
   @IsOptional()
   imageUrl?: string;
+
+  @IsObject()
+  @IsOptional()
+  meta?: Record<string, string>;
 
   @ApiProperty({ required: false, default: true })
   @IsBoolean()

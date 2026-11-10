@@ -8,9 +8,10 @@ interface MediaPickerModalProps {
   onClose: () => void;
   onSelect: (url: string) => void;
   title?: string;
+  getAuthHeaders: () => Record<string, string>;
 }
 
-export function MediaPickerModal({ isOpen, onClose, onSelect, title = 'Select or Upload Image' }: MediaPickerModalProps) {
+export function MediaPickerModal({ isOpen, onClose, onSelect, getAuthHeaders, title = 'Select or Upload Image' }: MediaPickerModalProps) {
   const [tab, setTab] = useState<'library' | 'upload'>('library');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -20,7 +21,7 @@ export function MediaPickerModal({ isOpen, onClose, onSelect, title = 'Select or
   const fetchLibrary = async () => {
     setLoadingLibrary(true);
     try {
-      const res = await fetch('/api/media/library');
+      const res = await fetch('/api/media/library', { headers: getAuthHeaders() });
       if (res.ok) {
         setLibrary(await res.json());
       }
@@ -51,6 +52,7 @@ export function MediaPickerModal({ isOpen, onClose, onSelect, title = 'Select or
     try {
       const res = await fetch('/api/media/upload', {
         method: 'POST',
+        headers: { Authorization: getAuthHeaders().Authorization || '' },
         body: formData,
       });
       if (!res.ok) {

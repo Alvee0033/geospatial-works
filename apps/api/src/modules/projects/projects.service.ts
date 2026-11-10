@@ -11,16 +11,16 @@ export class ProjectsService {
     private readonly projectRepository: Repository<Project>,
   ) {}
 
-  async findAll(milestonesOnly = false): Promise<Project[]> {
-    const where = milestonesOnly ? { isMilestone: true } : {};
+  async findAll(milestonesOnly = false, activeOnly = true): Promise<Project[]> {
+    const where = { ...(milestonesOnly ? { isMilestone: true } : {}), ...(activeOnly ? { isActive: true } : {}) };
     return this.projectRepository.find({
       where,
       order: { sortOrder: 'ASC', createdAt: 'DESC' },
     });
   }
 
-  async findBySlug(slug: string): Promise<Project> {
-    const project = await this.projectRepository.findOne({ where: { slug } });
+  async findBySlug(slug: string, activeOnly = true): Promise<Project> {
+    const project = await this.projectRepository.findOne({ where: activeOnly ? { slug, isActive: true } : { slug } });
     if (!project) {
       throw new NotFoundException(`Project with slug '${slug}' not found`);
     }

@@ -47,7 +47,7 @@ export function Header({
     projects: 'Add, edit, remove, and publish infrastructure projects across Bangladesh',
     services: 'Manage survey disciplines, geodata capabilities, and public service offerings',
     news: 'Publish case studies, field research updates, and press releases for public insights',
-    about: 'Manage Story & Purpose, Future Ready Geodesy, Safety, National Impact, and SOB Standards',
+    about: 'Manage Story & Purpose, Instruments & Facilities, Safety, National Impact, and SOB Standards',
     careers: 'Add, edit, and remove job posts, and filter candidate applications per job or name',
     inquiries: 'Review, triage, and follow up on client RFQs, survey quotes, and inbound messages',
     settings: 'Provision user accounts, configure role permissions (RBAC), and manage workstation credentials',

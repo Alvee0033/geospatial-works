@@ -17,8 +17,10 @@ import {
   Globe2,
 } from 'lucide-react';
 import CorporateShell from '@/components/CorporateShell';
-import { services } from '@/lib/corporate-data';
+import { CmsApi } from '@/lib/cms-api';
 import '../corporate.css';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'What We Do | Geospatial Works Bangladesh',
@@ -26,110 +28,15 @@ export const metadata = {
     'Precision engineering surveying, drone LiDAR photogrammetry, hydrography, and enterprise GIS spatial solutions across Bangladesh.',
 };
 
-const capabilities = [
-  {
-    num: '01',
-    slug: 'topographic-survey',
-    title: 'Topographic & Engineering Survey',
-    category: 'Digital Surveying',
-    icon: Compass,
-    accentColor: '#F4382D',
-    tagline: 'Millimeter-grade geodetic baseline and terrain contouring for major national infrastructure.',
-    description:
-      'We establish high-precision geodetic control networks using dual-frequency GNSS RTK and robotic total stations tied to official SOB GTS benchmarks.',
-    image: '/real-media/service-topographic-uav.png',
-    deliverables: [
-      'Contour Maps (0.25m intervals)',
-      'SOB Datum Benchmark Traverses',
-      'Civil 3D Surface Models (.TIN / .DWG)',
-    ],
-  },
-  {
-    num: '02',
-    slug: 'uav-mapping',
-    title: 'UAV Mapping & Drone Photogrammetry',
-    category: 'Airborne LiDAR',
-    icon: Crosshair,
-    accentColor: '#3B82F6',
-    tagline: 'High-resolution orthomosaics and 3D digital surface models across expansive sites.',
-    description:
-      'Enterprise drones with RTK GNSS and triple-return LiDAR sensors, capturing river corridors and economic zones with sub-2.5cm GSD resolution.',
-    image: '/real-media/service-uav-drone-lidar.png',
-    deliverables: [
-      'Georeferenced Orthomosaics (TIFF/ECW)',
-      'Digital Surface & Elevation Models (DSM)',
-      '3D Classified Point Clouds (.LAS)',
-    ],
-  },
-  {
-    num: '03',
-    slug: 'building-engineering',
-    title: 'Architectural, Civil & Structural Design',
-    category: 'Engineering & BIM',
-    icon: Building2,
-    accentColor: '#F4382D',
-    tagline: 'Integrated structural modeling, railway station blueprints, and multi-story facility engineering.',
-    description:
-      'Led by seasoned structural engineers and architects with 28+ years of expertise spanning MRT stations, high-rise towers, and bus transit depots.',
-    image: '/real-media/service-building-design-01.jpg',
-    deliverables: [
-      'Structural Calculations (STAAD/ETABS)',
-      'Architectural Working Drawings & BIM',
-      'BOQ Estimation & Construction QA',
-    ],
-  },
-  {
-    num: '04',
-    slug: 'gis-solutions',
-    title: 'Enterprise GIS & Spatial Digital Twins',
-    category: 'Spatial Intelligence',
-    icon: Globe2,
-    accentColor: '#3B82F6',
-    tagline: 'Organizing complex spatial infrastructure into real-time decision intelligence platforms.',
-    description:
-      'Architecting PostgreSQL/PostGIS spatial databases, interactive web dashboards, and hydraulic utility twins that connect field data with operations.',
-    image: '/real-media/service-gis-remote-sensing.png',
-    deliverables: [
-      'Enterprise Geodatabase Architecture',
-      'Cloud GIS Web Portals & Dashboards',
-      'Subsurface Utility Network Topologies',
-    ],
-  },
-  {
-    num: '05',
-    slug: 'road-bridge-infrastructure',
-    title: 'Road, Bridge & Highway Alignment',
-    category: 'Transport Corridor',
-    icon: Navigation,
-    accentColor: '#F4382D',
-    tagline: 'Highway geometry design, bridge hydraulic bathymetry, and inter-district bus terminal modernization.',
-    description:
-      'Transport corridor design including Gulshan-1 to Progati Sarani highway alignments, Gabtoli and Mohakhali bus terminals, and railway bypasses.',
-    image: '/real-media/service-road-bridge-engineering.jpg',
-    deliverables: [
-      'Horizontal & Vertical Alignment Profiles',
-      'Civil 3D Corridor Modeling & Cross-Sections',
-      'Pavement Drainage & Bridge Abutments',
-    ],
-  },
-  {
-    num: '06',
-    slug: 'bathymetric-survey',
-    title: 'Hydrographic & Bathymetric Sounding',
-    category: 'Hydrographic Survey',
-    icon: Waves,
-    accentColor: '#3B82F6',
-    tagline: 'Underwater terrain mapping and riverbed velocity profiling in tidal delta corridors.',
-    description:
-      'Pairing dual-frequency echo sounders and ADCP profilers with real-time heave compensation to map riverbed siltation and scour hole morphology.',
-    image: '/real-media/project-badc-jhopjhopia-river.jpg',
-    deliverables: [
-      'Riverbed Bathymetry Contours & Profiles',
-      'Pre- & Post-Dredging Volumetric Surveys',
-      'Hydrodynamic Flow Velocity Profiles',
-    ],
-  },
-];
+const capabilityIcons: Record<string, typeof Compass> = {
+  'topographic-survey': Compass,
+  'uav-mapping': Crosshair,
+  'building-engineering': Building2,
+  'gis-solutions': Globe2,
+  'road-bridge-infrastructure': Navigation,
+  'hydrographic-survey': Waves,
+  'bathymetric-survey': Waves,
+};
 
 const pillars = [
   {
@@ -154,7 +61,19 @@ const pillars = [
   },
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const services = await CmsApi.getServices();
+  const capabilities = services.map((service, index) => ({
+    num: String(index + 1).padStart(2, '0'),
+    slug: service.slug,
+    title: service.title,
+    category: service.category,
+    icon: capabilityIcons[service.slug] || Layers,
+    accentColor: index % 2 === 0 ? '#F4382D' : '#3B82F6',
+    description: service.description,
+    image: service.imageUrl || '',
+    deliverables: service.features || [],
+  }));
   return (
     <CorporateShell>
       <main className="wsp-services-main bg-white text-[#141212] font-sans antialiased">
@@ -217,11 +136,7 @@ export default function ServicesPage() {
                 >
                   {/* Top Image Section (Compact 16:9 with subtle badge) */}
                   <div className="relative aspect-[16/9] overflow-hidden bg-neutral-900">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                    />
+                    {item.image && <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
                     {/* Discipline Number */}

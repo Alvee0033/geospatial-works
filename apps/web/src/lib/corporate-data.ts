@@ -19,15 +19,6 @@ export const projects: Project[] = [
   { slug: 'coxs-bazar-topography', title: 'Cox’s Bazar Coastal Topographic Survey', category: 'Land Survey', location: 'Cox’s Bazar', image: '/real-media/project-moheshkhali-landfill.png', summary: 'Coastal topographic and land survey work presented in the existing portfolio.' },
 ];
 
-export const insights = [
-  { slug: 'uav-mapping', title: 'How drone photos help plan a site', category: 'Drone photos', summary: 'A clear view from above can help a team see roads, water, buildings, and changes across a large site.', image: '/real-media/service-uav-drone-lidar.png' },
-  { slug: 'mouza-maps', title: 'How to read a land boundary map', category: 'Land records', summary: 'Older land maps can be useful, but they need to be read alongside current site measurements.', image: '/real-media/project-badc-jhopjhopia-river.jpg' },
-  { slug: 'web-gis', title: 'How online maps help teams plan', category: 'Online maps', summary: 'One easy-to-use map can bring roads, land, water, and project information together.', image: '/real-media/service-gis-remote-sensing.png' },
-  { slug: 'land-survey', title: 'What a land survey tells you before building', category: 'Site planning', summary: 'A survey shows the shape of the land and the features that may affect a plan.', image: '/real-media/service-topographic-uav.png' },
-  { slug: 'river-depth', title: 'How river depth is measured', category: 'Water surveys', summary: 'Depth measurements help teams understand waterways before planning work on or near water.', image: '/real-media/project-badc-web-ais-khulna.jpg' },
-  { slug: 'land-change', title: 'Why checking land changes matters', category: 'Land and water', summary: 'Comparing maps and images over time can show where a riverbank, road, or field has changed.', image: '/real-media/project-badc-jhopjhopia-river.jpg' },
-];
-
 export const partners = [
   { name: 'EQMS', image: '/partners/partner_1.png' },
   { name: 'Dhaka North City Corporation', image: '/partners/partner_2.webp' },

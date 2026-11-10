@@ -44,6 +44,7 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [revalidating, setRevalidating] = useState(false);
   const [feedback, setFeedback] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [seedingProjectCaseStudies, setSeedingProjectCaseStudies] = useState(false);
 
   // Job Modal & Edit state
   const [jobModalOpen, setJobModalOpen] = useState(false);
@@ -73,8 +74,10 @@ export default function AdminPage() {
   const [projLocation, setProjLocation] = useState('');
   const [projDescription, setProjDescription] = useState('');
   const [projDeliverables, setProjDeliverables] = useState('');
+  const [projDetails, setProjDetails] = useState({ overview: '', challenges: '', approach: '', results: '', toolsUsed: '', timeline: '' });
   const [projImageUrl, setProjImageUrl] = useState('/inner/bridge-aerial.webp');
   const [projIsMilestone, setProjIsMilestone] = useState(false);
+  const [projIsActive, setProjIsActive] = useState(true);
 
   // Service Form Fields
   const [svcTitle, setSvcTitle] = useState('');
@@ -82,6 +85,10 @@ export default function AdminPage() {
   const [svcCategory, setSvcCategory] = useState('SURVEY & GEODATA');
   const [svcDescription, setSvcDescription] = useState('');
   const [svcFeatures, setSvcFeatures] = useState('');
+  const [svcLead, setSvcLead] = useState('');
+  const [svcEquipment, setSvcEquipment] = useState('');
+  const [svcStandards, setSvcStandards] = useState('');
+  const [svcBenefits, setSvcBenefits] = useState('');
   const [svcImageUrl, setSvcImageUrl] = useState('/real-media/service-topographic-uav.png');
   const [svcSortOrder, setSvcSortOrder] = useState(1);
   const [svcIsActive, setSvcIsActive] = useState(true);
@@ -94,7 +101,7 @@ export default function AdminPage() {
   const [artAuthor, setArtAuthor] = useState('Geospatial Works Technical Team');
   const [artSummary, setArtSummary] = useState('');
   const [artContent, setArtContent] = useState('');
-  const [artImageUrl, setArtImageUrl] = useState('/geospatial-river-hero.webp');
+  const [artImageUrl, setArtImageUrl] = useState('');
   const [artIsPublished, setArtIsPublished] = useState(true);
 
   // About Section Drawer state
@@ -271,9 +278,9 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const [projRes, svcRes, artRes, teamRes, secRes, jobsRes, appsRes, heroRes, equipRes, inqRes] = await Promise.all([
-        fetch(`${API_BASE}/projects`),
-        fetch(`${API_BASE}/services`),
-        fetch(`${API_BASE}/articles?publishedOnly=false`).catch(() => fetch(`${API_BASE}/articles`)),
+        fetch(`${API_BASE}/projects/admin/all`, { headers: getAuthHeaders() }),
+        fetch(`${API_BASE}/services/admin/all`, { headers: getAuthHeaders() }),
+        fetch(`${API_BASE}/articles/admin/all`, { headers: getAuthHeaders() }),
         fetch(`${API_BASE}/team/admin/all`, { headers: getAuthHeaders() }).catch(() => fetch(`${API_BASE}/team`)),
         fetch(`${API_BASE}/cms/admin/sections`, { headers: getAuthHeaders() }).catch(() => null),
         fetch(`${API_BASE}/careers/admin/jobs`, { headers: getAuthHeaders() }).catch(() => fetch(`${API_BASE}/careers/jobs`)),
@@ -335,9 +342,11 @@ export default function AdminPage() {
     setProjCategory(services[0]?.title || 'Topographic & Land Survey');
     setProjLocation('Dhaka Division');
     setProjDescription('');
-    setProjDeliverables('Orthomosaics, DTM/DSM, SOB-standard Control Network, As-built 3D Model');
+    setProjDeliverables('');
+    setProjDetails({ overview: '', challenges: '', approach: '', results: '', toolsUsed: '', timeline: '' });
     setProjImageUrl('/inner/bridge-aerial.webp');
     setProjIsMilestone(true);
+    setProjIsActive(true);
     setProjectModalOpen(true);
   };
 
@@ -350,8 +359,10 @@ export default function AdminPage() {
     setProjLocation(proj.location || '');
     setProjDescription(proj.description);
     setProjDeliverables(proj.deliverables || '');
+    setProjDetails({ overview: proj.details?.overview || '', challenges: (proj.details?.challenges || []).join('\n'), approach: (proj.details?.approach || []).join('\n'), results: (proj.details?.results || []).join('\n'), toolsUsed: (proj.details?.toolsUsed || []).join('\n'), timeline: proj.details?.timeline || '' });
     setProjImageUrl(proj.imageUrl || '/inner/bridge-aerial.webp');
     setProjIsMilestone(proj.isMilestone);
+    setProjIsActive(proj.isActive !== false);
     setProjectModalOpen(true);
   };
 
@@ -377,8 +388,10 @@ export default function AdminPage() {
       location: projLocation.trim(),
       description: projDescription.trim(),
       deliverables: projDeliverables.trim(),
+      details: { ...(editingProject?.details || {}), overview: projDetails.overview.trim(), challenges: projDetails.challenges.split('\n').map(v => v.trim()).filter(Boolean), approach: projDetails.approach.split('\n').map(v => v.trim()).filter(Boolean), results: projDetails.results.split('\n').map(v => v.trim()).filter(Boolean), toolsUsed: projDetails.toolsUsed.split('\n').map(v => v.trim()).filter(Boolean), timeline: projDetails.timeline.trim() },
       imageUrl: projImageUrl.trim(),
       isMilestone: projIsMilestone,
+      isActive: projIsActive,
       sortOrder: editingProject ? editingProject.sortOrder : projects.length + 1,
     };
 
@@ -466,7 +479,11 @@ export default function AdminPage() {
     setSvcSlug('');
     setSvcCategory('SURVEY & GEODATA');
     setSvcDescription('');
-    setSvcFeatures('Cadastral and boundary demarcation\nDSM/DEM/DTM elevation profiles\nRTK GNSS sub-centimeter control');
+    setSvcFeatures('');
+    setSvcLead('');
+    setSvcEquipment('');
+    setSvcStandards('');
+    setSvcBenefits('');
     setSvcImageUrl('/real-media/service-topographic-uav.png');
     setSvcSortOrder(services.length + 1);
     setSvcIsActive(true);
@@ -480,6 +497,10 @@ export default function AdminPage() {
     setSvcCategory(svc.category);
     setSvcDescription(svc.description);
     setSvcFeatures((svc.features || []).join('\n'));
+    setSvcLead(svc.details?.lead || '');
+    setSvcEquipment((svc.details?.equipment || []).join('\n'));
+    setSvcStandards((svc.details?.standards || []).join('\n'));
+    setSvcBenefits((svc.details?.benefits || []).join('\n'));
     setSvcImageUrl(svc.imageUrl || '/real-media/service-topographic-uav.png');
     setSvcSortOrder(svc.sortOrder);
     setSvcIsActive(svc.isActive);
@@ -511,6 +532,7 @@ export default function AdminPage() {
       category: svcCategory.trim(),
       description: svcDescription.trim(),
       features: featuresArray,
+      details: { lead: svcLead.trim(), equipment: svcEquipment.split('\n').map(v => v.trim()).filter(Boolean), standards: svcStandards.split('\n').map(v => v.trim()).filter(Boolean), benefits: svcBenefits.split('\n').map(v => v.trim()).filter(Boolean) },
       imageUrl: svcImageUrl.trim(),
       sortOrder: Number(svcSortOrder) || 1,
       isActive: svcIsActive,
@@ -603,7 +625,7 @@ export default function AdminPage() {
     setArtAuthor('Geospatial Works Technical Team');
     setArtSummary('');
     setArtContent('');
-    setArtImageUrl('/geospatial-river-hero.webp');
+    setArtImageUrl('');
     setArtIsPublished(true);
     setNewsModalOpen(true);
   };
@@ -617,7 +639,7 @@ export default function AdminPage() {
     setArtAuthor(art.author || '');
     setArtSummary(art.summary);
     setArtContent(art.content || '');
-    setArtImageUrl(art.imageUrl || '/geospatial-river-hero.webp');
+    setArtImageUrl(art.imageUrl || '');
     setArtIsPublished(art.isPublished);
     setNewsModalOpen(true);
   };
@@ -723,6 +745,30 @@ export default function AdminPage() {
       }
     } catch {
       triggerFeedback('Error updating article status', 'error');
+    }
+  };
+
+  const handleSeedProjectCaseStudies = async () => {
+    if (!confirm('Create case studies from active project records and move the nine starter demo articles to drafts? Existing article records will be kept.')) return;
+    setSeedingProjectCaseStudies(true);
+    try {
+      const res = await fetch(`${API_BASE}/articles/admin/seed-project-case-studies`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.message || 'Could not create project case studies');
+      triggerFeedback(`Added ${result.created} project case studies and moved ${result.hiddenDemoArticles} demo articles to drafts.`);
+      await loadAllData();
+      fetch('/site-revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: 'all' }),
+      }).catch(() => {});
+    } catch (error: any) {
+      triggerFeedback(error.message || 'Could not create project case studies', 'error');
+    } finally {
+      setSeedingProjectCaseStudies(false);
     }
   };
 
@@ -1233,6 +1279,7 @@ export default function AdminPage() {
 
           {activeTab === 'landing' && (
             <LandingPageView
+              getAuthHeaders={getAuthHeaders}
               heroSlides={heroSlides}
               services={services}
               projects={projects}
@@ -1344,6 +1391,8 @@ export default function AdminPage() {
               onOpenEditModal={openEditNewsModal}
               onDeleteArticle={handleDeleteArticle}
               onTogglePublished={handleToggleArticlePublished}
+              onSeedProjectCaseStudies={handleSeedProjectCaseStudies}
+              seedingProjectCaseStudies={seedingProjectCaseStudies}
             />
           )}
 
@@ -1425,10 +1474,14 @@ export default function AdminPage() {
         setFormDescription={setProjDescription}
         formDeliverables={projDeliverables}
         setFormDeliverables={setProjDeliverables}
+        detailFields={projDetails}
+        onDetailChange={(field, value) => setProjDetails((current) => ({ ...current, [field]: value }))}
         formImageUrl={projImageUrl}
         setFormImageUrl={setProjImageUrl}
         formIsMilestone={projIsMilestone}
         setFormIsMilestone={setProjIsMilestone}
+        formIsActive={projIsActive}
+        setFormIsActive={setProjIsActive}
         onOpenMediaPicker={() => {
           setMediaTargetCallback(() => (url: string) => setProjImageUrl(url));
           setMediaModalOpen(true);
@@ -1451,6 +1504,14 @@ export default function AdminPage() {
         setFormDescription={setSvcDescription}
         formFeatures={svcFeatures}
         setFormFeatures={setSvcFeatures}
+        formLead={svcLead}
+        setFormLead={setSvcLead}
+        formEquipment={svcEquipment}
+        setFormEquipment={setSvcEquipment}
+        formStandards={svcStandards}
+        setFormStandards={setSvcStandards}
+        formBenefits={svcBenefits}
+        setFormBenefits={setSvcBenefits}
         formImageUrl={svcImageUrl}
         setFormImageUrl={setSvcImageUrl}
         formSortOrder={svcSortOrder}
@@ -1562,6 +1623,7 @@ export default function AdminPage() {
 
       {/* Media Picker */}
       <MediaPickerModal
+        getAuthHeaders={getAuthHeaders}
         isOpen={mediaModalOpen}
         onClose={() => setMediaModalOpen(false)}
         onSelect={(url) => {

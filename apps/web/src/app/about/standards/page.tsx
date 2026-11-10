@@ -20,7 +20,7 @@ import KeepInTouchSection from '@/components/KeepInTouchSection';
 import { CmsApi } from '@/lib/cms-api';
 import '../../corporate.css';
 
-export const revalidate = 10;
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Quality Standards & SOB Compliance | Geospatial Works Bangladesh',
@@ -40,7 +40,7 @@ export default async function QualityStandardsPage() {
   const heroImage = wysiwyg?.heroImage || '/real-media/service-topographic-uav.png';
 
   // 100% Real geodetic metrics
-  const stats = [
+  const stats: { value: string; label: string }[] = wysiwyg?.stats ?? [
     { value: 'BGD2000', label: 'National Geodetic Datum' },
     { value: 'Everest 1830', label: 'Reference Ellipsoid (Modified)' },
     { value: '< 5mm √K', label: 'Digital Leveling Loop Closure' },
@@ -48,7 +48,7 @@ export default async function QualityStandardsPage() {
   ];
 
   // Statutory SOB Datum Parameters
-  const datumParameters = [
+  const datumParameters: { parameter: string; value: string }[] = wysiwyg?.datumParameters ?? [
     { parameter: 'Reference Ellipsoid', value: 'Everest 1830 (Modified)' },
     { parameter: 'Semi-Major Axis (a)', value: '6,377,276.345 meters' },
     { parameter: 'Semi-Minor Axis (b)', value: '6,356,075.413 meters' },
@@ -62,7 +62,7 @@ export default async function QualityStandardsPage() {
   ];
 
   // Quality Assurance Framework from Slide 7 of Corporate Profile
-  const qaPillars = [
+  const qaPillars: { title: string; desc: string; points: string[] }[] = wysiwyg?.qaGates?.map((gate: { gate: string; desc: string; bullets: string[] }) => ({ title: gate.gate, desc: gate.desc, points: gate.bullets })) ?? [
     {
       title: 'Survey Accuracy & GCP Verification',
       desc: 'Dual-frequency carrier-phase ambiguity resolution, multi-constellation cycle-slip screening, and mathematical loop closure against Survey of Bangladesh primary GTS pillars.',

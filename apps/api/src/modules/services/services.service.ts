@@ -20,7 +20,7 @@ export class ServicesService {
   }
 
   async findBySlug(slug: string): Promise<Service> {
-    const service = await this.serviceRepository.findOne({ where: { slug } });
+    const service = await this.serviceRepository.findOne({ where: { slug, isActive: true } });
     if (!service) {
       throw new NotFoundException(`Service with slug '${slug}' not found`);
     }

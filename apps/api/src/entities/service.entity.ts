@@ -23,6 +23,9 @@ export class Service {
   @Column({ nullable: true })
   imageUrl: string;
 
+  @Column({ type: 'jsonb', default: {} })
+  details: Record<string, unknown>;
+
   @Column({ type: 'int', default: 0 })
   sortOrder: number;
 

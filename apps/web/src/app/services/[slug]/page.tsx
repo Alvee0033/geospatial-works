@@ -20,169 +20,28 @@ interface ServiceDetail {
   benefits: string[];
 }
 
-const serviceDetails: Record<string, ServiceDetail> = {
-  'topographic-survey': {
-    slug: 'topographic-survey',
-    title: 'Topographic & Engineering Survey',
-    category: 'Digital Surveying',
-    lead: 'Sub-centimeter geodetic baselines, contour mapping, and digital terrain modeling for civil engineering and infrastructure.',
-    description: 'We execute comprehensive land surveys combining dual-frequency GNSS RTK and high-accuracy robotic total stations. Every contour and ground feature is referenced to national Survey of Bangladesh (SOB) benchmarks.',
-    image: '/real-media/service-topographic-uav.png',
-    equipment: ['Trimble / Leica Dual-Frequency GNSS RTK Receivers', '1-Second Robotic Total Stations', 'Digital Invar Barcode Leveling Instruments'],
-    deliverables: ['Topographic Surface Contours (0.25m / 0.5m intervals)', 'Ground Control Point (GCP) Geodetic Network Dossier', 'Civil 3D Digital Terrain Models (.TIN / .DWG)', 'Cross-Sections and Longitudinal Profiles'],
-    standards: ['Survey of Bangladesh (SOB) PWD Datum', 'BTM (Bangladesh Transverse Mercator) Coordinate Projection', 'ISO 17123-5 Geodetic Quality Assurance Protocol'],
-    benefits: ['Zero vertical alignment errors during highway and bridge piling', 'Eliminate costly earthwork volume recalculations', 'Certified drawings accepted by all government authorities'],
-  },
-  'uav-mapping': {
-    slug: 'uav-mapping',
-    title: 'UAV Mapping & Aerial Photogrammetry',
-    category: 'Aerial Survey',
-    lead: 'High-resolution orthomosaics, 3D point clouds, and multispectral aerial analytics across expansive corridors.',
-    description: 'Our certified drone pilots fly multi-rotor and fixed-wing UAVs equipped with RTK/PPK GNSS and calibrated high-resolution RGB/multispectral sensors to capture vast sites with centimeter-level accuracy.',
-    image: '/real-media/service-uav-drone-lidar.png',
-    equipment: ['DJI Enterprise Matrice 350 RTK / Phantom 4 RTK', 'Zenmuse P1 45MP Full-Frame Photogrammetry Camera', 'Zenmuse L2 Triple-Return Airborne LiDAR'],
-    deliverables: ['Sub-5cm Ground Sampling Distance (GSD) Orthomosaics', 'Classified 3D Point Clouds (.LAS / .LAZ)', 'Digital Surface Models (DSM) and Bare-Earth DEMs', 'Progressive Volumetric Cut/Fill Stockpile Computations'],
-    standards: ['Civil Aviation Authority of Bangladesh (CAAB) UAV Compliant', 'ASPRS Positional Accuracy Standards for Digital Geospatial Data', 'RTK-GCP Redundant Ground Benchmark Verification'],
-    benefits: ['Survey hundreds of hectares in hours instead of weeks', 'Safely map hazardous or inaccessible marshes and riverbanks', 'Provides stunning high-definition visual assets for stakeholders'],
-  },
-  'gis-solutions': {
-    slug: 'gis-solutions',
-    title: 'Enterprise GIS & Spatial Digital Twins',
-    category: 'GIS Solutions',
-    lead: 'Transforming complex spatial infrastructure and field telemetry into real-time decision intelligence platforms.',
-    description: 'We build enterprise geodatabases, hydraulic digital twins, and cloud-hosted GIS web portals that bring CAD drawings, drone imagery, and field sensor data together for utilities and smart cities.',
-    image: '/real-media/service-gis-remote-sensing.png',
-    equipment: ['PostgreSQL 16 + PostGIS Spatial Engine', 'QGIS / ESRI ArcGIS Pro Geoprocessing Workstations', 'Custom WebGL / Leaflet / Mapbox Frontend Frameworks'],
-    deliverables: ['Enterprise Geodatabase Architecture & Data Dictionary', 'Interactive Web GIS Dashboard with Multi-Layer Overlays', 'Subsurface Pipeline Hydraulic Network Topologies', 'Automated PDF Map Generation & Reporting Engine'],
-    standards: ['OGC (Open Geospatial Consortium) Compliant Standards', 'ISO 19115 Geographic Information Metadata Standard', 'Role-Based Access Control (RBAC) & Secure Data Hosting'],
-    benefits: ['Pinpoint valve locations and pipe leaks within minutes', 'Eliminate data silos between field teams and headquarters', 'Seamless integration with existing enterprise ERP and SCADA'],
-  },
-  'bathymetric-survey': {
-    slug: 'bathymetric-survey',
-    title: 'Hydrographic & Bathymetric Sounding',
-    category: 'Hydrographic Survey',
-    lead: 'High-precision riverbed topography, velocity profiling, and scour detection in tidal delta waterways.',
-    description: 'We deploy survey vessels equipped with dual-frequency echo sounders, Acoustic Doppler Current Profilers (ADCP), and RTK heave-pitch-roll sensors to map underwater terrain and sediment dynamics.',
-    image: '/real-media/project-badc-jhopjhopia-river.jpg',
-    equipment: ['Dual-Frequency Survey-Grade Digital Echo Sounders', 'Teledyne / SonTek Acoustic Doppler Current Profilers (ADCP)', 'Real-Time Heave, Pitch, and Roll Motion Sensors'],
-    deliverables: ['Riverbed Bathymetry Contours and 3D Underwater Meshes', 'Pre- and Post-Dredging Volumetric Calculation Reports', '3D Flow Velocity Vector Maps across Channel Cross-Sections', 'Submerged Hazard and Obstruction Location Charts'],
-    standards: ['IHO (International Hydrographic Organization) Standards S-44', 'BIWTA (Bangladesh Inland Water Transport Authority) Specifications', 'Tidal Gauge Benchmarking to PWD / Chart Datum'],
-    benefits: ['Target dredging precisely where sediment shoals obstruct navigation', 'Detect underwater embankment scour holes before surface collapse', 'Accurate cubic meter volume certifications for contractor billing'],
-  },
-  'boundary-survey': {
-    slug: 'boundary-survey',
-    title: 'Mouza & Cadastral Land Boundary Survey',
-    category: 'Land Records',
-    lead: 'Reconciling historical Mouza land sheets with modern satellite imagery and millimeter-level RTK coordinates.',
-    description: 'We digitize, rectify, and georeference historical CS, RS, and BS Mouza map sheets to resolve land ownership conflicts, establish project right-of-way (RoW), and ensure legally sound site acquisitions.',
-    image: '/real-media/service-road-bridge-engineering.jpg',
-    equipment: ['High-Precision Large-Format Calibrated Document Scanners', 'Dual-Frequency RTK GNSS Rovers', 'ArcGIS Advanced Georeferencing & Polygon Topology Engines'],
-    deliverables: ['Georeferenced Mouza Map Overlays on Satellite Imagery', 'Right-of-Way (RoW) Demarcation CAD Plans', 'Land Ownership, Plot Schedule, and Discrepancy Audits', 'Boundary Pillar Staking and Physical Monumentation'],
-    standards: ['Land Record & Survey Department (DLRS) Frameworks', 'Bangladesh Transverse Mercator (BTM) Projections', 'Legally Defensible Expert Survey Documentation'],
-    benefits: ['Prevent costly land ownership litigation prior to construction', 'Clear demarcation for acquisition compensation packages', 'Complete transparency for international development financiers'],
-  },
-  'subsurface-utility': {
-    slug: 'subsurface-utility',
-    title: 'Subsurface Utility Engineering (SUE)',
-    category: 'Underground Infrastructure',
-    lead: 'Multi-frequency Ground Penetrating Radar (GPR) and electromagnetic locating to eliminate underground utility strikes.',
-    description: 'We identify and map buried electric cables, fiber optics, water mains, and gas lines prior to urban excavation, piling, and micro-tunneling.',
-    image: '/real-media/equipment-rtk-gnss-station.jpg',
-    equipment: ['Dual-Frequency Shielded Ground Penetrating Radar (GPR)', 'Electromagnetic Precision Pipe & Cable Locators (EML)', 'Direct-Connection Signal Transmitters (Induction & Clamp)'],
-    deliverables: ['3D CAD Utility Trench Collision Models', 'ASCE 38-02 Quality Level A, B, and C Survey Plans', 'Depth-of-Cover and Pipe Diameter Attribute Schedules', 'Conflict Matrix for Piling and Excavation Works'],
-    standards: ['ASCE Standard 38-02 Guidelines for SUE', 'Strict No-Strike Safety Clearance Protocols'],
-    benefits: ['Zero utility strike incidents during deep excavation', 'Prevent massive municipal fines and emergency repair costs', 'Maintain public safety and traffic flow during construction'],
-  },
-  'building-engineering': {
-    slug: 'building-engineering',
-    title: 'Architectural, Civil & Structural Design',
-    category: 'Engineering & Design',
-    lead: 'Architectural floor plans, 3D structural analysis (ETABS), environmental drainage engineering, and construction supervision.',
-    description: 'We deliver comprehensive architectural planning, finite element structural engineering, civil cross-sections, and detailed bills of quantities (BOQ) for municipal terminals, transport facilities, and public infrastructure across Bangladesh.',
-    image: '/projects-extracted/page_17/img_05.jpg',
-    equipment: ['ETABS Structural Modeling Engine', 'AutoCAD Civil 3D & Revit Workstations', 'Soil & Foundation Settlement Analytical Software'],
-    deliverables: ['Detailed Architectural Floor Plans', '3D Finite Element Structural Models', 'Reinforced Concrete (RCC) Structural Drawings', 'Tender-Ready BOQ and Cost Estimation Dossiers'],
-    standards: ['Bangladesh National Building Code (BNBC)', 'ACI 318 Reinforced Concrete Standards', 'Dhaka North City Corporation (DNCC) Architectural Guidelines'],
-    benefits: ['Safe, disaster-resilient structural layouts', 'Streamlined statutory building and civic approvals', 'Precise material quantity schedules eliminating construction overruns'],
-  },
-  'road-bridge-infrastructure': {
-    slug: 'road-bridge-infrastructure',
-    title: 'Road, Bridge & Highway Corridor Alignment',
-    category: 'Transportation Infrastructure',
-    lead: 'Highway geometric design, drainage network engineering, median alignments, and bridge hydraulic bathymetry.',
-    description: 'Specialized highway and transport infrastructure engineering from high-traffic urban arterials to rural connectivity bridges. Includes geometric road profile drafting, storm drain hydraulics, pedestrian passenger shelters, and palisading.',
-    image: '/projects-extracted/page_18/img_02.jpg',
-    equipment: ['Trimble GNSS RTK Base & Rover Systems', 'Robotic Total Stations', 'Civil 3D Highway Geometric Design Suite'],
-    deliverables: ['Corridor Geometric Alignment Profiles', 'RCC Box Drain Cross-Sections & Outfall Hydraulics', 'Passenger Waiting Shelter Architectural CAD', 'Road Asset Inventory & Strip Maps'],
-    standards: ['Roads and Highways Department (RHD) Standards', 'AASHTO Geometric Design Guidelines', 'LGED Rural Road Design Standards'],
-    benefits: ['Smooth traffic circulation and congestion relief', 'Monsoon-proof stormwater runoff management', 'Fully compliant with municipal right-of-way (RoW) limits'],
-  },
-  'environmental-monitoring': {
-    slug: 'environmental-monitoring',
-    title: 'Environmental & Coastal Assessment',
-    category: 'Spatial Intelligence',
-    lead: 'Drone-enabled assessment of newly accreted coastal lands, mangrove forest monitoring, and climate-smart rural infrastructure.',
-    description: 'Precision remote sensing and aerial surveys monitoring dynamic river delta sedimentation, mangrove canopy density, and coastal afforestation in southern Bangladesh.',
-    image: '/projects-extracted/page_25/img_02.jpg',
-    equipment: ['Multispectral UAV Sensors', 'Dual-Frequency RTK Drones', 'GIS Remote Sensing Analytics Workstations'],
-    deliverables: ['Coastal Accretion Maps', 'Multispectral NDVI Vegetation Health Indices', 'Mangrove Forest Canopy Density Reports', 'Climate-Smart Rural Transport Models'],
-    standards: ['Bangladesh Forest Department Protocols', 'CEGIS Environmental GIS Guidelines'],
-    benefits: ['Real-time shoreline movement tracking', 'Evidence-based ecological conservation data', 'Targeted coastal protection infrastructure planning'],
-  },
-  'engineering-design': {
-    slug: 'engineering-design',
-    title: 'Feasibility, BOQ & Civil Design',
-    category: 'Engineering & Approach',
-    lead: 'Preparation of Bills of Quantities (BOQ), Bills of Materials (BOM), structural analysis, and feasibility studies.',
-    description: 'Comprehensive feasibility studies and detailed civil designs conforming to national engineering codes, providing clients with precise cost estimation and statutory tender documents.',
-    image: '/projects-extracted/page_19/img_02.jpg',
-    equipment: ['AutoCAD Civil 3D', 'ETABS', 'Cost Estimation Databases'],
-    deliverables: ['Measured BOQ & BOM Schedules', 'Road Corridor & Junction Designs', 'Project Cost Estimation & Budgeting'],
-    standards: ['BNBC & RHD Standards', 'Public Procurement Rules (PPR)'],
-    benefits: ['Accurate project budgeting', 'Zero contractor dispute on material quantities', 'Fast-tracked approvals'],
-  },
-};
-
-export async function generateStaticParams() {
-  return Object.keys(serviceDetails).map((slug) => ({ slug }));
-}
-
 export default async function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
-  // Try fetching service data from Admin CMS backend first
-  const cmsServices = await CmsApi.getServices().catch(() => []);
-  const dbService = cmsServices.find((s: any) => s.slug === slug || s.id === slug);
+  const cmsServices = await CmsApi.getServices();
+  const dbService = cmsServices.find((item) => item.slug === slug);
+  if (!dbService) notFound();
 
-  const baseService = serviceDetails[slug] || (dbService ? {
+  const detail = dbService.details || {};
+  const service: ServiceDetail = {
     slug: dbService.slug,
     title: dbService.title,
-    category: dbService.category || 'Engineering Services',
-    lead: dbService.description || '',
-    description: dbService.description || '',
-    image: dbService.imageUrl || '/real-media/service-topographic-uav.png',
-    equipment: ['Trimble / Leica Dual-Frequency GNSS RTK Receivers', 'Robotic Total Stations', 'Digital Leveling Instruments'],
-    deliverables: dbService.features && dbService.features.length > 0 ? dbService.features : ['CAD Topographic Plans', '3D Surface Models', 'Engineering Survey Dossier'],
-    standards: ['Survey of Bangladesh (SOB) PWD Datum', 'BTM (Bangladesh Transverse Mercator) Projection'],
-    benefits: ['Sub-centimeter spatial accuracy', 'Certified legal defensibility', 'Eliminate redesign & earthwork volume errors'],
-  } : null);
-
-  if (!baseService) notFound();
-
-  // Merge live admin CMS fields if available
-  const service: ServiceDetail = {
-    ...baseService,
-    title: dbService?.title || baseService.title,
-    category: dbService?.category || baseService.category,
-    description: dbService?.description || baseService.description,
-    image: dbService?.imageUrl || baseService.image,
-    deliverables: (dbService?.features && dbService.features.length > 0) ? dbService.features : baseService.deliverables,
+    category: dbService.category,
+    lead: detail.lead || dbService.description,
+    description: dbService.description,
+    image: dbService.imageUrl || '',
+    equipment: detail.equipment || [],
+    deliverables: dbService.features || [],
+    standards: detail.standards || [],
+    benefits: detail.benefits || [],
   };
-
-  // Related capabilities
-  const related = Object.values(serviceDetails)
-    .filter((s) => s.slug !== slug)
-    .slice(0, 2);
+  const related = cmsServices.filter((item) => item.slug !== slug).slice(0, 2)
+    .map((item) => ({ ...item, image: item.imageUrl || '', lead: item.details?.lead || item.description }));
 
   return (
     <CorporateShell>
@@ -224,7 +83,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
         <section className="max-w-[1440px] mx-auto px-6 md:px-12 py-8">
           <div className="aspect-[21/9] sm:aspect-[16/8] overflow-hidden bg-neutral-900 shadow-xl relative">
             <img
-              src={service.image}
+              src={service.image || undefined}
               alt={service.title}
               className="w-full h-full object-cover"
             />
@@ -392,7 +251,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                   >
                     <div className="aspect-[16/9] overflow-hidden bg-neutral-100">
                       <img
-                        src={rel.image}
+                        src={rel.image || undefined}
                         alt={rel.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />

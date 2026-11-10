@@ -4,6 +4,8 @@ import { Mail, Phone, Clock, MapPin, ArrowUpRight } from 'lucide-react';
 import CorporateShell from '@/components/CorporateShell';
 import CorporateContactForm from '@/components/CorporateContactForm';
 import MapboxOfficeMap from '@/components/MapboxOfficeMap';
+import { CmsApi } from '@/lib/cms-api';
+import { contactAddress, phoneHref, PublicContactInfo, normalizeContactInfo, OFFICE_COORDINATES } from '@/lib/contact-info';
 import '../corporate.css';
 
 export const metadata = {
@@ -12,7 +14,13 @@ export const metadata = {
     'Consult with Geospatial Works headquarters in Dhaka for engineering surveying, drone LiDAR, bathymetric mapping, and GIS spatial intelligence.',
 };
 
-export default function ContactPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function ContactPage() {
+  const sections = await CmsApi.getSections('contact');
+  const savedContact = sections.contact_info?.content;
+  const contactInfo = savedContact ? normalizeContactInfo(savedContact) : null;
+  const address = contactInfo ? contactAddress(contactInfo) : '';
   return (
     <CorporateShell>
       <main className="min-h-screen bg-[#0B0D12] text-white font-sans antialiased selection:bg-[#FB1D10] selection:text-white">
@@ -72,7 +80,7 @@ export default function ContactPage() {
             <aside className="lg:col-span-5 space-y-6">
               <div className="space-y-1 pb-4 border-b border-white/[0.08]">
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-                  Dhaka Studio & Headquarters
+                  {contactInfo?.officeName || 'Corporate Office'}
                 </h2>
                 <p className="text-sm text-neutral-400">
                   Central coordination hub for geodetic instruments, drone fleet, and spatial data compute.
@@ -81,11 +89,12 @@ export default function ContactPage() {
 
               {/* Minimal Architectural Map */}
               <MapboxOfficeMap
-                lat={23.7505}
-                lng={90.3807}
+                lat={Number(contactInfo?.latitude) || OFFICE_COORDINATES.latitude}
+                lng={Number(contactInfo?.longitude) || OFFICE_COORDINATES.longitude}
                 zoom={15}
                 theme="dark"
                 heightClass="h-[280px] sm:h-[320px]"
+                locationName={contactInfo?.companyName || 'Geospatial Works'}
               />
 
               {/* Directory Details */}
@@ -96,9 +105,8 @@ export default function ContactPage() {
                     Location
                   </span>
                   <div className="text-sm font-medium text-neutral-200 leading-relaxed">
-                    Geospatial Works Ltd.<br />
-                    64/1 (D1), Lake Circus, Kalabagan<br />
-                    Dhaka 1205, Bangladesh
+                    {contactInfo?.companyName || 'Geospatial Works'}<br />
+                    {address || 'Corporate office address is not available yet.'}
                   </div>
                 </div>
 
@@ -110,36 +118,25 @@ export default function ContactPage() {
                     <span className="block text-[11px] font-mono uppercase tracking-[0.16em] text-neutral-500">
                       Telephone
                     </span>
-                    <a
-                      href="tel:+8801303772216"
+                    {contactInfo?.phone && <a
+                      href={phoneHref(contactInfo.phone)}
                       className="block text-sm font-mono font-medium text-neutral-200 hover:text-[#FB1D10] transition-colors"
                     >
-                      +88 01303 772216
-                    </a>
-                    <a
-                      href="tel:+8801713907779"
-                      className="block text-xs font-mono text-neutral-400 hover:text-white transition-colors"
-                    >
-                      +88 01713 907779
-                    </a>
+                      {contactInfo.phone}
+                    </a>}
                   </div>
 
                   <div className="space-y-1">
                     <span className="block text-[11px] font-mono uppercase tracking-[0.16em] text-neutral-500">
                       Inquiries
                     </span>
-                    <a
-                      href="mailto:info@geospatialworks.com.bd"
+                    {contactInfo?.email && <a
+                      href={`mailto:${contactInfo.email}`}
                       className="block text-sm text-neutral-200 hover:text-[#FB1D10] transition-colors truncate"
                     >
-                      info@geospatialworks.com.bd
-                    </a>
-                    <a
-                      href="mailto:careers@geospatialworks.com.bd"
-                      className="block text-xs text-neutral-400 hover:text-white transition-colors truncate"
-                    >
-                      careers@geospatialworks.com.bd
-                    </a>
+                      {contactInfo.email}
+                    </a>}
+                    {contactInfo?.website && <a href={contactInfo.website} target="_blank" rel="noreferrer" className="block text-xs text-neutral-400 hover:text-white transition-colors truncate">{contactInfo.website.replace(/^https?:\/\//, '')}</a>}
                   </div>
                 </div>
 
@@ -151,7 +148,7 @@ export default function ContactPage() {
                     Studio Hours
                   </span>
                   <div className="text-xs text-neutral-300 leading-relaxed">
-                    Sunday – Thursday: 9:00 AM – 6:00 PM BST
+                    {contactInfo?.hoursWeekday || 'Contact us for office hours.'}
                   </div>
                   <div className="text-[11px] font-mono text-emerald-400 pt-0.5">
                     Field crews available for rapid mobilization nationwide.

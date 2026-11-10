@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const BACKEND_BASE =
   process.env.BACKEND_INTERNAL_URL
     ? `${process.env.BACKEND_INTERNAL_URL.replace(/\/$/, '')}/api/v1`
-    : (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://gw-api.203.96.190.78.sslip.io/api/v1');
+    : 'http://gw-site-api:4000/api/v1';
 
 async function handleProxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
@@ -12,18 +12,18 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
   const searchParams = req.nextUrl.searchParams.toString();
   const targetUrl = `${BACKEND_BASE}/${endpoint}${searchParams ? `?${searchParams}` : ''}`;
 
-  const headers: Record<string, string> = {
-    'Content-Type': req.headers.get('content-type') || 'application/json',
-  };
+  const headers: Record<string, string> = {};
+  const contentType = req.headers.get('content-type');
+  if (contentType) headers['Content-Type'] = contentType;
 
   const authHeader = req.headers.get('authorization');
   if (authHeader) {
     headers['Authorization'] = authHeader;
   }
 
-  let body = undefined;
+  let body: ArrayBuffer | undefined;
   if (req.method !== 'GET' && req.method !== 'HEAD') {
-    body = await req.text();
+    body = await req.arrayBuffer();
   }
 
   try {
@@ -31,17 +31,18 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
       method: req.method,
       headers,
       body,
+      cache: 'no-store',
     });
 
-    const data = await backendRes.text();
-    return new NextResponse(data, {
+    return new NextResponse(backendRes.body, {
       status: backendRes.status,
       headers: {
         'Content-Type': backendRes.headers.get('content-type') || 'application/json',
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: 'Backend Gateway Error', details: error.message }, { status: 502 });
+  } catch (error) {
+    console.error('Backend gateway request failed', error);
+    return NextResponse.json({ error: 'Backend Gateway Error' }, { status: 502 });
   }
 }
 

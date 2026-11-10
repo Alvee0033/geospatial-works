@@ -3,6 +3,9 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ServicesService } from './services.service';
 import { CreateServiceDto, UpdateServiceDto } from './dto/service.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../entities/user.entity';
 
 @ApiTags('Services')
 @Controller('services')
@@ -23,7 +26,8 @@ export class ServicesController {
 
   // Admin Endpoints
   @Get('admin/all')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: List all services including inactive' })
   async findAllAdmin() {
@@ -31,7 +35,8 @@ export class ServicesController {
   }
 
   @Post('admin')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Create a new service' })
   async create(@Body() dto: CreateServiceDto) {
@@ -39,7 +44,8 @@ export class ServicesController {
   }
 
   @Put('admin/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Update an existing service' })
   async update(@Param('id') id: string, @Body() dto: UpdateServiceDto) {
@@ -47,7 +53,8 @@ export class ServicesController {
   }
 
   @Delete('admin/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Delete a service' })
   async delete(@Param('id') id: string) {

@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsOptional, IsString, IsBoolean, IsInt } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString, IsBoolean, IsInt, IsObject } from 'class-validator';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateProjectDto {
   @ApiProperty({ example: 'web-ais-badc' })
@@ -42,6 +42,14 @@ export class CreateProjectDto {
   @IsOptional()
   imageUrl?: string;
 
+  @IsObject()
+  @IsOptional()
+  details?: Record<string, unknown>;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+
   @ApiProperty({ example: true, required: false })
   @IsBoolean()
   @IsOptional()
@@ -53,5 +61,5 @@ export class CreateProjectDto {
   sortOrder?: number;
 }
 
-export class UpdateProjectDto extends CreateProjectDto {}
+export class UpdateProjectDto extends PartialType(CreateProjectDto) {}
 

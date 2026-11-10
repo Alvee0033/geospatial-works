@@ -1,5 +1,5 @@
 const API_BASE = typeof window === 'undefined'
-  ? (process.env.BACKEND_INTERNAL_URL ? `${process.env.BACKEND_INTERNAL_URL}/api/v1` : 'https://gw-api.203.96.190.78.sslip.io/api/v1')
+  ? `${process.env.BACKEND_INTERNAL_URL || 'http://gw-site-api:4000'}/api/v1`
   : (process.env.NEXT_PUBLIC_API_BASE_URL || '/api');
 
 export interface HeroSlideData {
@@ -36,6 +36,7 @@ export interface ServiceData {
   imageUrl?: string;
   sortOrder: number;
   isActive: boolean;
+  details?: { lead?: string; equipment?: string[]; standards?: string[]; benefits?: string[] };
 }
 
 export interface ProjectData {
@@ -50,6 +51,35 @@ export interface ProjectData {
   imageUrl?: string;
   isMilestone: boolean;
   sortOrder: number;
+  isActive?: boolean;
+  details?: Record<string, unknown>;
+}
+
+export interface ArticleData {
+  id: string;
+  slug: string;
+  title: string;
+  category: string;
+  publishDate?: string;
+  summary: string;
+  content?: string;
+  author?: string;
+  imageUrl?: string | null;
+  meta?: { readTime?: string; authorRole?: string; authorImage?: string };
+  isPublished: boolean;
+  sortOrder: number;
+}
+
+export interface TeamMemberData {
+  id: string;
+  slug: string;
+  name: string;
+  role: string;
+  category?: string;
+  image?: string | null;
+  bio?: string;
+  sortOrder: number;
+  isActive: boolean;
 }
 
 export interface PartnerData {
@@ -75,57 +105,14 @@ export const CmsApi = {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch (err) {
-      console.warn('API fetch failed, falling back to static cache:', err);
-      return {
-        heroSlides: [
-          {
-            id: '1',
-            eyebrow: 'GEOSPATIAL WORKS BANGLADESH',
-            heading: 'WHERE ENGINEERING MEETS PRECISION',
-            description: 'Integrated engineering, geospatial, and precision surveying consultancy delivering technical solutions for national infrastructure, spatial planning, and delta resource management.',
-            imageUrl: '/real-media/hero-corridor-infrastructure.jpg',
-            primaryActionText: 'Explore our services',
-            primaryActionHref: '/services',
-            secondaryActionText: 'Get in Touch',
-            secondaryActionHref: '/contact',
-            sortOrder: 1,
-            isActive: true,
-          },
-          {
-            id: '2',
-            eyebrow: 'PRECISION • INNOVATION • SUSTAINABILITY',
-            heading: 'CONNECTING SPATIAL DATA TO ENGINEERING DESIGN',
-            description: 'From high-density UAV photogrammetry and RTK GNSS observations to civil structural engineering and GIS digital twins across 35+ national landmarks.',
-            imageUrl: '/real-media/hero-geospatial-landscape.jpg',
-            primaryActionText: 'View verified projects',
-            primaryActionHref: '/projects',
-            secondaryActionText: 'Get in Touch',
-            secondaryActionHref: '/contact',
-            sortOrder: 2,
-            isActive: true,
-          },
-          {
-            id: '3',
-            eyebrow: 'SOB BENCHMARK COMPLIANCE',
-            heading: 'FROM FIELD DATA ACQUISITION TO 3D VISUALIZATION',
-            description: 'Supporting national highways, railway bypasses, inter-district bus terminals, sanitary landfills, and agricultural irrigation networks across all divisions of Bangladesh.',
-            imageUrl: '/real-media/project-dncc-gulshan-link-road.jpg',
-            primaryActionText: 'Connect with our team',
-            primaryActionHref: '/contact',
-            secondaryActionText: 'Get in Touch',
-            secondaryActionHref: '/contact',
-            sortOrder: 3,
-            isActive: true,
-          },
-        ],
-        sections: {},
-      };
+      console.warn('Landing page content could not be loaded:', err);
+      return { heroSlides: [], sections: {} };
     }
   },
 
   async getServices(): Promise<ServiceData[]> {
     try {
-      const res = await fetch(`${API_BASE}/services`, { next: { revalidate: 30 } });
+      const res = await fetch(`${API_BASE}/services`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch (err) {
@@ -147,11 +134,43 @@ export const CmsApi = {
 
   async getProject(slug: string): Promise<ProjectData | null> {
     try {
-      const res = await fetch(`${API_BASE}/projects/${slug}`, { next: { revalidate: 30 } });
+      const res = await fetch(`${API_BASE}/projects/${encodeURIComponent(slug)}`, { cache: 'no-store' });
       if (!res.ok) return null;
       return await res.json();
     } catch (err) {
       console.warn(`Failed to fetch project ${slug} from API:`, err);
+      return null;
+    }
+  },
+
+  async getArticles(): Promise<ArticleData[]> {
+    try {
+      const res = await fetch(`${API_BASE}/articles`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      console.warn('Failed to fetch articles:', err);
+      return [];
+    }
+  },
+
+  async getTeamMembers(): Promise<TeamMemberData[]> {
+    try {
+      const res = await fetch(`${API_BASE}/team`, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      console.warn('Failed to fetch team members:', err);
+      return [];
+    }
+  },
+
+  async getArticle(slug: string): Promise<ArticleData | null> {
+    try {
+      const res = await fetch(`${API_BASE}/articles/${encodeURIComponent(slug)}`, { cache: 'no-store' });
+      return res.ok ? await res.json() : null;
+    } catch (err) {
+      console.warn(`Failed to fetch article ${slug}:`, err);
       return null;
     }
   },
@@ -169,7 +188,7 @@ export const CmsApi = {
 
   async getSections(pageKey: string): Promise<Record<string, PageSectionData>> {
     try {
-      const res = await fetch(`${API_BASE}/cms/sections/${pageKey}`, { next: { revalidate: 10 } });
+      const res = await fetch(`${API_BASE}/cms/sections/${pageKey}`, { cache: 'no-store' });
       if (!res.ok) return {};
       const sections: PageSectionData[] = await res.json();
       return sections.reduce((acc, s) => {

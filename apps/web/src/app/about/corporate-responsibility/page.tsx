@@ -22,7 +22,7 @@ import KeepInTouchSection from '@/components/KeepInTouchSection';
 import { CmsApi } from '@/lib/cms-api';
 import '../../corporate.css';
 
-export const revalidate = 10;
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Corporate Responsibility & Safety | Geospatial Works Bangladesh',
@@ -42,7 +42,7 @@ export default async function CorporateResponsibilityPage() {
   const heroImage = wysiwyg?.heroImage || '/real-media/real-field-survey-team.jpg';
 
   // 100% Real metrics reflecting audited track record
-  const stats = [
+  const stats: { value: string; label: string }[] = wysiwyg?.stats ?? [
     { value: 'Zero', label: 'Lost-Time Incidents (LTI) Recorded' },
     { value: '100% CAAB', label: 'UAV Flight Clearance & Permitting' },
     { value: 'Level-3', label: 'Mandatory PPE Site Enforcement' },
@@ -103,6 +103,7 @@ export default async function CorporateResponsibilityPage() {
       color: 'blue',
     },
   ];
+  const displayedSafetyPillars: typeof safetyPillars = safetyPillars.map((pillar, index) => ({ ...pillar, ...wysiwyg?.safetyPillars?.[index], icon: pillar.icon, color: pillar.color }));
 
   return (
     <CorporateShell>
@@ -191,7 +192,7 @@ export default async function CorporateResponsibilityPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {safetyPillars.map((pillar, idx) => {
+              {displayedSafetyPillars.map((pillar, idx) => {
                 const Icon = pillar.icon;
                 const isRed = pillar.color === 'red';
                 return (

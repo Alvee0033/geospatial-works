@@ -5,14 +5,19 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../entities/user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import * as fs from 'fs';
 
-const uploadDir = join(process.cwd(), '../web/public/uploads');
+export const uploadDir = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -21,6 +26,8 @@ if (!fs.existsSync(uploadDir)) {
 @Controller('media')
 export class MediaController {
   @Post('upload')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiOperation({ summary: 'Upload image or document asset' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -65,6 +72,8 @@ export class MediaController {
   }
 
   @Get('library')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiOperation({ summary: 'List all available uploaded images' })
   async listMedia() {
     try {

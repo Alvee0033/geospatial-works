@@ -6,13 +6,14 @@ import { User } from '../../entities/user.entity';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
+import { jwtSecret } from './jwt-secret';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'GeospatialWorksSecretKey2026!SecureKey999',
+      secret: jwtSecret(),
       signOptions: { expiresIn: '7d' },
     }),
   ],

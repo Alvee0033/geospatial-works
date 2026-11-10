@@ -207,6 +207,7 @@ interface LandingPageViewProps {
   onToggleProjectMilestone: (id: string, isMilestone: boolean) => Promise<void>;
   onRefresh: () => void;
   triggerFeedback: (msg: string, type?: 'success' | 'error') => void;
+  getAuthHeaders: () => Record<string, string>;
 }
 
 export function LandingPageView({
@@ -222,6 +223,7 @@ export function LandingPageView({
   onToggleServiceActive,
   onToggleProjectMilestone,
   triggerFeedback,
+  getAuthHeaders,
 }: LandingPageViewProps) {
   const [activeSubSection, setActiveSubSection] = useState<
     'hero' | 'manifesto' | 'services' | 'projects' | 'equipment' | 'news' | 'leadgrow'
@@ -498,6 +500,7 @@ export function LandingPageView({
 
       const res = await fetch('/api/media/upload', {
         method: 'POST',
+        headers: { Authorization: getAuthHeaders().Authorization || '' },
         body: formData,
       });
 
@@ -2289,11 +2292,7 @@ export function LandingPageView({
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-200 flex-shrink-0">
-                            <img
-                              src={art.imageUrl || '/real-media/insight-drone-dtca-survey.jpg'}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
+                            {art.imageUrl && <img src={art.imageUrl} alt="" className="w-full h-full object-cover" />}
                           </div>
                           <div className="min-w-0">
                             <div className="truncate text-xs font-bold">{art.title}</div>
@@ -2341,31 +2340,12 @@ export function LandingPageView({
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
-                  {[
-                    {
-                      title: 'Rapid Deployment of DJI Matrice 4E UAV for DTCA Route Survey',
-                      tag: 'UAV PHOTOGRAMMETRY',
-                      isBlue: true,
-                      img: '/real-media/insight-drone-dtca-survey.jpg',
-                    },
-                    {
-                      title: 'Generating 0.20cm DTM & Orthomosaics for Railway Bypasses',
-                      tag: 'TERRAIN MODELING',
-                      isBlue: false,
-                      img: '/real-media/insight-dsm-corridor-mapping.jpg',
-                    },
-                    {
-                      title: 'Coastal Mangrove Accretion Assessment Using RTK-Enabled UAVs',
-                      tag: 'REMOTE SENSING',
-                      isBlue: true,
-                      img: '/real-media/insight-coastal-mangrove-uav.jpg',
-                    },
-                  ].map((art, idx) => (
+                  {(newsMode === 'manual' ? articles.filter((art) => selectedArticleIds.includes(art.id)) : articles.filter((art) => art.isPublished)).slice(0, 3).map((art, idx) => (
                     <div key={idx} className="group border border-white/10 rounded-lg overflow-hidden bg-neutral-950">
                       <div className="aspect-[16/10] relative bg-neutral-900">
-                        <img src={art.img} alt="" className="w-full h-full object-cover" />
-                        <span className={`absolute top-2 left-2 text-[8px] font-mono font-bold uppercase px-1.5 py-0.5 text-white ${art.isBlue ? 'bg-[#3B82F6]' : 'bg-[#FB1D10]'}`}>
-                          {art.tag}
+                        {art.imageUrl ? <img src={art.imageUrl} alt="" className="w-full h-full object-cover" /> : <span className="flex h-full items-center justify-center p-2 text-center text-xs text-white">{art.title}</span>}
+                        <span className={`absolute top-2 left-2 text-[8px] font-mono font-bold uppercase px-1.5 py-0.5 text-white ${idx % 2 === 0 ? 'bg-[#3B82F6]' : 'bg-[#FB1D10]'}`}>
+                          {art.category}
                         </span>
                       </div>
                       <div className="p-2.5">
@@ -2386,15 +2366,12 @@ export function LandingPageView({
                 </div>
 
                 <div className="divide-y divide-white/10 text-xs">
-                  {[
-                    { date: '26.09.30', tag: 'PROJECT COMPLETION', title: '35.15 sq km UAV drone and traffic OD survey across 150 km of Dhaka city for DTCA.', isBlue: true },
-                    { date: '26.07.15', tag: 'RESEARCH & INNOVATION', title: 'River water-level gauge readers and RTK adjustments across Jhopjhopia River for BADC.', isBlue: false },
-                  ].map((item, idx) => (
+                  {articles.filter((art) => art.isPublished).slice(3, 5).map((item, idx) => (
                     <div key={idx} className="py-2.5 flex items-baseline justify-between gap-3">
                       <div className="flex items-baseline gap-3">
-                        <span className={`font-mono text-[11px] font-bold ${item.isBlue ? 'text-[#3B82F6]' : 'text-[#FB1D10]'}`}>{item.date}</span>
+                        <span className={`font-mono text-[11px] font-bold ${idx % 2 === 0 ? 'text-[#3B82F6]' : 'text-[#FB1D10]'}`}>{item.publishDate}</span>
                         <div>
-                          <span className="text-[9px] font-bold text-neutral-400 uppercase block">{item.tag}</span>
+                          <span className="text-[9px] font-bold text-neutral-400 uppercase block">{item.category}</span>
                           <span className="text-neutral-200 text-[11px] line-clamp-1">{item.title}</span>
                         </div>
                       </div>

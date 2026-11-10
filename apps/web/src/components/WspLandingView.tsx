@@ -24,12 +24,16 @@ import {
   Send,
 } from 'lucide-react';
 import KeepInTouchSection from './KeepInTouchSection';
+import type { ArticleData, TeamMemberData } from '@/lib/cms-api';
+import { softwareExpertise } from '@/lib/software-expertise';
 
 interface WspLandingViewProps {
   heroSlides?: any[];
   services?: any[];
   projects?: any[];
   sections?: any;
+  articles?: ArticleData[];
+  teamMembers?: TeamMemberData[];
 }
 
 export default function WspLandingView({
@@ -37,6 +41,8 @@ export default function WspLandingView({
   services = [],
   projects = [],
   sections = {},
+  articles = [],
+  teamMembers = [],
 }: WspLandingViewProps) {
   // Hero Carousel State
   const [activeSlide, setActiveSlide] = useState(0);
@@ -50,50 +56,7 @@ export default function WspLandingView({
     restDelta: 0.001,
   });
 
-  // Default slides extracted directly from Company Profile PPT
-  const defaultSlides = [
-    {
-      id: '1',
-      heading: 'WHERE ENGINEERING MEETS PRECISION',
-      eyebrow: 'GEOSPATIAL WORKS BANGLADESH',
-      description: 'Integrated engineering, geospatial, and precision surveying consultancy delivering technical solutions for national infrastructure, spatial planning, and delta resource management.',
-      imageUrl: '/projects-extracted/page_31/img_01.jpg',
-      primaryActionText: 'Explore our services',
-      primaryActionHref: '/services',
-    },
-    {
-      id: '2',
-      heading: 'CONNECTING SPATIAL DATA TO ENGINEERING DESIGN',
-      eyebrow: 'PRECISION • INNOVATION • SUSTAINABILITY',
-      description: 'From high-density UAV photogrammetry and RTK GNSS observations to civil structural engineering and GIS digital twins across national landmarks.',
-      imageUrl: '/projects-extracted/page_16/img_02.jpg',
-      primaryActionText: 'View verified projects',
-      primaryActionHref: '/projects',
-    },
-    {
-      id: '3',
-      heading: 'FROM FIELD DATA ACQUISITION TO 3D VISUALIZATION',
-      eyebrow: 'SOB BENCHMARK COMPLIANCE',
-      description: 'Supporting national highways, railway bypasses, inter-district bus terminals, sanitary landfills, and agricultural irrigation networks across all divisions of Bangladesh.',
-      imageUrl: '/projects-extracted/page_18/img_02.jpg',
-      primaryActionText: 'Connect with our team',
-      primaryActionHref: '/contact',
-    },
-    {
-      id: '4',
-      heading: 'SUB-CENTIMETER GEODETIC CONTROL & DRONE PHOTOGRAMMETRY',
-      eyebrow: 'RAILWAY & HIGHWAY INFRASTRUCTURE',
-      description: 'Rigorous ground control networks and bare-earth digital terrain modeling powering major rail bypasses and urban transport corridors.',
-      imageUrl: '/projects-extracted/page_29/img_02.jpg',
-      primaryActionText: 'Discover projects',
-      primaryActionHref: '/projects',
-    },
-  ];
-
-  // Strictly use defaultSlides if heroSlides from DB still reference old demo images like delta-hero or geospatial-river-hero
-  const slides = heroSlides && heroSlides.length > 0 && !heroSlides.some(s => s.imageUrl?.includes('delta-hero') || s.imageUrl?.includes('geospatial-river-hero'))
-    ? heroSlides
-    : defaultSlides;
+  const slides = heroSlides.length ? heroSlides : [{ id: 'empty', heading: 'Explore our work', eyebrow: '', description: '', imageUrl: '', primaryActionText: 'Contact us', primaryActionHref: '/contact' }];
   const currentSlide = slides[activeSlide] || slides[0];
 
   // If active slide is video or any slide is video mode, hero shows dedicated single cinematic slide without auto-rotating carousel
@@ -116,82 +79,7 @@ export default function WspLandingView({
   const newsSec = sections['home:news_summary'] || sections['news_summary'] || {};
   const cultureSec = sections['home:culture_summary'] || sections['culture_summary'] || {};
   const touchSec = sections['home:keep_in_touch'] || sections['keep_in_touch'] || {};
-
-  // Exactly the 8 Core Projects from Company Profile PPT
-  const defaultProjects = [
-    {
-      id: 'p1',
-      location: 'DHAKA NORTH CITY CORPORATION (DNCC)',
-      title: 'Gabtoli Inter-District Bus Terminal Modernization',
-      category: 'Transit & Municipal Facility',
-      description: 'Digital surveying, 3D structural modeling, and comprehensive improvement planning of Gabtoli Bus Terminal.',
-      imageUrl: '/projects-extracted/page_16/img_02.jpg',
-      slug: 'page-16-passenger-facilities-modernization-at-gabtoli',
-    },
-    {
-      id: 'p2',
-      location: 'GULSHAN-BADDA LINK ROAD • DNCC',
-      title: 'Gulshan-1 Intersection to Progati Sarani Highway & Drain Improvement',
-      category: 'Road & Highway Survey',
-      description: 'Construction of RCC median, subsurface drain, pedestrian footpath, passenger sheds, grill fencing, and traffic signs along Road 130 and 134.',
-      imageUrl: '/projects-extracted/page_18/img_02.jpg',
-      slug: 'page-18-gulshan-1-intersection-to-progati-sarani-high',
-    },
-    {
-      id: 'p3',
-      location: 'DHAKA NORTH CITY CORPORATION (DNCC)',
-      title: 'Mohakhali Inter-District Bus Terminal Modernization',
-      category: 'Transit & Municipal Facility',
-      description: 'Comprehensive civil modernization: waiting areas, ticket counters, sanitation blocks, boundary walls, and passenger traffic flow optimization.',
-      imageUrl: '/projects-extracted/page_20/img_02.jpg',
-      slug: 'page-20-passenger-facilities-modernization-at-mohakha',
-    },
-    {
-      id: 'p4',
-      location: 'MOHESHKHALI SWM • LGED / OSMO',
-      title: 'LTP of Sanitary Landfill at Moheshkhali Solid Waste Management',
-      category: 'Environmental & Civil Design',
-      description: 'Structural engineering design and reinforcement details for Leachate Treatment Plant (LTP) safeguarding coastal groundwater.',
-      imageUrl: '/projects-extracted/page_24/img_02.png',
-      slug: 'page-23-ltp-of-sanitary-landfill-at-moheshkhali-solid',
-    },
-    {
-      id: 'p5',
-      location: 'BANGLADESH AGRICULTURAL DEVELOPMENT CORPORATION (BADC)',
-      title: 'Pilot Research Project for Irrigation Water Management (WEB-AIS)',
-      category: 'Agricultural Water Management & GIS',
-      description: 'Canal distribution mapping, TBM network setup, and multi-spectral NDVI remote sensing under WEB-AIS pilot research.',
-      imageUrl: '/projects-extracted/page_25/img_02.jpg',
-      slug: 'page-25-web-ais-pilot-research-project-on-irrigation',
-    },
-    {
-      id: 'p6',
-      location: 'GANGARAMPUR • BADC',
-      title: 'Installation of Water-Level Gauge Readers & Topographic Survey',
-      category: 'Hydrology & River Survey',
-      description: 'Installation and calibration of river water level gauge readers at three locations in Gangarampur with topographic cross-sections.',
-      imageUrl: '/projects-extracted/page_27/img_02.jpg',
-      slug: 'page-27-installation-of-water-level-gauge-readers---t',
-    },
-    {
-      id: 'p7',
-      location: 'BANGLADESH RAILWAY • RCIPF / OCG',
-      title: 'Abdulpur Railway Bypass Topographic & UAV Survey',
-      category: 'Railway & Drone Photogrammetry',
-      description: 'Sub-centimeter RTK topographic and UAV photogrammetry survey producing DSM, DTM, and 0.25m interval contours for railway bypass.',
-      imageUrl: '/projects-extracted/page_29/img_02.jpg',
-      slug: 'page-29-abdulpur-railway-bypass-topographic---uav-pho',
-    },
-    {
-      id: 'p8',
-      location: 'DHAKA TRANSPORT COORDINATION AUTHORITY (DTCA)',
-      title: 'Bus Route Rationalization & Arterial Corridor Concept Design',
-      category: 'Urban Transport Planning & GIS',
-      description: 'Drone corridor photogrammetry, classified traffic count surveys, and corridor restructuring concept designs.',
-      imageUrl: '/projects-extracted/page_31/img_01.jpg',
-      slug: 'page-31-bus-route-rationalization---corridor-concept',
-    },
-  ];
+  const activeTeamMembers = teamMembers.filter((member) => member.isActive).slice(0, 4);
 
   // Pioneering Projects Carousel State with Freeform Continuous Swipe & Momentum
   const [activeProjectIdx, setActiveProjectIdx] = useState(0);
@@ -276,14 +164,14 @@ export default function WspLandingView({
   };
 
   // Always ensure all 8 verified slide projects are active for 1 — 8 showcase
-  const projectList = defaultProjects;
+  const projectList = projects.slice(0, 8);
 
   // Extended project array with wrap-around clone prefix so previous slide is visible on the left edge just like WSP
-  const extendedProjects = [
+  const extendedProjects = projectList.length ? [
     { ...projectList[projectList.length - 1], id: 'clone-prev', isClone: true, originalIdx: projectList.length - 1 },
     ...projectList.map((p, idx) => ({ ...p, isClone: false, originalIdx: idx })),
     ...projectList.map((p, idx) => ({ ...p, id: `loop-${idx}`, isClone: false, originalIdx: idx })),
-  ];
+  ] : [];
 
   const getCardStep = () => {
     if (!scrollProjectsRef.current) return 744;
@@ -321,7 +209,7 @@ export default function WspLandingView({
   };
 
   const handleProjectsScroll = () => {
-    if (scrollProjectsRef.current) {
+    if (scrollProjectsRef.current && projectList.length) {
       const { scrollLeft } = scrollProjectsRef.current;
       const step = getCardStep();
       const peek = Math.min(220, window.innerWidth * 0.18);
@@ -384,69 +272,17 @@ export default function WspLandingView({
     window.addEventListener('mouseup', onGlobalMouseUp);
   };
 
-  // 100% Real Core Service Capabilities from Presentation Sections
-  const defaultServices = [
-    {
-      title: 'Topographic, Land & Engineering Survey',
-      slug: 'topographic-survey',
-      imageUrl: '/real-media/service-topographic-uav.png',
-      desc: 'Precision geodetic control networks, RTK GNSS observations, total station boundary surveys, and digital leveling loops.',
-    },
-    {
-      title: 'Airborne UAV (Drone) & LiDAR Mapping',
-      slug: 'uav-mapping',
-      imageUrl: '/real-media/service-uav-drone-lidar.png',
-      desc: 'High-density drone LiDAR, aerial photogrammetry, and CAAB-certified flight operations across transport corridors.',
-    },
-    {
-      title: 'Architectural, Civil & Structural Design',
-      slug: 'building-engineering',
-      imageUrl: '/real-media/service-building-design-01.jpg',
-      desc: 'Architectural drawings, structural engineering models, environmental drainage systems, and construction supervision.',
-    },
-    {
-      title: 'Enterprise GIS & Remote Sensing Consultancy',
-      slug: 'gis-solutions',
-      imageUrl: '/real-media/service-gis-remote-sensing.png',
-      desc: 'Satellite imagery analysis, land cover classification, Web-AIS applications, and municipal geodatabases.',
-    },
-    {
-      title: 'Road, Bridge & Highway Alignment',
-      slug: 'road-bridge-infrastructure',
-      imageUrl: '/real-media/service-road-bridge-engineering.jpg',
-      desc: 'Highway geometry design, bridge hydraulic bathymetry, median drains, and inter-district bus terminal modernization.',
-    },
-    {
-      title: 'Hydrographic Sonar & River Bathymetry',
-      slug: 'bathymetric-survey',
-      imageUrl: '/real-media/project-badc-jhopjhopia-river.jpg',
-      desc: 'Echo sounder cross-section sounding, tidal gauge calibration, and riverbank training surveys.',
-    },
-  ];
-
-  const serviceList = services && services.length > 0 ? services : defaultServices;
-
-  // News and Articles
-  const newsList = [
-    {
-      date: '26.09.30',
-      tag: 'PROJECT COMPLETION',
-      title: 'Completion of 35.15 sq km UAV drone and traffic OD survey across 150 km of Dhaka city for DTCA in 30 days.',
-      href: '/insights',
-    },
-    {
-      date: '26.07.15',
-      tag: 'RESEARCH & INNOVATION',
-      title: 'Deployment of river water-level gauge readers and RTK Reduced Level adjustments across Jhopjhopia River for BADC WEB-AIS.',
-      href: '/insights',
-    },
-    {
-      date: '26.04.10',
-      tag: 'ENGINEERING & INFRASTRUCTURE',
-      title: 'Finalization of architectural and drainage masterplan drawings for Gabtoli and Mohakhali Inter-District Bus Terminals.',
-      href: '/insights',
-    },
-  ];
+  const serviceList = services;
+  const manuallySelectedArticles = newsSec.content?.mode === 'manual'
+    ? articles.filter((article) => newsSec.content?.selectedArticleIds?.includes(article.id))
+    : articles;
+  const featuredArticles = manuallySelectedArticles.length ? manuallySelectedArticles : articles;
+  const newsList = featuredArticles.slice(3, 6).map((article) => ({
+    date: article.publishDate || '',
+    tag: article.category,
+    title: article.title,
+    href: `/insights/${article.slug}`,
+  }));
 
   return (
     <div className="wsp-landing-content relative">
@@ -488,10 +324,10 @@ export default function WspLandingView({
                   className="w-full h-full object-cover object-[center_35%] sm:object-center"
                 />
               </motion.div>
-            ) : (
+            ) : currentSlide.imageUrl ? (
               <motion.img
                 key={currentSlide.id || activeSlide}
-                src={currentSlide.imageUrl || '/projects-extracted/page_31/img_01.jpg'}
+                src={currentSlide.imageUrl}
                 alt={currentSlide.heading || 'Geospatial Works Landscape'}
                 loading="eager"
                 decoding="async"
@@ -505,6 +341,8 @@ export default function WspLandingView({
                 }}
                 className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-center will-change-transform"
               />
+            ) : (
+              <div className="absolute inset-0 bg-[#141212]" />
             )}
           </AnimatePresence>
         </div>
@@ -1015,7 +853,7 @@ export default function WspLandingView({
               </div>
 
               <div className="text-[14px] font-semibold text-[#141212] tracking-wider font-mono">
-                <span>{activeProjectIdx + 1}</span> — {projectList.length}
+                <span>{projectList.length ? activeProjectIdx + 1 : 0}</span> — {projectList.length}
               </div>
             </div>
           </div>
@@ -1027,33 +865,35 @@ export default function WspLandingView({
           SECTION 5: PHYSICAL & TECHNICAL RESOURCES (FROM SLIDE 42-44)
           Multi-brand geodetic fleet, enterprise UAV drones, RTK GNSS & GIS workstations.
           ========================================================================= */}
-      <section className="wsp-resources bg-[#0B0D12] text-white py-24 md:py-32 border-t border-b border-white/[0.08]">
+      <div className="wsp-brand-gradient-flow">
+      <section className="wsp-resources text-white py-16 md:py-20">
         <motion.div
           initial={{ opacity: 0, y: 45, filter: 'blur(4px)' }}
           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           viewport={{ once: true, amount: 0.12 }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-[1440px] mx-auto px-6 md:px-12 space-y-16"
+          className="max-w-[1440px] mx-auto px-6 md:px-12 space-y-10 md:space-y-12"
         >
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-10 border-b border-white/10">
+          <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-5 pb-7 border-b border-white/10">
             <div>
-              <span className="block text-[12px] sm:text-[13px] font-mono uppercase tracking-[0.25em] text-[#FB1D10] mb-3 font-bold">
+              <span className="flex items-center gap-3 text-[11px] sm:text-[12px] font-mono uppercase tracking-[0.22em] text-[#FB1D10] mb-3 font-bold">
+                <i className="h-px w-8 bg-gradient-to-r from-[#3B82F6] to-[#FB1D10]" />
                 {equipSec.subtitle || 'PHYSICAL & TECHNICAL RESOURCES'}
               </span>
-              <h2 className="text-[44px] sm:text-[56px] md:text-[68px] lg:text-[76px] font-extrabold tracking-[-0.035em] leading-[0.98] text-white">
-                {equipSec.title ? equipSec.title : <>Instruments &amp; <span className="text-[#3B82F6]">facilities</span></>}
+              <h2 className="max-w-3xl text-[38px] sm:text-[48px] md:text-[58px] font-semibold tracking-[-0.045em] leading-[1.02] text-white">
+                {equipSec.title ? equipSec.title : <>Instruments &amp; <span className="bg-gradient-to-r from-[#60A5FA] to-[#FB1D10] bg-clip-text text-transparent">facilities</span></>}
               </h2>
             </div>
-            <p className="text-neutral-400 max-w-md text-sm sm:text-base leading-relaxed">
+            <p className="text-neutral-300/80 max-w-sm text-sm leading-6 md:pb-1">
               {equipSec.content?.description || 'Geospatial Works maintains an extensive inventory of geodetic GNSS receivers, enterprise UAV systems, optical instruments, and dedicated high-performance workstations.'}
             </p>
           </div>
 
           {/* 3-Column Equipment Cards with Exact Slide Data (Slides 42 & 43) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
             {/* Card 1: GNSS Satellite Positioning (Slide 42) */}
-            <div className="border border-white/10 bg-neutral-950 p-8 space-y-6 hover:border-[#3B82F6]/60 transition-colors group">
-              <div className="aspect-[4/3] overflow-hidden bg-neutral-900 border border-white/5">
+            <div className="group rounded-xl border border-white/10 border-t-2 border-t-[#3B82F6] bg-[#101a2b]/75 p-4 sm:p-5 space-y-4 transition duration-300 hover:-translate-y-1 hover:border-[#3B82F6]/60 hover:shadow-[0_18px_46px_rgba(0,0,0,.24)]">
+              <div className="aspect-[16/9] overflow-hidden rounded-md bg-neutral-900">
                 <img
                   src="/real-media/slide_42_img_193.jpg"
                   alt="CHCNAV i83 RTK GNSS Receiver"
@@ -1061,26 +901,24 @@ export default function WspLandingView({
                 />
               </div>
               <div className="space-y-3">
-                <span className="text-[11px] font-mono text-[#3B82F6] uppercase tracking-wider block font-bold">
+                <span className="text-[10px] font-mono text-[#60A5FA] uppercase tracking-[.14em] block font-bold">
                   GNSS POSITIONING • 8 UNITS
                 </span>
-                <h3 className="text-xl font-bold text-white uppercase group-hover:text-[#3B82F6] transition-colors">
+                <h3 className="text-lg sm:text-xl font-semibold text-white tracking-[-.02em] group-hover:text-[#60A5FA] transition-colors">
                   CHCNAV i83 RTK GNSS
                 </h3>
-                <p className="text-sm text-neutral-400 leading-relaxed">
+                <p className="text-[13px] text-neutral-300/75 leading-[1.65]">
                   Eight CHCNAV i83 units tracking 1,408 channels with static GNSS and GSM-based RTK operation up to 30 km range for millimeter-level geodetic control and boundary demarcation.
                 </p>
-                <div className="pt-3 border-t border-white/5 flex flex-wrap gap-2 text-[11px] font-mono text-neutral-400">
-                  <span className="px-2 py-1 bg-white/5 border border-white/5">1,408 Channels</span>
-                  <span className="px-2 py-1 bg-white/5 border border-white/5">30 km GSM Range</span>
-                  <span className="px-2 py-1 bg-white/5 border border-white/5">Static & RTK</span>
+                <div className="pt-3 border-t border-white/10 flex flex-wrap gap-x-3 gap-y-1.5 text-[10px] font-mono text-white/55">
+                  <span>1,408 Channels</span><span>30 km GSM Range</span><span>Static &amp; RTK</span>
                 </div>
               </div>
             </div>
 
             {/* Card 2: UAV Drone Fleet (Slide 42) */}
-            <div className="border border-white/10 bg-neutral-950 p-8 space-y-6 hover:border-[#FB1D10]/50 transition-colors group">
-              <div className="aspect-[4/3] overflow-hidden bg-neutral-900 border border-white/5">
+            <div className="group rounded-xl border border-white/10 border-t-2 border-t-[#FB1D10] bg-[#101a2b]/75 p-4 sm:p-5 space-y-4 transition duration-300 hover:-translate-y-1 hover:border-[#FB1D10]/60 hover:shadow-[0_18px_46px_rgba(0,0,0,.24)]">
+              <div className="aspect-[16/9] overflow-hidden rounded-md bg-neutral-900">
                 <img
                   src="/real-media/equipment-drone-fleet.jpg"
                   alt="DJI Enterprise Drone Fleet"
@@ -1088,26 +926,24 @@ export default function WspLandingView({
                 />
               </div>
               <div className="space-y-3">
-                <span className="text-[11px] font-mono text-[#FB1D10] uppercase tracking-wider block font-bold">
+                <span className="text-[10px] font-mono text-[#FB6B63] uppercase tracking-[.14em] block font-bold">
                   AERIAL MAPPING • 3 AIRFRAMES
                 </span>
-                <h3 className="text-xl font-bold text-white uppercase group-hover:text-[#FB1D10] transition-colors">
+                <h3 className="text-lg sm:text-xl font-semibold text-white tracking-[-.02em] group-hover:text-[#FB6B63] transition-colors">
                   DJI Enterprise Fleet
                 </h3>
-                <p className="text-sm text-neutral-400 leading-relaxed">
+                <p className="text-[13px] text-neutral-300/75 leading-[1.65]">
                   DJI Mavic 3 Enterprise, Mavic 3 Multispectral, and Matrice 4 Enterprise with 7 dedicated batteries per model for uninterrupted aerial photogrammetry and multispectral sensing.
                 </p>
-                <div className="pt-3 border-t border-white/5 flex flex-wrap gap-2 text-[11px] font-mono text-neutral-400">
-                  <span className="px-2 py-1 bg-white/5 border border-white/5">Mavic 3 Enterprise</span>
-                  <span className="px-2 py-1 bg-white/5 border border-white/5">Multispectral</span>
-                  <span className="px-2 py-1 bg-white/5 border border-white/5">Matrice 4 Enterprise</span>
+                <div className="pt-3 border-t border-white/10 flex flex-wrap gap-x-3 gap-y-1.5 text-[10px] font-mono text-white/55">
+                  <span>Mavic 3 Enterprise</span><span>Multispectral</span><span>Matrice 4 Enterprise</span>
                 </div>
               </div>
             </div>
 
             {/* Card 3: Optical & Hydrographic (Slide 43) */}
-            <div className="border border-white/10 bg-neutral-950 p-8 space-y-6 hover:border-[#3B82F6]/60 transition-colors group">
-              <div className="aspect-[4/3] overflow-hidden bg-neutral-900 border border-white/5">
+            <div className="group rounded-xl border border-white/10 border-t-2 border-t-[#3B82F6] bg-[#101a2b]/75 p-4 sm:p-5 space-y-4 transition duration-300 hover:-translate-y-1 hover:border-[#3B82F6]/60 hover:shadow-[0_18px_46px_rgba(0,0,0,.24)]">
+              <div className="aspect-[16/9] overflow-hidden rounded-md bg-neutral-900">
                 <img
                   src="/real-media/slide_43_total_station.png"
                   alt="Total Stations & Optical Instruments"
@@ -1115,26 +951,24 @@ export default function WspLandingView({
                 />
               </div>
               <div className="space-y-3">
-                <span className="text-[11px] font-mono text-[#3B82F6] uppercase tracking-wider block font-bold">
+                <span className="text-[10px] font-mono text-[#60A5FA] uppercase tracking-[.14em] block font-bold">
                   TERRESTRIAL & HYDROGRAPHIC
                 </span>
-                <h3 className="text-xl font-bold text-white uppercase group-hover:text-[#3B82F6] transition-colors">
+                <h3 className="text-lg sm:text-xl font-semibold text-white tracking-[-.02em] group-hover:text-[#60A5FA] transition-colors">
                   Total Stations & Sounders
                 </h3>
-                <p className="text-sm text-neutral-400 leading-relaxed">
+                <p className="text-[13px] text-neutral-300/75 leading-[1.65]">
                   Multi-brand total stations (Topcon, Sokkia, CHCNAV, Kolida), Sokkia B 20A and Topcon AT B 3 automatic levels, and CHCNAV D270 digital echo sounder for bathymetric depth surveys.
                 </p>
-                <div className="pt-3 border-t border-white/5 flex flex-wrap gap-2 text-[11px] font-mono text-neutral-400">
-                  <span className="px-2 py-1 bg-white/5 border border-white/5">Sokkia / Topcon</span>
-                  <span className="px-2 py-1 bg-white/5 border border-white/5">Echo Sounder D270</span>
-                  <span className="px-2 py-1 bg-white/5 border border-white/5">Automatic Levels</span>
+                <div className="pt-3 border-t border-white/10 flex flex-wrap gap-x-3 gap-y-1.5 text-[10px] font-mono text-white/55">
+                  <span>Sokkia / Topcon</span><span>Echo Sounder D270</span><span>Automatic Levels</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Slide 44: Computational Hardware & Specialized Software Suite */}
-          <div className="p-5 sm:p-6 border border-white/10 bg-neutral-950/70 space-y-5">
+          <div className="overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-[#101a2b] via-[#0c1421] to-[#111522] p-4 sm:p-6 space-y-5 shadow-[0_20px_60px_rgba(0,0,0,.18)]">
             {/* Header: Clean, Compact, Architectural */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
               <div className="space-y-0.5">
@@ -1151,7 +985,7 @@ export default function WspLandingView({
             </div>
 
             {/* Workstations Specification Grid: Dynamic or Default */}
-            <div className="border border-white/10 divide-y sm:divide-y-0 sm:divide-x divide-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-black/40">
+            <div className="overflow-hidden rounded-lg border border-white/10 divide-y sm:divide-y-0 sm:divide-x divide-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-[#080e19]/65">
               {(
                 equipSec.content?.workstations && equipSec.content.workstations.length > 0
                   ? equipSec.content.workstations
@@ -1183,7 +1017,7 @@ export default function WspLandingView({
             </div>
 
             {/* Central Storage Strip */}
-            <div className="px-5 py-3 border border-white/10 bg-black/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
+            <div className="px-4 py-3 border border-white/10 bg-[#080e19]/65 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
               <div className="flex items-center gap-3">
                 <span className="w-2 h-2 rounded-full bg-[#3B82F6]" />
                 <span className="text-white font-bold tracking-wider">
@@ -1198,41 +1032,30 @@ export default function WspLandingView({
               </span>
             </div>
 
-            {/* Software Facilities: Dynamic Software Badges & Logos Banner */}
-            <div className="pt-2.5 border-t border-white/10 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#3B82F6] font-bold">
-                  CORE GEOSPATIAL &amp; ENGINEERING SOFTWARE
-                </span>
-                <span className="text-[11px] font-mono text-neutral-400">
-                  {equipSec.content?.softwareList && equipSec.content.softwareList.length > 0
-                    ? `${equipSec.content.softwareList.length} Enterprise Tools`
-                    : 'Enterprise Geospatial Suite'}
-                </span>
+          </div>
+
+          <div className="space-y-4 border-t border-white/15 pt-7" aria-label="Software and tools used by the team">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+              <div>
+                <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#3B82F6] font-bold">SOFTWARE &amp; DIGITAL TOOLS</span>
+                <p className="mt-1 text-sm text-neutral-300">A selection of the tools our team works with.</p>
               </div>
-
-              {equipSec.content?.softwareList && equipSec.content.softwareList.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1">
-                  {equipSec.content.softwareList.map((sw: any, idx: number) => (
-                    <div key={idx} className="p-2.5 bg-neutral-900/80 border border-white/10 rounded space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-mono uppercase text-neutral-400 truncate">{sw.category}</span>
-                        <span className="text-[9px] font-mono font-bold text-[#3B82F6]">{sw.badge}</span>
+              <Link href="/about/future-ready" className="inline-flex w-fit items-center gap-2 text-xs font-bold text-white transition hover:text-[#FB1D10]">
+                View instruments &amp; facilities <ArrowRight size={15} />
+              </Link>
+            </div>
+            <div className="wsp-software-marquee" role="region" aria-label="Software logos, moving from left to right">
+              <div className="wsp-software-track">
+                {[0, 1].map((copy) => (
+                  <div className="wsp-software-group" key={copy} aria-hidden={copy === 1}>
+                    {softwareExpertise.map((tool) => (
+                      <div className="wsp-software-tile" key={`${copy}-${tool.name}`} title={tool.name}>
+                        <img src={tool.logo} alt={copy === 0 ? `${tool.name} logo` : ''} loading="lazy" />
+                        <span>{tool.name}</span>
                       </div>
-                      <div className="text-xs font-bold text-white truncate">{sw.name}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* High-Impact Full-Width Software Logos Banner */}
-              <div className="w-full pt-1 pb-0">
-                <img
-                  src="/software-logos/geospatial-logos-banner-dark-trimmed.png"
-                  alt="ArcGIS Pro, QGIS, Agisoft Metashape, AutoCAD Civil 3D, Leica Geo Office"
-                  className="w-full h-auto max-h-[64px] sm:max-h-[76px] md:max-h-[88px] lg:max-h-[96px] object-contain mx-auto transition-all duration-300 opacity-95 hover:opacity-100 hover:scale-[1.01] drop-shadow-[0_8px_32px_rgba(59,130,246,0.35)] pointer-events-none select-none"
-                  loading="lazy"
-                />
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1240,11 +1063,85 @@ export default function WspLandingView({
       </section>
 
       {/* =========================================================================
+          SECTION 5.5: PEOPLE BEHIND THE WORK
+          Four active profiles come from the team database and are managed in Admin.
+          ========================================================================= */}
+      {activeTeamMembers.length > 0 && (
+        <section className="landing-team-section">
+          <motion.div
+            initial={{ opacity: 0, y: 36 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.12 }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+            className="landing-team-inner max-w-[1440px] mx-auto px-6 md:px-12"
+          >
+            <div className="landing-team-heading">
+              <div className="landing-team-title">
+                <span className="landing-team-eyebrow"><i /> PEOPLE MAKE THE DIFFERENCE</span>
+                <h2>Meet the people<br /><em>behind the work.</em></h2>
+              </div>
+              <div className="landing-team-intro">
+                <p>Good projects begin with people who care about the details. Meet a few of the team members helping build a clearer picture of Bangladesh.</p>
+                <Link href="/team" className="landing-team-cta">
+                  Meet the full team <ArrowRight size={17} />
+                </Link>
+              </div>
+            </div>
+
+            <div className="landing-team-grid">
+              {activeTeamMembers.map((member, index) => (
+                <motion.article
+                  key={member.id || member.slug}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.15 }}
+                  transition={{ duration: 0.55, delay: index * 0.09, ease: [0.16, 1, 0.3, 1] }}
+                  className="landing-team-card group"
+                >
+                  <Link href="/team" className="landing-team-card-link focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B82F6]">
+                    <div className="landing-team-photo">
+                      {member.image ? (
+                        <img
+                          src={member.image}
+                          alt={member.name}
+                          loading="lazy"
+                          className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.045]"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-5xl font-bold tracking-tight text-[#3B82F6]">
+                          {member.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('')}
+                        </div>
+                      )}
+                      <div className="landing-team-photo-shade" />
+                      <span className="landing-team-index">0{index + 1}</span>
+                      <span className="landing-team-category">
+                        {member.category || 'GEOSPATIAL WORKS'}
+                      </span>
+                      <span className="landing-team-arrow">
+                        <ArrowUpRight size={18} />
+                      </span>
+                    </div>
+                    <div className="landing-team-card-copy">
+                      <div>
+                        <h3>{member.name}</h3>
+                        <p>{member.role}</p>
+                      </div>
+                      <span className="landing-team-card-mark" aria-hidden="true" />
+                    </div>
+                  </Link>
+                </motion.article>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+      )}
+
+      {/* =========================================================================
           SECTION 5.5: "INNOVATIVE THINKING" & "LATEST NEWS"
           Exact WSP Layout: Dark pitch background (#141212). Top has 3 article cards,
           Bottom has "Latest news" on left and interactive news list with red dates on right.
           ========================================================================= */}
-      <section className="wsp-insights bg-[#0B0D12] text-white py-24 md:py-32 border-b border-white/[0.08]">
+      <section className="wsp-insights text-white py-24 md:py-32">
         <motion.div
           initial={{ opacity: 0, y: 45, filter: 'blur(4px)' }}
           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -1271,42 +1168,16 @@ export default function WspLandingView({
 
             {/* 3-Column Visual Article Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-10">
-              {[
-                {
-                  title: 'Rapid Deployment of DJI Matrice 4E UAV Photogrammetry for DTCA Bus Route Rationalization',
-                  img: '/projects-extracted/page_31/img_01.jpg',
-                  slug: 'dtca-bus-route-rationalization',
-                  tag: 'UAV PHOTOGRAMMETRY',
-                  isBlue: true,
-                },
-                {
-                  title: 'Generating 0.20cm Digital Terrain Models & High-Resolution Orthomosaics for Railway Bypasses',
-                  img: '/projects-extracted/page_29/img_02.jpg',
-                  slug: 'abdulpur-railway-bypass',
-                  tag: 'TERRAIN MODELING',
-                  isBlue: false,
-                },
-                {
-                  title: 'Coastal Mangrove Accretion Assessment Using RTK-Enabled UAVs for Bangladesh Forest Department',
-                  img: '/projects-extracted/page_25/img_02.jpg',
-                  slug: 'coastal-mangrove-assessment',
-                  tag: 'REMOTE SENSING',
-                  isBlue: true,
-                },
-              ].map((article, i) => (
+              {featuredArticles.slice(0, 3).map((article, i) => (
                 <Link
                   key={i}
                   href={`/insights/${article.slug}`}
                   className="group block space-y-4"
                 >
                   <div className="aspect-[16/10] overflow-hidden bg-neutral-900 relative">
-                    <img
-                      src={article.img}
-                      alt={article.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                    />
-                    <div className={`absolute top-3 left-3 text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 text-white ${article.isBlue ? 'bg-[#3B82F6]' : 'bg-[#FB1D10]'}`}>
-                      {article.tag}
+                    {article.imageUrl ? <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" /> : <div className="flex h-full items-center justify-center px-6 text-center text-white font-bold">{article.title}</div>}
+                    <div className={`absolute top-3 left-3 text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 text-white ${i % 2 === 0 ? 'bg-[#3B82F6]' : 'bg-[#FB1D10]'}`}>
+                      {article.category}
                     </div>
                   </div>
                   <h3 className="text-[19px] font-bold text-white leading-snug group-hover:text-[#3B82F6] transition-colors">
@@ -1374,7 +1245,7 @@ export default function WspLandingView({
           Exact WSP Layout: Dark pitch background (#141212), smiling engineer portrait
           with bold red & blue geometric ribbon pattern on left, narrative + two buttons on right.
           ========================================================================= */}
-      <section className="wsp-careers bg-[#141212] text-white py-24 md:py-32">
+      <section className="wsp-careers text-white py-24 md:py-32">
         <motion.div
           initial={{ opacity: 0, y: 45, filter: 'blur(4px)' }}
           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -1422,6 +1293,7 @@ export default function WspLandingView({
           </div>
         </motion.div>
       </section>
+      </div>
 
       {/* =========================================================================
           SECTION 7: KEEP IN TOUCH (STUNNING WSP-STYLE SECTION WITH FORM & MAPBOX)

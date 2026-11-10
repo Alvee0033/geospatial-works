@@ -278,7 +278,7 @@ const defaultStoryData = {
 
 const defaultFutureReadyData = {
   heroKicker: '02 / PHYSICAL RESOURCES & COMPUTATIONAL INFRASTRUCTURE',
-  heroTitle: 'Future-Ready Geodesy: Survey-Grade Hardware & Computing Power',
+  heroTitle: 'Instruments & Facilities',
   heroSubtitle:
     'Deploying 1,408-channel RTK GNSS receivers, DJI Enterprise multispectral UAV fleets, hydrographic echo sounders, and 14th Gen Intel Core i9 / Core Ultra 7 DDR5 workstation clusters backed by 40TB NAS central storage.',
   heroImage: '/real-media/equipment-dji-drones.jpg',

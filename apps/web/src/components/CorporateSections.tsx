@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
-import { insights, partners, projects, services } from '@/lib/corporate-data';
+import { partners, projects, services } from '@/lib/corporate-data';
 
 export function PageHero({ eyebrow, title, description, image }: { eyebrow: string; title: string; description: string; image?: string }) {
   return <section className="corporate-page-hero" style={image ? { backgroundImage: `linear-gradient(90deg,rgba(0,26,38,.94),rgba(0,32,46,.64)),url('${image}')` } : undefined}>
@@ -23,13 +23,6 @@ export function ProjectGrid({ limit }: { limit?: number }) {
   return <div className="corporate-card-grid">{projects.slice(0, limit).map(project => <article className="corporate-card" key={project.slug}>
     <Link href={`/projects/${project.slug}`} className="corporate-card-image"><img src={project.image} alt="" loading="lazy" /><span className="corporate-image-tag">{project.category}</span></Link>
     <div className="corporate-card-body"><h3><Link href={`/projects/${project.slug}`}>{project.title}</Link></h3><p>{project.location}</p><Link href={`/projects/${project.slug}`} className="corporate-card-link">View Project <ArrowUpRight size={15} /></Link></div>
-  </article>)}</div>;
-}
-
-export function InsightGrid({ limit }: { limit?: number }) {
-  return <div className="corporate-card-grid">{insights.slice(0, limit).map(item => <article className="corporate-card" key={item.slug}>
-    <Link href={`/insights/${item.slug}`} className="corporate-card-image"><img src={item.image} alt="" loading="lazy" /></Link>
-    <div className="corporate-card-body"><span className="corporate-card-category">{item.category}</span><h3><Link href={`/insights/${item.slug}`}>{item.title}</Link></h3><p>{item.summary}</p><Link href={`/insights/${item.slug}`} className="corporate-card-link">Read More <ArrowUpRight size={15} /></Link></div>
   </article>)}</div>;
 }
 

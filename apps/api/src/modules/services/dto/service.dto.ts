@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsOptional, IsString, IsBoolean, IsInt, IsArray } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString, IsBoolean, IsInt, IsArray, IsObject } from 'class-validator';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateServiceDto {
   @ApiProperty({ example: 'topographic-survey' })
@@ -32,6 +32,10 @@ export class CreateServiceDto {
   @IsOptional()
   imageUrl?: string;
 
+  @IsObject()
+  @IsOptional()
+  details?: Record<string, unknown>;
+
   @ApiProperty({ example: 0, required: false })
   @IsInt()
   @IsOptional()
@@ -43,5 +47,5 @@ export class CreateServiceDto {
   isActive?: boolean;
 }
 
-export class UpdateServiceDto extends CreateServiceDto {}
+export class UpdateServiceDto extends PartialType(CreateServiceDto) {}
 

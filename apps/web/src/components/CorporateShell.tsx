@@ -17,6 +17,8 @@ import {
   Sparkles,
   CornerDownLeft
 } from 'lucide-react';
+import { contactAddress } from '@/lib/contact-info';
+import { usePublicContactInfo } from '@/hooks/use-public-contact-info';
 
 type MenuKey = 'who-we-are' | 'what-we-do' | 'insights' | 'careers' | 'projects' | 'news' | 'innovators' | null;
 
@@ -50,7 +52,7 @@ const megaMenuData: Record<string, MegaMenuContent> = {
     categoryTitle: 'Who we are',
     items: [
       { label: 'Our Story & Purpose', href: '/about/our-story', hasArrow: true },
-      { label: 'Future Ready Geodesy', href: '/about/future-ready', hasArrow: true },
+      { label: 'Instruments & Facilities', href: '/about/future-ready', hasArrow: true },
       { label: 'Corporate Responsibility & Safety', href: '/about/corporate-responsibility', hasArrow: true },
       { label: 'Leadership & Senior Surveyors', href: '/team', hasArrow: true },
       { label: 'Our National Impact', href: '/projects', hasArrow: true },
@@ -83,25 +85,20 @@ const megaMenuData: Record<string, MegaMenuContent> = {
     featuredHref: '/services',
   },
   'insights': {
-    leadHeading: 'Our geospatial specialists offer compelling technical insights that provide new perspectives.',
-    leadSubtext: 'Read research papers, field notes, and case studies reframing river delta resilience, geodetic datums, and smart urban digital twins.',
+    leadHeading: 'See the places and projects our team has worked on.',
+    leadSubtext: 'Browse case studies built from our project records, with clear details about the client, location, and work delivered.',
     leadLinkText: 'View all news & insights',
     leadLinkHref: '/insights',
-    categoryTitle: 'Insights & Technical Bulletins',
+    categoryTitle: 'Project case studies',
     items: [
       { label: 'Overview', href: '/insights' },
-      { label: 'River Delta Resilience & Bathymetry', href: '/insights/river-delta-resilience-bathymetry', hasArrow: true },
-      { label: 'Urban Digital Twins & Smart WASA', href: '/insights/dhaka-wasa-smart-utility-digital-twin', hasArrow: true },
-      { label: 'Sub-centimeter RTK Geodesy', href: '/insights/rtk-gnss-national-corridor-geodesy', hasArrow: true },
-      { label: 'High-Density LiDAR Technical Bulletins', href: '/insights/high-density-uav-lidar-flood-defenses', hasArrow: true },
-      { label: 'Ground Penetrating Radar Case Studies', href: '/insights/ground-penetrating-radar-urban-expressway', hasArrow: true },
-      { label: 'Coastal Erosion Drone Orthomosaics', href: '/insights/coastal-erosion-drone-orthomosaics', hasArrow: true },
+      { label: 'Browse all project case studies', href: '/insights', hasArrow: true },
     ],
-    featuredLabel: 'Featured Article',
-    featuredTitle: 'Surveyor Voices & Field Innovation',
-    featuredDesc: 'Where practical field engineering know-how meets modern photogrammetric analytics and cloud GIS infrastructure.',
+    featuredLabel: 'Our projects',
+    featuredTitle: 'See our work across Bangladesh',
+    featuredDesc: 'Explore completed surveying, mapping, and engineering work from the project records.',
     featuredImage: '/real-media/service-topographic-uav.png',
-    featuredHref: '/insights/river-delta-resilience-bathymetry',
+    featuredHref: '/projects',
   },
   'careers': {
     leadHeading: 'What if you could do the kind of work Bangladesh truly needs?',
@@ -144,22 +141,20 @@ const megaMenuData: Record<string, MegaMenuContent> = {
     featuredHref: '/projects/page-16-passenger-facilities-modernization-at-gabtoli',
   },
   'news': {
-    leadHeading: 'Stay updated with Geospatial Works field milestones, contract awards, and engineering press releases.',
-    leadSubtext: 'Official releases from our Dhaka headquarters and field teams across Bangladesh.',
-    leadLinkText: 'View all news',
+    leadHeading: 'Read about the work our team has completed.',
+    leadSubtext: 'Project case studies on surveying, mapping, and engineering work across Bangladesh.',
+    leadLinkText: 'View project stories',
     leadLinkHref: '/insights',
-    categoryTitle: 'News & Press Releases',
+    categoryTitle: 'Project stories',
     items: [
-      { label: 'Latest News & Field Milestones', href: '/insights?tab=press', hasArrow: true },
-      { label: 'Contract Signings & Partnerships', href: '/insights?tab=contracts', hasArrow: true },
-      { label: 'Technical Bulletins & Whitepapers', href: '/insights?tab=bulletins', hasArrow: true },
-      { label: 'Events, Seminars & Workshops', href: '/insights?tab=events', hasArrow: true },
+      { label: 'All project case studies', href: '/insights', hasArrow: true },
+      { label: 'Our project portfolio', href: '/projects', hasArrow: true },
     ],
-    featuredLabel: 'Latest News',
-    featuredTitle: 'Transforming Municipal Infrastructure into Digital Twins',
-    featuredDesc: 'Geospatial Works delivers full-scale PostGIS database and hydraulic integration for metropolitan authorities.',
+    featuredLabel: 'Project case studies',
+    featuredTitle: 'Explore our project work',
+    featuredDesc: 'Read case studies built from the project records in our portfolio.',
     featuredImage: '/delta-hero-v2.webp',
-    featuredHref: '/insights/dhaka-wasa-smart-utility-digital-twin',
+    featuredHref: '/insights',
   },
   'innovators': {
     leadHeading: 'Meet the surveyors, drone pilots, and GIS software architects behind our precision work.',
@@ -185,6 +180,7 @@ const megaMenuData: Record<string, MegaMenuContent> = {
 };
 
 export default function CorporateShell({ children }: { children: React.ReactNode }) {
+  const contactInfo = usePublicContactInfo();
   const [activeMenu, setActiveMenu] = useState<MenuKey>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -206,12 +202,12 @@ export default function CorporateShell({ children }: { children: React.ReactNode
         return res.json();
       })
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setArticles(data);
         }
       })
       .catch((err) => {
-        console.warn('Using default news articles:', err);
+        console.warn('News and project stories could not be loaded:', err);
       });
 
     fetch('/api/projects')
@@ -641,7 +637,7 @@ export default function CorporateShell({ children }: { children: React.ReactNode
                 <div className="lg:col-span-4 space-y-4 border-b lg:border-b-0 lg:border-r border-neutral-200 pb-8 lg:pb-0 pr-4">
                   <h4 className="text-[17px] font-extrabold text-[#141212] tracking-[-0.01em] pb-2 border-b border-neutral-200">
                     {activeMenu === 'news'
-                      ? 'Latest Published News & Bulletins'
+                      ? 'Project case studies'
                       : activeMenu === 'insights'
                       ? 'Insights & Technical Bulletins'
                       : currentMegaData.categoryTitle}
@@ -659,7 +655,7 @@ export default function CorporateShell({ children }: { children: React.ReactNode
                             <div className="min-w-0 pr-2">
                               <span className="block truncate font-semibold">{art.title}</span>
                               <span className="text-[11px] text-neutral-400">
-                                {art.category || 'Article'} • {art.publishDate || 'Recent'}
+                                {art.publishDate ? `${art.category || 'Article'} • ${art.publishDate}` : (art.category || 'Article')}
                               </span>
                             </div>
                             <ChevronRight
@@ -697,7 +693,7 @@ export default function CorporateShell({ children }: { children: React.ReactNode
                   <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
                     <span className="text-[12px] font-extrabold text-neutral-500 uppercase tracking-widest">
                       {(activeMenu === 'news' || activeMenu === 'insights') && articles[0]
-                        ? 'Top Bulletin'
+                        ? 'Latest project story'
                         : currentMegaData.featuredLabel}
                     </span>
 
@@ -722,6 +718,8 @@ export default function CorporateShell({ children }: { children: React.ReactNode
                       ? `/insights/${topArt.slug}`
                       : topProj
                       ? `/projects/${topProj.slug}`
+                      : activeMenu === 'news' || activeMenu === 'insights'
+                      ? '/insights'
                       : currentMegaData.featuredHref;
 
                     const featuredImg = topArt?.imageUrl || topProj?.imageUrl || currentMegaData.featuredImage;
@@ -1066,7 +1064,7 @@ export default function CorporateShell({ children }: { children: React.ReactNode
               <h4 className="text-[14px] font-bold tracking-tight text-white uppercase">Who we are</h4>
               <ul className="space-y-2 text-[13px] text-neutral-400">
                 <li><Link href="/about/our-story" className="hover:text-white transition-colors">Our Story &amp; Purpose</Link></li>
-                <li><Link href="/about/future-ready" className="hover:text-white transition-colors">Future Ready Geodesy</Link></li>
+                <li><Link href="/about/future-ready" className="hover:text-white transition-colors">Instruments &amp; Facilities</Link></li>
                 <li><Link href="/about/corporate-responsibility" className="hover:text-white transition-colors">Corporate Responsibility</Link></li>
                 <li><Link href="/team" className="hover:text-white transition-colors">Leadership &amp; Innovators</Link></li>
                 <li><Link href="/about/standards" className="hover:text-white transition-colors">Quality Benchmarks &amp; SOB</Link></li>
@@ -1109,10 +1107,12 @@ export default function CorporateShell({ children }: { children: React.ReactNode
 
             {/* Column 6: Contact & Location */}
             <div className="space-y-3">
-              <h4 className="text-[14px] font-bold tracking-tight text-white uppercase">Dhaka Headquarters</h4>
+              <h4 className="text-[14px] font-bold tracking-tight text-white uppercase">{contactInfo?.officeName || 'Corporate Office'}</h4>
               <p className="text-[12px] text-neutral-400 leading-relaxed">
-                64/1 (D1), Lake Circus, Kalabagan, Dhaka 1205, Bangladesh
+                {contactInfo ? contactAddress(contactInfo) : 'Office contact details are loading…'}
               </p>
+              {contactInfo?.phone && <a href={`tel:${contactInfo.phone.replace(/[^\d+]/g, '')}`} className="block text-[12px] text-neutral-400 hover:text-white">{contactInfo.phone}</a>}
+              {contactInfo?.email && <a href={`mailto:${contactInfo.email}`} className="block text-[12px] text-neutral-400 hover:text-white">{contactInfo.email}</a>}
               <div className="pt-2">
                 <Link
                   href="/contact"

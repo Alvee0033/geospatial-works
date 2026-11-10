@@ -29,6 +29,12 @@ export class Project {
   @Column({ nullable: true })
   imageUrl: string;
 
+  @Column({ type: 'jsonb', default: {} })
+  details: Record<string, unknown>;
+
+  @Column({ default: true })
+  isActive: boolean;
+
   @Column({ default: false })
   isMilestone: boolean;
 

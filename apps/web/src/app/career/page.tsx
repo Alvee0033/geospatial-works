@@ -39,117 +39,8 @@ interface Role {
   deadline?: string;
 }
 
-const fallbackJobOpenings: Role[] = [
-  {
-    id: 'lead-geodetic-surveyor',
-    title: 'Lead Geodetic Surveyor (RTK & Total Station)',
-    department: 'Geodesy & Ground Survey',
-    location: 'Dhaka & Field Locations, Bangladesh',
-    type: 'Full-time / Permanent',
-    summary: 'Lead primary geodetic control networks, SOB benchmark tying, and high-precision topographic surveys for landmark bridge, rail, and expressway alignments.',
-    description: 'Geospatial Works is seeking a seasoned Lead Geodetic Surveyor to spearhead millimeter-grade control networks across Bangladesh infrastructure mega-projects. You will coordinate field teams, verify instrument calibrations, and interface directly with chief consultant engineers.',
-    qualifications: [
-      'B.Sc. or Diploma in Surveying / Geomatics / Civil Engineering',
-      '5+ years hands-on experience with Trimble/Leica GNSS RTK and robotic total stations',
-      'Proficiency in network least-squares adjustment and Civil 3D surface modeling',
-    ],
-    responsibilities: [
-      'Establish high-order geodetic control stations tied to Survey of Bangladesh benchmarks',
-      'Conduct static GNSS campaigns and post-process baseline vectors',
-      'Supervise junior surveyors on bridge alignments, expressway corridors, and rail tangents',
-      'Prepare statutory survey reports, QA/QC documentation, and coordinate transforms',
-    ],
-    experienceLevel: '5+ Years',
-    salaryRange: 'Negotiable / Attractive Standard',
-  },
-  {
-    id: 'uav-flight-operator',
-    title: 'Commercial UAV Flight Operator & Photogrammetrist',
-    department: 'Aerial Survey & Drone Fleet',
-    location: 'Dhaka & Field Deployments',
-    type: 'Full-time',
-    summary: 'Command DJI Enterprise drone fleets (M350 RTK, Phantom 4 RTK) for multi-temporal corridor mapping, photogrammetry, and LiDAR data collection.',
-    description: 'Join our cutting-edge aerial survey division deploying high-end RTK/LiDAR drones across deltaic corridors and urban megacities. You will be responsible for mission planning, airspace compliance, and photogrammetric surface reconstructions.',
-    qualifications: [
-      'Certified commercial drone pilot with CAAB flight protocol knowledge',
-      '3+ years experience with Pix4Dmapper, DJI Terra, or Agisoft Metashape',
-      'Strong safety mindset and ability to manage field ground control points (GCPs)',
-    ],
-    responsibilities: [
-      'Execute automated grid and corridor UAV flight plans with centimeter RTK accuracy',
-      'Ensure CAAB safety compliance and battery health management',
-      'Process aerial imagery into dense point clouds, DEMs, and orthomosaics',
-    ],
-    experienceLevel: '3+ Years',
-    salaryRange: 'Negotiable',
-  },
-  {
-    id: 'enterprise-gis-analyst',
-    title: 'Enterprise GIS & PostGIS Spatial Developer',
-    department: 'Spatial Intelligence & Digital Twins',
-    location: 'Dhaka Headquarters',
-    type: 'Full-time',
-    summary: 'Architect PostgreSQL/PostGIS spatial databases, vector tile servers, and interactive web mapping portals for municipal digital twin projects.',
-    description: 'We are expanding our Spatial Intelligence lab with an Enterprise GIS Developer passionate about scalable spatial queries, 3D tiles, and cloud-native geospatial stacks.',
-    qualifications: [
-      'Degree in GIS, Computer Science, Urban Planning, or related discipline',
-      'Strong SQL/PostGIS skills and experience with Python (GeoPandas, GDAL/OGR)',
-      'Experience building web GIS interfaces using Leaflet, Mapbox, or OpenLayers',
-    ],
-    responsibilities: [
-      'Build automated ETL pipelines for spatial data ingestion and topological cleaning',
-      'Design high-throughput PostGIS database schemas for municipal utility networks',
-      'Develop responsive web mapping dashboards for client stakeholders',
-    ],
-    experienceLevel: '2-4 Years',
-    salaryRange: 'Competitive',
-  },
-  {
-    id: 'hydrographic-survey-engineer',
-    title: 'Hydrographic & Bathymetric Survey Engineer',
-    department: 'Marine & Water Resources',
-    location: 'River Basin Sites & Dhaka HQ',
-    type: 'Full-time',
-    summary: 'Conduct riverbed bathymetric echo sounding, ADCP velocity profiling, and scour monitoring in Bangladesh’s major delta river corridors.',
-    description: 'Spearhead bathymetric charting and hydraulic discharge assessments across Bangladesh’s dynamic braided river systems using dual-frequency echosounders and ADCPs.',
-    qualifications: [
-      'Degree in Oceanography, Water Resources Engineering, or Hydrography',
-      'Familiarity with digital echo sounders, Hypack software, and RTK motion sensors',
-      'Willingness to travel on survey vessels in tidal and riverine environments',
-    ],
-    responsibilities: [
-      'Mobilize single/multibeam sonars and ADCP sensors on survey vessels',
-      'Execute transect navigation and sound velocity profiling',
-      'Process raw bathymetric sounding data into 3D riverbed models',
-    ],
-    experienceLevel: '3+ Years',
-    salaryRange: 'Competitive + Allowances',
-  },
-  {
-    id: 'subsurface-utility-engineer',
-    title: 'Subsurface Utility Engineering (SUE) Specialist',
-    department: 'Underground Infrastructure',
-    location: 'Dhaka Metropolitan',
-    type: 'Full-time',
-    summary: 'Operate ground penetrating radar (GPR) and precision electromagnetic cable/pipe locators to detect buried municipal utility corridors.',
-    description: 'Protect buried pipelines and power networks by accurately mapping underground infrastructure using advanced dual-frequency GPR and induction locators.',
-    qualifications: [
-      'Diploma/Degree in Geophysics, Electrical, or Civil Engineering',
-      'Experience interpreting GPR radargrams and electromagnetic induction data',
-      'Understanding of ASCE 38-02 Subsurface Utility Engineering guidelines',
-    ],
-    responsibilities: [
-      'Scan arterial city roads with multi-channel GPR carts',
-      'Mark buried pipes, telecom ducts, and gas mains with precision coordinates',
-      'Convert geophysical signatures into AutoCAD and GIS utility models',
-    ],
-    experienceLevel: '2+ Years',
-    salaryRange: 'Competitive',
-  },
-];
-
 export default function CareerPage() {
-  const [roles, setRoles] = useState<Role[]>(fallbackJobOpenings);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [selectedDept, setSelectedDept] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [applyingJob, setApplyingJob] = useState<Role | null>(null);
@@ -194,7 +85,7 @@ export default function CareerPage() {
         return res.json();
       })
       .then((data: Role[]) => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           const parsed = data.map((j) => ({
             ...j,
             qualifications: Array.isArray(j.qualifications)
@@ -212,7 +103,7 @@ export default function CareerPage() {
         }
       })
       .catch((err) => {
-        console.warn('Using fallback career roles:', err);
+        console.warn('Career roles could not be loaded:', err);
       });
   }, []);
 

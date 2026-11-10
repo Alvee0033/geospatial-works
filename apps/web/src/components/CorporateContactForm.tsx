@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { CheckCircle2, Send, AlertCircle, Loader2 } from 'lucide-react';
 import { CmsApi } from '@/lib/cms-api';
+import { usePublicContactInfo } from '@/hooks/use-public-contact-info';
 
 interface CorporateContactFormProps {
   theme?: 'dark' | 'light';
@@ -18,6 +19,7 @@ export default function CorporateContactForm({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const contactInfo = usePublicContactInfo();
 
   const isDark = theme === 'dark';
 
@@ -57,8 +59,12 @@ export default function CorporateContactForm({
       console.error('Submission failed:', err);
       const subject = `Geospatial Works inquiry: ${serviceType || 'Project'}`;
       const body = `Name: ${fullName}\nEmail: ${email}\nPhone: ${phone}\nOrganization: ${organization}\n\n${userMessage}`;
-      window.location.href = `mailto:info@geospatialworks.com.bd?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      setErrorMessage('Offline fallback: your inquiry draft opened in your email client.');
+      if (contactInfo?.email) {
+        window.location.href = `mailto:${contactInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        setErrorMessage('Offline fallback: your inquiry draft opened in your email client.');
+      } else {
+        setErrorMessage('We could not send the inquiry or load the office email. Please try again shortly.');
+      }
     } finally {
       setSubmitting(false);
     }

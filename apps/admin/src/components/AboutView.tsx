@@ -68,7 +68,7 @@ export function AboutView({
     },
     {
       id: 'future-ready' as AboutSubTab,
-      label: 'Future Ready Geodesy',
+      label: 'Instruments & Facilities',
       route: '/about/future-ready',
       icon: Sparkles,
       badge: 'Drone & Workstations',

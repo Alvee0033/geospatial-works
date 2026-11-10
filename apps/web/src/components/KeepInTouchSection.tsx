@@ -5,6 +5,9 @@ import Link from 'next/link';
 import { ArrowRight, Phone, Mail, Compass } from 'lucide-react';
 import CorporateContactForm from './CorporateContactForm';
 import MapboxOfficeMap from './MapboxOfficeMap';
+import { OFFICE_COORDINATES } from '@/lib/contact-info';
+import { contactAddress, phoneHref, PublicContactInfo } from '@/lib/contact-info';
+import { usePublicContactInfo } from '@/hooks/use-public-contact-info';
 
 interface KeepInTouchSectionProps {
   title?: string;
@@ -13,6 +16,7 @@ interface KeepInTouchSectionProps {
   showForm?: boolean;
   className?: string;
   theme?: 'dark' | 'light';
+  contactInfo?: PublicContactInfo | null;
 }
 
 export default function KeepInTouchSection({
@@ -22,8 +26,12 @@ export default function KeepInTouchSection({
   showForm = true,
   className = '',
   theme = 'dark',
+  contactInfo: suppliedContactInfo,
 }: KeepInTouchSectionProps) {
   const isDark = theme === 'dark';
+  const loadedContactInfo = usePublicContactInfo();
+  const contactInfo = suppliedContactInfo ?? loadedContactInfo;
+  const address = contactInfo ? contactAddress(contactInfo) : '';
 
   return (
     <section
@@ -77,22 +85,23 @@ export default function KeepInTouchSection({
           <div className={`${showForm ? 'lg:col-span-5' : 'lg:col-span-8 lg:col-start-3'} space-y-5`}>
             {/* Map */}
             <MapboxOfficeMap
-              lat={23.7505}
-              lng={90.3807}
+              lat={Number(contactInfo?.latitude) || OFFICE_COORDINATES.latitude}
+              lng={Number(contactInfo?.longitude) || OFFICE_COORDINATES.longitude}
               zoom={15}
               theme={theme}
               heightClass="h-[240px] sm:h-[260px]"
+              locationName={contactInfo?.companyName || 'Geospatial Works'}
             />
 
             {/* Studio Info Card */}
             <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl p-6 space-y-5">
               <div>
                 <span className="block text-[10px] font-mono uppercase tracking-[0.18em] text-neutral-500 mb-1">
-                  Dhaka Headquarters
+                  {contactInfo?.officeName || 'Corporate Office'}
                 </span>
                 <p className="text-sm font-medium text-neutral-200 leading-relaxed">
-                  Geospatial Works Ltd.<br />
-                  64/1 (D1), Lake Circus, Kalabagan, Dhaka 1205
+                  {contactInfo?.companyName}<br />
+                  {address || 'Contact details are loading…'}
                 </p>
               </div>
 
@@ -103,36 +112,25 @@ export default function KeepInTouchSection({
                   <span className="block text-[10px] font-mono uppercase tracking-[0.18em] text-neutral-500 mb-1">
                     Phone
                   </span>
-                  <a
-                    href="tel:+8801303772216"
+                  {contactInfo?.phone && <a
+                    href={phoneHref(contactInfo.phone)}
                     className="block text-xs font-mono text-neutral-200 hover:text-[#FB1D10] transition-colors"
                   >
-                    +88 01303 772216
-                  </a>
-                  <a
-                    href="tel:+8801713907779"
-                    className="block text-[11px] font-mono text-neutral-400 hover:text-white transition-colors"
-                  >
-                    +88 01713 907779
-                  </a>
+                    {contactInfo.phone}
+                  </a>}
                 </div>
 
                 <div>
                   <span className="block text-[10px] font-mono uppercase tracking-[0.18em] text-neutral-500 mb-1">
                     Email
                   </span>
-                  <a
-                    href="mailto:info@geospatialworks.com.bd"
+                  {contactInfo?.email && <a
+                    href={`mailto:${contactInfo.email}`}
                     className="block text-xs text-neutral-200 hover:text-[#FB1D10] transition-colors truncate"
                   >
-                    info@geospatialworks.com.bd
-                  </a>
-                  <a
-                    href="mailto:careers@geospatialworks.com.bd"
-                    className="block text-[11px] text-neutral-400 hover:text-white transition-colors truncate"
-                  >
-                    careers@geospatialworks.com.bd
-                  </a>
+                    {contactInfo.email}
+                  </a>}
+                  {contactInfo?.website && <a href={contactInfo.website} target="_blank" rel="noreferrer" className="mt-1 block text-[11px] text-neutral-400 hover:text-white transition-colors truncate">{contactInfo.website.replace(/^https?:\/\//, '')}</a>}
                 </div>
               </div>
             </div>

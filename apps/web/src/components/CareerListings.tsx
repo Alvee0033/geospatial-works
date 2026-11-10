@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { ArrowUpRight, Search } from 'lucide-react';
+import { usePublicContactInfo } from '@/hooks/use-public-contact-info';
 
 const roles = [
   { title: 'Field Surveyor', group: 'Field work', summary: 'Measure land and record the features a project team needs to know about.', points: ['Visit sites and take careful measurements.', 'Keep clear notes and check survey results.', 'Work with the mapping team to prepare plans.'] },
@@ -13,6 +14,7 @@ const roles = [
 ] as const;
 
 export default function CareerListings() {
+  const contactInfo = usePublicContactInfo();
   const [query, setQuery] = useState('');
   const [group, setGroup] = useState('All roles');
   const groups = ['All roles', 'Field work', 'Office work'];
@@ -28,13 +30,13 @@ export default function CareerListings() {
       <p>These are the kinds of roles our work involves. They are open to general interest, not listed as current vacancies.</p>
       <label className="interior-role-search"><Search size={17} aria-hidden="true" /><span className="sr-only">Search roles</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search by role" /></label>
       <div className="interior-role-filters" aria-label="Filter career areas">{groups.map(item => <button type="button" aria-pressed={group === item} onClick={() => setGroup(item)} key={item}>{item}<span>{item === 'All roles' ? roles.length : roles.filter(role => role.group === item).length}</span></button>)}</div>
-      <div className="interior-career-aside-note"><strong>Don’t see your role?</strong><p>Tell us what you do and send your CV for future consideration.</p><a href="mailto:info@geospatialworks.com.bd?subject=General%20career%20interest">Send your CV <ArrowUpRight size={16} /></a></div>
+      <div className="interior-career-aside-note"><strong>Don’t see your role?</strong><p>Tell us what you do and send your CV for future consideration.</p>{contactInfo?.email && <a href={`mailto:${contactInfo.email}?subject=General%20career%20interest`}>Send your CV <ArrowUpRight size={16} /></a>}</div>
     </aside>
     <div className="interior-role-results" aria-live="polite">
       {filtered.length ? filtered.map(role => <article className="interior-role-card" key={role.title}>
         <div className="interior-role-tags"><span>{role.group}</span><span>General interest</span></div>
         <h3>{role.title}</h3><p>{role.summary}</p>
-        <div className="interior-role-bottom"><details><summary>View role <ArrowUpRight size={16} aria-hidden="true" /></summary><ul>{role.points.map(point => <li key={point}>{point}</li>)}</ul><a href={`mailto:info@geospatialworks.com.bd?subject=${encodeURIComponent(`Career interest: ${role.title}`)}`}>Send your CV <ArrowUpRight size={16} /></a></details></div>
+        <div className="interior-role-bottom"><details><summary>View role <ArrowUpRight size={16} aria-hidden="true" /></summary><ul>{role.points.map(point => <li key={point}>{point}</li>)}</ul>{contactInfo?.email && <a href={`mailto:${contactInfo.email}?subject=${encodeURIComponent(`Career interest: ${role.title}`)}`}>Send your CV <ArrowUpRight size={16} /></a>}</details></div>
       </article>) : <p className="interior-no-results">No roles match that search.</p>}
     </div>
   </div>;

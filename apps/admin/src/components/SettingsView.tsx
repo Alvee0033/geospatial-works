@@ -46,6 +46,7 @@ export interface AdminUserItem {
 }
 
 export interface ContactInfoSettings {
+  officeName: string;
   companyName: string;
   tagline: string;
   registrationNumber: string;
@@ -66,6 +67,7 @@ export interface ContactInfoSettings {
   email: string;
   emailInquiries: string;
   emailCareers: string;
+  website: string;
   whatsAppNumber: string;
   hoursWeekday: string;
   hoursField: string;
@@ -78,28 +80,30 @@ export interface ContactInfoSettings {
 }
 
 const defaultContactInfo: ContactInfoSettings = {
+  officeName: 'Corporate Office',
   companyName: 'Geospatial Works',
   tagline: 'Pioneering Ground Truth & Spatial Intelligence Across Bangladesh',
   registrationNumber: 'TRAD/DSCC/012948/2021',
-  address: '64/1 (D1), Lake Circus, Kalabagan',
-  area: 'Kalabagan, Dhanmondi',
+  address: 'Plot 14, Road 02',
+  area: 'Aram Housing, 40ft, Bosila, Mohammadpur',
   city: 'Dhaka',
-  postalCode: '1205',
+  postalCode: '1207',
   country: 'Bangladesh',
-  nearestLandmark: 'Lake Circus Road, Adjacent to Dhanmondi Lake 32',
-  latitude: '23.750942',
-  longitude: '90.384351',
+  nearestLandmark: '',
+  latitude: '',
+  longitude: '',
   elevation: '7.2m AMSL',
   datum: 'WGS 84 / Bangladesh Transverse Mercator (BTM)',
   mapEmbedUrl:
-    'https://www.google.com/maps?q=64%2F1%20(D1)%2C%20Lake%20Circus%2C%20Kalabagan%2C%20Dhaka%201205&output=embed',
-  phone: '+88 01303 772216',
-  phoneSecondary: '+88 01713 907779',
-  emergencyHotline: '+88 01303 772216',
-  email: 'info@geospatialworks.com.bd',
-  emailInquiries: 'inquiry@geospatialworks.com.bd',
-  emailCareers: 'careers@geospatialworks.com.bd',
-  whatsAppNumber: '8801303772216',
+    'https://www.google.com/maps?q=Plot%2014%2C%20Road%2002%2C%20Aram%20Housing%2C%2040ft%2C%20Bosila%2C%20Mohammadpur%2C%20Dhaka-1207&output=embed',
+  phone: '+880 1713 90 77 79',
+  phoneSecondary: '',
+  emergencyHotline: '',
+  email: 'md.geospatialworks@gmail.com',
+  emailInquiries: 'md.geospatialworks@gmail.com',
+  emailCareers: 'md.geospatialworks@gmail.com',
+  website: 'https://www.geospatialworks.com.bd',
+  whatsAppNumber: '8801713907779',
   hoursWeekday: 'Sunday – Thursday: 9:00 AM – 6:00 PM (BST / GMT+6)',
   hoursField: 'Field Operations & Rapid Emergency Deployment: 24/7 Available Nationwide',
   chittagongHub: 'Agrabad Commercial Area, Chattogram 4100 (Marine & Hydrographic Unit)',
@@ -182,29 +186,15 @@ export function SettingsView({
   const loadContactInfo = async () => {
     try {
       const res = await fetch('/api/cms/sections/contact');
-      if (res.ok) {
-        const data = await res.json();
-        const contactSec = Array.isArray(data)
-          ? data.find((s: any) => s.sectionKey === 'contact_info')
-          : data;
-        if (contactSec && contactSec.content) {
-          setContactInfo({ ...defaultContactInfo, ...contactSec.content });
-          return;
-        }
-      }
-    } catch {
-      // ignore
-    }
-
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem('gw_contact_settings');
-      if (cached) {
-        try {
-          setContactInfo({ ...defaultContactInfo, ...JSON.parse(cached) });
-        } catch {
-          // ignore
-        }
-      }
+      if (!res.ok) throw new Error('Unable to load contact details from the database.');
+      const data = await res.json();
+      const contactSec = Array.isArray(data)
+        ? data.find((s: any) => s.sectionKey === 'contact_info')
+        : data?.contact_info || data;
+      if (contactSec?.content) setContactInfo({ ...defaultContactInfo, ...contactSec.content });
+    } catch (error) {
+      console.error('Failed to load contact settings from CMS database', error);
+      triggerFeedback('Could not load contact details from the database. Check the API connection.', 'error');
     }
   };
 
@@ -231,21 +221,14 @@ export function SettingsView({
         }),
       });
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('gw_contact_settings', JSON.stringify(contactInfo));
-        localStorage.setItem('gw_contact_settings_timestamp', Date.now().toString());
-      }
-
       if (res.ok) {
-        triggerFeedback('Headquarters contact info & map coordinates saved to CMS database!');
+        triggerFeedback('Corporate office contact details saved to the database.');
       } else {
-        triggerFeedback('Contact profile updated locally (database synced)', 'success');
+        const detail = await res.text().catch(() => '');
+        throw new Error(detail || 'The database rejected the update.');
       }
     } catch (err: any) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('gw_contact_settings', JSON.stringify(contactInfo));
-      }
-      triggerFeedback('Saved to local configuration storage', 'success');
+      triggerFeedback(err?.message || 'Could not save contact details to the database.', 'error');
     } finally {
       setSavingContact(false);
     }
@@ -574,6 +557,17 @@ export function SettingsView({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Office Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={contactInfo.officeName}
+                      onChange={(e) => setContactInfo({ ...contactInfo, officeName: e.target.value })}
+                      placeholder="Corporate Office"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
                   <div className="sm:col-span-2">
                     <label className="block font-bold text-slate-700 mb-1">Company Official Name</label>
                     <input
@@ -624,7 +618,7 @@ export function SettingsView({
                     <MapPin size={16} />
                   </div>
                   <div>
-                    <h3 className="text-sm font-extrabold text-slate-900">Headquarters Physical Address</h3>
+                    <h3 className="text-sm font-extrabold text-slate-900">Corporate Office Address</h3>
                     <p className="text-xs text-slate-500">Street, building suite, area, city and postal designation</p>
                   </div>
                 </div>
@@ -637,7 +631,7 @@ export function SettingsView({
                       required
                       value={contactInfo.address}
                       onChange={(e) => setContactInfo({ ...contactInfo, address: e.target.value })}
-                      placeholder="64/1 (D1), Lake Circus, Kalabagan"
+                      placeholder="Plot 14, Road 02"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
                     />
                   </div>
@@ -708,7 +702,7 @@ export function SettingsView({
                       required
                       value={contactInfo.phone}
                       onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
-                      placeholder="+88 01303 772216"
+                      placeholder="+880 1713 90 77 79"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
@@ -719,7 +713,7 @@ export function SettingsView({
                       type="text"
                       value={contactInfo.phoneSecondary}
                       onChange={(e) => setContactInfo({ ...contactInfo, phoneSecondary: e.target.value })}
-                      placeholder="+88 01713 907779"
+                      placeholder="Optional"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
@@ -730,7 +724,7 @@ export function SettingsView({
                       type="text"
                       value={contactInfo.emergencyHotline}
                       onChange={(e) => setContactInfo({ ...contactInfo, emergencyHotline: e.target.value })}
-                      placeholder="+88 01303 772216"
+                      placeholder="Optional"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
@@ -753,7 +747,7 @@ export function SettingsView({
                       required
                       value={contactInfo.email}
                       onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
-                      placeholder="info@geospatialworks.com.bd"
+                      placeholder="md.geospatialworks@gmail.com"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
@@ -764,7 +758,7 @@ export function SettingsView({
                       type="email"
                       value={contactInfo.emailInquiries}
                       onChange={(e) => setContactInfo({ ...contactInfo, emailInquiries: e.target.value })}
-                      placeholder="inquiry@geospatialworks.com.bd"
+                      placeholder="md.geospatialworks@gmail.com"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
@@ -775,7 +769,17 @@ export function SettingsView({
                       type="email"
                       value={contactInfo.emailCareers}
                       onChange={(e) => setContactInfo({ ...contactInfo, emailCareers: e.target.value })}
-                      placeholder="careers@geospatialworks.com.bd"
+                      placeholder="md.geospatialworks@gmail.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold text-slate-700 mb-1">Website</label>
+                    <input
+                      type="url"
+                      value={contactInfo.website}
+                      onChange={(e) => setContactInfo({ ...contactInfo, website: e.target.value })}
+                      placeholder="https://www.geospatialworks.com.bd"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>

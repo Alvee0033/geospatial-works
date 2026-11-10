@@ -3,6 +3,9 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger'
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../entities/user.entity';
 
 @ApiTags('Projects')
 @Controller('projects')
@@ -13,7 +16,15 @@ export class ProjectsController {
   @ApiOperation({ summary: 'Get projects (optionally filter milestones)' })
   @ApiQuery({ name: 'milestonesOnly', required: false, type: Boolean })
   async findAll(@Query('milestonesOnly') milestonesOnly?: string) {
-    return this.projectsService.findAll(milestonesOnly === 'true');
+    return this.projectsService.findAll(milestonesOnly === 'true', true);
+  }
+
+  @Get('admin/all')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  @ApiBearerAuth()
+  async findAllAdmin() {
+    return this.projectsService.findAll(false, false);
   }
 
   @Get(':slug')
@@ -24,7 +35,8 @@ export class ProjectsController {
 
   // Admin Endpoints
   @Post('admin')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Create a new project' })
   async create(@Body() dto: CreateProjectDto) {
@@ -32,7 +44,8 @@ export class ProjectsController {
   }
 
   @Put('admin/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Update an existing project' })
   async update(@Param('id') id: string, @Body() dto: UpdateProjectDto) {
@@ -40,7 +53,8 @@ export class ProjectsController {
   }
 
   @Delete('admin/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Delete a project' })
   async delete(@Param('id') id: string) {

@@ -9,10 +9,10 @@ import {
   Layers,
   Building,
 } from 'lucide-react';
-import teamData from '@/data/teamMembers.json';
 
 interface TeamMember {
   id: string;
+  slug: string;
   name: string;
   role: string;
   category: string;
@@ -25,7 +25,7 @@ interface TeamMember {
 
 export default function TeamClientView() {
   const [activeCategory, setActiveCategory] = useState<string>('All');
-  const [members, setMembers] = useState<TeamMember[]>(teamData);
+  const [members, setMembers] = useState<TeamMember[]>([]);
 
   useEffect(() => {
     // Fetch live updated team directory from API if available
@@ -35,7 +35,7 @@ export default function TeamClientView() {
         return null;
       })
       .then((data) => {
-        if (data && Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setMembers(data);
         }
       })
@@ -54,7 +54,7 @@ export default function TeamClientView() {
     return activeCategory === 'All' || m.category === activeCategory;
   });
 
-  const leader = members[0]; // Engr. Mohammad Delwar Hossain
+  const leader = members.find((member) => member.slug === 'mak-khan') || members[0];
 
   return (
     <div className="wsp-team-page bg-[#FDFDFD] text-[#141212] pt-6 pb-20 font-sans">
@@ -84,7 +84,7 @@ export default function TeamClientView() {
         </div>
 
         {/* Executive Technical Leadership Spotlight matching WSP */}
-        <div className="mb-12 bg-[#141212] text-white p-5 sm:p-7 border-l-4 border-[#3B82F6] shadow-xl relative overflow-hidden">
+        {leader && <div className="mb-12 bg-[#141212] text-white p-5 sm:p-7 border-l-4 border-[#3B82F6] shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-80 h-80 bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.2)_0%,_transparent_70%)] pointer-events-none" />
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10">
             {/* Portrait Image Holder */}
@@ -107,7 +107,7 @@ export default function TeamClientView() {
             <div className="md:col-span-8 lg:col-span-9 space-y-2.5">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 text-white font-mono text-[9px] uppercase tracking-wider border border-white/10">
                 <ShieldCheck size={11} className="text-[#3B82F6]" />
-                <span>Executive Technical Director &amp; Head of Geodetic Engineering</span>
+                <span>Featured team member</span>
               </div>
 
               <div>
@@ -127,9 +127,10 @@ export default function TeamClientView() {
               </p>
             </div>
           </div>
-        </div>
+        </div>}
 
         {/* Categories Bar */}
+        {members.length === 0 && <p className="py-10 text-neutral-500">Team profiles will appear here soon.</p>}
         <div className="mb-8 border-b border-neutral-200">
           <div className="flex items-center gap-2 overflow-x-auto pb-3 scrollbar-none">
             {categories.map((cat) => (

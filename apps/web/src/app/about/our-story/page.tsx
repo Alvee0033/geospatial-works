@@ -28,7 +28,7 @@ import KeepInTouchSection from '@/components/KeepInTouchSection';
 import { CmsApi } from '@/lib/cms-api';
 import '../../corporate.css';
 
-export const revalidate = 10;
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Our Story & Purpose | Geospatial Works Bangladesh',
@@ -48,17 +48,17 @@ export default async function OurStoryPage() {
   const heroImage = wysiwyg?.heroImage || '/real-media/hero-corridor-infrastructure.jpg';
 
   // 100% Real metrics from PPT Profile & Milestones
-  const stats = [
+  const stats: { value: string; label: string }[] = wysiwyg?.stats ?? [
     { value: 'Class 1', label: 'Government Contractor & Supplier Status' },
     { value: '35+ Landmarks', label: 'National Infrastructure Projects Completed' },
     { value: '10,000+ GCPs', label: 'Survey of Bangladesh (SOB) Calibrated' },
     { value: '64 Districts', label: 'Nationwide Field Survey Reach' },
   ];
 
-  const storyHeadline = 'Built on Precision. Driven by Possibility.';
-  const storyBody1 =
+  const storyHeadline = wysiwyg?.storyHeadline ?? 'Built on Precision. Driven by Possibility.';
+  const storyBody1 = wysiwyg?.storyBody1 ??
     'Geospatial Works is an engineering, geospatial, and precision surveying consultancy delivering integrated technical solutions for infrastructure development, spatial planning, and sustainable resource management. Combining engineering expertise with advanced geospatial technologies, modern surveying instruments, and digital design capabilities, we support projects from field data acquisition and spatial analysis to engineering design and 3D visualization.';
-  const storyBody2 =
+  const storyBody2 = wysiwyg?.storyBody2 ??
     'Our multidisciplinary approach emphasizes technical precision, innovative solutions, efficient workflows, and timely delivery—helping clients make informed decisions and achieve reliable project outcomes. As a licensed 1st Class Contractor and Supplier, we bridge the gap between rigorous field measurement and constructible civil realization across Bangladesh.';
 
   const coreValues = [
@@ -89,7 +89,7 @@ export default async function OurStoryPage() {
     },
   ];
 
-  const disciplines = [
+  const disciplines: { number: string; title: string; desc: string; bullets: string[]; image: string }[] = wysiwyg?.disciplines ?? [
     {
       number: '01',
       title: 'Feasibility, Design & Engineering',
@@ -129,7 +129,7 @@ export default async function OurStoryPage() {
   ];
 
   // Exact 100% verified milestones from PPT Slides 33, 34, 35
-  const milestones = [
+  const milestones: { year: string; title: string; desc: string; client?: string }[] = wysiwyg?.milestones ?? [
     {
       year: '2026',
       title: 'National Agricultural GIS & Urban Transit Modernization',

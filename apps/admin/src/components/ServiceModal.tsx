@@ -13,6 +13,7 @@ export interface ServiceItem {
   imageUrl?: string;
   sortOrder: number;
   isActive: boolean;
+  details?: { lead?: string; equipment?: string[]; standards?: string[]; benefits?: string[] };
   createdAt?: string;
   updatedAt?: string;
 }
@@ -32,6 +33,14 @@ interface ServiceModalProps {
   setFormDescription: (v: string) => void;
   formFeatures: string;
   setFormFeatures: (v: string) => void;
+  formLead: string;
+  setFormLead: (v: string) => void;
+  formEquipment: string;
+  setFormEquipment: (v: string) => void;
+  formStandards: string;
+  setFormStandards: (v: string) => void;
+  formBenefits: string;
+  setFormBenefits: (v: string) => void;
   formImageUrl: string;
   setFormImageUrl: (v: string) => void;
   formSortOrder: number;
@@ -56,6 +65,14 @@ export function ServiceModal({
   setFormDescription,
   formFeatures,
   setFormFeatures,
+  formLead,
+  setFormLead,
+  formEquipment,
+  setFormEquipment,
+  formStandards,
+  setFormStandards,
+  formBenefits,
+  setFormBenefits,
   formImageUrl,
   setFormImageUrl,
   formSortOrder,
@@ -186,6 +203,15 @@ export function ServiceModal({
                 onChange={(e) => setFormFeatures(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl p-4 text-xs font-mono text-slate-800 focus:outline-none transition leading-relaxed min-h-[140px]"
               />
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              {([
+                ['Short introduction', formLead, setFormLead],
+                ['Equipment (one per line)', formEquipment, setFormEquipment],
+                ['Standards (one per line)', formStandards, setFormStandards],
+                ['Benefits (one per line)', formBenefits, setFormBenefits],
+              ] as const).map(([label, value, onChange]) => <label key={label} className="text-xs font-bold text-slate-700">{label}<textarea value={value} onChange={(event) => onChange(event.target.value)} rows={3} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-normal text-slate-800" /></label>)}
             </div>
 
             {/* Service Cover Image */}

@@ -27,6 +27,8 @@ export interface ProjectItem {
   imageUrl?: string;
   isMilestone: boolean;
   sortOrder: number;
+  isActive?: boolean;
+  details?: { overview?: string; challenges?: string[]; approach?: string[]; results?: string[]; toolsUsed?: string[]; timeline?: string };
   createdAt?: string;
   updatedAt?: string;
 }

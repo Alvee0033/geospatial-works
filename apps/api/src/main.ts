@@ -3,6 +3,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import * as express from 'express';
+import { uploadDir } from './modules/media/media.controller';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
@@ -13,6 +14,7 @@ async function bootstrap() {
   // Body parser limit for rich CVs and geospatial datasets
   app.use(express.json({ limit: '25mb' }));
   app.use(express.urlencoded({ limit: '25mb', extended: true }));
+  app.use('/uploads', express.static(uploadDir, { immutable: true, maxAge: '30d' }));
 
   // Security headers
   app.use(

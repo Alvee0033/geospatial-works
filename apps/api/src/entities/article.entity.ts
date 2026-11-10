@@ -29,6 +29,9 @@ export class Article {
   @Column({ nullable: true })
   imageUrl: string;
 
+  @Column({ type: 'jsonb', default: {} })
+  meta: Record<string, string>;
+
   @Column({ default: true })
   isPublished: boolean;
 

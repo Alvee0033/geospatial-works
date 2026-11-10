@@ -38,12 +38,14 @@ export class SeedService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    this.logger.log('Checking database seed state...');
-    await this.seedAdminUser();
+    if (process.env.BOOTSTRAP_ADMIN_EMAIL && process.env.BOOTSTRAP_ADMIN_PASSWORD) {
+      await this.seedAdminUser();
+    }
+    if (process.env.BOOTSTRAP_SEED_CONTENT !== 'true') return;
+    this.logger.warn('Explicit starter content bootstrap enabled. Do not use for an existing site.');
     await this.seedHeroSlides();
     await this.seedPageSections();
     await this.seedServices();
-    await this.seedProjects();
     await this.seedEquipment();
     await this.seedPartners();
     await this.seedJobPosts();
@@ -51,16 +53,17 @@ export class SeedService implements OnApplicationBootstrap {
   }
 
   private async seedAdminUser() {
-    const existing = await this.userRepository.findOne({ where: { email: 'admin@geospatialworks.com.bd' } });
+    const email = process.env.BOOTSTRAP_ADMIN_EMAIL!;
+    const existing = await this.userRepository.findOne({ where: { email } });
     if (!existing) {
-      const passwordHash = await bcrypt.hash('Admin@2026!GW', 12);
+      const passwordHash = await bcrypt.hash(process.env.BOOTSTRAP_ADMIN_PASSWORD!, 12);
       await this.userRepository.save({
-        email: 'admin@geospatialworks.com.bd',
+        email,
         name: 'GW System Administrator',
         passwordHash,
         role: UserRole.ADMIN,
       });
-      this.logger.log('Default Admin user created: admin@geospatialworks.com.bd');
+      this.logger.log('Bootstrap administrator created.');
     }
   }
 
@@ -232,232 +235,6 @@ export class SeedService implements OnApplicationBootstrap {
       ]);
       this.logger.log('Services seeded.');
     }
-  }
-
-  private async seedProjects() {
-    const defaultProjects = [
-      {
-        slug: 'page-16-passenger-facilities-modernization-at-gabt',
-        title: 'Passenger Facilities Modernization at Gabtoli Inter-District Bus Terminal',
-        client: 'Dhaka North City Corporation (DNCC)',
-        category: 'CIVIL & ARCHITECTURAL',
-        location: 'Gabtoli, Dhaka',
-        description: 'Comprehensive digital surveying and improvement planning for Gabtoli Bus Terminal.',
-        deliverables: 'Digital Topographic Survey, Master Plan, Congestion Mitigation Layout',
-        imageUrl: '/projects-extracted/page_16/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 1,
-      },
-      {
-        slug: 'page-17-gabtoli-terminal-3d-engineering---structura',
-        title: 'Gabtoli Terminal 3D Engineering & Structural Models',
-        client: 'Dhaka North City Corporation (DNCC)',
-        category: 'CIVIL & ARCHITECTURAL',
-        location: 'Gabtoli, Dhaka',
-        description: 'Advanced 3D structural modeling (ETABS), Ground Floor architectural layouts, and digital survey verification.',
-        deliverables: '3D Model Output (ETABS), Digital Survey Plotting, Ground Floor Layout, Typical Floor Plan',
-        imageUrl: '/projects-extracted/page_17/img_05.jpg',
-        isMilestone: true,
-        sortOrder: 2,
-      },
-      {
-        slug: 'page-18-gulshan-1-intersection-to-progati-sarani-hi',
-        title: 'Gulshan-1 Intersection to Progati Sarani Highway & Drain Improvement',
-        client: 'Dhaka North City Corporation (DNCC)',
-        category: 'ROAD & TRANSPORT',
-        location: 'Gulshan-1 to Progati Sarani, Dhaka',
-        description: 'Road infrastructure improvement works along the critical Gulshan-1 to Progati Sarani link corridor.',
-        deliverables: 'Road Geometric Alignment, Subsurface Drain Network, Median Demarcation, Traffic Circulation Plan',
-        imageUrl: '/projects-extracted/page_18/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 3,
-      },
-      {
-        slug: 'page-19-gulshan-badda-corridor-passenger-waiting-sh',
-        title: 'Gulshan-Badda Corridor Passenger Waiting Shelter & Road Sections',
-        client: 'Dhaka North City Corporation (DNCC)',
-        category: 'ROAD & TRANSPORT',
-        location: 'Gulshan-Badda Corridor, Dhaka',
-        description: '3D Model Output of passenger waiting shelters, drain layout plans, waiting shelter architectural floor plans, and detailed civil cross-sections.',
-        deliverables: '3D Waiting Shelter Model, Drain Layout Plan, Waiting Shelter Plan, Section for Road',
-        imageUrl: '/projects-extracted/page_19/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 4,
-      },
-      {
-        slug: 'page-20-passenger-facilities-modernization-at-moha',
-        title: 'Passenger Facilities Modernization at Mohakhali Inter-District Bus Terminal',
-        client: 'Dhaka North City Corporation (DNCC)',
-        category: 'CIVIL & ARCHITECTURAL',
-        location: 'Mohakhali, Dhaka',
-        description: 'Comprehensive digital surveying, structural engineering, and passenger facility modernization at Mohakhali Inter-District Bus Terminal.',
-        deliverables: 'Digital Boundary Survey, Terminal Traffic Flow Study, Facility Zoning Plan',
-        imageUrl: '/projects-extracted/page_20/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 5,
-      },
-      {
-        slug: 'page-21-mohakhali-terminal-ticketing-counters---3d',
-        title: 'Mohakhali Terminal Ticketing Counters & 3D Architectural Plans',
-        client: 'Dhaka North City Corporation (DNCC)',
-        category: 'CIVIL & ARCHITECTURAL',
-        location: 'Mohakhali, Dhaka',
-        description: 'Architectural floor plans and 3D perspectives separating AC and Non-AC bus counters, digital survey integration, and multi-tier passenger waiting amenities.',
-        deliverables: 'Bus Counter Floor Plan, AC Bus Counter Plan, Non-AC Bus Counter Plan, 3D Model Perspective',
-        imageUrl: '/projects-extracted/page_21/img_06.jpg',
-        isMilestone: true,
-        sortOrder: 6,
-      },
-      {
-        slug: 'page-22-mohakhali-terminal-drainage-network---pali',
-        title: 'Mohakhali Terminal Drainage Network & Palisading Engineering',
-        client: 'Dhaka North City Corporation (DNCC)',
-        category: 'CIVIL & ARCHITECTURAL',
-        location: 'Mohakhali, Dhaka',
-        description: 'Detailed civil structural drawings including heavy-load RCC box drain sections, retaining drop palisading details, and apron stormwater discharge layouts.',
-        deliverables: 'Section for Drain, Section for Palisading, Stormwater Retention Details',
-        imageUrl: '/projects-extracted/page_22/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 7,
-      },
-      {
-        slug: 'page-23-ltp-of-sanitary-landfill-at-moheshkhali-so',
-        title: 'LTP of Sanitary Landfill at Moheshkhali Solid Waste Management',
-        client: 'LGED / JICA / Nippon Koei / OSMO CORPORATION',
-        category: 'ENVIRONMENTAL & CIVIL',
-        location: 'Moheshkhali, Cox’s Bazar',
-        description: 'Structural design and preparation of drawings for the Leachate Treatment Plant (LTP) under Moheshkhali SWM funded by JICA.',
-        deliverables: 'Structural Calculations, Reinforcement Schedules, Technical Review with Nippon Koei, LTP Holding Cell Design',
-        imageUrl: '/projects-extracted/page_24/img_02.png',
-        isMilestone: true,
-        sortOrder: 8,
-      },
-      {
-        slug: 'page-24-moheshkhali-sanitary-landfill-structural-dr',
-        title: 'Moheshkhali Sanitary Landfill Structural Drawing Outputs',
-        client: 'LGED / Nippon Koei / OSMO CORPORATION',
-        category: 'ENVIRONMENTAL & CIVIL',
-        location: 'Moheshkhali, Cox’s Bazar',
-        description: 'Engineering drawing outputs and reinforcement schedules for the Leachate Treatment Plant at Moheshkhali Sanitary Landfill.',
-        deliverables: 'LTP Plan & Elevations, Structural Details, Bar Bending Schedules',
-        imageUrl: '/projects-extracted/page_24/img_02.png',
-        isMilestone: true,
-        sortOrder: 9,
-      },
-      {
-        slug: 'page-25-web-ais-pilot-research-project-on-irrigati',
-        title: 'WEB-AIS Pilot Research Project on Irrigation Water Management',
-        client: 'Bangladesh Agricultural Development Corporation (BADC)',
-        category: 'WATER RESOURCES & GIS',
-        location: 'Manikganj, Bangladesh',
-        description: 'Pilot research project to improve irrigation water management and agricultural planning through high-precision spatial data.',
-        deliverables: 'Canal Distribution Mapping, TBM & GCP Geodetic Network, Remote Sensing Baseline, GIS Database',
-        imageUrl: '/projects-extracted/page_25/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 10,
-      },
-      {
-        slug: 'page-26-web-ais-spatial-data-outputs--tbm--land-co',
-        title: 'WEB-AIS Spatial Data Outputs: TBM, Land Cover & Irrigation Canals',
-        client: 'Bangladesh Agricultural Development Corporation (BADC)',
-        category: 'WATER RESOURCES & GIS',
-        location: 'Manikganj, Bangladesh',
-        description: 'Comprehensive spatial datasets: Distribution of TBM & GCP Grid, Primary & Secondary Controls, Land Cover, Canals, and Pumps.',
-        deliverables: 'Distribution of TBM and GCP Grid, Primary & Secondary Control Maps, Land Cover Classification, Irrigation Canal Distribution',
-        imageUrl: '/projects-extracted/page_26/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 11,
-      },
-      {
-        slug: 'page-27-installation-of-water-level-gauge-readers-',
-        title: 'Installation of Water-Level Gauge Readers & Topographic Survey',
-        client: 'Bangladesh Agricultural Development Corporation (BADC)',
-        category: 'WATER RESOURCES & GIS',
-        location: 'Gangarampur Union, Batiaghata, Khulna',
-        description: 'Installation and adjustment of river water level gauge readers at three critical monitoring locations in Gangarampur under BADC.',
-        deliverables: 'Water Level Gauge Calibration, TBM Datum Transfer, River Water Depth Profiling, Bamboo Support Rig Installation',
-        imageUrl: '/projects-extracted/page_27/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 12,
-      },
-      {
-        slug: 'page-28-gangarampur-hydrological-water-level-monit',
-        title: 'Gangarampur Hydrological Water Level Monitoring Sites',
-        client: 'Bangladesh Agricultural Development Corporation (BADC)',
-        category: 'WATER RESOURCES & GIS',
-        location: 'Batiaghata Upazila, Khulna',
-        description: 'River gauging station outputs and calibrated water level readings across Jhopjhopia River Site and Guiyer Canal.',
-        deliverables: 'Jhopjhopia River Water Level: 1.83m, Guiyer Canal Opening: 0.229m, Guiyer Canal Y-Section: 1.273m',
-        imageUrl: '/projects-extracted/page_28/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 13,
-      },
-      {
-        slug: 'page-29-abdulpur-railway-bypass-topographic---uav-p',
-        title: 'Abdulpur Railway Bypass Topographic & UAV Photogrammetry Survey',
-        client: 'Bangladesh Railway / Oriental Consultants Global (OCG)',
-        category: 'RAPID MAPPING & INFRASTRUCTURE',
-        location: 'Abdulpur Bypass Station, Natore',
-        description: 'Rapid delivery topographic and physical feature survey using RTK and RTK-enabled UAV drone flights for the Abdulpur Railway Bypass.',
-        deliverables: 'Topographic Survey, UAV Flight Missions, Track Alignment Geometry, Rapid 14-Day Delivery',
-        imageUrl: '/projects-extracted/page_29/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 14,
-      },
-      {
-        slug: 'page-30-abdulpur-railway-bypass-photogrammetry---su',
-        title: 'Abdulpur Railway Bypass Photogrammetry & Surface Outputs',
-        client: 'Bangladesh Railway / OCG',
-        category: 'RAPID MAPPING & INFRASTRUCTURE',
-        location: 'Abdulpur, Natore',
-        description: 'High-precision engineering surface outputs: Digital Surface Model (DSM), Digital Terrain Model (DTM), High-Resolution Orthomosaic, 0.20m Contours.',
-        deliverables: 'Digital Surface Model (DSM), Digital Terrain Model (DTM), High Resolution Orthomosaic, 0.20m Contours',
-        imageUrl: '/projects-extracted/page_30/img_03.jpg',
-        isMilestone: true,
-        sortOrder: 15,
-      },
-      {
-        slug: 'page-31-bus-route-rationalization---corridor-concep',
-        title: 'Bus Route Rationalization & Corridor Concept Design for Dhaka',
-        client: 'Dhaka Transport Coordination Authority (DTCA)',
-        category: 'RAPID MAPPING & INFRASTRUCTURE',
-        location: 'Dhaka Metropolitan Corridors',
-        description: 'Preparation of Concept Design & Implementation Plan for Bus Route Rationalization and company-based bus service in Dhaka.',
-        deliverables: 'UAV Drone Corridor Flights, Classified Traffic Count Survey, Origin-Destination Surveys, Corridor Concept Design',
-        imageUrl: '/projects-extracted/page_31/img_01.jpg',
-        isMilestone: true,
-        sortOrder: 16,
-      },
-      {
-        slug: 'page-32-dtca-arterial-corridor-digital-surface-mode',
-        title: 'DTCA Arterial Corridor Digital Surface Model & Orthomosaic',
-        client: 'Dhaka Transport Coordination Authority (DTCA)',
-        category: 'RAPID MAPPING & INFRASTRUCTURE',
-        location: 'Dhaka Arterial Roads',
-        description: 'Dense urban corridor drone photogrammetry outputs: Digital Surface Model (DSM) and High-Resolution Orthomosaic covering key arterial transit routes.',
-        deliverables: 'Corridor Digital Surface Model, High Resolution Orthomosaic, Junction Geometry Models',
-        imageUrl: '/projects-extracted/page_32/img_02.jpg',
-        isMilestone: true,
-        sortOrder: 17,
-      },
-    ];
-
-    for (const proj of defaultProjects) {
-      const existing = await this.projectRepository.findOne({ where: { slug: proj.slug } });
-      if (!existing) {
-        await this.projectRepository.save(proj);
-      } else {
-        await this.projectRepository.update({ slug: proj.slug }, proj);
-      }
-    }
-    const validSlugs = defaultProjects.map((p) => p.slug);
-    const allInDb = await this.projectRepository.find();
-    for (const p of allInDb) {
-      if (!validSlugs.includes(p.slug)) {
-        await this.projectRepository.delete({ id: p.id });
-      }
-    }
-    this.logger.log('Projects seeded with all 17 page projects from PPT pages 16-32.');
   }
 
   private async seedEquipment() {

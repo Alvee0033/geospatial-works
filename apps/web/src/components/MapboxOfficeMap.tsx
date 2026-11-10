@@ -11,16 +11,20 @@ interface MapboxOfficeMapProps {
   className?: string;
   theme?: 'dark' | 'light';
   interactive?: boolean;
+  embedUrl?: string;
+  locationName?: string;
 }
 
 export default function MapboxOfficeMap({
-  lat = 23.7505,
-  lng = 90.3807,
+  lat = 23.7539734,
+  lng = 90.3438245,
   zoom = 15,
   heightClass = 'h-[300px] sm:h-[340px]',
   className = '',
   theme = 'dark',
   interactive = true,
+  embedUrl,
+  locationName = 'Geospatial Works',
 }: MapboxOfficeMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -29,6 +33,7 @@ export default function MapboxOfficeMap({
   const isDark = theme === 'dark';
 
   useEffect(() => {
+    if (embedUrl) return;
     let isMounted = true;
 
     import('leaflet').then((L) => {
@@ -86,7 +91,14 @@ export default function MapboxOfficeMap({
           iconAnchor: [14, 14],
         });
 
-        L.marker([lat, lng], { icon: pinIcon }).addTo(map);
+        L.marker([lat, lng], { icon: pinIcon })
+          .addTo(map)
+          .bindTooltip(locationName, {
+            permanent: true,
+            direction: 'top',
+            offset: [0, -13],
+            className: 'gw-office-map-label',
+          });
 
         setMapReady(true);
       }
@@ -99,7 +111,7 @@ export default function MapboxOfficeMap({
         mapInstanceRef.current = null;
       }
     };
-  }, [lat, lng, zoom, isDark, interactive]);
+  }, [lat, lng, zoom, isDark, interactive, embedUrl, locationName]);
 
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
@@ -108,7 +120,17 @@ export default function MapboxOfficeMap({
       isDark ? 'border-white/10 bg-[#0B0D12]' : 'border-neutral-200 bg-neutral-100'
     } ${heightClass} ${className}`}>
       {/* Map Canvas */}
-      <div ref={mapContainerRef} className="w-full h-full z-0" />
+      {embedUrl ? (
+        <iframe
+          title="Corporate office location map"
+          src={embedUrl}
+          className="w-full h-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      ) : (
+        <div ref={mapContainerRef} className="w-full h-full z-0" />
+      )}
 
       {/* Top Floating Badge */}
       <div className="absolute top-3 left-3 z-10 pointer-events-none">
@@ -118,7 +140,7 @@ export default function MapboxOfficeMap({
             : 'bg-white/90 border border-neutral-200 text-neutral-700 shadow-xs'
         }`}>
           <Compass size={12} className="text-[#FB1D10]" />
-          <span>{lat.toFixed(4)}°N, {lng.toFixed(4)}°E</span>
+          <span>{locationName}</span>
         </div>
       </div>
 

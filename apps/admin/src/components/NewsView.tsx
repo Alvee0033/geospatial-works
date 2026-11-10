@@ -12,6 +12,7 @@ import {
   Calendar,
   User,
   ArrowUpRight,
+  FolderSync,
 } from 'lucide-react';
 import { ArticleItem, ARTICLE_CATEGORIES } from './NewsModal';
 
@@ -23,6 +24,8 @@ interface NewsViewProps {
   onOpenEditModal: (a: ArticleItem) => void;
   onDeleteArticle: (id: string, title: string) => void;
   onTogglePublished: (a: ArticleItem) => void;
+  onSeedProjectCaseStudies: () => void;
+  seedingProjectCaseStudies: boolean;
 }
 
 export function NewsView({
@@ -33,6 +36,8 @@ export function NewsView({
   onOpenEditModal,
   onDeleteArticle,
   onTogglePublished,
+  onSeedProjectCaseStudies,
+  seedingProjectCaseStudies,
 }: NewsViewProps) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [onlyPublished, setOnlyPublished] = useState(false);
@@ -87,7 +92,7 @@ export function NewsView({
           })}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-600 select-none whitespace-nowrap bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200/60">
             <input
               type="checkbox"
@@ -97,6 +102,16 @@ export function NewsView({
             />
             <span>Published Only</span>
           </label>
+
+          <button
+            onClick={onSeedProjectCaseStudies}
+            disabled={seedingProjectCaseStudies}
+            title="Create case studies from active project records and move starter demo articles to drafts"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition shadow-xs disabled:opacity-60 disabled:cursor-wait"
+          >
+            <FolderSync size={14} className={seedingProjectCaseStudies ? 'animate-pulse' : ''} />
+            {seedingProjectCaseStudies ? 'Preparing project stories…' : 'Use real project stories'}
+          </button>
 
           <button
             onClick={onOpenCreateModal}

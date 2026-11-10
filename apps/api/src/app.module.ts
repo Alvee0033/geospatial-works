@@ -18,6 +18,9 @@ import { MegaMenu } from './entities/mega-menu.entity';
 import { Article } from './entities/article.entity';
 import { JobPost } from './entities/job-post.entity';
 import { JobApplication } from './entities/job-application.entity';
+import { CmsContentSource1762819200000 } from './migrations/1762819200000-CmsContentSource';
+import { ProjectsOnlyApprovedSource1762905600000 } from './migrations/1762905600000-ProjectsOnlyApprovedSource';
+import { CorporateOfficeContact1794270000000 } from './migrations/1794270000000-CorporateOfficeContact';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -70,7 +73,9 @@ import { UsersModule } from './modules/users/users.module';
           JobPost,
           JobApplication,
         ],
-        synchronize: true, // Auto schema sync
+        synchronize: process.env.NODE_ENV !== 'production',
+        migrations: [CmsContentSource1762819200000, ProjectsOnlyApprovedSource1762905600000, CorporateOfficeContact1794270000000],
+        migrationsRun: process.env.NODE_ENV === 'production',
         logging: false,
       }),
     }),

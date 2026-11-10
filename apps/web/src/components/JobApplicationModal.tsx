@@ -17,6 +17,7 @@ import {
   Check,
   FileCheck,
 } from 'lucide-react';
+import { usePublicContactInfo } from '@/hooks/use-public-contact-info';
 
 interface JobApplicationModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ interface JobApplicationModalProps {
 }
 
 export function JobApplicationModal({ isOpen, onClose, job, onSuccess }: JobApplicationModalProps) {
+  const contactInfo = usePublicContactInfo();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -134,7 +136,9 @@ export function JobApplicationModal({ isOpen, onClose, job, onSuccess }: JobAppl
       if (onSuccess) onSuccess();
     } catch (err: any) {
       console.error(err);
-      setErrorMsg('Unable to submit application right now. Please email us directly at careers@geospatialworks.com.bd');
+      setErrorMsg(contactInfo?.email
+        ? `Unable to submit your application right now. Please email ${contactInfo.email}.`
+        : 'Unable to submit your application right now. Please try again shortly.');
     } finally {
       setSubmitting(false);
     }

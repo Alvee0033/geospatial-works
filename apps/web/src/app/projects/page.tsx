@@ -4,12 +4,12 @@ import ProjectsClientView from '@/components/ProjectsClientView';
 import { CmsApi } from '@/lib/cms-api';
 import '../corporate.css';
 
-export const revalidate = 10;
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Our Projects & National Impact | Geospatial Works Bangladesh',
   description:
-    'Explore 15+ verified infrastructure projects across Bangladesh: Bangladesh Railway alignments, DNCC bus terminals, RCC girder bridges, and high-rise architectural landmarks.',
+    'Explore 17 verified infrastructure projects across Bangladesh, including Bangladesh Railway surveys, DNCC bus terminals, and DTCA corridor work.',
 };
 
 export default async function ProjectsPage() {
@@ -22,7 +22,7 @@ export default async function ProjectsPage() {
   return (
     <CorporateShell>
       <main className="wsp-projects-main min-h-screen bg-white">
-        <ProjectsClientView initialProjects={projects as any} wysiwyg={wysiwyg} />
+        <ProjectsClientView initialProjects={projects} wysiwyg={wysiwyg} />
       </main>
     </CorporateShell>
   );

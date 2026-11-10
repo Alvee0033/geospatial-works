@@ -3,6 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { contactAddress, phoneHref } from '@/lib/contact-info';
+import { usePublicContactInfo } from '@/hooks/use-public-contact-info';
 import {
   Search,
   ChevronDown,
@@ -17,32 +19,26 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-import { ALL_PROJECTS, ProjectItem } from '@/lib/projects-data';
+import type { ProjectData } from '@/lib/cms-api';
 
 interface ProjectsClientViewProps {
-  initialProjects?: ProjectItem[];
+  initialProjects?: ProjectData[];
   wysiwyg?: Record<string, any>;
 }
 
 export default function ProjectsClientView({ initialProjects = [], wysiwyg }: ProjectsClientViewProps) {
+  const contactInfo = usePublicContactInfo();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'default' | 'alpha'>('default');
   const [featuredIndex, setFeaturedIndex] = useState<number>(0);
   const [showFeatured, setShowFeatured] = useState<boolean>(true);
 
-  const allRealProjects = ALL_PROJECTS;
-
-  // STRICTLY only the real projects extracted from the presentation (No legacy database demo placeholders)
-  const projects = allRealProjects;
+  const projects = initialProjects;
 
   const categories = [
-    { label: 'All Projects (17)', value: 'All' },
-    { label: 'Civil & Architectural', value: 'Civil' },
-    { label: 'Road & Transport', value: 'Road' },
-    { label: 'Rapid Mapping & Drone', value: 'Rapid' },
-    { label: 'Water Resources & GIS', value: 'Water' },
-    { label: 'Environmental & Waste', value: 'Environmental' },
+    { label: `All Projects (${projects.length})`, value: 'All' },
+    ...Array.from(new Set(projects.map((project) => project.category))).map((category) => ({ label: category, value: category })),
   ];
 
   const filteredProjects = useMemo(() => {
@@ -79,7 +75,6 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
     return ms.length > 0 ? ms : projects.slice(0, 5);
   }, [projects]);
 
-  const activeFeatured = milestoneProjects[featuredIndex % milestoneProjects.length];
 
   return (
     <div className="bg-white text-[#141212] font-sans antialiased">
@@ -282,7 +277,7 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
               Ready to Survey Your Next Infrastructure Corridor?
             </h2>
             <p className="text-sm text-neutral-400">
-              Bosila, Mohammadpur, Dhaka · +880 1713 90 777 9 · info@geospatialworks.com.bd
+              {contactInfo && <>{contactAddress(contactInfo)}{contactInfo.phone && <> · <a href={phoneHref(contactInfo.phone)} className="hover:text-white">{contactInfo.phone}</a></>}{contactInfo.email && <> · <a href={`mailto:${contactInfo.email}`} className="hover:text-white">{contactInfo.email}</a></>}</>}
             </p>
           </div>
 

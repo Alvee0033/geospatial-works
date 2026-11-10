@@ -36,6 +36,10 @@ const nextConfig: NextConfig = {
     const backendOrigin = (process.env.BACKEND_INTERNAL_URL || 'http://gw-site-api:4000').replace(/\/$/, '');
     return [
       {
+        source: '/api/:path*',
+        destination: `${backendOrigin}/api/v1/:path*`,
+      },
+      {
         source: '/uploads/:path*',
         destination: `${backendOrigin}/uploads/:path*`,
       },

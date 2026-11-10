@@ -24,10 +24,14 @@ interface ProjectModalProps {
   setFormDescription: (v: string) => void;
   formDeliverables: string;
   setFormDeliverables: (v: string) => void;
+  detailFields: { overview: string; challenges: string; approach: string; results: string; toolsUsed: string; timeline: string };
+  onDetailChange: (field: keyof ProjectModalProps['detailFields'], value: string) => void;
   formImageUrl: string;
   setFormImageUrl: (v: string) => void;
   formIsMilestone: boolean;
   setFormIsMilestone: (v: boolean) => void;
+  formIsActive: boolean;
+  setFormIsActive: (v: boolean) => void;
   onOpenMediaPicker: () => void;
 }
 
@@ -51,10 +55,14 @@ export function ProjectModal({
   setFormDescription,
   formDeliverables,
   setFormDeliverables,
+  detailFields,
+  onDetailChange,
   formImageUrl,
   setFormImageUrl,
   formIsMilestone,
   setFormIsMilestone,
+  formIsActive,
+  setFormIsActive,
   onOpenMediaPicker,
 }: ProjectModalProps) {
   if (!isOpen) return null;
@@ -212,6 +220,18 @@ export function ProjectModal({
             </div>
 
             {/* Deliverables */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              {([
+                ['overview', 'Project overview'],
+                ['challenges', 'Challenges (one per line)'],
+                ['approach', 'Approach (one per line)'],
+                ['results', 'Results (one per line)'],
+                ['toolsUsed', 'Tools used (one per line)'],
+                ['timeline', 'Timeline'],
+              ] as const).map(([field, label]) => <label key={field} className="text-xs font-bold text-slate-700">{label}<textarea value={detailFields[field]} onChange={(event) => onDetailChange(field, event.target.value)} rows={field === 'overview' ? 4 : 2} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-normal text-slate-800" /></label>)}
+            </div>
+
+            {/* Deliverables */}
             <div>
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
                 Key Technical Deliverables
@@ -261,6 +281,7 @@ export function ProjectModal({
 
           {/* Sticky Bottom Action Footer */}
           <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/90 backdrop-blur-md flex items-center justify-between sticky bottom-0 z-10">
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700"><input type="checkbox" checked={formIsActive} onChange={(event) => setFormIsActive(event.target.checked)} /> Visible on website</label>
             <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-700 select-none">
               <input
                 type="checkbox"
