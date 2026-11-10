@@ -21,15 +21,15 @@ let ProjectsService = class ProjectsService {
     constructor(projectRepository) {
         this.projectRepository = projectRepository;
     }
-    async findAll(milestonesOnly = false) {
-        const where = milestonesOnly ? { isMilestone: true } : {};
+    async findAll(milestonesOnly = false, activeOnly = true) {
+        const where = { ...(milestonesOnly ? { isMilestone: true } : {}), ...(activeOnly ? { isActive: true } : {}) };
         return this.projectRepository.find({
             where,
             order: { sortOrder: 'ASC', createdAt: 'DESC' },
         });
     }
-    async findBySlug(slug) {
-        const project = await this.projectRepository.findOne({ where: { slug } });
+    async findBySlug(slug, activeOnly = true) {
+        const project = await this.projectRepository.findOne({ where: activeOnly ? { slug, isActive: true } : { slug } });
         if (!project) {
             throw new common_1.NotFoundException(`Project with slug '${slug}' not found`);
         }

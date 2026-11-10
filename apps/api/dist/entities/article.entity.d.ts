@@ -8,6 +8,7 @@ export declare class Article {
     content: string;
     author: string;
     imageUrl: string;
+    meta: Record<string, string>;
     isPublished: boolean;
     sortOrder: number;
     createdAt: Date;

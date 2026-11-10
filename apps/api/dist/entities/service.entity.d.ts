@@ -6,6 +6,7 @@ export declare class Service {
     description: string;
     features: string[];
     imageUrl: string;
+    details: Record<string, unknown>;
     sortOrder: number;
     isActive: boolean;
     createdAt: Date;

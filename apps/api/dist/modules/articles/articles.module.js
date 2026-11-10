@@ -10,6 +10,7 @@ exports.ArticlesModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const article_entity_1 = require("../../entities/article.entity");
+const project_entity_1 = require("../../entities/project.entity");
 const articles_service_1 = require("./articles.service");
 const articles_controller_1 = require("./articles.controller");
 let ArticlesModule = class ArticlesModule {
@@ -17,7 +18,7 @@ let ArticlesModule = class ArticlesModule {
 exports.ArticlesModule = ArticlesModule;
 exports.ArticlesModule = ArticlesModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([article_entity_1.Article])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([article_entity_1.Article, project_entity_1.Project])],
         controllers: [articles_controller_1.ArticlesController],
         providers: [articles_service_1.ArticlesService],
         exports: [articles_service_1.ArticlesService],

@@ -41,28 +41,32 @@ let SeedService = SeedService_1 = class SeedService {
         this.logger = new common_1.Logger(SeedService_1.name);
     }
     async onApplicationBootstrap() {
-        this.logger.log('Checking database seed state...');
-        await this.seedAdminUser();
+        if (process.env.BOOTSTRAP_ADMIN_EMAIL && process.env.BOOTSTRAP_ADMIN_PASSWORD) {
+            await this.seedAdminUser();
+        }
+        if (process.env.BOOTSTRAP_SEED_CONTENT !== 'true')
+            return;
+        this.logger.warn('Explicit starter content bootstrap enabled. Do not use for an existing site.');
         await this.seedHeroSlides();
         await this.seedPageSections();
         await this.seedServices();
-        await this.seedProjects();
         await this.seedEquipment();
         await this.seedPartners();
         await this.seedJobPosts();
         this.logger.log('Database verification and seed check complete.');
     }
     async seedAdminUser() {
-        const existing = await this.userRepository.findOne({ where: { email: 'admin@geospatialworks.com.bd' } });
+        const email = process.env.BOOTSTRAP_ADMIN_EMAIL;
+        const existing = await this.userRepository.findOne({ where: { email } });
         if (!existing) {
-            const passwordHash = await bcrypt.hash('Admin@2026!GW', 12);
+            const passwordHash = await bcrypt.hash(process.env.BOOTSTRAP_ADMIN_PASSWORD, 12);
             await this.userRepository.save({
-                email: 'admin@geospatialworks.com.bd',
+                email,
                 name: 'GW System Administrator',
                 passwordHash,
                 role: user_entity_1.UserRole.ADMIN,
             });
-            this.logger.log('Default Admin user created: admin@geospatialworks.com.bd');
+            this.logger.log('Bootstrap administrator created.');
         }
     }
     async seedHeroSlides() {
@@ -229,86 +233,6 @@ let SeedService = SeedService_1 = class SeedService {
                 },
             ]);
             this.logger.log('Services seeded.');
-        }
-    }
-    async seedProjects() {
-        const count = await this.projectRepository.count();
-        if (count === 0) {
-            await this.projectRepository.save([
-                {
-                    slug: 'badc-web-ais-project',
-                    title: 'Pilot Research Project for Irrigation Water Management (WEB-AIS)',
-                    client: 'Bangladesh Agricultural Development Corporation (BADC)',
-                    category: 'WATER RESOURCES & GIS',
-                    location: 'Manikganj & Gangarampur',
-                    description: 'Reinstallation and adjustment of river water level gauge readers at Krishnapur, Chailla Burundi, and Uttar Jamsha. Topographic survey and NDVI vegetation health remote sensing analysis.',
-                    deliverables: 'Real-time water level data, GIS web platform integration, high-precision contour maps.',
-                    imageUrl: '/geospatial-river-hero.webp',
-                    isMilestone: true,
-                    sortOrder: 1,
-                },
-                {
-                    slug: 'lged-450km-road-survey',
-                    title: 'Approx 450 km Detail Road Survey using RTK GNSS',
-                    client: 'Local Government Engineering Department (LGED) / IMAGE',
-                    category: 'ROAD & TRANSPORT',
-                    location: 'Multiple Districts, Bangladesh',
-                    description: 'Extensive road corridor mapping, horizontal alignment verification, and road asset inventory using high-precision RTK GNSS receivers.',
-                    deliverables: 'Centerline alignments, cross-sections, digital elevation models, civil engineering CAD deliverables.',
-                    imageUrl: '/real-media/service-uav-drone-lidar.png',
-                    isMilestone: true,
-                    sortOrder: 2,
-                },
-                {
-                    slug: 'railway-rcipf-topographic-survey',
-                    title: 'Topographic Survey using RTK & UAV under RCIPF Project',
-                    client: 'Bangladesh Railway / Oriental Consultants Global (OCG)',
-                    category: 'RAILWAY & INFRASTRUCTURE',
-                    location: 'Pahartoli GER Shop (Chattogram) & Abdulpur Bypass',
-                    description: 'Detailed engineering topographic surveys utilizing RTK GNSS and RTK-enabled UAV drone flights for locomotive workshop modernization and railway bypass alignment.',
-                    deliverables: 'Sub-centimeter rail alignment coordinates, 3D point clouds, facility contour plans.',
-                    imageUrl: '/inner/field-team.webp',
-                    isMilestone: true,
-                    sortOrder: 3,
-                },
-                {
-                    slug: 'national-digital-land-zoning',
-                    title: 'Mouza & Plot Based National Digital Land Zoning Project (Phase 1 & 2)',
-                    client: 'Ministry of Land / CEGIS',
-                    category: 'LAND ZONING & GIS',
-                    location: 'National Coverage',
-                    description: 'High-precision mouza boundary and agricultural/commercial plot demarcation, satellite image rectification, and geodatabase creation.',
-                    deliverables: 'Geodatabase with parcel-level land use classifications and digital zoning maps.',
-                    imageUrl: '/real-media/service-gis-remote-sensing.png',
-                    isMilestone: true,
-                    sortOrder: 4,
-                },
-                {
-                    slug: 'dtca-200km-dscc-road-survey',
-                    title: 'Approx 200 km Road Survey using RTK and UAV under DSCC',
-                    client: 'Dhaka Transport Coordination Authority (DTCA) / IMAGE',
-                    category: 'URBAN TRANSPORT',
-                    location: 'Dhaka South City Corporation',
-                    description: 'Dense urban corridor mapping, intersection geometric layout, and right-of-way demarcation using RTK GNSS and drone photogrammetry.',
-                    deliverables: 'As-built drawings, urban right-of-way maps, drainage network surveys.',
-                    imageUrl: '/inner/banner-projects.webp',
-                    isMilestone: false,
-                    sortOrder: 5,
-                },
-                {
-                    slug: 'dncc-bus-terminals-modernization',
-                    title: 'Passenger Facilities Modernization at Gabtoli & Mohakhali Bus Terminals',
-                    client: 'Dhaka North City Corporation (DNCC)',
-                    category: 'CIVIL & ARCHITECTURAL',
-                    location: 'Dhaka (Gabtoli & Mohakhali)',
-                    description: 'Survey, architectural layout, and engineering design for ticket counters, waiting lounges, sanitary facilities, drainage systems, and passenger passageways.',
-                    deliverables: 'Architectural drawings, structural engineering designs, BOQ and cost estimates.',
-                    imageUrl: '/inner/banner-services.webp',
-                    isMilestone: false,
-                    sortOrder: 6,
-                },
-            ]);
-            this.logger.log('Projects seeded.');
         }
     }
     async seedEquipment() {

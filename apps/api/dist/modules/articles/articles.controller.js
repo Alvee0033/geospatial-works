@@ -18,15 +18,24 @@ const swagger_1 = require("@nestjs/swagger");
 const articles_service_1 = require("./articles.service");
 const article_dto_1 = require("./dto/article.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_guard_1 = require("../../common/guards/roles.guard");
+const roles_decorator_1 = require("../../common/decorators/roles.decorator");
+const user_entity_1 = require("../../entities/user.entity");
 let ArticlesController = class ArticlesController {
     constructor(articlesService) {
         this.articlesService = articlesService;
     }
-    async findAll(publishedOnly) {
-        return this.articlesService.findAll(publishedOnly !== 'false');
+    async findAll() {
+        return this.articlesService.findAll(true);
+    }
+    async findAllAdmin() {
+        return this.articlesService.findAll(false);
+    }
+    async seedProjectCaseStudies() {
+        return this.articlesService.seedProjectCaseStudies();
     }
     async findBySlug(slug) {
-        return this.articlesService.findBySlug(slug);
+        return this.articlesService.findBySlug(slug, true);
     }
     async create(dto) {
         return this.articlesService.create(dto);
@@ -42,12 +51,29 @@ exports.ArticlesController = ArticlesController;
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get all published news and technical bulletins' }),
-    (0, swagger_1.ApiQuery)({ name: 'publishedOnly', required: false, type: Boolean }),
-    __param(0, (0, common_1.Query)('publishedOnly')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ArticlesController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('admin/all'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
+    (0, swagger_1.ApiBearerAuth)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ArticlesController.prototype, "findAllAdmin", null);
+__decorate([
+    (0, common_1.Post)('admin/seed-project-case-studies'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Create project case studies and hide starter demo articles' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ArticlesController.prototype, "seedProjectCaseStudies", null);
 __decorate([
     (0, common_1.Get)(':slug'),
     (0, swagger_1.ApiOperation)({ summary: 'Get single news article by slug' }),
@@ -58,7 +84,8 @@ __decorate([
 ], ArticlesController.prototype, "findBySlug", null);
 __decorate([
     (0, common_1.Post)('admin'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Admin: Create news or bulletin' }),
     __param(0, (0, common_1.Body)()),
@@ -68,7 +95,8 @@ __decorate([
 ], ArticlesController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)('admin/:id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Admin: Update news article' }),
     __param(0, (0, common_1.Param)('id')),
@@ -79,7 +107,8 @@ __decorate([
 ], ArticlesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)('admin/:id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Admin: Delete news article' }),
     __param(0, (0, common_1.Param)('id')),

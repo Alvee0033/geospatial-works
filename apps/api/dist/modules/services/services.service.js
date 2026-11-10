@@ -29,7 +29,7 @@ let ServicesService = class ServicesService {
         });
     }
     async findBySlug(slug) {
-        const service = await this.serviceRepository.findOne({ where: { slug } });
+        const service = await this.serviceRepository.findOne({ where: { slug, isActive: true } });
         if (!service) {
             throw new common_1.NotFoundException(`Service with slug '${slug}' not found`);
         }

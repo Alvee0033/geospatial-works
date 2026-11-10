@@ -26,7 +26,6 @@ export declare class SeedService implements OnApplicationBootstrap {
     private seedHeroSlides;
     private seedPageSections;
     private seedServices;
-    private seedProjects;
     private seedEquipment;
     private seedPartners;
     private seedJobPosts;

@@ -51,6 +51,10 @@ __decorate([
     __metadata("design:type", String)
 ], Article.prototype, "imageUrl", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', default: {} }),
+    __metadata("design:type", Object)
+], Article.prototype, "meta", void 0);
+__decorate([
     (0, typeorm_1.Column)({ default: true }),
     __metadata("design:type", Boolean)
 ], Article.prototype, "isPublished", void 0);

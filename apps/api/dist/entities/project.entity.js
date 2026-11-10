@@ -51,6 +51,14 @@ __decorate([
     __metadata("design:type", String)
 ], Project.prototype, "imageUrl", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', default: {} }),
+    __metadata("design:type", Object)
+], Project.prototype, "details", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: true }),
+    __metadata("design:type", Boolean)
+], Project.prototype, "isActive", void 0);
+__decorate([
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], Project.prototype, "isMilestone", void 0);

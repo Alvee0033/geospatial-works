@@ -64,6 +64,11 @@ __decorate([
     __metadata("design:type", String)
 ], CreateArticleDto.prototype, "imageUrl", void 0);
 __decorate([
+    (0, class_validator_1.IsObject)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Object)
+], CreateArticleDto.prototype, "meta", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ required: false, default: true }),
     (0, class_validator_1.IsBoolean)(),
     (0, class_validator_1.IsOptional)(),

@@ -18,6 +18,9 @@ const swagger_1 = require("@nestjs/swagger");
 const services_service_1 = require("./services.service");
 const service_dto_1 = require("./dto/service.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_guard_1 = require("../../common/guards/roles.guard");
+const roles_decorator_1 = require("../../common/decorators/roles.decorator");
+const user_entity_1 = require("../../entities/user.entity");
 let ServicesController = class ServicesController {
     constructor(servicesService) {
         this.servicesService = servicesService;
@@ -59,7 +62,8 @@ __decorate([
 ], ServicesController.prototype, "findBySlug", null);
 __decorate([
     (0, common_1.Get)('admin/all'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Admin: List all services including inactive' }),
     __metadata("design:type", Function),
@@ -68,7 +72,8 @@ __decorate([
 ], ServicesController.prototype, "findAllAdmin", null);
 __decorate([
     (0, common_1.Post)('admin'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Admin: Create a new service' }),
     __param(0, (0, common_1.Body)()),
@@ -78,7 +83,8 @@ __decorate([
 ], ServicesController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)('admin/:id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Admin: Update an existing service' }),
     __param(0, (0, common_1.Param)('id')),
@@ -89,7 +95,8 @@ __decorate([
 ], ServicesController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)('admin/:id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Admin: Delete a service' }),
     __param(0, (0, common_1.Param)('id')),

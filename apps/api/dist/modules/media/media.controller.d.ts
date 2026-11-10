@@ -1,3 +1,4 @@
+export declare const uploadDir: string;
 export declare class MediaController {
     uploadFile(file: Express.Multer.File): Promise<{
         url: string;

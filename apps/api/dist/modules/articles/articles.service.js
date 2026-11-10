@@ -17,9 +17,66 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const article_entity_1 = require("../../entities/article.entity");
+const project_entity_1 = require("../../entities/project.entity");
 let ArticlesService = class ArticlesService {
-    constructor(articleRepo) {
+    constructor(articleRepo, projectRepo) {
         this.articleRepo = articleRepo;
+        this.projectRepo = projectRepo;
+    }
+    async seedProjectCaseStudies() {
+        const projects = await this.projectRepo.find({
+            where: { isActive: true },
+            order: { sortOrder: 'ASC', createdAt: 'DESC' },
+        });
+        let created = 0;
+        for (const project of projects) {
+            const slug = `project-${project.slug}`;
+            const existing = await this.articleRepo.findOne({ where: { slug } });
+            if (existing)
+                continue;
+            const details = project.details || {};
+            const sections = [
+                '## Project overview',
+                project.description,
+                project.client || project.location ? `## Client and location\n${[project.client, project.location].filter(Boolean).join(' · ')}` : '',
+                project.deliverables ? `## Project outputs\n${project.deliverables}` : '',
+                Array.isArray(details.approach) && details.approach.length
+                    ? `## Work completed\n${details.approach.map((item) => `• ${String(item)}`).join('\n')}`
+                    : '',
+            ].filter(Boolean);
+            await this.articleRepo.save(this.articleRepo.create({
+                slug,
+                title: project.title,
+                category: 'Project case study',
+                summary: project.description,
+                content: sections.join('\n\n'),
+                author: 'Geospatial Works',
+                imageUrl: project.imageUrl || undefined,
+                meta: { contentType: 'project-case-study', projectId: project.id, projectSlug: project.slug },
+                isPublished: true,
+                sortOrder: project.sortOrder,
+            }));
+            created += 1;
+        }
+        const demoSlugs = [
+            'river-delta-resilience-bathymetry',
+            'rtk-gnss-national-corridor-geodesy',
+            'dhaka-wasa-smart-utility-digital-twin',
+            'high-density-uav-lidar-flood-defenses',
+            'ground-penetrating-radar-urban-expressway',
+            'coastal-erosion-drone-orthomosaics',
+            'dtca-bus-route-rationalization',
+            'abdulpur-railway-bypass',
+            'coastal-mangrove-assessment',
+        ];
+        const hiddenDemoArticles = await this.articleRepo
+            .createQueryBuilder()
+            .update(article_entity_1.Article)
+            .set({ isPublished: false })
+            .where('slug IN (:...demoSlugs)', { demoSlugs })
+            .andWhere('isPublished = :published', { published: true })
+            .execute();
+        return { created, hiddenDemoArticles: hiddenDemoArticles.affected || 0, projects: projects.length };
     }
     async findAll(publishedOnly = true) {
         const qb = this.articleRepo.createQueryBuilder('article');
@@ -28,8 +85,8 @@ let ArticlesService = class ArticlesService {
         }
         return qb.orderBy('article.sortOrder', 'ASC').addOrderBy('article.createdAt', 'DESC').getMany();
     }
-    async findBySlug(slug) {
-        const article = await this.articleRepo.findOne({ where: { slug } });
+    async findBySlug(slug, publishedOnly = false) {
+        const article = await this.articleRepo.findOne({ where: publishedOnly ? { slug, isPublished: true } : { slug } });
         if (!article)
             throw new common_1.NotFoundException(`Article with slug "${slug}" not found`);
         return article;
@@ -64,6 +121,8 @@ exports.ArticlesService = ArticlesService;
 exports.ArticlesService = ArticlesService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(article_entity_1.Article)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(1, (0, typeorm_1.InjectRepository)(project_entity_1.Project)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository])
 ], ArticlesService);
 //# sourceMappingURL=articles.service.js.map

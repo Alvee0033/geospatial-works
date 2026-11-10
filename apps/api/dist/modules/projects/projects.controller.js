@@ -18,12 +18,18 @@ const swagger_1 = require("@nestjs/swagger");
 const projects_service_1 = require("./projects.service");
 const project_dto_1 = require("./dto/project.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_guard_1 = require("../../common/guards/roles.guard");
+const roles_decorator_1 = require("../../common/decorators/roles.decorator");
+const user_entity_1 = require("../../entities/user.entity");
 let ProjectsController = class ProjectsController {
     constructor(projectsService) {
         this.projectsService = projectsService;
     }
     async findAll(milestonesOnly) {
-        return this.projectsService.findAll(milestonesOnly === 'true');
+        return this.projectsService.findAll(milestonesOnly === 'true', true);
+    }
+    async findAllAdmin() {
+        return this.projectsService.findAll(false, false);
     }
     async findBySlug(slug) {
         return this.projectsService.findBySlug(slug);
@@ -49,6 +55,15 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ProjectsController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)('admin/all'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
+    (0, swagger_1.ApiBearerAuth)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ProjectsController.prototype, "findAllAdmin", null);
+__decorate([
     (0, common_1.Get)(':slug'),
     (0, swagger_1.ApiOperation)({ summary: 'Get single project by slug' }),
     __param(0, (0, common_1.Param)('slug')),
@@ -58,7 +73,8 @@ __decorate([
 ], ProjectsController.prototype, "findBySlug", null);
 __decorate([
     (0, common_1.Post)('admin'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Admin: Create a new project' }),
     __param(0, (0, common_1.Body)()),
@@ -68,7 +84,8 @@ __decorate([
 ], ProjectsController.prototype, "create", null);
 __decorate([
     (0, common_1.Put)('admin/:id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Admin: Update an existing project' }),
     __param(0, (0, common_1.Param)('id')),
@@ -79,7 +96,8 @@ __decorate([
 ], ProjectsController.prototype, "update", null);
 __decorate([
     (0, common_1.Delete)('admin/:id'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Admin: Delete a project' }),
     __param(0, (0, common_1.Param)('id')),

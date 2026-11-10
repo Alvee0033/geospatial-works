@@ -8,6 +8,8 @@ export declare class Project {
     description: string;
     deliverables: string;
     imageUrl: string;
+    details: Record<string, unknown>;
+    isActive: boolean;
     isMilestone: boolean;
     sortOrder: number;
     createdAt: Date;

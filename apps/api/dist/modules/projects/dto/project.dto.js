@@ -64,6 +64,16 @@ __decorate([
     __metadata("design:type", String)
 ], CreateProjectDto.prototype, "imageUrl", void 0);
 __decorate([
+    (0, class_validator_1.IsObject)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Object)
+], CreateProjectDto.prototype, "details", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreateProjectDto.prototype, "isActive", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ example: true, required: false }),
     (0, class_validator_1.IsBoolean)(),
     (0, class_validator_1.IsOptional)(),
@@ -75,7 +85,7 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], CreateProjectDto.prototype, "sortOrder", void 0);
-class UpdateProjectDto extends CreateProjectDto {
+class UpdateProjectDto extends (0, swagger_1.PartialType)(CreateProjectDto) {
 }
 exports.UpdateProjectDto = UpdateProjectDto;
 //# sourceMappingURL=project.dto.js.map

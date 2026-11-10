@@ -12,16 +12,20 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MediaController = void 0;
+exports.MediaController = exports.uploadDir = void 0;
 const common_1 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_guard_1 = require("../../common/guards/roles.guard");
+const roles_decorator_1 = require("../../common/decorators/roles.decorator");
+const user_entity_1 = require("../../entities/user.entity");
 const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
 const multer_1 = require("multer");
 const path_1 = require("path");
 const fs = require("fs");
-const uploadDir = (0, path_1.join)(process.cwd(), '../web/public/uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+exports.uploadDir = process.env.UPLOAD_DIR || (0, path_1.join)(process.cwd(), 'uploads');
+if (!fs.existsSync(exports.uploadDir)) {
+    fs.mkdirSync(exports.uploadDir, { recursive: true });
 }
 let MediaController = class MediaController {
     async uploadFile(file) {
@@ -39,11 +43,11 @@ let MediaController = class MediaController {
     }
     async listMedia() {
         try {
-            const files = fs.readdirSync(uploadDir);
+            const files = fs.readdirSync(exports.uploadDir);
             const items = files
                 .filter((f) => f.match(/\.(png|jpg|jpeg|webp|svg)$/i))
                 .map((f) => {
-                const stats = fs.statSync((0, path_1.join)(uploadDir, f));
+                const stats = fs.statSync((0, path_1.join)(exports.uploadDir, f));
                 return {
                     url: `/uploads/${f}`,
                     filename: f,
@@ -77,6 +81,8 @@ let MediaController = class MediaController {
 exports.MediaController = MediaController;
 __decorate([
     (0, common_1.Post)('upload'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiOperation)({ summary: 'Upload image or document asset' }),
     (0, swagger_1.ApiConsumes)('multipart/form-data'),
     (0, swagger_1.ApiBody)({
@@ -89,7 +95,7 @@ __decorate([
     }),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
         storage: (0, multer_1.diskStorage)({
-            destination: uploadDir,
+            destination: exports.uploadDir,
             filename: (req, file, cb) => {
                 const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const ext = (0, path_1.extname)(file.originalname).toLowerCase();
@@ -111,6 +117,8 @@ __decorate([
 ], MediaController.prototype, "uploadFile", null);
 __decorate([
     (0, common_1.Get)('library'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.ADMIN, user_entity_1.UserRole.EDITOR),
     (0, swagger_1.ApiOperation)({ summary: 'List all available uploaded images' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),

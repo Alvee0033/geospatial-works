@@ -15,6 +15,7 @@ const user_entity_1 = require("../../entities/user.entity");
 const auth_service_1 = require("./auth.service");
 const auth_controller_1 = require("./auth.controller");
 const jwt_strategy_1 = require("./jwt.strategy");
+const jwt_secret_1 = require("./jwt-secret");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -24,7 +25,7 @@ exports.AuthModule = AuthModule = __decorate([
             typeorm_1.TypeOrmModule.forFeature([user_entity_1.User]),
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             jwt_1.JwtModule.register({
-                secret: process.env.JWT_SECRET || 'GeospatialWorksSecretKey2026!SecureKey999',
+                secret: (0, jwt_secret_1.jwtSecret)(),
                 signOptions: { expiresIn: '7d' },
             }),
         ],

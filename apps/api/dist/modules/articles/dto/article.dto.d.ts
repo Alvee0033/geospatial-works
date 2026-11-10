@@ -7,6 +7,7 @@ export declare class CreateArticleDto {
     content?: string;
     author?: string;
     imageUrl?: string;
+    meta?: Record<string, string>;
     isPublished?: boolean;
     sortOrder?: number;
 }

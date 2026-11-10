@@ -19,12 +19,13 @@ const passport_jwt_1 = require("passport-jwt");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const user_entity_1 = require("../../entities/user.entity");
+const jwt_secret_1 = require("./jwt-secret");
 let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
     constructor(userRepository) {
         super({
             jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: process.env.JWT_SECRET || 'GeospatialWorksSecretKey2026!SecureKey999',
+            secretOrKey: (0, jwt_secret_1.jwtSecret)(),
         });
         this.userRepository = userRepository;
     }

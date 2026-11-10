@@ -25,6 +25,9 @@ const mega_menu_entity_1 = require("./entities/mega-menu.entity");
 const article_entity_1 = require("./entities/article.entity");
 const job_post_entity_1 = require("./entities/job-post.entity");
 const job_application_entity_1 = require("./entities/job-application.entity");
+const _1762819200000_CmsContentSource_1 = require("./migrations/1762819200000-CmsContentSource");
+const _1762905600000_ProjectsOnlyApprovedSource_1 = require("./migrations/1762905600000-ProjectsOnlyApprovedSource");
+const _1794270000000_CorporateOfficeContact_1 = require("./migrations/1794270000000-CorporateOfficeContact");
 const auth_module_1 = require("./modules/auth/auth.module");
 const cms_module_1 = require("./modules/cms/cms.module");
 const services_module_1 = require("./modules/services/services.module");
@@ -78,7 +81,9 @@ exports.AppModule = AppModule = __decorate([
                         job_post_entity_1.JobPost,
                         job_application_entity_1.JobApplication,
                     ],
-                    synchronize: true,
+                    synchronize: process.env.NODE_ENV !== 'production',
+                    migrations: [_1762819200000_CmsContentSource_1.CmsContentSource1762819200000, _1762905600000_ProjectsOnlyApprovedSource_1.ProjectsOnlyApprovedSource1762905600000, _1794270000000_CorporateOfficeContact_1.CorporateOfficeContact1794270000000],
+                    migrationsRun: process.env.NODE_ENV === 'production',
                     logging: false,
                 }),
             }),

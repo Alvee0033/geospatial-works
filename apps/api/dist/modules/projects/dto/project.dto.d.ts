@@ -7,8 +7,12 @@ export declare class CreateProjectDto {
     description: string;
     deliverables?: string;
     imageUrl?: string;
+    details?: Record<string, unknown>;
+    isActive?: boolean;
     isMilestone?: boolean;
     sortOrder?: number;
 }
-export declare class UpdateProjectDto extends CreateProjectDto {
+declare const UpdateProjectDto_base: import("@nestjs/common").Type<Partial<CreateProjectDto>>;
+export declare class UpdateProjectDto extends UpdateProjectDto_base {
 }
+export {};

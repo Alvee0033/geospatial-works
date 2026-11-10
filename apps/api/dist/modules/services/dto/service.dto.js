@@ -52,6 +52,11 @@ __decorate([
     __metadata("design:type", String)
 ], CreateServiceDto.prototype, "imageUrl", void 0);
 __decorate([
+    (0, class_validator_1.IsObject)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Object)
+], CreateServiceDto.prototype, "details", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ example: 0, required: false }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.IsOptional)(),
@@ -63,7 +68,7 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Boolean)
 ], CreateServiceDto.prototype, "isActive", void 0);
-class UpdateServiceDto extends CreateServiceDto {
+class UpdateServiceDto extends (0, swagger_1.PartialType)(CreateServiceDto) {
 }
 exports.UpdateServiceDto = UpdateServiceDto;
 //# sourceMappingURL=service.dto.js.map

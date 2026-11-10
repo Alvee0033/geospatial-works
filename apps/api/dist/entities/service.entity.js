@@ -43,6 +43,10 @@ __decorate([
     __metadata("design:type", String)
 ], Service.prototype, "imageUrl", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', default: {} }),
+    __metadata("design:type", Object)
+], Service.prototype, "details", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'int', default: 0 }),
     __metadata("design:type", Number)
 ], Service.prototype, "sortOrder", void 0);

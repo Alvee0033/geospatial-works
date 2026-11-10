@@ -5,6 +5,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const helmet_1 = require("helmet");
 const express = require("express");
+const media_controller_1 = require("./modules/media/media.controller");
 const app_module_1 = require("./app.module");
 const http_exception_filter_1 = require("./common/filters/http-exception.filter");
 async function bootstrap() {
@@ -12,6 +13,7 @@ async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.use(express.json({ limit: '25mb' }));
     app.use(express.urlencoded({ limit: '25mb', extended: true }));
+    app.use('/uploads', express.static(media_controller_1.uploadDir, { immutable: true, maxAge: '30d' }));
     app.use((0, helmet_1.default)({
         crossOriginResourcePolicy: { policy: 'cross-origin' },
         contentSecurityPolicy: false,
