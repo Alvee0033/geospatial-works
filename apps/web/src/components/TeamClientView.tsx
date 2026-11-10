@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight,
   ShieldCheck,
@@ -89,9 +90,12 @@ export default function TeamClientView() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10">
             {/* Portrait Image Holder */}
             <div className="md:col-span-4 lg:col-span-3 aspect-[4/5] max-w-[220px] w-full mx-auto md:mx-0 bg-neutral-900 border border-white/10 overflow-hidden relative shadow-lg group">
-              <img
+              <Image
                 src={leader.image}
                 alt={leader.name}
+                fill
+                sizes="(max-width: 768px) 80vw, 220px"
+                quality={72}
                 className="w-full h-full object-cover object-top filter brightness-105 group-hover:scale-105 transition-transform duration-500"
               />
               {leader && (
@@ -160,11 +164,13 @@ export default function TeamClientView() {
               <div>
                 {/* Natural Headshot Frame: 4:5 vertical portrait aspect ratio */}
                 <div className="aspect-[4/5] overflow-hidden bg-neutral-900 relative border-b border-neutral-100 flex items-center justify-center">
-                  <img
+                  <Image
                     src={member.image}
                     alt={member.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                    quality={72}
                     className="w-full h-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-500 ease-out filter brightness-105"
-                    loading="lazy"
                   />
                   {/* Category Chip */}
                   <div className="absolute top-2 left-2 px-1.5 py-0.5 bg-black/80 backdrop-blur-sm text-[8.5px] font-mono text-white tracking-wider uppercase border border-white/10">

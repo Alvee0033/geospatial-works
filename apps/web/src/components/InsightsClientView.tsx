@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Search, ArrowRight, ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, Calendar, Sparkles } from 'lucide-react';
 
 interface ArticleItem {
@@ -216,7 +217,7 @@ export default function InsightsClientView() {
               {/* Media Card matching Mega Menu featured card style */}
               <div className="lg:col-span-7 aspect-[16/10] overflow-hidden rounded-xl bg-neutral-900 relative shadow-md border border-neutral-200">
                 <Link href={`/insights/${activeFeatured.slug}`} className="block w-full h-full group">
-                  {activeFeatured.imageUrl ? <img src={activeFeatured.imageUrl} alt={activeFeatured.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" /> : <span className="flex h-full items-center justify-center px-8 text-center text-white text-xl font-bold">{activeFeatured.title}</span>}
+                  {activeFeatured.imageUrl ? <Image src={activeFeatured.imageUrl} alt={activeFeatured.title} fill sizes="(max-width: 1024px) 100vw, 58vw" quality={72} className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out" /> : <span className="flex h-full items-center justify-center px-8 text-center text-white text-xl font-bold">{activeFeatured.title}</span>}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-75" />
                   <div className="absolute top-3 left-3 flex items-center gap-2">
                     <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-black/80 text-white backdrop-blur-xs">
@@ -329,7 +330,7 @@ export default function InsightsClientView() {
               className="group block space-y-4 bg-white border border-neutral-200 p-6 hover:shadow-lg transition-all"
             >
               <div className="aspect-[16/10] overflow-hidden bg-neutral-100 relative">
-                {art.imageUrl ? <img src={art.imageUrl} alt={art.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" /> : <span className="flex h-full items-center justify-center px-6 text-center text-lg font-bold text-neutral-700">{art.title}</span>}
+                {art.imageUrl ? <Image src={art.imageUrl} alt={art.title} fill sizes="(max-width: 768px) 100vw, 33vw" quality={72} className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out" /> : <span className="flex h-full items-center justify-center px-6 text-center text-lg font-bold text-neutral-700">{art.title}</span>}
               </div>
 
               <div className="space-y-2">

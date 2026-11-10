@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { partners, projects, services } from '@/lib/corporate-data';
 
@@ -14,14 +15,14 @@ export function SectionHeading({ eyebrow, title, description, href, linkText }: 
 
 export function ServiceGrid({ limit }: { limit?: number }) {
   return <div className="corporate-card-grid">{services.slice(0, limit).map(service => <article className="corporate-card" key={service.slug}>
-    <Link href={`/services/${service.slug}`} className="corporate-card-image"><img src={service.image} alt="" loading="lazy" /></Link>
+    <Link href={`/services/${service.slug}`} className="corporate-card-image"><Image src={service.image} alt="" fill sizes="(max-width: 700px) 100vw, 33vw" quality={72} /></Link>
     <div className="corporate-card-body"><span className="corporate-card-category">{service.category}</span><h3><Link href={`/services/${service.slug}`}>{service.title}</Link></h3><p>{service.description}</p><Link href={`/services/${service.slug}`} className="corporate-card-link">Read More <ArrowUpRight size={15} /></Link></div>
   </article>)}</div>;
 }
 
 export function ProjectGrid({ limit }: { limit?: number }) {
   return <div className="corporate-card-grid">{projects.slice(0, limit).map(project => <article className="corporate-card" key={project.slug}>
-    <Link href={`/projects/${project.slug}`} className="corporate-card-image"><img src={project.image} alt="" loading="lazy" /><span className="corporate-image-tag">{project.category}</span></Link>
+    <Link href={`/projects/${project.slug}`} className="corporate-card-image"><Image src={project.image} alt="" fill sizes="(max-width: 700px) 100vw, 33vw" quality={72} /><span className="corporate-image-tag">{project.category}</span></Link>
     <div className="corporate-card-body"><h3><Link href={`/projects/${project.slug}`}>{project.title}</Link></h3><p>{project.location}</p><Link href={`/projects/${project.slug}`} className="corporate-card-link">View Project <ArrowUpRight size={15} /></Link></div>
   </article>)}</div>;
 }

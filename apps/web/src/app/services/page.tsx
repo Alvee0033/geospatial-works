@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight,
   ChevronRight,
@@ -136,7 +137,7 @@ export default async function ServicesPage() {
                 >
                   {/* Top Image Section (Compact 16:9 with subtle badge) */}
                   <div className="relative aspect-[16/9] overflow-hidden bg-neutral-900">
-                    {item.image && <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />}
+                    {item.image && <Image src={item.image} alt={item.title} fill sizes="(max-width: 768px) 100vw, 33vw" quality={72} className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
                     {/* Discipline Number */}

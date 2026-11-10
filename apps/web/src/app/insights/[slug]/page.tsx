@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
 import CorporateShell from '@/components/CorporateShell';
 import { CmsApi } from '@/lib/cms-api';
@@ -31,8 +32,8 @@ export default async function InsightDetailPage({ params }: { params: Promise<{ 
       <p className="max-w-3xl text-lg text-neutral-600 mt-5 leading-relaxed">{article.summary}</p>
       {article.author && <p className="text-sm text-neutral-500 mt-5">By {article.author}{article.meta?.authorRole ? ` · ${article.meta.authorRole}` : ''}</p>}
     </div></header>
-    {article.imageUrl && <div className="max-w-[1440px] mx-auto px-6 md:px-12 py-8"><div className="aspect-[21/9] overflow-hidden bg-neutral-100"><img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover" /></div></div>}
+    {article.imageUrl && <div className="max-w-[1440px] mx-auto px-6 md:px-12 py-8"><div className="relative aspect-[21/9] overflow-hidden bg-neutral-100"><Image src={article.imageUrl} alt={article.title} fill priority sizes="100vw" quality={78} className="object-cover" /></div></div>}
     <article className="max-w-[1440px] mx-auto px-6 md:px-12 py-12"><div className="max-w-3xl"><ArticleBody content={article.content} /><Link href="/insights" className="inline-flex items-center gap-2 mt-12 font-semibold hover:text-[#F4382D]"><ArrowLeft size={18}/> All articles</Link></div></article>
-    {related.length > 0 && <section className="max-w-[1440px] mx-auto px-6 md:px-12 py-12 border-t border-neutral-200"><h2 className="text-2xl font-bold mb-6">More insights</h2><div className="grid md:grid-cols-3 gap-5">{related.map((item) => <Link key={item.id} href={`/insights/${item.slug}`} className="border border-neutral-200 hover:border-[#F4382D] transition-colors group">{item.imageUrl && <img src={item.imageUrl} alt="" className="w-full aspect-[16/10] object-cover" />}<div className="p-4"><span className="text-xs text-[#F4382D] font-bold uppercase">{item.category}</span><div className="flex justify-between gap-2 font-semibold mt-2">{item.title}<ArrowRight className="shrink-0 group-hover:translate-x-1 transition-transform" size={18}/></div></div></Link>)}</div></section>}
+    {related.length > 0 && <section className="max-w-[1440px] mx-auto px-6 md:px-12 py-12 border-t border-neutral-200"><h2 className="text-2xl font-bold mb-6">More insights</h2><div className="grid md:grid-cols-3 gap-5">{related.map((item) => <Link key={item.id} href={`/insights/${item.slug}`} className="border border-neutral-200 hover:border-[#F4382D] transition-colors group">{item.imageUrl && <div className="relative aspect-[16/10]"><Image src={item.imageUrl} alt="" fill sizes="(max-width: 768px) 100vw, 33vw" quality={72} className="object-cover" /></div>}<div className="p-4"><span className="text-xs text-[#F4382D] font-bold uppercase">{item.category}</span><div className="flex justify-between gap-2 font-semibold mt-2">{item.title}<ArrowRight className="shrink-0 group-hover:translate-x-1 transition-transform" size={18}/></div></div></Link>)}</div></section>}
   </main></CorporateShell>;
 }

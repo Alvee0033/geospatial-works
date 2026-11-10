@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
 
 type HeroProps = {
@@ -20,7 +21,7 @@ export function InteriorHero({ eyebrow, title, description, image, mobileImage, 
       <p>{description}</p>
       {action && <Link className="interior-action" href={action.href}>{action.label}<ArrowUpRight size={17} aria-hidden="true" /></Link>}
     </div>
-    <div className="interior-hero-media"><picture>{mobileImage && <source media="(max-width: 650px)" srcSet={mobileImage} />}<img src={image} alt={imageAlt} /></picture><span aria-hidden="true">PEOPLE / DATA / PLACES</span></div>
+    <div className="interior-hero-media">{mobileImage ? <><Image src={image} alt={imageAlt} fill sizes="(max-width: 650px) 1px, 52vw" quality={76} className="hidden min-[651px]:block object-cover" /><Image src={mobileImage} alt="" fill sizes="(max-width: 650px) 100vw, 1px" quality={72} className="min-[651px]:hidden object-cover" /></> : <Image src={image} alt={imageAlt} fill sizes="(max-width: 650px) 100vw, 52vw" quality={76} className="object-cover" />}<span aria-hidden="true">PEOPLE / DATA / PLACES</span></div>
   </section>;
 }
 
