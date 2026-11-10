@@ -88,7 +88,7 @@ export default function KeepInTouchSection({
               lat={Number(contactInfo?.latitude) || OFFICE_COORDINATES.latitude}
               lng={Number(contactInfo?.longitude) || OFFICE_COORDINATES.longitude}
               zoom={15}
-              theme={theme}
+              theme="light"
               heightClass="h-[240px] sm:h-[260px]"
               locationName={contactInfo?.companyName || 'Geospatial Works'}
             />

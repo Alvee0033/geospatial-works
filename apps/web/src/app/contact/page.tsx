@@ -92,7 +92,7 @@ export default async function ContactPage() {
                 lat={Number(contactInfo?.latitude) || OFFICE_COORDINATES.latitude}
                 lng={Number(contactInfo?.longitude) || OFFICE_COORDINATES.longitude}
                 zoom={15}
-                theme="dark"
+                theme="light"
                 heightClass="h-[280px] sm:h-[320px]"
                 locationName={contactInfo?.companyName || 'Geospatial Works'}
               />

@@ -21,7 +21,7 @@ export default function MapboxOfficeMap({
   zoom = 15,
   heightClass = 'h-[300px] sm:h-[340px]',
   className = '',
-  theme = 'dark',
+  theme = 'light',
   interactive = true,
   embedUrl,
   locationName = 'Geospatial Works',
@@ -57,15 +57,18 @@ export default function MapboxOfficeMap({
 
         mapInstanceRef.current = map;
 
-        // Professional ESRI ArcGIS Canvas Tiles (Dark Gray for dark theme, Light Gray for light theme)
+        // Keep landmarks and street names visible on the standard light map.
         const tileUrl = isDark
-          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
-          : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
         L.tileLayer(tileUrl, {
-          maxZoom: 16,
-          attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+          maxZoom: 19,
+          attribution: isDark
+            ? '&copy; OpenStreetMap contributors &copy; CARTO'
+            : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
         }).addTo(map);
+        L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map);
 
         // Geodetic precision circle
         L.circle([lat, lng], {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import {
   ArrowRight,
@@ -325,13 +326,8 @@ export default function WspLandingView({
                 />
               </motion.div>
             ) : currentSlide.imageUrl ? (
-              <motion.img
+              <motion.div
                 key={currentSlide.id || activeSlide}
-                src={currentSlide.imageUrl}
-                alt={currentSlide.heading || 'Geospatial Works Landscape'}
-                loading="eager"
-                decoding="async"
-                {...({ fetchPriority: 'high' } as Record<string, string>)}
                 initial={activeSlide === 0 ? { opacity: 1, scale: 1 } : { opacity: 0.2, scale: 1.04 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
@@ -339,8 +335,18 @@ export default function WspLandingView({
                   opacity: { duration: 0.4, ease: 'easeOut' },
                   scale: { duration: 6, ease: 'easeOut' },
                 }}
-                className="absolute inset-0 w-full h-full object-cover object-[center_30%] sm:object-center will-change-transform"
-              />
+                className="absolute inset-0 w-full h-full will-change-transform"
+              >
+                <Image
+                  src={currentSlide.imageUrl}
+                  alt={currentSlide.heading || 'Geospatial Works Landscape'}
+                  fill
+                  priority={activeSlide === 0}
+                  sizes="100vw"
+                  quality={78}
+                  className="object-cover object-[center_30%] sm:object-center"
+                />
+              </motion.div>
             ) : (
               <div className="absolute inset-0 bg-[#141212]" />
             )}
@@ -693,9 +699,13 @@ export default function WspLandingView({
                 >
                   {/* Clean Visual Card Image matching exact WSP aspect & look */}
                   <div className="aspect-[16/10] overflow-hidden bg-neutral-100 relative border border-neutral-200/90 group-hover:border-[#3B82F6] transition-all duration-300 shadow-sm group-hover:shadow-[0_10px_30px_rgba(59,130,246,0.18)]">
-                    <img
+                    <Image
                       src={svc.imageUrl || '/real-media/service-topographic-uav.png'}
                       alt={svc.title}
+                      width={700}
+                      height={438}
+                      sizes="(max-width: 640px) 260px, (max-width: 1024px) 330px, 350px"
+                      quality={75}
                       className="w-full h-full object-cover group-hover:scale-[1.04] group-hover:brightness-105 transition-transform duration-700 ease-out pointer-events-none"
                     />
                     {/* Top-Right Corner Accent */}
@@ -772,9 +782,13 @@ export default function WspLandingView({
                   >
                     {/* Top Level: Project Image Container with Brand Colored Border */}
                     <div className="aspect-[16/10] overflow-hidden bg-neutral-900 relative shadow-md transition-all duration-500 border-2 border-[#3B82F6]/60 group-hover:border-[#3B82F6] group-hover:shadow-[0_12px_40px_rgba(59,130,246,0.35)]">
-                      <img
+                      <Image
                         src={project.imageUrl || '/real-media/project-badc-web-ais-khulna.jpg'}
                         alt={project.title}
+                        width={1200}
+                        height={750}
+                        sizes="(max-width: 640px) 85vw, (max-width: 1280px) 660px, 760px"
+                        quality={75}
                         className="w-full h-full object-cover group-hover:scale-[1.03] group-hover:brightness-105 transition-all duration-700 ease-out pointer-events-none"
                         draggable={false}
                       />
@@ -894,9 +908,13 @@ export default function WspLandingView({
             {/* Card 1: GNSS Satellite Positioning (Slide 42) */}
             <div className="group rounded-xl border border-white/10 border-t-2 border-t-[#3B82F6] bg-[#101a2b]/75 p-4 sm:p-5 space-y-4 transition duration-300 hover:-translate-y-1 hover:border-[#3B82F6]/60 hover:shadow-[0_18px_46px_rgba(0,0,0,.24)]">
               <div className="aspect-[16/9] overflow-hidden rounded-md bg-neutral-900">
-                <img
+                <Image
                   src="/real-media/slide_42_img_193.jpg"
                   alt="CHCNAV i83 RTK GNSS Receiver"
+                  width={900}
+                  height={506}
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  quality={72}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -919,9 +937,13 @@ export default function WspLandingView({
             {/* Card 2: UAV Drone Fleet (Slide 42) */}
             <div className="group rounded-xl border border-white/10 border-t-2 border-t-[#FB1D10] bg-[#101a2b]/75 p-4 sm:p-5 space-y-4 transition duration-300 hover:-translate-y-1 hover:border-[#FB1D10]/60 hover:shadow-[0_18px_46px_rgba(0,0,0,.24)]">
               <div className="aspect-[16/9] overflow-hidden rounded-md bg-neutral-900">
-                <img
+                <Image
                   src="/real-media/equipment-drone-fleet.jpg"
                   alt="DJI Enterprise Drone Fleet"
+                  width={900}
+                  height={506}
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  quality={72}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -944,9 +966,13 @@ export default function WspLandingView({
             {/* Card 3: Optical & Hydrographic (Slide 43) */}
             <div className="group rounded-xl border border-white/10 border-t-2 border-t-[#3B82F6] bg-[#101a2b]/75 p-4 sm:p-5 space-y-4 transition duration-300 hover:-translate-y-1 hover:border-[#3B82F6]/60 hover:shadow-[0_18px_46px_rgba(0,0,0,.24)]">
               <div className="aspect-[16/9] overflow-hidden rounded-md bg-neutral-900">
-                <img
+                <Image
                   src="/real-media/slide_43_total_station.png"
                   alt="Total Stations & Optical Instruments"
+                  width={900}
+                  height={506}
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  quality={72}
                   className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
@@ -1101,10 +1127,12 @@ export default function WspLandingView({
                   <Link href="/team" className="landing-team-card-link focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B82F6]">
                     <div className="landing-team-photo">
                       {member.image ? (
-                        <img
+                        <Image
                           src={member.image}
                           alt={member.name}
-                          loading="lazy"
+                          fill
+                          sizes="(max-width: 640px) 80vw, (max-width: 1024px) 40vw, 25vw"
+                          quality={72}
                           className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.045]"
                         />
                       ) : (
@@ -1175,7 +1203,7 @@ export default function WspLandingView({
                   className="group block space-y-4"
                 >
                   <div className="aspect-[16/10] overflow-hidden bg-neutral-900 relative">
-                    {article.imageUrl ? <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out" /> : <div className="flex h-full items-center justify-center px-6 text-center text-white font-bold">{article.title}</div>}
+                    {article.imageUrl ? <Image src={article.imageUrl} alt={article.title} fill sizes="(max-width: 768px) 100vw, 33vw" quality={72} className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out" /> : <div className="flex h-full items-center justify-center px-6 text-center text-white font-bold">{article.title}</div>}
                     <div className={`absolute top-3 left-3 text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 text-white ${i % 2 === 0 ? 'bg-[#3B82F6]' : 'bg-[#FB1D10]'}`}>
                       {article.category}
                     </div>
@@ -1260,9 +1288,12 @@ export default function WspLandingView({
               <div className="absolute -left-6 -top-6 w-36 h-36 bg-[#3B82F6]/25 rounded-full blur-2xl" />
               <div className="absolute -right-6 -bottom-6 w-36 h-36 bg-[#FB1D10]/20 rounded-full blur-2xl" />
               <div className="relative aspect-[4/3] rounded-none overflow-hidden bg-neutral-900 border-l-4 border-[#3B82F6] shadow-2xl">
-                <img
+                <Image
                   src="/real-media/career-engineering-team.jpg"
                   alt="Geospatial Works Professional Surveyor"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  quality={72}
                   className="w-full h-full object-cover"
                 />
               </div>

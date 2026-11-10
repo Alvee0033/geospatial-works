@@ -21,6 +21,7 @@ import { JobApplication } from './entities/job-application.entity';
 import { CmsContentSource1762819200000 } from './migrations/1762819200000-CmsContentSource';
 import { ProjectsOnlyApprovedSource1762905600000 } from './migrations/1762905600000-ProjectsOnlyApprovedSource';
 import { CorporateOfficeContact1794270000000 } from './migrations/1794270000000-CorporateOfficeContact';
+import { ContentDetailFields1794325484540 } from './migrations/1794325484540-ContentDetailFields';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -74,7 +75,12 @@ import { UsersModule } from './modules/users/users.module';
           JobApplication,
         ],
         synchronize: process.env.NODE_ENV !== 'production',
-        migrations: [CmsContentSource1762819200000, ProjectsOnlyApprovedSource1762905600000, CorporateOfficeContact1794270000000],
+        migrations: [
+          CmsContentSource1762819200000,
+          ProjectsOnlyApprovedSource1762905600000,
+          CorporateOfficeContact1794270000000,
+          ContentDetailFields1794325484540,
+        ],
         migrationsRun: process.env.NODE_ENV === 'production',
         logging: false,
       }),
