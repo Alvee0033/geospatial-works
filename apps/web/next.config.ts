@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     formats: ['image/avif', 'image/webp'],
+    qualities: [72, 75, 78],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days cache for static media
   },
   experimental: {
