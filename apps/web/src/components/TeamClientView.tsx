@@ -10,6 +10,7 @@ import {
   Layers,
   Building,
 } from 'lucide-react';
+import RequestCvButton from './RequestCvButton';
 
 interface TeamMember {
   id: string;
@@ -199,6 +200,9 @@ export default function TeamClientView() {
                   <p className="text-[12px] text-neutral-600 leading-relaxed line-clamp-4">
                     {member.bio}
                   </p>
+                </div>
+                <div className="px-4 pb-4 sm:px-5 sm:pb-5">
+                  <RequestCvButton memberName={member.name} className="gw-request-cv-button" />
                 </div>
               </div>
             </div>

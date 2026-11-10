@@ -25,16 +25,32 @@ import {
   Send,
 } from 'lucide-react';
 import KeepInTouchSection from './KeepInTouchSection';
-import type { ArticleData, TeamMemberData } from '@/lib/cms-api';
+import SoftwareDetailsButton from './SoftwareDetailsButton';
+import RequestCvButton from './RequestCvButton';
+import type { ArticleData, HeroSlideData, PageSectionData, ProjectData, ServiceData, TeamMemberData } from '@/lib/cms-api';
 import { softwareExpertise } from '@/lib/software-expertise';
 
 interface WspLandingViewProps {
-  heroSlides?: any[];
-  services?: any[];
-  projects?: any[];
-  sections?: any;
+  heroSlides?: LandingHeroSlide[];
+  services?: ServiceData[];
+  projects?: ProjectData[];
+  sections?: Record<string, PageSectionData>;
   articles?: ArticleData[];
   teamMembers?: TeamMemberData[];
+}
+
+interface LandingHeroSlide extends HeroSlideData {
+  mediaType?: string;
+  videoUrl?: string;
+  subheading?: string;
+}
+
+interface LandingPartner {
+  name: string;
+  short?: string;
+  subtext?: string;
+  logo?: string;
+  logoUrl?: string;
 }
 
 export default function WspLandingView({
@@ -57,7 +73,7 @@ export default function WspLandingView({
     restDelta: 0.001,
   });
 
-  const slides = heroSlides.length ? heroSlides : [{ id: 'empty', heading: 'Explore our work', eyebrow: '', description: '', imageUrl: '', primaryActionText: 'Contact us', primaryActionHref: '/contact' }];
+  const slides: LandingHeroSlide[] = heroSlides.length ? heroSlides : [{ id: 'empty', heading: 'Explore our work', eyebrow: '', description: '', imageUrl: '', primaryActionText: 'Contact us', primaryActionHref: '/contact', secondaryActionText: '', secondaryActionHref: '', sortOrder: 0, isActive: true }];
   const currentSlide = slides[activeSlide] || slides[0];
 
   // If active slide is video or any slide is video mode, hero shows dedicated single cinematic slide without auto-rotating carousel
@@ -81,6 +97,28 @@ export default function WspLandingView({
   const cultureSec = sections['home:culture_summary'] || sections['culture_summary'] || {};
   const touchSec = sections['home:keep_in_touch'] || sections['keep_in_touch'] || {};
   const activeTeamMembers = teamMembers.filter((member) => member.isActive).slice(0, 4);
+  const partners: LandingPartner[] = (manSec.content?.partners?.length ? manSec.content.partners : [
+    { name: 'Dhaka North City Corporation', short: 'DNCC', subtext: 'City Corporation', logo: '/partners/partner_2.webp' },
+    { name: 'Bangladesh Railway', short: 'Bangladesh Railway', subtext: 'Rail Authority', logo: '/partners/bangladesh_railway.svg' },
+    { name: 'BADC (Agriculture)', short: 'BADC', subtext: 'Agri Development', logo: '/partners/badc_logo_clean.png' },
+    { name: 'LGED (Local Govt)', short: 'LGED', subtext: 'Engineering Dept', logo: '/partners/partner_4.png' },
+    { name: 'DTCA (Dhaka Transit)', short: 'DTCA', subtext: 'Transit Coordination', logo: '/partners/bangladesh_govt_seal.svg' },
+    { name: 'Asian Development Bank', short: 'ADB', subtext: 'Development Bank', logo: '/partners/asian_development_bank.svg' },
+  ]);
+  const workstations: { id: string; cpu: string; ram: string; gpu: string; isAccent?: boolean }[] = (
+    equipSec.content?.workstations?.length ? equipSec.content.workstations : [
+      { id: 'NODE 01', cpu: 'Intel Core i9', ram: '64GB DDR5', gpu: 'RTX 4060 Ti', isAccent: false },
+      { id: 'NODE 02', cpu: 'Intel Core i9', ram: '64GB DDR5', gpu: 'RTX 4060 Ti', isAccent: false },
+      { id: 'NODE 03', cpu: 'Intel Ultra 7', ram: '64GB DDR5', gpu: 'RTX 5060 Ti', isAccent: true },
+      { id: 'NODE 04', cpu: 'Intel Core i7', ram: '32GB DDR5', gpu: 'Processing Node', isAccent: false },
+    ]
+  );
+  const featuredSoftware = [
+    { ...softwareExpertise.find((tool) => tool.name === 'ArcGIS')!, name: 'ArcGIS Pro', logo: '/software-logos/arcgis-pro-dark-tight.png' },
+    { name: 'QGIS', category: 'Mapping and GIS', description: 'QGIS is an open-source geographic information system used to create maps, view location data, and work with spatial information.', logo: '/software-logos/qgis-dark-tight.png' },
+    { ...softwareExpertise.find((tool) => tool.name === 'Agisoft Metashape')!, logo: '/software-logos/agisoft-metashape-dark-tight.png' },
+    { ...softwareExpertise.find((tool) => tool.name === 'Civil 3D')!, name: 'AutoCAD Civil 3D', logo: '/software-logos/autocad-civil-3d-dark-tight.png' },
+  ];
 
   // Pioneering Projects Carousel State with Freeform Continuous Swipe & Momentum
   const [activeProjectIdx, setActiveProjectIdx] = useState(0);
@@ -284,6 +322,16 @@ export default function WspLandingView({
     title: article.title,
     href: `/insights/${article.slug}`,
   }));
+  const renderPartnerGroups = (colorLayer = false) => [0, 1].map((copy) => (
+    <div className="gw-partner-group" key={`${colorLayer ? 'color' : 'mono'}-${copy}`} aria-hidden={colorLayer || copy === 1}>
+      {partners.map((auth, idx) => (
+        <div key={`${colorLayer ? 'color' : 'mono'}-${auth.name}-${idx}`} className="gw-partner-item">
+          <Image src={auth.logo || auth.logoUrl || '/partners/partner_2.webp'} alt={!colorLayer && copy === 0 ? auth.name : ''} width={150} height={88} sizes="(max-width: 620px) 128px, 118px" loading="lazy" />
+          <span>{auth.short || auth.name}</span>
+        </div>
+      ))}
+    </div>
+  ));
 
   return (
     <div className="wsp-landing-content relative">
@@ -546,82 +594,16 @@ export default function WspLandingView({
               </span>
             </div>
 
-            {/* Seamless Floating Logo Design — Dynamic from CMS or verified default */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8 sm:gap-10 items-center justify-items-center">
-              {((manSec.content?.partners && manSec.content.partners.length > 0)
-                ? manSec.content.partners
-                : [
-                    {
-                      name: 'Dhaka North City Corporation',
-                      short: 'DNCC',
-                      subtext: 'City Corporation',
-                      logo: '/partners/partner_2.webp',
-                    },
-                    {
-                      name: 'Bangladesh Railway',
-                      short: 'Bangladesh Railway',
-                      subtext: 'Rail Authority',
-                      logo: '/partners/bangladesh_railway.svg',
-                    },
-                    {
-                      name: 'BADC (Agriculture)',
-                      short: 'BADC',
-                      subtext: 'Agri Development',
-                      logo: '/partners/badc_logo_clean.png',
-                    },
-                    {
-                      name: 'LGED (Local Govt)',
-                      short: 'LGED',
-                      subtext: 'Engineering Dept',
-                      logo: '/partners/partner_4.png',
-                    },
-                    {
-                      name: 'DTCA (Dhaka Transit)',
-                      short: 'DTCA',
-                      subtext: 'Transit Coordination',
-                      logo: '/partners/bangladesh_govt_seal.svg',
-                    },
-                    {
-                      name: 'Asian Development Bank',
-                      short: 'ADB',
-                      subtext: 'Development Bank',
-                      logo: '/partners/asian_development_bank.svg',
-                    },
-                  ]
-              ).map((auth: any, idx: number) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 25 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                  className="group relative flex flex-col items-center justify-center text-center w-full py-6 px-3 cursor-pointer"
-                >
-                  {/* Glowing dynamic background aura */}
-                  <div className="logo-ambient-glow" />
-
-                  {/* Pure Floating Logo with Spring Lift & Hover Tilt */}
-                  <div className="relative h-18 sm:h-22 w-full flex items-center justify-center logo-interactive z-10">
-                    <img
-                      src={auth.logo}
-                      alt={auth.name}
-                      className="max-h-16 sm:max-h-20 max-w-[125px] object-contain filter brightness-95 contrast-105 group-hover:brightness-110 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)] transition-all duration-300"
-                      loading="lazy"
-                    />
-                  </div>
-
-                  {/* Clean Minimalist Typography with animated underline */}
-                  <div className="mt-5 space-y-1 z-10 w-full">
-                    <span className="font-bold text-xs sm:text-sm tracking-wider text-neutral-300 group-hover:text-white transition-colors uppercase block">
-                      {auth.short || auth.name}
-                    </span>
-                    <div className="logo-underline-expand" />
-                    <span className="text-[10px] font-mono text-neutral-500 group-hover:text-[#FB1D10] transition-colors block uppercase tracking-wider pt-1">
-                      {auth.subtext}
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
+            {/* Continuously moving partner marks; pauses on hover/focus and honors reduced motion. */}
+            <div className="gw-partner-marquee" role="region" aria-label="Partner organizations">
+              <div className="gw-partner-track gw-partner-track-mono">
+                {renderPartnerGroups()}
+              </div>
+              <div className="gw-partner-color-reveal" aria-hidden="true">
+                <div className="gw-partner-track gw-partner-track-color">
+                  {renderPartnerGroups(true)}
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -1012,16 +994,7 @@ export default function WspLandingView({
 
             {/* Workstations Specification Grid: Dynamic or Default */}
             <div className="overflow-hidden rounded-lg border border-white/10 divide-y sm:divide-y-0 sm:divide-x divide-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-[#080e19]/65">
-              {(
-                equipSec.content?.workstations && equipSec.content.workstations.length > 0
-                  ? equipSec.content.workstations
-                  : [
-                      { id: 'NODE 01', cpu: 'Intel Core i9', ram: '64GB DDR5', gpu: 'RTX 4060 Ti', isAccent: false },
-                      { id: 'NODE 02', cpu: 'Intel Core i9', ram: '64GB DDR5', gpu: 'RTX 4060 Ti', isAccent: false },
-                      { id: 'NODE 03', cpu: 'Intel Ultra 7', ram: '64GB DDR5', gpu: 'RTX 5060 Ti', isAccent: true },
-                      { id: 'NODE 04', cpu: 'Intel Core i7', ram: '32GB DDR5', gpu: 'Processing Node', isAccent: false },
-                    ]
-              ).map((node: any) => (
+              {workstations.map((node) => (
                 <div key={node.id} className="p-4 sm:p-5 flex flex-col justify-between hover:bg-white/[0.02] transition-colors">
                   <div>
                     <span className={`text-[10px] font-mono tracking-[0.16em] uppercase font-bold block mb-1.5 ${node.isAccent ? 'text-[#FB1D10]' : 'text-[#3B82F6]'}`}>
@@ -1061,28 +1034,24 @@ export default function WspLandingView({
           </div>
 
           <div className="space-y-4 border-t border-white/15 pt-7" aria-label="Software and tools used by the team">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-              <div>
-                <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#3B82F6] font-bold">SOFTWARE &amp; DIGITAL TOOLS</span>
-                <p className="mt-1 text-sm text-neutral-300">A selection of the tools our team works with.</p>
-              </div>
-              <Link href="/about/future-ready" className="inline-flex w-fit items-center gap-2 text-xs font-bold text-white transition hover:text-[#FB1D10]">
-                View instruments &amp; facilities <ArrowRight size={15} />
-              </Link>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#3B82F6] font-bold">SOFTWARE &amp; DIGITAL TOOLS</span>
             </div>
-            <div className="wsp-software-marquee" role="region" aria-label="Software logos, moving from left to right">
-              <div className="wsp-software-track">
-                {[0, 1].map((copy) => (
-                  <div className="wsp-software-group" key={copy} aria-hidden={copy === 1}>
-                    {softwareExpertise.map((tool) => (
-                      <div className="wsp-software-tile" key={`${copy}-${tool.name}`} title={tool.name}>
-                        <img src={tool.logo} alt={copy === 0 ? `${tool.name} logo` : ''} loading="lazy" />
-                        <span>{tool.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
+            <div className="wsp-software-grid" role="list" aria-label="Featured software tools">
+              {featuredSoftware.map((tool) => (
+                <div className="wsp-software-tile" key={tool.name} role="listitem">
+                  <SoftwareDetailsButton tool={tool}>
+                    <span className="wsp-software-tile-content">
+                      <Image src={tool.logo} alt={`${tool.name} logo`} width={360} height={180} sizes="(max-width: 620px) 48vw, (max-width: 1024px) 26vw, 24vw" loading="lazy" />
+                    </span>
+                  </SoftwareDetailsButton>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-center pt-2">
+              <Link href="/about/future-ready" className="wsp-software-view-all">
+                View all software <ArrowRight size={16} aria-hidden="true" />
+              </Link>
             </div>
           </div>
         </motion.div>
@@ -1157,6 +1126,7 @@ export default function WspLandingView({
                       <span className="landing-team-card-mark" aria-hidden="true" />
                     </div>
                   </Link>
+                  <div className="landing-team-request"><RequestCvButton memberName={member.name} /></div>
                 </motion.article>
               ))}
             </div>

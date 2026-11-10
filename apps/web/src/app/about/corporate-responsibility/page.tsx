@@ -1,25 +1,21 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
-  ShieldCheck,
-  ChevronRight,
   Check,
   HardHat,
   HeartHandshake,
   Waves,
   Plane,
-  AlertTriangle,
   Lock,
   ArrowRight,
-  Send,
   CheckCircle2,
-  Server,
   FileCheck,
 } from 'lucide-react';
 import CorporateShell from '@/components/CorporateShell';
+import AboutEditorialHero from '@/components/AboutEditorialHero';
+import AboutScrollReveal from '@/components/AboutScrollReveal';
 import KeepInTouchSection from '@/components/KeepInTouchSection';
-import { CmsApi } from '@/lib/cms-api';
+import { CmsApi, type PageSectionData } from '@/lib/cms-api';
 import '../../corporate.css';
 
 export const dynamic = 'force-dynamic';
@@ -31,8 +27,8 @@ export const metadata = {
 };
 
 export default async function CorporateResponsibilityPage() {
-  const sections = await CmsApi.getSections('safety').catch(() => ({} as Record<string, any>));
-  const wysiwyg = (sections as Record<string, any>)['full_page_wysiwyg']?.content;
+  const sections = await CmsApi.getSections('safety').catch(() => ({} as Record<string, PageSectionData>));
+  const wysiwyg = sections['full_page_wysiwyg']?.content;
 
   const heroKicker = wysiwyg?.heroKicker || '03 / HSE FRAMEWORK & AVIATION COMPLIANCE';
   const heroTitle = wysiwyg?.heroTitle || 'Corporate Responsibility & Zero-Harm Safety';
@@ -107,72 +103,23 @@ export default async function CorporateResponsibilityPage() {
 
   return (
     <CorporateShell>
-      <main className="min-h-screen bg-white text-[#141212] font-sans antialiased">
+      <main className="about-detail-page about-responsibility-page min-h-screen bg-white text-[#141212] font-sans antialiased">
+        <AboutScrollReveal />
         {/* =========================================================================
             CINEMATIC ARCHITECTURAL HERO BANNER
             ========================================================================= */}
-        <section className="relative bg-[#141212] text-white pt-36 pb-20 md:pb-28 overflow-hidden border-b border-neutral-800">
-          <div className="absolute inset-0 z-0 opacity-30">
-            <Image src={heroImage} alt="Corporate Responsibility & Safety" fill className="object-cover" priority />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#141212] via-[#141212]/90 to-transparent" />
-          </div>
-
-          <div className="relative z-10 max-w-[1440px] mx-auto px-6 md:px-12 space-y-6">
-            <div className="flex items-center gap-2 text-[12px] uppercase tracking-wider text-neutral-400 font-bold">
-              <Link href="/" className="hover:text-[#F4382D] transition">Home</Link>
-              <ChevronRight size={12} className="text-neutral-500" />
-              <span className="text-[#3B82F6]">Who We Are</span>
-              <ChevronRight size={12} className="text-neutral-500" />
-              <span className="text-white">Corporate Responsibility &amp; Safety</span>
-            </div>
-
-            <div className="max-w-4xl space-y-4">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="inline-block text-[11px] font-mono uppercase tracking-[0.2em] text-[#F4382D] font-bold bg-[#F4382D]/10 px-3 py-1 rounded border border-[#F4382D]/20">
-                  {heroKicker}
-                </span>
-                <span className="inline-block text-[11px] font-mono uppercase tracking-[0.15em] text-[#3B82F6] font-bold bg-[#3B82F6]/10 px-3 py-1 rounded border border-[#3B82F6]/20">
-                  HEALTH, SAFETY &amp; ENVIRONMENT (HSE)
-                </span>
-              </div>
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-[-0.03em] text-white leading-[1.05]">
-                {heroTitle}
-              </h1>
-              <p className="text-base sm:text-lg text-neutral-300 leading-relaxed font-normal max-w-3xl">
-                {heroSubtitle}
-              </p>
-              <div className="pt-2 flex flex-wrap items-center gap-3.5">
-                <Link
-                  href="/contact"
-                  className="wsp-btn wsp-btn-solid flex items-center gap-2 !bg-[#F4382D] hover:!bg-[#d92a20] text-white font-bold px-6 py-3.5 shadow-lg shadow-red-500/20"
-                >
-                  <Send size={15} />
-                  <span>Contact Safety &amp; Field Operations</span>
-                  <ArrowRight size={14} />
-                </Link>
-                <Link
-                  href="/about/standards"
-                  className="wsp-btn wsp-btn-outline !text-white !border-white/30 hover:!border-white hover:!bg-white/10 flex items-center gap-2"
-                >
-                  <ShieldCheck size={15} />
-                  <span>Quality &amp; SOB Compliance</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* 4 Performance Metric Badges */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6 border-t border-neutral-800/80">
-              {stats.map((stat, idx) => (
-                <div key={idx} className="bg-white/5 backdrop-blur-md p-4 rounded-xl border border-white/10 space-y-1">
-                  <span className="block text-2xl sm:text-3xl font-extrabold text-[#F4382D] font-mono">{stat.value}</span>
-                  <span className="block text-[11px] text-neutral-400 font-medium uppercase tracking-wider leading-tight">
-                    {stat.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <AboutEditorialHero
+          kicker={heroKicker}
+          title={heroTitle}
+          description={heroSubtitle}
+          image={heroImage}
+          imageAlt="Corporate Responsibility & Safety"
+          pageName="Corporate Responsibility & Safety"
+          stats={stats}
+          primaryLabel="Contact Our Team"
+          secondaryLabel="Our Standards"
+          secondaryHref="/about/standards"
+        />
 
         {/* =========================================================================
             FOUR HSE PILLARS

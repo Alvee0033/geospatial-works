@@ -4,7 +4,9 @@ import Image from 'next/image';
 import { ArrowRight, ChevronRight, Cpu, HardDrive, Send } from 'lucide-react';
 import CorporateShell from '@/components/CorporateShell';
 import KeepInTouchSection from '@/components/KeepInTouchSection';
+import SoftwareDetailsButton from '@/components/SoftwareDetailsButton';
 import { CmsApi } from '@/lib/cms-api';
+import type { PageSectionData } from '@/lib/cms-api';
 import { softwareExpertise } from '@/lib/software-expertise';
 import '../../corporate.css';
 
@@ -54,8 +56,8 @@ const workstations = [
 ];
 
 export default async function FutureReadyPage() {
-  const sections = await CmsApi.getSections('future-ready').catch(() => ({} as Record<string, any>));
-  const wysiwyg = (sections as Record<string, any>)['full_page_wysiwyg']?.content;
+  const sections = await CmsApi.getSections('future-ready').catch(() => ({} as Record<string, PageSectionData>));
+  const wysiwyg = sections['full_page_wysiwyg']?.content as Record<string, string | undefined> | undefined;
   const configuredTitle = wysiwyg?.heroTitle;
   const title = configuredTitle && !/future[ -]?ready geodesy/i.test(configuredTitle)
     ? configuredTitle
@@ -150,6 +152,7 @@ export default async function FutureReadyPage() {
           <div className="grid grid-cols-2 border-l border-t border-[#dce2dc] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
             {softwareExpertise.map((tool) => (
               <article key={tool.name} className="group flex min-h-[142px] flex-col justify-between border-b border-r border-[#dce2dc] bg-transparent p-4 transition-colors hover:bg-white sm:p-5">
+                <SoftwareDetailsButton tool={tool}>
                 <div className="flex h-[62px] items-center justify-start">
                   <Image src={tool.logo} alt={`${tool.name} logo`} width={108} height={62} sizes="108px" className="max-h-[58px] w-auto max-w-[122px] object-contain object-left" />
                 </div>
@@ -157,6 +160,7 @@ export default async function FutureReadyPage() {
                   <h3 className="text-sm font-semibold leading-snug text-[#0B1F44]">{tool.name}</h3>
                   <p className="mt-1 text-[10px] leading-4 text-[#6c7b7b]">{tool.category}</p>
                 </div>
+                </SoftwareDetailsButton>
               </article>
             ))}
           </div>

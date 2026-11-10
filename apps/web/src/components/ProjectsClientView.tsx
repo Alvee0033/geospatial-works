@@ -14,6 +14,7 @@ import {
   ExternalLink,
   ChevronRight,
   ChevronLeft,
+  X,
   CheckCircle2,
   Award,
   Sparkles,
@@ -23,7 +24,12 @@ import type { ProjectData } from '@/lib/cms-api';
 
 interface ProjectsClientViewProps {
   initialProjects?: ProjectData[];
-  wysiwyg?: Record<string, any>;
+  wysiwyg?: {
+    heroEyebrow?: string;
+    heroTitle?: string;
+    heroDescription?: string;
+    heroImage?: string;
+  };
 }
 
 export default function ProjectsClientView({ initialProjects = [], wysiwyg }: ProjectsClientViewProps) {
@@ -37,7 +43,7 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
   const projects = initialProjects;
 
   const categories = [
-    { label: `All Projects (${projects.length})`, value: 'All' },
+    { label: `All (${projects.length})`, value: 'All' },
     ...Array.from(new Set(projects.map((project) => project.category))).map((category) => ({ label: category, value: category })),
   ];
 
@@ -113,67 +119,78 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
       {/* =========================================================================
           FILTER TOOLBAR & SEARCH
           ========================================================================= */}
-      <section className="max-w-[1440px] mx-auto px-6 md:px-12 pt-10 pb-6">
-        <div className="border-b border-neutral-200 pb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-          {/* Mobile Select Dropdown (No Side Scroll) + Desktop Tabs */}
-          <div className="block sm:hidden w-full">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-1.5 block">
-              Filter by Sector
-            </label>
-            <div className="relative">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-bold text-neutral-900 focus:bg-white focus:outline-none focus:border-red-500 appearance-none cursor-pointer"
-              >
+      <section className="max-w-[1440px] mx-auto px-6 md:px-12 pt-8 pb-5">
+        <div className="border-y border-neutral-200 py-5 md:py-6">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <label className="relative block w-full sm:max-w-[420px]">
+                <span className="sr-only">Search projects by name, client, or place</span>
+                <Search size={17} aria-hidden="true" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1B4B9D]" />
+                <input
+                  type="search"
+                  placeholder="Search by name, client or place"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-12 w-full border border-neutral-300 bg-white pl-11 pr-11 text-sm text-[#141212] outline-none transition placeholder:text-neutral-500 focus:border-[#1B4B9D] focus:ring-2 focus:ring-[#1B4B9D]/10"
+                />
+                {searchQuery && (
+                  <button type="button" onClick={() => setSearchQuery('')} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-500 hover:text-[#FB1D10]">
+                    <X size={16} />
+                  </button>
+                )}
+              </label>
+              <div className="flex items-center gap-2 sm:justify-end">
+                <label htmlFor="project-sort" className="shrink-0 text-xs font-medium text-neutral-600">Sort by</label>
+                <div className="relative min-w-0 flex-1 sm:flex-none">
+                  <select
+                    id="project-sort"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value as 'default' | 'alpha')}
+                    className="h-11 w-full appearance-none border border-neutral-300 bg-white py-2 pl-3 pr-9 text-sm text-[#141212] outline-none transition focus:border-[#1B4B9D] sm:w-[170px]"
+                  >
+                    <option value="default">Site order</option>
+                    <option value="alpha">Name A–Z</option>
+                  </select>
+                  <ChevronDown size={15} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-xs font-semibold text-neutral-600">Project type</span>
+              <div className="hidden flex-wrap gap-2 sm:flex sm:justify-end" aria-label="Filter by project type">
                 {categories.map((c) => (
-                  <option key={c.value} value={c.value}>
+                  <button
+                    key={c.value}
+                    type="button"
+                    aria-pressed={selectedCategory === c.value}
+                    onClick={() => setSelectedCategory(c.value)}
+                    className={`min-h-9 border px-3 text-xs font-semibold transition-colors ${
+                      selectedCategory === c.value
+                        ? 'border-[#1B4B9D] bg-[#1B4B9D] text-white'
+                        : 'border-neutral-300 bg-white text-neutral-700 hover:border-[#1B4B9D] hover:text-[#1B4B9D]'
+                    }`}
+                  >
                     {c.label}
-                  </option>
+                  </button>
                 ))}
-              </select>
-              <ChevronDown size={15} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+              </div>
+              <div className="relative sm:hidden">
+                <label htmlFor="project-category" className="sr-only">Choose a project type</label>
+                <select
+                  id="project-category"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="h-11 w-full appearance-none border border-neutral-300 bg-white px-3 pr-9 text-sm text-[#141212] outline-none focus:border-[#1B4B9D]"
+                >
+                  {categories.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </select>
+                <ChevronDown size={15} aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+              </div>
+              <p className="text-xs text-neutral-500 sm:text-right" aria-live="polite">
+                Showing {filteredProjects.length} of {projects.length} projects
+              </p>
             </div>
-          </div>
-
-          {/* Desktop Category Tabs (Wrap cleanly without side scroll) */}
-          <div className="hidden sm:flex flex-wrap gap-2">
-            {categories.map((c) => (
-              <button
-                key={c.value}
-                onClick={() => setSelectedCategory(c.value)}
-                className={`px-3.5 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                  selectedCategory === c.value
-                    ? 'bg-[#141212] text-white shadow-sm'
-                    : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                }`}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Search & Sort */}
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 md:w-64">
-              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input
-                type="text"
-                placeholder="Search projects..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-xs bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none focus:border-[#3B82F6] text-neutral-900"
-              />
-            </div>
-
-            <select
-              value={sortOrder}
-              onChange={(e: any) => setSortOrder(e.target.value)}
-              className="px-3 py-2 text-xs bg-neutral-50 border border-neutral-200 rounded-lg focus:outline-none font-medium cursor-pointer"
-            >
-              <option value="default">Default Order</option>
-              <option value="alpha">Alphabetical</option>
-            </select>
           </div>
         </div>
       </section>
@@ -261,7 +278,7 @@ export default function ProjectsClientView({ initialProjects = [], wysiwyg }: Pr
 
         {filteredProjects.length === 0 && (
           <div className="text-center py-20 text-neutral-500 text-sm">
-            No projects found matching your search.
+            No projects match your search. Try another name or place.
           </div>
         )}
       </section>
