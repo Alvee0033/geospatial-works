@@ -43,6 +43,7 @@ interface AttendanceSettingsState {
   halfDayDeductionAmount?: number;
   lateCheckInDeductionAmount?: number;
   holidays?: HolidayItem[];
+  timezone?: string;
 }
 
 interface CategoryItem {
@@ -420,7 +421,26 @@ export default function SettingsPage() {
                 Check-in Radius & Rules
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-slate-50 border border-slate-200/80 p-2.5 rounded-lg">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                    System Timezone
+                  </label>
+                  <select
+                    value={attendanceSettings?.timezone || 'Asia/Dhaka'}
+                    onChange={(e) => saveAttendanceChanges({ timezone: e.target.value })}
+                    className="w-full px-2 py-1 bg-white border border-slate-200 rounded text-xs font-bold text-slate-800"
+                  >
+                    <option value="Asia/Dhaka">Asia/Dhaka (GMT+6 - BD Time)</option>
+                    <option value="UTC">UTC (GMT+0)</option>
+                    <option value="Asia/Kolkata">Asia/Kolkata (GMT+5:30)</option>
+                    <option value="Asia/Dubai">Asia/Dubai (GMT+4)</option>
+                    <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
+                    <option value="Europe/London">Europe/London (GMT+0/+1)</option>
+                    <option value="America/New_York">America/New_York (EST/EDT)</option>
+                  </select>
+                </div>
+
                 <div className="bg-slate-50 border border-slate-200/80 p-2.5 rounded-lg">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                     Grace Period
