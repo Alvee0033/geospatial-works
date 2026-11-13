@@ -27,6 +27,8 @@ export default function LeavesPage() {
   const [loadError, setLoadError] = useState('');
   const [activeTab, setActiveTab] = useState<'leaves' | 'holidays'>('leaves');
   const [leaveStatusFilter, setLeaveStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [selectedEmployeeFilter, setSelectedEmployeeFilter] = useState<string>('all');
+  const [detailsModalLeave, setDetailsModalLeave] = useState<any | null>(null);
   const [canReviewLeaves, setCanReviewLeaves] = useState(false);
   const [canManageLeaveRecords, setCanManageLeaveRecords] = useState(false);
   const [currentUserName, setCurrentUserName] = useState('your account');
@@ -86,7 +88,11 @@ export default function LeavesPage() {
   }, []);
 
   const leaveStatus = (leave: any) => String(leave.status || (leave.isApproved || leave.is_approved ? 'approved' : 'pending')).toLowerCase();
-  const visibleLeaves = leaves.filter((leave) => leaveStatusFilter === 'all' || leaveStatus(leave) === leaveStatusFilter);
+  const visibleLeaves = leaves.filter((leave) => {
+    const matchesStatus = leaveStatusFilter === 'all' || leaveStatus(leave) === leaveStatusFilter;
+    const matchesEmployee = selectedEmployeeFilter === 'all' || leave.userId === selectedEmployeeFilter;
+    return matchesStatus && matchesEmployee;
+  });
 
   const handleLeaveDecision = async (id: string, approved: boolean) => {
     setReviewingLeaveId(id);
@@ -247,13 +253,32 @@ export default function LeavesPage() {
             <span className="text-xs font-semibold text-slate-500">{leaves.length} Applications</span>
           </div>
 
-          <div className="mb-3 flex flex-wrap gap-1.5" aria-label="Filter leave records by status">
-            {(['all', 'pending', 'approved', 'rejected'] as const).map((status) => (
-              <button key={status} type="button" onClick={() => setLeaveStatusFilter(status)} aria-pressed={leaveStatusFilter === status}
-                className={`rounded-full px-3 py-1.5 text-[11px] font-semibold capitalize ${leaveStatusFilter === status ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                {status === 'rejected' ? 'Declined' : status} ({status === 'all' ? leaves.length : leaves.filter((leave) => leaveStatus(leave) === status).length})
-              </button>
-            ))}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-1.5" aria-label="Filter leave records by status">
+              {(['all', 'pending', 'approved', 'rejected'] as const).map((status) => (
+                <button key={status} type="button" onClick={() => setLeaveStatusFilter(status)} aria-pressed={leaveStatusFilter === status}
+                  className={`rounded-full px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors ${leaveStatusFilter === status ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                  {status === 'rejected' ? 'Declined' : status} ({status === 'all' ? leaves.length : leaves.filter((leave) => leaveStatus(leave) === status).length})
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label htmlFor="employeeFilterSelect" className="text-xs font-semibold text-slate-500">Employee:</label>
+              <select
+                id="employeeFilterSelect"
+                value={selectedEmployeeFilter}
+                onChange={(e) => setSelectedEmployeeFilter(e.target.value)}
+                className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-xs focus:border-indigo-500 focus:outline-none"
+              >
+                <option value="all">All Employees ({users.length})</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name || u.full_name || u.email} {u.department ? `(${u.department})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -311,6 +336,15 @@ export default function LeavesPage() {
                         {l.reason || 'Personal / General leave'}
                       </td>
                       <td className="py-3.5 px-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setDetailsModalLeave(l)}
+                          className="mr-2 inline-flex items-center gap-1 rounded-md bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                          title="View Details"
+                        >
+                          <Eye size={12} />
+                          <span>Details</span>
+                        </button>
                         {canReviewLeaves && status === 'pending' && <>
                           <button disabled={reviewingLeaveId === l.id} onClick={() => handleLeaveDecision(l.id, true)} className="mr-2 rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700 disabled:opacity-50">Approve</button>
                           <button disabled={reviewingLeaveId === l.id} onClick={() => handleLeaveDecision(l.id, false)} className="mr-2 rounded-md bg-rose-50 px-2 py-1 text-[10px] font-semibold text-rose-700 disabled:opacity-50">Decline</button>
@@ -560,6 +594,119 @@ export default function LeavesPage() {
           </div>
         </div>
       )}
+
+      {/* Leave Details Modal */}
+      {detailsModalLeave && (() => {
+        const leave = detailsModalLeave;
+        const status = leaveStatus(leave);
+        const u = users.find((usr) => usr.id === leave.userId || usr._id === leave.userId);
+        const name = leave.userName || (u ? (u.name || u.full_name) : 'Employee');
+        const email = u?.email || leave.userEmail || 'N/A';
+        const department = u?.department || leave.department || 'General';
+        const avatar = leave.avatarUrl || u?.avatarUrl || u?.avatar_url;
+
+        // Calculate days span
+        let durationText = '';
+        if (leave.startDate && leave.endDate) {
+          const s = new Date(leave.startDate);
+          const e = new Date(leave.endDate);
+          const diffTime = Math.abs(e.getTime() - s.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+          durationText = `${diffDays} Day${diffDays > 1 ? 's' : ''}`;
+        }
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-xs">
+            <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in duration-150">
+              <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <CalendarDays size={18} className="text-indigo-600" />
+                  <h4 className="text-base font-bold text-slate-900">Leave Request Details</h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDetailsModalLeave(null)}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                {/* Employee Info Header */}
+                <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+                  <UserAvatar src={avatar} name={name} size="md" shape="rounded" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-slate-900">{name}</p>
+                    <p className="truncate text-slate-500">{email} &bull; {department}</p>
+                  </div>
+                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ${
+                    status === 'approved' ? 'bg-emerald-50 text-emerald-700' :
+                    status === 'rejected' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'
+                  }`}>
+                    {status === 'rejected' ? 'Declined' : status}
+                  </span>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-lg border border-slate-100 p-2.5">
+                    <span className="text-[10px] font-semibold uppercase text-slate-400">Leave Category</span>
+                    <p className="mt-1 font-bold capitalize text-slate-800">{leave.leaveType || 'General'}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-100 p-2.5">
+                    <span className="text-[10px] font-semibold uppercase text-slate-400">Duration</span>
+                    <p className="mt-1 font-bold text-slate-800">{durationText || 'Custom Duration'}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-slate-100 p-2.5">
+                  <span className="text-[10px] font-semibold uppercase text-slate-400">Date Range</span>
+                  <p className="mt-1 font-mono text-xs font-semibold text-slate-800">
+                    {leave.startDate} &rarr; {leave.endDate}
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-slate-100 p-3">
+                  <span className="text-[10px] font-semibold uppercase text-slate-400">Reason / Notes</span>
+                  <p className="mt-1.5 whitespace-pre-wrap leading-relaxed text-slate-700">
+                    {leave.reason || 'No detailed explanation provided for this leave.'}
+                  </p>
+                </div>
+
+                {/* Decision Actions */}
+                {canReviewLeaves && status === 'pending' && (
+                  <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
+                    <button
+                      type="button"
+                      disabled={reviewingLeaveId === leave.id}
+                      onClick={async () => {
+                        await handleLeaveDecision(leave.id, false);
+                        setDetailsModalLeave(null);
+                      }}
+                      className="rounded-lg bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
+                    >
+                      Decline Request
+                    </button>
+                    <button
+                      type="button"
+                      disabled={reviewingLeaveId === leave.id}
+                      onClick={async () => {
+                        await handleLeaveDecision(leave.id, true);
+                        setDetailsModalLeave(null);
+                      }}
+                      className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      Approve Request
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </AdminLayout>
   );
 }
+

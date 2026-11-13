@@ -173,7 +173,7 @@ function MemberDashboardContent({ loading, projects, expenses, personalExpenses,
 
     {receiptSummary.highReceiptRisk && <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
       <span><strong>Receipt compliance needs attention.</strong> {money(receiptSummary.unreceiptedAmount)} of your claims has no receipt.</span>
-      <Link href="/expenses/compliance" className="font-semibold text-rose-700 underline">Review claims</Link>
+      <Link href="/approvals" className="font-semibold text-rose-700 underline">Review claims</Link>
     </div>}
 
     <section className="grid gap-4 lg:grid-cols-2">

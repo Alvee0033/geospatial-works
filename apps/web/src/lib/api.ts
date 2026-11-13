@@ -694,6 +694,17 @@ export class ApiClient {
     });
   }
 
+  static async getChatUnreadCount() {
+    return this.request<{ unreadCount: number }>('/chat/unread-count');
+  }
+
+  static async markChatChannelAsRead(channelId: string) {
+    return this.request<any>(`/chat/channels/${channelId}/read`, {
+      method: 'POST',
+    });
+  }
+
+
   // Upload API
   static async uploadFile(fileDataUri: string, category: 'receipts' | 'avatars' | 'projects' = 'projects') {
     return this.request<{ url: string; filename?: string; sizeBytes?: number }>('/uploads', {
