@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ApiClient } from '@/lib/api';
+import Image from 'next/image';
 import { Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
@@ -43,8 +44,15 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#F3F4F8] flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white border border-[#EAEBEF] rounded-[32px] p-8 shadow-sm">
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-[#0D1117] flex items-center justify-center text-white font-bold text-2xl shadow-sm mb-3">
-            GW
+          <div className="relative mb-3 flex items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="Geospatial Works Logo"
+              width={64}
+              height={64}
+              priority
+              className="h-16 w-16 object-contain rounded-2xl shadow-xs"
+            />
           </div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Geospatial Works</h1>
           <p className="text-xs text-slate-500 mt-1">Enterprise Management Portal & Admin Control</p>

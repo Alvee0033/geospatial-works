@@ -54,6 +54,7 @@ function ProjectDetailContent() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const [inspectExp, setInspectExp] = useState<any | null>(null);
@@ -67,6 +68,9 @@ function ProjectDetailContent() {
   // Progress Form
   const [progressVal, setProgressVal] = useState<number>(0);
   const [progressNoteText, setProgressNoteText] = useState('');
+
+  // Standalone Note Form
+  const [standaloneNoteText, setStandaloneNoteText] = useState('');
 
   // Task Form
   const [taskTitle, setTaskTitle] = useState('');
@@ -257,6 +261,24 @@ function ProjectDetailContent() {
     }
   };
 
+  // Handler: Add Standalone Note
+  const handleAddStandaloneNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!standaloneNoteText.trim()) return;
+    setSubmitting(true);
+    try {
+      await ApiClient.addProjectNote(project.id, standaloneNoteText.trim());
+      setIsAddNoteModalOpen(false);
+      setStandaloneNoteText('');
+      await loadProjectData();
+    } catch (err: any) {
+      console.error('Failed to add note:', err);
+      alert(err.message || 'Failed to add project note.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // Handler: Delete Expense Claim
   const handleDeleteExpense = async (id: string) => {
     if (!confirm('Are you sure you want to permanently remove this expense claim?')) return;
@@ -428,6 +450,14 @@ function ProjectDetailContent() {
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              onClick={() => setIsAddNoteModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-md text-xs font-bold hover:bg-indigo-100 transition-all"
+            >
+              <FileText size={14} />
+              + Add Note
+            </button>
+
             <button
               onClick={() => setIsProgressModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all"
@@ -651,12 +681,22 @@ function ProjectDetailContent() {
                     <TrendingUp size={16} className="text-indigo-600" />
                     Project Updates & Notes
                   </h3>
-                  <button
-                    onClick={() => setIsProgressModalOpen(true)}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800"
-                  >
-                    + Add Update
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsAddNoteModalOpen(true)}
+                      className="px-2.5 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-md text-xs font-bold hover:bg-indigo-100 transition-all flex items-center gap-1"
+                    >
+                      <FileText size={12} />
+                      + Add Note
+                    </button>
+                    <button
+                      onClick={() => setIsProgressModalOpen(true)}
+                      className="px-2.5 py-1 bg-slate-50 border border-slate-200 text-slate-700 rounded-md text-xs font-bold hover:bg-slate-100 transition-all flex items-center gap-1"
+                    >
+                      <TrendingUp size={12} />
+                      Update %
+                    </button>
+                  </div>
                 </div>
 
                 {(!project.progressNotes || project.progressNotes.length === 0) ? (
@@ -1273,6 +1313,59 @@ function ProjectDetailContent() {
                     className="px-5 py-2 bg-[#0D1117] text-white rounded-full font-bold hover:bg-slate-800 disabled:opacity-50"
                   >
                     {submitting ? 'Saving...' : 'Update Progress'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: Add Standalone Note */}
+        {isAddNoteModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <FileText size={18} className="text-indigo-600" />
+                  <h3 className="text-base font-bold text-slate-900">Add Project Note</h3>
+                </div>
+                <button onClick={() => setIsAddNoteModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+              </div>
+
+              <form onSubmit={handleAddStandaloneNote} className="space-y-4 text-xs">
+                <div>
+                  <p className="text-[11px] text-slate-500 mb-2">
+                    Post an immediate update or observation. All assigned members of this project will receive an instant FCM push notification.
+                  </p>
+                  <label className="block font-bold text-slate-700 uppercase mb-1">Project Note *</label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={standaloneNoteText}
+                    onChange={(e) => setStandaloneNoteText(e.target.value)}
+                    placeholder="Write project observations, field notes, equipment status, or meeting decisions..."
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddNoteModalOpen(false);
+                      setStandaloneNoteText('');
+                    }}
+                    className="px-4 py-2 border rounded-full text-slate-600 hover:bg-slate-50 font-bold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting || !standaloneNoteText.trim()}
+                    className="px-5 py-2 bg-indigo-600 text-white rounded-full font-bold hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <Send size={13} />
+                    {submitting ? 'Posting...' : 'Post Note \u0026 Notify'}
                   </button>
                 </div>
               </form>

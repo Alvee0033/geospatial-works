@@ -304,6 +304,13 @@ export class ApiClient {
     });
   }
 
+  static async addProjectNote(id: string, note: string) {
+    return this.request<any>(`/projects/${id}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+  }
+
   static async deleteProject(id: string) {
     return this.request<any>(`/projects/${id}`, {
       method: 'DELETE',

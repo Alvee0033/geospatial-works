@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { ApiClient } from '@/lib/api';
+import Image from 'next/image';
 import { 
   Download, 
   Smartphone, 
@@ -253,9 +254,14 @@ export default function DownloadPage() {
       {/* Top Bar */}
       <header className="w-full max-w-lg mx-auto px-4 pt-6 pb-2 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white font-extrabold flex items-center justify-center text-sm shadow-md">
-            GW
-          </div>
+          <Image
+            src="/logo.png"
+            alt="Geospatial Works Logo"
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-2xl object-contain shadow-xs shrink-0"
+            priority
+          />
           <div>
             <span className="font-extrabold text-sm tracking-tight block text-slate-900 leading-tight">Geospatial Works</span>
             <span className="text-[11px] text-slate-500 font-medium">Official Mobile Distribution</span>
@@ -327,8 +333,14 @@ export default function DownloadPage() {
         <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xs">
           {/* App Header Snippet */}
           <div className="flex items-center gap-4 pb-5 border-b border-slate-100">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center text-white shadow-md shrink-0">
-              <Smartphone size={28} />
+            <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-center shadow-xs shrink-0 p-1">
+              <Image
+                src="/logo.png"
+                alt="GW App Logo"
+                width={56}
+                height={56}
+                className="w-full h-full object-contain rounded-xl"
+              />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between">
