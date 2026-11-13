@@ -30,6 +30,11 @@ import {
   CheckSquare,
   MessageSquare,
   ChevronRight,
+  Eye,
+  X,
+  Send,
+  Image as ImageIcon,
+  ExternalLink,
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
@@ -51,6 +56,8 @@ function ProjectDetailContent() {
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [inspectExp, setInspectExp] = useState<any | null>(null);
+  const [newExpComment, setNewExpComment] = useState('');
 
   // Revenue Form
   const [revAmount, setRevAmount] = useState<number>(10000);
@@ -247,6 +254,61 @@ function ProjectDetailContent() {
       alert('Failed to update progress.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Handler: Delete Expense Claim
+  const handleDeleteExpense = async (id: string) => {
+    if (!confirm('Are you sure you want to permanently remove this expense claim?')) return;
+    try {
+      await ApiClient.deleteExpense(id);
+      if (inspectExp?.id === id) setInspectExp(null);
+      await loadProjectData();
+    } catch (err: any) {
+      alert(`Deletion failed: ${err.message || 'Error deleting claim'}`);
+    }
+  };
+
+  // Handler: Add Expense Audit Comment
+  const handleAddExpComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inspectExp || !newExpComment.trim()) return;
+    try {
+      await ApiClient.addExpenseComment(inspectExp.id, newExpComment.trim());
+      setNewExpComment('');
+      const updated = await ApiClient.getExpenseById(inspectExp.id);
+      setInspectExp(updated);
+      await loadProjectData();
+    } catch (err: any) {
+      alert(`Failed to post comment: ${err.message}`);
+    }
+  };
+
+  // Handler: Approve Expense
+  const handleApproveExpense = async (id: string) => {
+    try {
+      await ApiClient.approveExpense(id);
+      if (inspectExp && inspectExp.id === id) {
+        setInspectExp({ ...inspectExp, status: 'approved' });
+      }
+      await loadProjectData();
+    } catch (err: any) {
+      alert(`Approval failed: ${err.message}`);
+    }
+  };
+
+  // Handler: Reject Expense
+  const handleRejectExpense = async (id: string) => {
+    const reason = prompt('Enter rejection reason:');
+    if (!reason) return;
+    try {
+      await ApiClient.rejectExpense(id, reason);
+      if (inspectExp && inspectExp.id === id) {
+        setInspectExp({ ...inspectExp, status: 'rejected', rejectionReason: reason });
+      }
+      await loadProjectData();
+    } catch (err: any) {
+      alert(`Rejection failed: ${err.message}`);
     }
   };
 
@@ -873,44 +935,83 @@ function ProjectDetailContent() {
                       <th className="py-3 px-4 text-right">Amount (৳)</th>
                       <th className="py-3 px-4 text-center">Receipt</th>
                       <th className="py-3 px-4 text-center">Status</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {projectExpenses.map((exp) => (
-                      <tr key={exp.id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="py-3.5 px-4 font-mono text-slate-600">
-                          {exp.date ? new Date(exp.date).toLocaleDateString() : 'N/A'}
-                        </td>
-                        <td className="py-3.5 px-4 font-bold text-slate-900">
-                          {exp.employeeName || exp.employee_name || 'Staff'}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold text-[11px] capitalize">
-                            {exp.category}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate">
-                          {exp.description}
-                        </td>
-                        <td className="py-3.5 px-4 text-right font-black font-mono text-slate-900">
-                          ৳{(Number(exp.amount) || 0).toLocaleString()}
-                        </td>
-                        <td className="py-3.5 px-4 text-center">
-                          {exp.receiptUrl || exp.receipt_url ? (
-                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                              Attached
+                    {projectExpenses.map((exp) => {
+                      const catName = exp.categoryName || exp.category_name || exp.category || 'General';
+                      const descText = exp.note || exp.description || exp.remarks || '—';
+                      const receiptPhoto = exp.receiptPhotoUrl || exp.receipt_photo_url || exp.receiptUrl || exp.receipt_url || '';
+                      const hasReceipt = Boolean(exp.hasReceipt || receiptPhoto);
+
+                      return (
+                        <tr key={exp.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="py-3.5 px-4 font-mono text-slate-600 whitespace-nowrap">
+                            {exp.date ? new Date(exp.date).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">
+                            {exp.employeeName || exp.employee_name || 'Staff'}
+                          </td>
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 font-bold text-[11px] capitalize">
+                              {catName}
                             </span>
-                          ) : (
-                            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                              Missing
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3.5 px-4 text-center">
-                          <StatusBadge status={exp.status} />
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-600 max-w-xs truncate" title={descText}>
+                            {descText}
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-black font-mono text-slate-900 whitespace-nowrap">
+                            ৳{(Number(exp.amount) || 0).toLocaleString()}
+                          </td>
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            {hasReceipt ? (
+                              receiptPhoto ? (
+                                <a
+                                  href={receiptPhoto}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 rounded-full transition-colors"
+                                >
+                                  <ImageIcon size={10} /> Attached
+                                </a>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                                  Attached
+                                </span>
+                              )
+                            ) : (
+                              <span className="inline-flex items-center text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                                Missing
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            <StatusBadge status={exp.status} />
+                          </td>
+                          <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => setInspectExp(exp)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-md transition-colors"
+                                title="View claim audit details"
+                              >
+                                <Eye size={12} />
+                                Details
+                              </button>
+                              <button
+                                onClick={() => handleDeleteExpense(exp.id)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-md transition-colors"
+                                title="Permanently delete expense claim"
+                              >
+                                <Trash2 size={12} />
+                                Remove
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1395,6 +1496,189 @@ function ProjectDetailContent() {
                   className="px-6 py-2 bg-[#0D1117] text-white rounded-full text-xs font-bold hover:bg-slate-800 disabled:opacity-50"
                 >
                   {submitting ? 'Updating...' : project.isClosed || project.is_closed ? 'Reopen Project' : 'Confirm Close'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Expense Claim Audit & Details Modal */}
+        {inspectExp && (
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-[28px] p-6 max-w-2xl w-full border border-slate-200 shadow-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <Receipt size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">Voucher Claim Verification & Audit</h4>
+                    <p className="text-[10px] text-slate-400 font-mono">ID: {inspectExp.id}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <StatusBadge status={inspectExp.status || 'pending'} />
+                  <button
+                    onClick={() => setInspectExp(null)}
+                    className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-4 text-xs">
+                {/* Meta details grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-medium block mb-0.5">Claimant</span>
+                    <span className="font-bold text-slate-900 block truncate">{inspectExp.employeeName || inspectExp.employee_name || 'Staff'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-medium block mb-0.5">Category</span>
+                    <span className="font-bold text-slate-900 block truncate">{inspectExp.categoryName || inspectExp.category_name || inspectExp.category || 'General'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-medium block mb-0.5">Date</span>
+                    <span className="font-mono text-slate-700 block">{inspectExp.date ? new Date(inspectExp.date).toLocaleDateString() : 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-medium block mb-0.5">Claim Amount</span>
+                    <span className="font-black text-emerald-600 font-mono text-sm block">৳{(Number(inspectExp.amount) || 0).toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {/* Description / Field note */}
+                <div className="p-3.5 bg-slate-50/80 rounded-2xl border border-slate-100">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
+                    Operational Purpose / Description
+                  </span>
+                  <p className="text-slate-800 leading-relaxed font-medium">
+                    {inspectExp.note || inspectExp.description || inspectExp.remarks || 'No descriptive purpose noted for this claim.'}
+                  </p>
+                </div>
+
+                {/* Receipt Photo Section */}
+                <div>
+                  <span className="text-[11px] font-bold text-slate-900 flex items-center gap-1.5 mb-2">
+                    <ImageIcon size={14} className="text-indigo-600" />
+                    Attached Commercial / Tax Receipt
+                  </span>
+                  {(() => {
+                    const receiptUrl = inspectExp.receiptPhotoUrl || inspectExp.receipt_photo_url || inspectExp.receiptUrl || inspectExp.receipt_url;
+                    if (!receiptUrl) {
+                      return (
+                        <div className="p-4 bg-amber-50/70 border border-amber-200/80 rounded-2xl text-center text-amber-800">
+                          <p className="font-bold text-xs">No Receipt Photo Attached</p>
+                          <p className="text-[11px] text-amber-600 mt-0.5">This expense claim was filed without a supporting voucher image.</p>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center gap-2">
+                        <img
+                          src={receiptUrl}
+                          alt="Receipt Voucher"
+                          className="max-h-80 w-auto rounded-xl object-contain shadow-xs border border-slate-200"
+                        />
+                        <a
+                          href={receiptUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-800 mt-1"
+                        >
+                          <ExternalLink size={12} />
+                          Open High-Resolution Original in New Tab
+                        </a>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Discussion & Audit Comments Thread */}
+                <div>
+                  <span className="text-[11px] font-bold text-slate-900 flex items-center gap-1.5 mb-2">
+                    <MessageSquare size={14} className="text-indigo-600" />
+                    Audit Remarks & Discussion ({inspectExp.comments?.length || 0})
+                  </span>
+                  <div className="space-y-2 max-h-40 overflow-y-auto mb-3 p-1">
+                    {(!inspectExp.comments || inspectExp.comments.length === 0) ? (
+                      <p className="text-slate-400 py-3 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        No audit remarks posted yet.
+                      </p>
+                    ) : (
+                      inspectExp.comments.map((c: any, idx: number) => (
+                        <div key={idx} className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-2.5">
+                          <UserAvatar
+                            src={c.avatarUrl || c.userAvatarUrl}
+                            name={c.userName || 'Auditor'}
+                            size="sm"
+                            shape="rounded"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-0.5">
+                              <span className="font-bold text-slate-900 text-xs">{c.userName || 'Auditor'}</span>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                              </span>
+                            </div>
+                            <p className="text-slate-700 text-xs">{c.comment || c.text}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <form onSubmit={handleAddExpComment} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newExpComment}
+                      onChange={(e) => setNewExpComment(e.target.value)}
+                      placeholder="Post audit verification remark..."
+                      className="flex-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-indigo-500"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newExpComment.trim()}
+                      className="px-4 py-2 bg-[#0D1117] text-white font-bold rounded-xl flex items-center gap-1 text-xs hover:bg-slate-800 disabled:opacity-40 transition-opacity"
+                    >
+                      <Send size={12} /> Post
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Modal footer with Approve / Reject and Remove actions */}
+              <div className="mt-6 flex flex-wrap justify-between items-center gap-2 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-2">
+                  {(inspectExp.status || 'pending').toLowerCase() === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleApproveExpense(inspectExp.id)}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-full text-xs flex items-center gap-1.5 transition-colors"
+                      >
+                        <Check size={13} /> Approve Claim
+                      </button>
+                      <button
+                        onClick={() => handleRejectExpense(inspectExp.id)}
+                        className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-full text-xs flex items-center gap-1.5 transition-colors"
+                      >
+                        <X size={13} /> Reject Claim
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => handleDeleteExpense(inspectExp.id)}
+                    className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-full text-xs flex items-center gap-1.5 transition-colors"
+                  >
+                    <Trash2 size={13} /> Delete Claim
+                  </button>
+                </div>
+                <button
+                  onClick={() => setInspectExp(null)}
+                  className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-full text-xs transition-colors"
+                >
+                  Close
                 </button>
               </div>
             </div>
