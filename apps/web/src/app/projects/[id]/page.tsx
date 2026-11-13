@@ -169,22 +169,24 @@ function ProjectDetailContent() {
     const norm = catName.toLowerCase().replace(/[^a-z]/g, '');
     return projectExpenses
       .filter((e) => {
-        const c = (e.category || '').toLowerCase().replace(/[^a-z]/g, '');
-        return c === norm || (norm === 'officecost' && c === 'office');
+        const rawCat = (e.categoryName || e.category_name || e.category || '').toLowerCase().replace(/[^a-z]/g, '');
+        if (norm === 'officecost') return rawCat === 'officecost' || rawCat === 'office';
+        if (norm === 'officebenefit') return rawCat === 'officebenefit' || rawCat === 'benefit';
+        return rawCat === norm;
       })
       .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   };
 
-  // Color mapping per category
-  const getCategoryColor = (cat: string) => {
+  // Color & label mapping per category
+  const getCategoryMeta = (cat: string) => {
     const c = cat.toLowerCase();
-    if (c.includes('equip')) return { border: 'border-cyan-200', bg: 'bg-cyan-50/50', bar: 'bg-cyan-500', text: 'text-cyan-700' };
-    if (c.includes('trans')) return { border: 'border-amber-200', bg: 'bg-amber-50/50', bar: 'bg-amber-500', text: 'text-amber-700' };
-    if (c.includes('food')) return { border: 'border-emerald-200', bg: 'bg-emerald-50/50', bar: 'bg-emerald-500', text: 'text-emerald-700' };
-    if (c.includes('accomm')) return { border: 'border-purple-200', bg: 'bg-purple-50/50', bar: 'bg-purple-500', text: 'text-purple-700' };
-    if (c.includes('officecost')) return { border: 'border-blue-200', bg: 'bg-blue-50/50', bar: 'bg-blue-500', text: 'text-blue-700' };
-    if (c.includes('benefit')) return { border: 'border-indigo-200', bg: 'bg-indigo-50/50', bar: 'bg-indigo-500', text: 'text-indigo-700' };
-    return { border: 'border-rose-200', bg: 'bg-rose-50/50', bar: 'bg-rose-500', text: 'text-rose-700' };
+    if (c.includes('equip')) return { label: 'Equipment', border: 'border-cyan-200', bg: 'bg-cyan-50/50', bar: 'bg-cyan-500', text: 'text-cyan-700' };
+    if (c.includes('trans')) return { label: 'Transportation', border: 'border-amber-200', bg: 'bg-amber-50/50', bar: 'bg-amber-500', text: 'text-amber-700' };
+    if (c.includes('food')) return { label: 'Food & Meals', border: 'border-emerald-200', bg: 'bg-emerald-50/50', bar: 'bg-emerald-500', text: 'text-emerald-700' };
+    if (c.includes('accomm')) return { label: 'Accommodation', border: 'border-purple-200', bg: 'bg-purple-50/50', bar: 'bg-purple-500', text: 'text-purple-700' };
+    if (c.includes('officecost') || c === 'office') return { label: 'Office Cost', border: 'border-blue-200', bg: 'bg-blue-50/50', bar: 'bg-blue-500', text: 'text-blue-700' };
+    if (c.includes('benefit')) return { label: 'Office Benefit', border: 'border-indigo-200', bg: 'bg-indigo-50/50', bar: 'bg-indigo-500', text: 'text-indigo-700' };
+    return { label: cat.toUpperCase(), border: 'border-slate-200', bg: 'bg-slate-50/50', bar: 'bg-slate-500', text: 'text-slate-700' };
   };
 
   // Team members
@@ -734,48 +736,52 @@ function ProjectDetailContent() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mt-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2.5 mt-3">
                 {Object.entries(categoryBudgets).map(([category, allocated]) => {
                   const spent = getSpentByCategory(category);
+                  const isOver = spent > allocated;
                   const remaining = Math.max(0, allocated - spent);
-                  const burnPct = allocated > 0 ? (spent / allocated) * 100 : 0;
-                  const colors = getCategoryColor(category);
+                  const overAmount = Math.max(0, spent - allocated);
+                  const burnPct = allocated > 0 ? (spent / allocated) * 100 : (spent > 0 ? 100 : 0);
+                  const meta = getCategoryMeta(category);
 
                   return (
                     <div
                       key={category}
-                      className={`min-h-[64px] p-2 rounded-lg border ${colors.border} ${colors.bg} flex flex-col justify-between transition-shadow hover:shadow-sm`}
+                      className={`min-h-[76px] p-2.5 rounded-lg border ${isOver ? 'border-rose-300 bg-rose-50/40' : `${meta.border} ${meta.bg}`} flex flex-col justify-between transition-shadow hover:shadow-sm`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className={`text-[9px] font-black uppercase tracking-wider capitalize ${colors.text}`}>
-                          {category}
+                      <div className="flex items-center justify-between gap-1">
+                        <span className={`text-[10px] font-black uppercase tracking-wider ${isOver ? 'text-rose-700' : meta.text}`}>
+                          {meta.label}
                         </span>
-                        <span className={`text-[8px] font-bold px-1 py-0.5 rounded-full ${
-                          burnPct > 100 ? 'bg-rose-100 text-rose-700' : 'bg-white/80 text-slate-700'
+                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
+                          isOver ? 'bg-rose-100 text-rose-700' : burnPct > 0 ? 'bg-white text-slate-800 shadow-2xs' : 'bg-white/60 text-slate-400'
                         }`}>
-                          {burnPct.toFixed(0)}%
+                          {allocated > 0 ? `${burnPct.toFixed(0)}%` : spent > 0 ? 'UNBUDGETED' : '0%'}
                         </span>
                       </div>
 
-                      <div className="flex items-baseline justify-between gap-2 text-[9px] whitespace-nowrap">
+                      <div className="flex items-baseline justify-between gap-1 text-[9px] whitespace-nowrap mt-1">
                         <span className="text-slate-500">
-                          Spent <span className="font-black text-slate-900 font-mono">৳{spent.toLocaleString()}</span>
+                          Spent <span className={`font-black font-mono ${spent > 0 ? (isOver ? 'text-rose-600' : 'text-slate-900') : 'text-slate-400'}`}>৳{spent.toLocaleString()}</span>
                         </span>
                         <span className="text-slate-400">
                           Cap <span className="font-bold text-slate-700 font-mono">৳{allocated.toLocaleString()}</span>
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 mt-1.5">
                         <div className="w-full bg-slate-200/80 h-1.5 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all duration-500 ${
-                              burnPct > 100 ? 'bg-rose-600' : colors.bar
+                              isOver ? 'bg-rose-500' : meta.bar
                             }`}
                             style={{ width: `${Math.min(100, burnPct)}%` }}
                           />
                         </div>
-                        <span className="shrink-0 text-[8px] font-medium text-slate-400">Rem ৳{remaining.toLocaleString()}</span>
+                        <span className={`shrink-0 text-[8px] font-semibold ${isOver ? 'text-rose-600' : 'text-slate-400'}`}>
+                          {isOver ? `+৳${overAmount.toLocaleString()}` : `Rem ৳${remaining.toLocaleString()}`}
+                        </span>
                       </div>
                     </div>
                   );
