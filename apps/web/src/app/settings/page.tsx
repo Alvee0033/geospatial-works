@@ -465,13 +465,15 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
-                      min="20"
-                      max="1000"
+                      min="10"
+                      max="1000000"
                       value={attendanceSettings?.geofenceRadiusMeters ?? 100}
                       onChange={(e) => saveAttendanceChanges({ geofenceRadiusMeters: Number(e.target.value) })}
-                      className="w-24 px-2 py-1 bg-white border border-slate-200 rounded text-xs font-bold text-slate-800"
+                      className="w-28 px-2 py-1 bg-white border border-slate-200 rounded text-xs font-bold text-slate-800"
                     />
-                    <span className="text-xs text-slate-500 font-medium">Meters from HQ</span>
+                    <span className="text-xs text-slate-500 font-medium">
+                      Meters ({(Number(attendanceSettings?.geofenceRadiusMeters ?? 100) / 1000).toFixed(1)} km)
+                    </span>
                   </div>
                 </div>
 

@@ -422,24 +422,35 @@ function EditProjectContent() {
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-bold text-slate-700">Custom Allowed Geofence Radius</span>
                           <span className="font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
-                            {siteRadiusMeters} meters (~{Math.round(Math.PI * siteRadiusMeters * siteRadiusMeters).toLocaleString()} m²)
+                            {siteRadiusMeters >= 1000 ? `${(siteRadiusMeters / 1000).toFixed(siteRadiusMeters % 1000 === 0 ? 0 : 1)} km` : `${siteRadiusMeters} meters`} ({siteRadiusMeters.toLocaleString()} m)
                           </span>
                         </div>
                         <p className="mt-1 text-[11px] text-slate-500">
-                          Field staff check-ins within this radius from the pinned coordinates will be approved.
+                          Field staff check-ins within this radius from the pinned coordinates will be approved (adjustable up to 1,000 km).
                         </p>
-                        <input
-                          type="range"
-                          min={50}
-                          max={2500}
-                          step={25}
-                          value={siteRadiusMeters}
-                          onChange={(e) => setSiteRadiusMeters(Number(e.target.value))}
-                          className="mt-2.5 w-full accent-indigo-600 cursor-pointer"
-                        />
+                        <div className="mt-2.5 flex items-center gap-2">
+                          <input
+                            type="range"
+                            min={50}
+                            max={1000000}
+                            step={siteRadiusMeters > 50000 ? 5000 : siteRadiusMeters > 5000 ? 500 : 25}
+                            value={siteRadiusMeters}
+                            onChange={(e) => setSiteRadiusMeters(Number(e.target.value))}
+                            className="w-full accent-indigo-600 cursor-pointer"
+                          />
+                          <input
+                            type="number"
+                            min={10}
+                            max={1000000}
+                            value={siteRadiusMeters}
+                            onChange={(e) => setSiteRadiusMeters(Math.min(1000000, Math.max(10, Number(e.target.value))))}
+                            className="w-24 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-slate-800 text-right"
+                          />
+                          <span className="text-xs text-slate-500 font-semibold">m</span>
+                        </div>
                         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
                           <span className="text-slate-400 font-semibold mr-1">Quick Presets:</span>
-                          {[100, 200, 350, 500, 1000, 2000].map((preset) => (
+                          {[100, 500, 1000, 5000, 25000, 100000, 500000, 1000000].map((preset) => (
                             <button
                               key={preset}
                               type="button"

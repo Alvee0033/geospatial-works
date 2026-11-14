@@ -1167,43 +1167,54 @@ export default function ProjectsPage() {
                     pinLabel="Project site"
                     onChange={(point) => { setFormSiteLatitude(point.latitude); setFormSiteLongitude(point.longitude); }}
                   />
-                  <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-slate-700">Custom Allowed Geofence Radius</span>
-                      <span className="font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
-                        {formSiteRadiusMeters} meters (~{Math.round(Math.PI * formSiteRadiusMeters * formSiteRadiusMeters).toLocaleString()} m²)
-                      </span>
+                    <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-slate-700">Custom Allowed Geofence Radius</span>
+                        <span className="font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                          {formSiteRadiusMeters >= 1000 ? `${(formSiteRadiusMeters / 1000).toFixed(formSiteRadiusMeters % 1000 === 0 ? 0 : 1)} km` : `${formSiteRadiusMeters} meters`} ({formSiteRadiusMeters.toLocaleString()} m)
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        Field staff check-ins within this circle will be recognized for this project location (up to 1,000 km).
+                      </p>
+                      <div className="mt-2.5 flex items-center gap-2">
+                        <input
+                          type="range"
+                          min={50}
+                          max={1000000}
+                          step={formSiteRadiusMeters > 50000 ? 5000 : formSiteRadiusMeters > 5000 ? 500 : 25}
+                          value={formSiteRadiusMeters}
+                          onChange={(e) => setFormSiteRadiusMeters(Number(e.target.value))}
+                          className="w-full accent-indigo-600 cursor-pointer"
+                        />
+                        <input
+                          type="number"
+                          min={10}
+                          max={1000000}
+                          value={formSiteRadiusMeters}
+                          onChange={(e) => setFormSiteRadiusMeters(Math.min(1000000, Math.max(10, Number(e.target.value))))}
+                          className="w-24 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-slate-800 text-right"
+                        />
+                        <span className="text-xs text-slate-500 font-semibold">m</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+                        <span className="text-slate-400 font-semibold mr-1">Quick Presets:</span>
+                        {[100, 500, 1000, 5000, 25000, 100000, 500000, 1000000].map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => setFormSiteRadiusMeters(preset)}
+                            className={`px-2 py-0.5 rounded-md font-semibold transition-all ${
+                              formSiteRadiusMeters === preset
+                                ? 'bg-indigo-600 text-white shadow-xs'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                          >
+                            {preset >= 1000 ? `${preset / 1000} km` : `${preset} m`}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <p className="mt-1 text-[11px] text-slate-500">
-                      Field staff check-ins within this circle will be recognized for this project location.
-                    </p>
-                    <input
-                      type="range"
-                      min={50}
-                      max={2500}
-                      step={25}
-                      value={formSiteRadiusMeters}
-                      onChange={(e) => setFormSiteRadiusMeters(Number(e.target.value))}
-                      className="mt-2.5 w-full accent-indigo-600 cursor-pointer"
-                    />
-                    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
-                      <span className="text-slate-400 font-semibold mr-1">Quick Presets:</span>
-                      {[100, 200, 350, 500, 1000, 2000].map((preset) => (
-                        <button
-                          key={preset}
-                          type="button"
-                          onClick={() => setFormSiteRadiusMeters(preset)}
-                          className={`px-2 py-0.5 rounded-md font-semibold transition-all ${
-                            formSiteRadiusMeters === preset
-                              ? 'bg-indigo-600 text-white shadow-xs'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          }`}
-                        >
-                          {preset >= 1000 ? `${preset / 1000} km` : `${preset} m`}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                   <p className="text-[11px] text-slate-500">{formSiteLatitude === null || formSiteLongitude === null ? 'Search an address or click the map to set the field site.' : `Saved site pin: ${formSiteLatitude.toFixed(6)}, ${formSiteLongitude.toFixed(6)}`}</p>
                 </div>}
               </section>
