@@ -62,8 +62,8 @@ export function Header({ activeTab, searchQuery, setSearchQuery, onOpenCreatePro
         <a href={`${process.env.NEXT_PUBLIC_SITE_PREVIEW_URL || 'https://geospatialworks.com.bd'}${info.url}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
           <ArrowUpRight size={14} /><span className="hidden sm:inline">View live</span>
         </a>
-        {createAction && <button type="button" onClick={createAction.onClick} className="inline-flex items-center gap-2 rounded-lg bg-[#F4382D] px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
-          <Plus size={15} /><span className="hidden sm:inline">{createAction.label}</span>
+        {createAction && <button type="button" onClick={createAction.onClick} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-black cursor-pointer shadow-2xs">
+          <Plus size={14} /><span>{createAction.label}</span>
         </button>}
       </div>
     </header>

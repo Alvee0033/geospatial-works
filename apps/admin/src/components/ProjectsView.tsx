@@ -194,16 +194,16 @@ export function ProjectsView({
               <button
                 key={opt}
                 onClick={() => setSelectedFilter(opt)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-2 flex-shrink-0 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/40'
+                    ? 'bg-slate-900 text-white shadow-2xs'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60'
                 }`}
               >
                 <span>{opt}</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    isSelected ? 'bg-indigo-700 text-white' : 'bg-slate-200 text-slate-700'
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
                   }`}
                 >
                   {count}

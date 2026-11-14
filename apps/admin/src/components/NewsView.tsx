@@ -71,17 +71,17 @@ export function NewsView({
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                    ? 'bg-slate-900 text-white shadow-2xs'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60'
                 }`}
               >
                 <span>{cat === 'All' ? `All (${articles.length})` : cat}</span>
                 {cat !== 'All' && (
                   <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                      isSelected ? 'bg-indigo-700 text-white' : 'bg-slate-200 text-slate-600'
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                      isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
                     }`}
                   >
                     {count}
@@ -92,13 +92,13 @@ export function NewsView({
           })}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-600 select-none whitespace-nowrap bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200/60">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-600 select-none whitespace-nowrap bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200/60">
             <input
               type="checkbox"
               checked={onlyPublished}
               onChange={(e) => setOnlyPublished(e.target.checked)}
-              className="rounded text-indigo-600 focus:ring-0"
+              className="rounded border-slate-300 text-slate-900 focus:ring-0"
             />
             <span>Published Only</span>
           </label>
@@ -107,15 +107,15 @@ export function NewsView({
             onClick={onSeedProjectCaseStudies}
             disabled={seedingProjectCaseStudies}
             title="Create case studies from active project records and move starter demo articles to drafts"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition shadow-xs disabled:opacity-60 disabled:cursor-wait"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold transition shadow-2xs disabled:opacity-60 cursor-pointer"
           >
-            <FolderSync size={14} className={seedingProjectCaseStudies ? 'animate-pulse' : ''} />
-            {seedingProjectCaseStudies ? 'Preparing project stories…' : 'Use real project stories'}
+            <FolderSync size={13} className={seedingProjectCaseStudies ? 'animate-pulse' : ''} />
+            {seedingProjectCaseStudies ? 'Preparing project stories…' : 'Sync project stories'}
           </button>
 
           <button
             onClick={onOpenCreateModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-xs self-end sm:self-auto cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-black text-white rounded-lg text-xs font-semibold transition shadow-2xs self-end sm:self-auto cursor-pointer"
           >
             <Plus size={14} /> Add Article
           </button>

@@ -338,11 +338,10 @@ export function CareersView({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#F4382D] animate-pulse"></span>
-            <h1 className="text-xl font-bold text-slate-900">Career & Talent Operations</h1>
+            <h1 className="text-lg font-bold text-slate-900">Careers &amp; Recruiting</h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage open surveying and engineering positions, filter applicant submissions per job, and track recruitment stages.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Manage open surveying and engineering vacancies, candidate applications, and hiring pipeline.
           </p>
         </div>
 
@@ -350,24 +349,24 @@ export function CareersView({
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-stretch sm:self-auto border border-slate-200/60">
           <button
             onClick={() => setActiveSubTab('openings')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeSubTab === 'openings'
-                ? 'bg-white text-slate-900 shadow-sm'
+                ? 'bg-white text-slate-900 shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Briefcase size={14} className={activeSubTab === 'openings' ? 'text-[#F4382D]' : ''} />
+            <Briefcase size={13} />
             <span>Job Openings ({jobs.length})</span>
           </button>
           <button
             onClick={() => setActiveSubTab('applications')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeSubTab === 'applications'
-                ? 'bg-white text-slate-900 shadow-sm'
+                ? 'bg-white text-slate-900 shadow-2xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Users size={14} className={activeSubTab === 'applications' ? 'text-[#F4382D]' : ''} />
+            <Users size={13} />
             <span>Applications ({applications.length})</span>
           </button>
         </div>
@@ -379,16 +378,16 @@ export function CareersView({
       {activeSubTab === 'openings' && (
         <div className="space-y-4">
           {/* Controls Bar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200">
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
-              <div className="relative flex-1 md:w-72">
-                <Search size={15} className="absolute left-3 top-3 text-slate-400" />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200/90 shadow-2xs">
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto flex-1">
+              <div className="relative flex-1 md:w-64">
+                <Search size={13} className="absolute left-2.5 top-2.5 text-slate-400" />
                 <input
                   type="text"
                   value={jobSearch}
                   onChange={(e) => setJobSearch(e.target.value)}
-                  placeholder="Search openings by role, dept, location..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 hover:bg-slate-100/80 focus:bg-white rounded-lg border border-slate-200 outline-none text-xs text-slate-800 transition"
+                  placeholder="Search openings..."
+                  className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white rounded-lg border border-slate-200 outline-none text-xs text-slate-800 transition"
                 />
               </div>
 
@@ -396,7 +395,7 @@ export function CareersView({
               <select
                 value={selectedDept}
                 onChange={(e) => setSelectedDept(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none"
+                className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none cursor-pointer"
               >
                 <option value="All">All Departments</option>
                 {CAREER_DEPARTMENTS.map((dept) => (
@@ -410,7 +409,7 @@ export function CareersView({
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none"
+                className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none cursor-pointer"
               >
                 <option value="All">All Statuses</option>
                 <option value="published">Published</option>
@@ -421,10 +420,10 @@ export function CareersView({
 
             <button
               onClick={onAddJob}
-              className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#F4382D] hover:bg-[#d92c22] text-white text-xs font-bold shadow-md shadow-red-500/20 transition shrink-0 cursor-pointer"
+              className="w-full md:w-auto flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-black text-white text-xs font-semibold shadow-2xs transition shrink-0 cursor-pointer"
             >
-              <Plus size={16} />
-              <span>Add New Job Opening</span>
+              <Plus size={14} />
+              <span>Add Job Opening</span>
             </button>
           </div>
 

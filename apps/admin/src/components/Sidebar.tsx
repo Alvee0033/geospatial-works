@@ -75,56 +75,53 @@ export function Sidebar({
         </div>
 
         {/* Clean Navigation Links */}
-        <nav className="space-y-1.5">
+        <nav className="space-y-1">
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Main Menu</div>
 
           {/* Dashboard Item */}
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'dashboard'
-                ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <LayoutDashboard size={16} />
-              <span>Dashboard</span>
+              <LayoutDashboard size={15} />
+              <span>Overview</span>
             </div>
           </button>
 
-          {/* Landing Page Item (Right under Dashboard) */}
+          {/* Landing Page Item */}
           <button
             onClick={() => setActiveTab('landing')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'landing'
-                ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <MonitorPlay size={16} />
+              <MonitorPlay size={15} />
               <span>Homepage</span>
             </div>
-            <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
-              CMS
-            </span>
           </button>
 
           {/* Team & Leadership Item */}
           <button
             onClick={() => setActiveTab('team')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'team'
-                ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Users size={16} />
-              <span>Team</span>
+              <Users size={15} />
+              <span>Team &amp; Personnel</span>
             </div>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold border border-indigo-200/60">
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'team' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
               {teamCount}
             </span>
           </button>
@@ -132,17 +129,17 @@ export function Sidebar({
           {/* Projects Item */}
           <button
             onClick={() => setActiveTab('projects')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'projects'
-                ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <FolderKanban size={16} />
+              <FolderKanban size={15} />
               <span>Projects</span>
             </div>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200/60">
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'projects' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
               {projectsCount}
             </span>
           </button>
@@ -150,53 +147,53 @@ export function Sidebar({
           {/* Services Item */}
           <button
             onClick={() => setActiveTab('services')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'services'
-                ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Sliders size={16} />
+              <Sliders size={15} />
               <span>Services</span>
             </div>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200/60">
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'services' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
               {servicesCount}
             </span>
           </button>
 
-          {/* News & Bulletins Item */}
+          {/* News & Articles Item */}
           <button
             onClick={() => setActiveTab('news')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'news'
-                ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Newspaper size={16} />
-              <span>News</span>
+              <Newspaper size={15} />
+              <span>Articles &amp; News</span>
             </div>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200/60">
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'news' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
               {articlesCount}
             </span>
           </button>
 
-          {/* About / Who We Are Item */}
+          {/* About / Pages Item */}
           <button
             onClick={() => setActiveTab('about')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'about'
-                ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Building2 size={16} />
-              <span>About</span>
+              <Building2 size={15} />
+              <span>About Pages</span>
             </div>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200/60">
+            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'about' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
               5
             </span>
           </button>
@@ -204,22 +201,22 @@ export function Sidebar({
           {/* Careers & Applications Item */}
           <button
             onClick={() => setActiveTab('careers')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'careers'
-                ? 'bg-[#F4382D]/10 text-[#F4382D] border-l-4 border-[#F4382D] shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Briefcase size={16} />
-              <span>Jobs</span>
+              <Briefcase size={15} />
+              <span>Careers &amp; Jobs</span>
             </div>
             <div className="flex items-center gap-1">
-              <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-red-100 text-[#F4382D] font-bold">
+              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'careers' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
                 {jobsCount}
               </span>
               {applicationsCount > 0 && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 font-bold" title="Applicants">
+                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'careers' ? 'bg-white/30 text-white' : 'bg-blue-100 text-blue-700 font-semibold'}`} title="Applications received">
                   {applicationsCount}
                 </span>
               )}
@@ -229,51 +226,48 @@ export function Sidebar({
           {/* Client Inquiries & Contact Leads Item */}
           <button
             onClick={() => setActiveTab('inquiries')}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
               activeTab === 'inquiries'
-                ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-xs'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                ? 'bg-slate-900 text-white shadow-2xs'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Mail size={16} />
+              <Mail size={15} />
               <span>Enquiries</span>
             </div>
             {inquiriesCount > 0 && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold border border-indigo-200/60">
+              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'inquiries' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 font-semibold'}`}>
                 {inquiriesCount}
               </span>
             )}
           </button>
 
-          <div className="pt-2">
+          <div className="pt-3">
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">System</div>
             {/* Settings & User Management Item */}
             <button
               onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 activeTab === 'settings'
-                  ? 'bg-indigo-50 text-indigo-600 border-l-4 border-indigo-600 shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  ? 'bg-slate-900 text-white shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <ShieldCheck size={16} className={activeTab === 'settings' ? 'text-indigo-600' : 'text-slate-500'} />
+                <ShieldCheck size={15} />
                 <span>Settings &amp; Access</span>
               </div>
-              <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold">
-                RBAC
-              </span>
             </button>
           </div>
         </nav>
       </div>
 
       {/* Sidebar Footer with Active User Session & Logout */}
-      <div className="p-4 border-t border-slate-100">
-        <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs">
+      <div className="p-3 border-t border-slate-100">
+        <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200/70">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0">
               {currentUser?.name
                 ? currentUser.name
                     .split(' ')
@@ -284,28 +278,22 @@ export function Sidebar({
                 : 'GW'}
             </div>
             <div className="min-w-0">
-              <h4 className="text-xs font-bold text-slate-800 truncate">
-                {currentUser?.name || 'System Admin'}
+              <h4 className="text-xs font-semibold text-slate-900 truncate">
+                {currentUser?.name || 'Administrator'}
               </h4>
-              <p className="text-[10px] text-slate-400 truncate">
+              <p className="text-[10px] text-slate-500 truncate">
                 {currentUser?.email || 'admin@geospatialworks.com.bd'}
               </p>
-              <div className="mt-0.5 flex items-center gap-1">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span className="text-[9px] font-bold uppercase text-indigo-600 tracking-wider">
-                  {currentUser?.role || 'ADMIN'}
-                </span>
-              </div>
             </div>
           </div>
           {onLogout && (
             <button
               type="button"
               onClick={onLogout}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-              title="Sign Out Session"
+              className="p-1 rounded text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 transition cursor-pointer"
+              title="Sign Out"
             >
-              <LogOut size={16} />
+              <LogOut size={14} />
             </button>
           )}
         </div>
