@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Navigation,
   CheckCircle2,
   AlertTriangle,
   XCircle,
@@ -91,6 +92,117 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return Math.round(R * c);
+}
+
+function isAttendanceRecordEarlyLeave(record: any): boolean {
+  if (!record) return false;
+  if (record.isEarlyDeparture || record.is_early_departure) return true;
+  if (record.earlyDepartureReason || record.early_departure_reason) return true;
+  const rawStatus = String(record.status ?? '').toLowerCase();
+  if (rawStatus.includes('early') || rawStatus === 'early_departure' || rawStatus === 'early_leave') return true;
+  const notes = String(record.notes ?? '').toLowerCase();
+  return (
+    notes.includes('[early departure') ||
+    notes.includes('early departure') ||
+    notes.includes('[checked out before time]') ||
+    notes.includes('early leave') ||
+    notes.includes('[early leave')
+  );
+}
+
+function getEarlyDepartureReason(record: any): string | null {
+  if (!record) return null;
+  if (record.earlyDepartureReason) return String(record.earlyDepartureReason);
+  if (record.early_departure_reason) return String(record.early_departure_reason);
+  const notes = String(record.notes ?? '');
+  const match = notes.match(/\[Early Departure:\s*([^\]]+)\]/i);
+  if (match && match[1]) return match[1].trim();
+  const matchLeave = notes.match(/\[Early Leave:\s*([^\]]+)\]/i);
+  if (matchLeave && matchLeave[1]) return matchLeave[1].trim();
+  if (isAttendanceRecordEarlyLeave(record)) return 'Before time exit';
+  return null;
+}
+
+function getRecordLocationBadgeInfo(record: any, office: { latitude: number; longitude: number; radiusMeters: number }) {
+  if (!record) return null;
+  const workMode = String(record.workMode || record.work_mode || '').toLowerCase();
+  const notes = String(record.notes || '');
+  const notesLower = notes.toLowerCase();
+
+  const isField =
+    workMode === 'field' ||
+    notesLower.includes('[work mode: field]') ||
+    notesLower.includes('[field duty]') ||
+    notesLower.includes('field:');
+
+  const isHomeOffice =
+    workMode === 'home_office' ||
+    notesLower.includes('[work mode: home office]') ||
+    notesLower.includes('[home office]') ||
+    notesLower.includes('home office:');
+
+  const isHome =
+    workMode === 'home' ||
+    notesLower.includes('[work mode: home]') ||
+    notesLower.includes('[work from home]') ||
+    notesLower.includes('wfh');
+
+  if (isField) {
+    const siteMatch = notes.match(/(?:Site|site):\s*([^|\[\n]+)/);
+    const site = siteMatch ? siteMatch[1].trim() : '';
+    return {
+      type: 'field' as const,
+      label: site ? `Field • ${site}` : 'Field',
+      cls: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    };
+  }
+
+  if (isHomeOffice) {
+    return {
+      type: 'home_office' as const,
+      label: 'Home Office',
+      cls: 'bg-purple-50 text-purple-700 border-purple-200',
+    };
+  }
+
+  if (isHome) {
+    return {
+      type: 'home' as const,
+      label: 'Home',
+      cls: 'bg-amber-50 text-amber-700 border-amber-200',
+    };
+  }
+
+  // Office check geofence distance
+  const lat = Number(record.latitude ?? record.lat);
+  const lng = Number(record.longitude ?? record.lng);
+  const hasCoords = hasValidCoordinates(lat, lng);
+  const dist = hasCoords ? calculateDistance(lat, lng, office.latitude, office.longitude) : null;
+  const isInside = dist !== null && dist <= office.radiusMeters;
+  const isOutside = dist !== null && dist > office.radiusMeters;
+  const distText = dist !== null ? (dist >= 1000 ? `${(dist / 1000).toFixed(1)}km` : `${dist}m`) : null;
+
+  if (isOutside || notesLower.includes('[geofence: outside') || notesLower.includes('outside geofence')) {
+    return {
+      type: 'office_outside' as const,
+      label: distText ? `Office Outside (${distText})` : 'Office Outside',
+      cls: 'bg-rose-50 text-rose-700 border-rose-200',
+    };
+  }
+
+  if (isInside || notesLower.includes('[geofence: inside') || notesLower.includes('in geofence')) {
+    return {
+      type: 'office_in_range' as const,
+      label: distText ? `Office In-Range (${distText})` : 'Office In-Range',
+      cls: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    };
+  }
+
+  return {
+    type: 'office' as const,
+    label: 'Office',
+    cls: 'bg-slate-100 text-slate-700 border-slate-200',
+  };
 }
 
 function isAttendanceRecordLate(
@@ -584,11 +696,21 @@ export default function AttendancePage() {
       return Boolean(!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && selected >= new Date(start.toDateString()) && selected <= new Date(end.toDateString()));
     }).map((leave) => String(leave.userId ?? leave.user_id ?? leave.employeeId ?? leave.employee_id)));
 
-    const byUser = new Map<string, any>();
+    const userRecordsMap = new Map<string, { morning?: any; afternoon?: any; latest?: any; all: any[] }>();
     enrichedAttendance.forEach((record) => {
       const userId = String(record.userId ?? record.user_id ?? record.employeeId ?? record.employee_id ?? record.id ?? '');
-      const previous = byUser.get(userId);
-      if (!previous || new Date(record.loginTime ?? record.created_at ?? 0).getTime() > new Date(previous.loginTime ?? previous.created_at ?? 0).getTime()) byUser.set(userId, record);
+      if (!userRecordsMap.has(userId)) {
+        userRecordsMap.set(userId, { all: [] });
+      }
+      const entry = userRecordsMap.get(userId)!;
+      entry.all.push(record);
+      const session = String(record.sessionType || record.session_type || '').toLowerCase();
+      if (session === 'morning' && !entry.morning) entry.morning = record;
+      if (session === 'afternoon' && !entry.afternoon) entry.afternoon = record;
+
+      if (!entry.latest || new Date(record.loginTime ?? record.created_at ?? 0).getTime() > new Date(entry.latest.loginTime ?? entry.latest.created_at ?? 0).getTime()) {
+        entry.latest = record;
+      }
     });
 
     const assignedLocMap = new Map<string, any>();
@@ -598,9 +720,29 @@ export default function AttendancePage() {
 
     const rows = users.filter((user) => user.isActive !== false && user.is_active !== false && user.active !== false).map((user) => {
       const id = String(user.id ?? user._id ?? '');
-      const record = byUser.get(id);
-      const isLate = isAttendanceRecordLate(record, timingSettings);
-      const status = record ? (isLate ? 'Late' : 'Present') : onLeaveIds.has(id) ? 'On leave' : 'Absent';
+      const userRecs = userRecordsMap.get(id);
+      const record = userRecs?.latest;
+      const morningRec = userRecs?.morning;
+      const afternoonRec = userRecs?.afternoon;
+
+      const hasEarlyLeave = userRecs?.all.some((r) => isAttendanceRecordEarlyLeave(r)) ?? false;
+      const earlyLeaveReason = userRecs?.all.map((r) => getEarlyDepartureReason(r)).find(Boolean) || null;
+
+      const isLate = isAttendanceRecordLate(record, timingSettings) || (morningRec ? isAttendanceRecordLate(morningRec, timingSettings) : false);
+
+      let status = 'Absent';
+      if (record) {
+        if (hasEarlyLeave) {
+          status = 'Early Leave';
+        } else if (isLate) {
+          status = 'Late';
+        } else {
+          status = 'Present';
+        }
+      } else if (onLeaveIds.has(id)) {
+        status = 'On leave';
+      }
+
       const assignedLoc = assignedLocMap.get(id);
       return {
         id,
@@ -615,6 +757,10 @@ export default function AttendancePage() {
         assignedLocationProject: assignedLoc?.projectTitle || assignedLoc?.projectName || null,
         avatarUrl: record?.avatarUrl || record?.avatar_url || user.avatarUrl || user.avatar_url,
         record,
+        morningRec,
+        afternoonRec,
+        hasEarlyLeave,
+        earlyLeaveReason,
         status,
         user,
         createdAt: user.createdAt || user.created_at,
@@ -622,13 +768,13 @@ export default function AttendancePage() {
       };
     });
     return rows;
-  }, [users, enrichedAttendance, leaves, locationAssignments, selectedDate]);
+  }, [users, enrichedAttendance, leaves, locationAssignments, selectedDate, timingSettings]);
 
   const visibleRoster = useMemo(() => attendanceRoster.filter((row) => {
     const query = searchQuery.trim().toLowerCase();
     return (!query || `${row.name} ${row.email} ${row.department}`.toLowerCase().includes(query)) &&
       (departmentFilter === 'all' || row.department === departmentFilter) &&
-      (statusFilter === 'all' || row.status.toLowerCase() === statusFilter) &&
+      (statusFilter === 'all' || row.status.toLowerCase() === statusFilter || (statusFilter === 'early leave' && row.status.toLowerCase() === 'early leave')) &&
       (workLocationFilter === 'all' || row.workLocation === workLocationFilter) &&
       (shiftFilter === 'all' || row.shift === shiftFilter);
   }), [attendanceRoster, searchQuery, departmentFilter, statusFilter, workLocationFilter, shiftFilter]);
@@ -636,10 +782,11 @@ export default function AttendancePage() {
   const departments = useMemo(() => [...new Set(users.map((user) => String(user.department || 'Unassigned')))].sort(), [users]);
   const presentCount = attendanceRoster.filter((row) => row.status === 'Present').length;
   const lateCount = attendanceRoster.filter((row) => row.status === 'Late').length;
+  const earlyLeaveCount = attendanceRoster.filter((row) => row.status === 'Early Leave').length;
   const leaveCount = attendanceRoster.filter((row) => row.status === 'On leave').length;
   const absentCount = attendanceRoster.filter((row) => row.status === 'Absent').length;
 
-  const presenceRatio = users.length > 0 ? Math.round(((presentCount + lateCount) / users.length) * 100) : 0;
+  const presenceRatio = users.length > 0 ? Math.round(((presentCount + lateCount + earlyLeaveCount) / users.length) * 100) : 0;
 
   const mapLocations: AttendanceLocation[] = filteredRecords.flatMap((a) => {
     if (a.parsedLat === null || a.parsedLng === null) return [];
@@ -759,7 +906,7 @@ export default function AttendancePage() {
         return !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && dateObj >= new Date(start.toDateString()) && dateObj <= new Date(end.toDateString());
       });
 
-      let dayStatus: 'Present' | 'Late' | 'Half day' | 'Absent' | 'On leave' | 'Weekend' | 'Future' | 'Not joined' = 'Absent';
+      let dayStatus: 'Present' | 'Late' | 'Early Leave' | 'Half day' | 'Absent' | 'On leave' | 'Weekend' | 'Future' | 'Not joined' = 'Absent';
       let hours = 0;
 
       if (dayDate < userJoinDateStr) {
@@ -777,12 +924,17 @@ export default function AttendancePage() {
         const isOtherLate = Boolean(dayRecords?.other && dayRecords.other.some((r: any) => isAttendanceRecordLate(r, timingSettings)));
         const dayIsLate = isMorningLate || isAfternoonLate || isOtherLate;
 
+        const isMorningEarly = isAttendanceRecordEarlyLeave(morningRec);
+        const isAfternoonEarly = isAttendanceRecordEarlyLeave(afternoonRec);
+        const isOtherEarly = Boolean(dayRecords?.other && dayRecords.other.some((r: any) => isAttendanceRecordEarlyLeave(r)));
+        const dayIsEarly = isMorningEarly || isAfternoonEarly || isOtherEarly;
+
         if (morningRec && afternoonRec) {
           hours = 8;
-          dayStatus = dayIsLate ? 'Late' : 'Present';
+          dayStatus = dayIsEarly ? 'Early Leave' : dayIsLate ? 'Late' : 'Present';
         } else {
           hours = 4;
-          dayStatus = dayIsLate ? 'Late' : 'Half day';
+          dayStatus = dayIsEarly ? 'Early Leave' : dayIsLate ? 'Late' : 'Half day';
         }
 
         if (dayIsLate) lateDays++;
@@ -1048,10 +1200,11 @@ export default function AttendancePage() {
         </section>
 
         {/* Daily Summary Cards */}
-        <section aria-label="Attendance summary" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <section aria-label="Attendance summary" className="grid grid-cols-2 gap-2 sm:grid-cols-5">
           {[
             { label: 'Present Today', value: presentCount, color: 'bg-emerald-500', desc: 'On-time attendance' },
             { label: 'Late Check-ins', value: lateCount, color: 'bg-amber-500', desc: 'Outside grace window' },
+            { label: 'Early Leave', value: earlyLeaveCount, color: 'bg-amber-600', desc: 'Checked out before time' },
             { label: 'On Approved Leave', value: leaveCount, color: 'bg-sky-500', desc: 'Approved casual/sick' },
             { label: 'Absent Personnel', value: absentCount, color: 'bg-rose-500', desc: 'No check-in record' },
           ].map((metric) => (
@@ -1099,6 +1252,7 @@ export default function AttendancePage() {
             <option value="all">All Statuses</option>
             <option value="present">Present</option>
             <option value="late">Late</option>
+            <option value="early leave">Early Leave</option>
             <option value="on leave">On leave</option>
             <option value="absent">Absent</option>
           </select>
@@ -1168,7 +1322,9 @@ export default function AttendancePage() {
                       const record = row.record;
                       const time = record?.loginTime || record?.login_time || record?.created_at;
                       const tone =
-                        row.status === 'Present'
+                        row.status === 'Early Leave'
+                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                          : row.status === 'Present'
                           ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
                           : row.status === 'Late'
                           ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
@@ -1176,6 +1332,9 @@ export default function AttendancePage() {
                           ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-200'
                           : 'bg-rose-50 text-rose-700 ring-1 ring-rose-200';
                       const location = row.workLocation as AttendanceWorkLocation;
+                      const morningBadge = getRecordLocationBadgeInfo(row.morningRec, office);
+                      const afternoonBadge = getRecordLocationBadgeInfo(row.afternoonRec, office);
+                      const hasSessionLocations = Boolean(morningBadge || afternoonBadge);
 
                       return (
                         <tr
@@ -1208,10 +1367,33 @@ export default function AttendancePage() {
                             {time ? new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                           </td>
                           <td className="px-3 py-2.5">
-                            <div className="flex flex-col gap-1 items-start">
-                              <span className={`inline-flex whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${workLocationTones[location]}`}>
-                                {workLocationLabels[location]}
-                              </span>
+                            <div className="flex flex-wrap gap-1.5 items-center">
+                              {hasSessionLocations ? (
+                                <>
+                                  {morningBadge && (
+                                    <span
+                                      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold border ${morningBadge.cls}`}
+                                      title={`Morning Check-in: ${morningBadge.label}`}
+                                    >
+                                      <Clock size={10} className="shrink-0" />
+                                      AM: {morningBadge.label}
+                                    </span>
+                                  )}
+                                  {afternoonBadge && (
+                                    <span
+                                      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold border ${afternoonBadge.cls}`}
+                                      title={`Afternoon Check-out: ${afternoonBadge.label}`}
+                                    >
+                                      <Clock size={10} className="shrink-0" />
+                                      PM: {afternoonBadge.label}
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                <span className={`inline-flex whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${workLocationTones[location]}`}>
+                                  {workLocationLabels[location]}
+                                </span>
+                              )}
                               {row.assignedWorkLocation && row.assignedWorkLocation !== 'office' && (
                                 <span
                                   className="inline-flex items-center gap-1 text-[9px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200"
@@ -1224,9 +1406,20 @@ export default function AttendancePage() {
                             </div>
                           </td>
                           <td className="px-3 py-2.5">
-                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold ${tone}`}>
-                              {row.status}
-                            </span>
+                            <div className="flex flex-col gap-1 items-start">
+                              <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold ${tone}`}>
+                                {row.status}
+                              </span>
+                              {row.hasEarlyLeave && (
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300"
+                                  title={row.earlyLeaveReason ? `Early Leave: ${row.earlyLeaveReason}` : 'Early Leave'}
+                                >
+                                  <Clock size={10} className="shrink-0 text-amber-600" />
+                                  <span>Early Leave{row.earlyLeaveReason ? `: ${row.earlyLeaveReason}` : ''}</span>
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-4 py-2.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-end gap-1.5">
@@ -1345,8 +1538,10 @@ export default function AttendancePage() {
                           {selectedEmployeeForDetail.name}
                         </h2>
                         <span
-                          className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                            selectedEmployeeForDetail.status === 'Present'
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                            selectedEmployeeForDetail.status === 'Early Leave'
+                              ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                              : selectedEmployeeForDetail.status === 'Present'
                               ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                               : selectedEmployeeForDetail.status === 'Late'
                               ? 'bg-amber-100 text-amber-800 border border-amber-200'
@@ -1356,6 +1551,7 @@ export default function AttendancePage() {
                           }`}
                         >
                           Today: {selectedEmployeeForDetail.status}
+                          {selectedEmployeeForDetail.earlyLeaveReason && ` (${selectedEmployeeForDetail.earlyLeaveReason})`}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-1.5">
@@ -1762,8 +1958,12 @@ export default function AttendancePage() {
                             const dist = hasCoords ? calculateDistance(Number(r.latitude ?? r.lat), Number(r.longitude ?? r.lng), office.latitude, office.longitude) : null;
                             const isInside = dist !== null && dist <= office.radiusMeters;
                             const locationName = r.addressText || r.address_text || (isInside ? `${office.name} (HQ Geofence)` : `Coordinates: ${r.latitude}, ${r.longitude}`);
+                            const isEarly = isAttendanceRecordEarlyLeave(r);
+                            const earlyReason = getEarlyDepartureReason(r);
                             const isLate = isAttendanceRecordLate(r, timingSettings);
-                            const statusTone = isLate
+                            const statusTone = isEarly
+                              ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                              : isLate
                               ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
                               : 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200';
 
@@ -1799,9 +1999,16 @@ export default function AttendancePage() {
                                   )}
                                 </td>
                                 <td className="px-3 py-3.5">
-                                  <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${statusTone}`}>
-                                    {isLate ? 'Late' : (r.status || 'present')}
-                                  </span>
+                                  <div className="flex flex-col gap-1 items-start">
+                                    <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${statusTone}`}>
+                                      {isEarly ? 'Early Leave' : isLate ? 'Late' : (r.status || 'present')}
+                                    </span>
+                                    {isEarly && earlyReason && (
+                                      <span className="text-[9px] font-semibold text-amber-700 max-w-[120px] truncate" title={earlyReason}>
+                                        {earlyReason}
+                                      </span>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="px-4 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                                   <div className="flex items-center justify-end gap-1.5">
@@ -1925,7 +2132,9 @@ export default function AttendancePage() {
                             : null;
 
                           const badgeTone =
-                            day.dayStatus === 'Present'
+                            day.dayStatus === 'Early Leave'
+                              ? 'bg-amber-100 text-amber-900 border-amber-300'
+                              : day.dayStatus === 'Present'
                               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                               : day.dayStatus === 'Late'
                               ? 'bg-amber-50 text-amber-800 border-amber-200'
@@ -1985,16 +2194,25 @@ export default function AttendancePage() {
                                 {day.afternoon ? (
                                   (() => {
                                     const isAftLate = isAttendanceRecordLate(day.afternoon, timingSettings);
+                                    const isAftEarly = isAttendanceRecordEarlyLeave(day.afternoon);
+                                    const earlyReason = getEarlyDepartureReason(day.afternoon);
                                     return (
                                       <div className="space-y-0.5">
                                         <div className="font-bold text-slate-900 tabular-nums flex items-center gap-1.5">
-                                          {isAftLate ? (
+                                          {isAftEarly ? (
+                                            <Clock size={12} className="text-amber-600 shrink-0" />
+                                          ) : isAftLate ? (
                                             <AlertTriangle size={12} className="text-amber-500 shrink-0" />
                                           ) : (
                                             <CheckCircle2 size={12} className="text-emerald-600 shrink-0" />
                                           )}
                                           {aTime}
-                                          {isAftLate && (
+                                          {isAftEarly && (
+                                            <span className="text-[9px] font-extrabold px-1 rounded bg-amber-100 text-amber-800" title={earlyReason || 'Early Leave'}>
+                                              Early Leave
+                                            </span>
+                                          )}
+                                          {isAftLate && !isAftEarly && (
                                             <span className="text-[9px] font-extrabold px-1 rounded bg-amber-100 text-amber-800">
                                               Late
                                             </span>
@@ -2023,6 +2241,7 @@ export default function AttendancePage() {
                                 <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${badgeTone}`}>
                                   {day.dayStatus === 'Present' && <CheckCircle2 size={10} />}
                                   {day.dayStatus === 'Late' && <AlertTriangle size={10} />}
+                                  {day.dayStatus === 'Early Leave' && <Clock size={10} className="text-amber-700" />}
                                   {day.dayStatus === 'Absent' && <XCircle size={10} />}
                                   {day.dayStatus}
                                 </span>
