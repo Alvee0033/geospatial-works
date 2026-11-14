@@ -35,6 +35,7 @@ import {
   Send,
   Image as ImageIcon,
   ExternalLink,
+  MapPin,
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
@@ -671,6 +672,30 @@ function ProjectDetailContent() {
                     </p>
                     <span className="text-[10px] text-slate-400">Duration</span>
                   </div>
+
+                  {(project.siteLatitude != null || project.site_latitude != null) && (
+                    <div className="sm:col-span-3 p-3 bg-indigo-50/60 rounded-md border border-indigo-100 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <MapPin size={16} className="text-indigo-600 shrink-0" />
+                        <div>
+                          <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">
+                            Field Site Attendance Coordinates
+                          </span>
+                          <p className="text-xs font-bold text-slate-800">
+                            {Number(project.siteLatitude ?? project.site_latitude).toFixed(6)}, {Number(project.siteLongitude ?? project.site_longitude).toFixed(6)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-slate-600">Allowed Perimeter:</span>
+                        <span className="px-2.5 py-1 bg-white text-indigo-700 font-extrabold text-xs rounded-full border border-indigo-200 shadow-xs">
+                          {Number(project.siteRadiusMeters ?? project.site_radius_meters) > 0
+                            ? `${Number(project.siteRadiusMeters ?? project.site_radius_meters)} m radius (~${Math.round(Math.PI * Math.pow(Number(project.siteRadiusMeters ?? project.site_radius_meters), 2)).toLocaleString()} m²)`
+                            : '200 m (Global Default)'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

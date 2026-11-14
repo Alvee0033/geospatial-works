@@ -93,6 +93,10 @@ function EditProjectContent() {
           setName(proj.name || '');
           const latitude = proj.siteLatitude == null && proj.site_latitude == null ? null : Number(proj.siteLatitude ?? proj.site_latitude);
           const longitude = proj.siteLongitude == null && proj.site_longitude == null ? null : Number(proj.siteLongitude ?? proj.site_longitude);
+          const projectRadius = proj.siteRadiusMeters ?? proj.site_radius_meters;
+          if (projectRadius != null && Number(projectRadius) > 0) {
+            setSiteRadiusMeters(Number(projectRadius));
+          }
           setSiteLatitude(latitude);
           setSiteLongitude(longitude);
           setSiteLocationEnabled(latitude !== null && longitude !== null);
@@ -250,6 +254,7 @@ function EditProjectContent() {
         status: status,
         site_latitude: siteLatitude,
         site_longitude: siteLongitude,
+        site_radius_meters: siteRadiusMeters,
       };
 
       await ApiClient.updateProject(projectId, payload);
@@ -405,7 +410,7 @@ function EditProjectContent() {
                         {siteLocationEnabled && siteLatitude !== null && <button type="button" onClick={() => { setSiteLatitude(null); setSiteLongitude(null); }} className="text-xs font-semibold text-rose-600 hover:text-rose-700">Clear pin</button>}
                       </div>
                     </div>
-                    {siteLocationEnabled ? <div className="mt-3">
+                    {siteLocationEnabled ? <div className="mt-3 space-y-3">
                       <LocationPickerMap
                         latitude={siteLatitude ?? 23.8103}
                         longitude={siteLongitude ?? 90.4125}
@@ -413,6 +418,43 @@ function EditProjectContent() {
                         pinLabel="Project site"
                         onChange={(point) => { setSiteLatitude(point.latitude); setSiteLongitude(point.longitude); }}
                       />
+                      <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-700">Custom Allowed Geofence Radius</span>
+                          <span className="font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                            {siteRadiusMeters} meters (~{Math.round(Math.PI * siteRadiusMeters * siteRadiusMeters).toLocaleString()} m²)
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-slate-500">
+                          Field staff check-ins within this radius from the pinned coordinates will be approved.
+                        </p>
+                        <input
+                          type="range"
+                          min={50}
+                          max={2500}
+                          step={25}
+                          value={siteRadiusMeters}
+                          onChange={(e) => setSiteRadiusMeters(Number(e.target.value))}
+                          className="mt-2.5 w-full accent-indigo-600 cursor-pointer"
+                        />
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+                          <span className="text-slate-400 font-semibold mr-1">Quick Presets:</span>
+                          {[100, 200, 350, 500, 1000, 2000].map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => setSiteRadiusMeters(preset)}
+                              className={`px-2 py-0.5 rounded-md font-semibold transition-all ${
+                                siteRadiusMeters === preset
+                                  ? 'bg-indigo-600 text-white shadow-xs'
+                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                              }`}
+                            >
+                              {preset >= 1000 ? `${preset / 1000} km` : `${preset} m`}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                       <p className="mt-2 text-[11px] text-slate-500">{siteLatitude === null ? 'Search an address or place the pin to set this project site.' : `Pinned at ${siteLatitude.toFixed(6)}, ${siteLongitude?.toFixed(6)}`}</p>
                     </div> : null}
                   </div>

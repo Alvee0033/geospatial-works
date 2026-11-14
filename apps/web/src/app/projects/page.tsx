@@ -54,6 +54,7 @@ export default function ProjectsPage() {
   const [formSiteEnabled, setFormSiteEnabled] = useState(false);
   const [formSiteLatitude, setFormSiteLatitude] = useState<number | null>(null);
   const [formSiteLongitude, setFormSiteLongitude] = useState<number | null>(null);
+  const [formSiteRadiusMeters, setFormSiteRadiusMeters] = useState<number>(200);
   const [attendanceRadiusMeters, setAttendanceRadiusMeters] = useState(200);
   const [formClient, setFormClient] = useState('');
   const [formClientType, setFormClientType] = useState('government');
@@ -115,6 +116,7 @@ export default function ProjectsPage() {
     setFormSiteEnabled(false);
     setFormSiteLatitude(null);
     setFormSiteLongitude(null);
+    setFormSiteRadiusMeters(attendanceRadiusMeters || 200);
     setFormClient('');
     setFormClientType('government');
     setFormAssignmentType('direct_consultancy');
@@ -149,8 +151,10 @@ export default function ProjectsPage() {
     setProjectImageError('');
     const siteLat = p.siteLatitude ?? p.site_latitude;
     const siteLng = p.siteLongitude ?? p.site_longitude;
+    const siteRadius = p.siteRadiusMeters ?? p.site_radius_meters;
     setFormSiteLatitude(siteLat == null ? null : Number(siteLat));
     setFormSiteLongitude(siteLng == null ? null : Number(siteLng));
+    setFormSiteRadiusMeters(siteRadius != null && Number(siteRadius) > 0 ? Number(siteRadius) : (attendanceRadiusMeters || 200));
     setFormSiteEnabled(siteLat != null && siteLng != null);
     setFormClient(p.client || p.client_name || '');
     setFormClientType(p.clientType || p.client_type || 'government');
@@ -246,6 +250,7 @@ export default function ProjectsPage() {
         imageUrl: formImageUrl,
         site_latitude: formSiteEnabled ? formSiteLatitude : null,
         site_longitude: formSiteEnabled ? formSiteLongitude : null,
+        site_radius_meters: formSiteEnabled ? formSiteRadiusMeters : null,
         client: formClient,
         clientType: formClientType,
         assignmentType: formAssignmentType,
@@ -323,6 +328,7 @@ export default function ProjectsPage() {
         imageUrl: formImageUrl,
         site_latitude: formSiteEnabled ? formSiteLatitude : null,
         site_longitude: formSiteEnabled ? formSiteLongitude : null,
+        site_radius_meters: formSiteEnabled ? formSiteRadiusMeters : null,
         client: formClient,
         clientType: formClientType,
         assignmentType: formAssignmentType,
@@ -1153,15 +1159,52 @@ export default function ProjectsPage() {
                     <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${formSiteEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
                   </button>
                 </div>
-                {formSiteEnabled && <div className="mt-3">
+                {formSiteEnabled && <div className="mt-3 space-y-3">
                   <LocationPickerMap
                     latitude={formSiteLatitude ?? 23.8103}
                     longitude={formSiteLongitude ?? 90.4125}
-                    radiusMeters={attendanceRadiusMeters}
+                    radiusMeters={formSiteRadiusMeters}
                     pinLabel="Project site"
                     onChange={(point) => { setFormSiteLatitude(point.latitude); setFormSiteLongitude(point.longitude); }}
                   />
-                  <p className="mt-2 text-[11px] text-slate-500">{formSiteLatitude === null || formSiteLongitude === null ? 'Search an address or click the map to set the field site.' : `Saved site pin: ${formSiteLatitude.toFixed(6)}, ${formSiteLongitude.toFixed(6)}`}</p>
+                  <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-700">Custom Allowed Geofence Radius</span>
+                      <span className="font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
+                        {formSiteRadiusMeters} meters (~{Math.round(Math.PI * formSiteRadiusMeters * formSiteRadiusMeters).toLocaleString()} m²)
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Field staff check-ins within this circle will be recognized for this project location.
+                    </p>
+                    <input
+                      type="range"
+                      min={50}
+                      max={2500}
+                      step={25}
+                      value={formSiteRadiusMeters}
+                      onChange={(e) => setFormSiteRadiusMeters(Number(e.target.value))}
+                      className="mt-2.5 w-full accent-indigo-600 cursor-pointer"
+                    />
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+                      <span className="text-slate-400 font-semibold mr-1">Quick Presets:</span>
+                      {[100, 200, 350, 500, 1000, 2000].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => setFormSiteRadiusMeters(preset)}
+                          className={`px-2 py-0.5 rounded-md font-semibold transition-all ${
+                            formSiteRadiusMeters === preset
+                              ? 'bg-indigo-600 text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {preset >= 1000 ? `${preset / 1000} km` : `${preset} m`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-500">{formSiteLatitude === null || formSiteLongitude === null ? 'Search an address or click the map to set the field site.' : `Saved site pin: ${formSiteLatitude.toFixed(6)}, ${formSiteLongitude.toFixed(6)}`}</p>
                 </div>}
               </section>
 

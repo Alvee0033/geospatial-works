@@ -11,9 +11,17 @@ type Props = {
   radiusMeters?: number;
   pinLabel?: string;
   onChange: (point: { latitude: number; longitude: number }) => void;
+  onRadiusChange?: (radius: number) => void;
 };
 
-export function LocationPickerMap({ latitude, longitude, radiusMeters, pinLabel = 'Selected location', onChange }: Props) {
+export function LocationPickerMap({
+  latitude,
+  longitude,
+  radiusMeters,
+  pinLabel = 'Selected location',
+  onChange,
+  onRadiusChange,
+}: Props) {
   const host = useRef<HTMLDivElement>(null);
   const searchControls = useRef<HTMLDivElement>(null);
   const map = useRef<Leaflet.Map | null>(null);
@@ -114,6 +122,10 @@ export function LocationPickerMap({ latitude, longitude, radiusMeters, pinLabel 
         {searchError && <p className="px-3 py-2.5 text-xs text-slate-500">{searchError}</p>}
       </div>}
     </div>
-    <div className="absolute bottom-3 left-3 z-[400] rounded-lg bg-white/95 px-3 py-2 text-[11px] text-slate-600 shadow">Click map or drag pin to set {pinLabel.toLowerCase()}{radiusMeters ? ` · ${radiusMeters} m boundary` : ''}</div>
+    <div className="absolute bottom-3 left-3 right-3 z-[400] flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+      <div className="pointer-events-auto rounded-lg bg-white/95 px-3 py-1.5 text-[11px] font-medium text-slate-700 shadow-md backdrop-blur border border-slate-200/70">
+        Click map or drag pin to set {pinLabel.toLowerCase()}{radiusMeters ? ` · ${radiusMeters} m radius (~${Math.round(Math.PI * radiusMeters * radiusMeters).toLocaleString()} m²)` : ''}
+      </div>
+    </div>
   </div>;
 }
