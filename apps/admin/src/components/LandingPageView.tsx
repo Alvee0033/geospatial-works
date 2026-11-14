@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { MediaAssetField } from './MediaAssetField';
 import {
   Video,
   Image as ImageIcon,
@@ -27,6 +28,12 @@ import {
   Building2,
   Layers,
   Sparkles,
+  Eye,
+  EyeOff,
+  PanelLeftClose,
+  PanelRightClose,
+  Search,
+  X,
 } from 'lucide-react';
 
 export interface HeroSlideItem {
@@ -104,6 +111,8 @@ export interface SoftwareTool {
   name: string;
   category: string;
   badge: string;
+  description: string;
+  logo: string;
 }
 
 export interface PartnerLogoItem {
@@ -112,6 +121,8 @@ export interface PartnerLogoItem {
   subtext: string;
   logo: string;
 }
+
+const EMPTY_SECTION: Record<string, any> = Object.freeze({});
 
 export const PAGE_OPTIONS: { label: string; value: string }[] = [
   { label: 'Services (/services)', value: '/services' },
@@ -193,21 +204,110 @@ function PageSelect({
   );
 }
 
+type SelectionOption = {
+  id: string;
+  title: string;
+  detail?: string;
+  image?: string;
+  selected: boolean;
+};
+
+function SelectionLauncher({
+  label,
+  selected,
+  summary,
+  onClick,
+}: {
+  label: string;
+  selected: number;
+  summary: string;
+  onClick: () => void;
+}) {
+  return (
+    <button type="button" onClick={onClick} className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white px-3.5 py-3 text-left transition hover:border-blue-400 hover:bg-blue-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold text-slate-900">{label}</span>
+        <span className="mt-0.5 block truncate text-xs text-slate-600">{summary}</span>
+      </span>
+      <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-800">{selected} selected</span>
+    </button>
+  );
+}
+
+function SelectionPicker({
+  title,
+  description,
+  options,
+  onToggle,
+  onClear,
+  onClose,
+  maxSelected,
+}: {
+  title: string;
+  description: string;
+  options: SelectionOption[];
+  onToggle: (id: string) => void;
+  onClear: () => void;
+  onClose: () => void;
+  maxSelected?: number;
+}) {
+  const [query, setQuery] = useState('');
+  const selectedCount = options.filter((option) => option.selected).length;
+  const filtered = options.filter((option) => `${option.title} ${option.detail || ''}`.toLowerCase().includes(query.trim().toLowerCase()));
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/45 p-3 sm:p-6" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section role="dialog" aria-modal="true" aria-labelledby="selection-picker-title" className="flex max-h-[min(82vh,760px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+          <div><h2 id="selection-picker-title" className="text-base font-semibold text-slate-950">{title}</h2><p className="mt-1 text-sm text-slate-600">{description}</p></div>
+          <button type="button" onClick={onClose} aria-label="Close selector" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"><X size={18} /></button>
+        </header>
+        <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-3">
+          <label className="relative min-w-0 flex-1"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name" aria-label="Search items" className="w-full rounded-lg border border-slate-300 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-500" /></label>
+          <span className="shrink-0 text-xs font-semibold text-slate-700">{selectedCount}{maxSelected ? ` / ${maxSelected}` : ''} selected</span>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
+          {filtered.length ? <div className="grid gap-2 sm:grid-cols-2">{filtered.map((option) => {
+            const disabled = !option.selected && !!maxSelected && selectedCount >= maxSelected;
+            return <label key={option.id} className={`flex min-w-0 cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${option.selected ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}>
+              <input type="checkbox" checked={option.selected} disabled={disabled} onChange={() => onToggle(option.id)} className="h-4 w-4 shrink-0 accent-blue-700" />
+              {option.image ? <img src={option.image} alt="" className="h-11 w-11 shrink-0 rounded-lg border border-slate-200 bg-white object-contain" /> : null}
+              <span className="min-w-0"><span className="block truncate text-sm font-semibold text-slate-900">{option.title}</span>{option.detail ? <span className="mt-0.5 block truncate text-xs text-slate-600">{option.detail}</span> : null}</span>
+            </label>;
+          })}</div> : <p className="rounded-xl border border-dashed border-slate-300 px-4 py-10 text-center text-sm text-slate-600">No matches. Try a different search.</p>}
+        </div>
+        <footer className="flex items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-5 py-3">
+          <button type="button" onClick={onClear} disabled={!selectedCount} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-white hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40">Clear selection</button>
+          <button type="button" onClick={onClose} className="rounded-lg bg-[#1D5EC8] px-5 py-2 text-sm font-semibold text-white hover:bg-[#164EA8]">Done</button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
 interface LandingPageViewProps {
   heroSlides: HeroSlideItem[];
   services: ServiceItem[];
   projects: ProjectItem[];
   equipment: EquipmentItem[];
   articles: ArticleItem[];
+  teamMembers: { id?: string; slug?: string; name: string; role: string; category?: string; image?: string; isActive?: boolean }[];
   sections: Record<string, any>;
-  onSaveHeroSlide: (slide: Partial<HeroSlideItem>) => Promise<void>;
+  onSaveHeroSlide: (slide: Partial<HeroSlideItem>) => Promise<boolean>;
   onDeleteHeroSlide: (id: string) => Promise<void>;
-  onUpdateSection: (pageKey: string, sectionKey: string, data: { title?: string; subtitle?: string; content: any }) => Promise<void>;
+  onUpdateSection: (pageKey: string, sectionKey: string, data: { title?: string; subtitle?: string; content: any }) => Promise<boolean>;
   onToggleServiceActive: (id: string, active: boolean) => Promise<void>;
   onToggleProjectMilestone: (id: string, isMilestone: boolean) => Promise<void>;
   onRefresh: () => void;
   triggerFeedback: (msg: string, type?: 'success' | 'error') => void;
   getAuthHeaders: () => Record<string, string>;
+  onOpenMediaPicker: (callback: (url: string) => void) => void;
 }
 
 export function LandingPageView({
@@ -216,6 +316,7 @@ export function LandingPageView({
   projects,
   equipment,
   articles,
+  teamMembers,
   sections,
   onSaveHeroSlide,
   onDeleteHeroSlide,
@@ -224,10 +325,14 @@ export function LandingPageView({
   onToggleProjectMilestone,
   triggerFeedback,
   getAuthHeaders,
+  onOpenMediaPicker,
 }: LandingPageViewProps) {
   const [activeSubSection, setActiveSubSection] = useState<
-    'hero' | 'manifesto' | 'services' | 'projects' | 'equipment' | 'news' | 'leadgrow'
+    'hero' | 'manifesto' | 'services' | 'projects' | 'equipment' | 'team' | 'news' | 'leadgrow'
   >('hero');
+  const [livePreviewOpen, setLivePreviewOpen] = useState(false);
+  const [previewVersion, setPreviewVersion] = useState(0);
+  const [panels, setPanels] = useState({ editor: true, preview: true });
 
   // ==========================================
   // SECTION 1: HERO SLIDES STATE
@@ -235,14 +340,14 @@ export function LandingPageView({
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
   const activeSlide: HeroSlideItem = heroSlides[selectedSlideIndex] || {
     id: 'temp',
-    heading: 'WHERE ENGINEERING MEETS PRECISION',
-    eyebrow: 'GEOSPATIAL WORKS BANGLADESH',
-    description: 'Integrated engineering, geospatial, and precision surveying consultancy delivering technical solutions for national infrastructure, spatial planning, and delta resource management.',
-    imageUrl: '/real-media/hero-corridor-infrastructure.jpg',
+    heading: '',
+    eyebrow: '',
+    description: '',
+    imageUrl: '',
     mediaType: 'image',
     videoUrl: '',
-    primaryActionText: 'Explore our services',
-    primaryActionHref: '/services',
+    primaryActionText: '',
+    primaryActionHref: '',
   };
 
   const [slideEyebrow, setSlideEyebrow] = useState(activeSlide.eyebrow || '');
@@ -253,6 +358,9 @@ export function LandingPageView({
   const [slideVideoUrl, setSlideVideoUrl] = useState(activeSlide.videoUrl || '');
   const [slideBtnText, setSlideBtnText] = useState(activeSlide.primaryActionText || 'Explore our services');
   const [slideBtnHref, setSlideBtnHref] = useState(activeSlide.primaryActionHref || '/services');
+  const [slideSecondaryText, setSlideSecondaryText] = useState(activeSlide.secondaryActionText || '');
+  const [slideSecondaryHref, setSlideSecondaryHref] = useState(activeSlide.secondaryActionHref || '');
+  const [slideIsActive, setSlideIsActive] = useState(activeSlide.isActive !== false);
 
   useEffect(() => {
     if (activeSlide) {
@@ -264,13 +372,16 @@ export function LandingPageView({
       setSlideVideoUrl(activeSlide.videoUrl || '');
       setSlideBtnText(activeSlide.primaryActionText || 'Explore our services');
       setSlideBtnHref(activeSlide.primaryActionHref || '/services');
+      setSlideSecondaryText(activeSlide.secondaryActionText || '');
+      setSlideSecondaryHref(activeSlide.secondaryActionHref || '');
+      setSlideIsActive(activeSlide.isActive !== false);
     }
   }, [selectedSlideIndex, heroSlides]);
 
   // ==========================================
   // SECTION 2: MANIFESTO & KEY FACTS STATE
   // ==========================================
-  const manifestoSec = sections['home:manifesto'] || sections['home:manifesto_summary'] || sections['home:about_summary'] || {};
+  const manifestoSec = sections['home:manifesto'] || sections['home:manifesto_summary'] || sections['home:about_summary'] || EMPTY_SECTION;
   const [manEyebrowBlue, setManEyebrowBlue] = useState(manifestoSec?.content?.eyebrowBlue || 'GEOSPATIAL PRECISION');
   const [manEyebrowRed, setManEyebrowRed] = useState(manifestoSec?.content?.eyebrowRed || 'ENGINEERING EXCELLENCE');
   const [manStatement, setManStatement] = useState(
@@ -308,10 +419,10 @@ export function LandingPageView({
     setPartnersList((prev) => [
       ...prev,
       {
-        name: 'New Institutional Partner',
-        short: 'PARTNER',
-        subtext: 'Authority / Department',
-        logo: '/partners/bangladesh_govt_seal.svg',
+        name: '',
+        short: '',
+        subtext: '',
+        logo: '',
       },
     ]);
   };
@@ -331,7 +442,7 @@ export function LandingPageView({
   // ==========================================
   // SECTION 3: SERVICES SHOWCASE STATE
   // ==========================================
-  const shapingSec = sections['home:shaping_future'] || sections['home:services_summary'] || sections['home:services_intro'] || {};
+  const shapingSec = sections['home:shaping_future'] || sections['home:services_summary'] || sections['home:services_intro'] || EMPTY_SECTION;
   const [shapingSubtitle, setShapingSubtitle] = useState((shapingSec?.subtitle || 'WHAT WE DO').replace(/^\/\s*/, ''));
   const [shapingKicker, setShapingKicker] = useState(shapingSec?.content?.kicker || 'INNOVATION • RESILIENCE • IMPACT');
   const [shapingTitle, setShapingTitle] = useState(shapingSec?.title || 'Shaping the Future with Precision Geomatics');
@@ -349,7 +460,7 @@ export function LandingPageView({
   // ==========================================
   // SECTION 4: PROJECTS SHOWCASE STATE
   // ==========================================
-  const projSec = sections['home:projects_summary'] || sections['home:projects_intro'] || {};
+  const projSec = sections['home:projects_summary'] || sections['home:projects_intro'] || EMPTY_SECTION;
   const [projSubtitle, setProjSubtitle] = useState((projSec?.subtitle || 'REAL-WORLD IMPACT').replace(/^\/\s*/, ''));
   const [projKicker, setProjKicker] = useState(projSec?.content?.kicker || '35+ NATIONAL CONTRACTS ACROSS 8 DIVISIONS');
   const [projTitle, setProjTitle] = useState(projSec?.title || 'Pioneering projects delivering measurable impact.');
@@ -365,7 +476,7 @@ export function LandingPageView({
   // ==========================================
   // SECTION 5: EQUIPMENT & LABS STATE
   // ==========================================
-  const equipSec = sections['home:equipment_summary'] || {};
+  const equipSec = sections['home:equipment_summary'] || EMPTY_SECTION;
   const [equipSubtitle, setEquipSubtitle] = useState((equipSec?.subtitle || 'PHYSICAL & TECHNICAL RESOURCES').replace(/^\/\s*/, ''));
   const [equipTitle, setEquipTitle] = useState(equipSec?.title || 'Instruments & facilities');
   const [equipDesc, setEquipDesc] = useState(
@@ -395,12 +506,10 @@ export function LandingPageView({
 
   // 3. Software Logos / Suite (Add, Remove, Edit)
   const defaultSoftware: SoftwareTool[] = [
-    { name: 'ArcGIS Pro & Enterprise', category: 'Geospatial GIS', badge: 'ESRI Suite' },
-    { name: 'QGIS 3.x LTR', category: 'Spatial Modeling', badge: 'OSGeo OpenSource' },
-    { name: 'Agisoft Metashape Pro', category: 'UAV Photogrammetry', badge: '3D Point Cloud' },
-    { name: 'AutoCAD Civil 3D', category: 'Infrastructure BIM', badge: 'Autodesk' },
-    { name: 'Leica Geo Office', category: 'Geodetic Baseline', badge: 'RTK Adjustments' },
-    { name: 'Global Mapper Pro', category: 'LiDAR & Point Cloud', badge: 'Terrain Modeling' },
+    { name: 'ArcGIS Pro', category: 'Mapping and GIS', badge: 'Esri', description: 'A geographic information system for creating maps, analyzing data, and managing spatial information.', logo: '/software-logos/arcgis-pro-dark-tight.png' },
+    { name: 'QGIS', category: 'Mapping and GIS', badge: 'Open source', description: 'An open-source mapping tool for viewing, editing, analyzing, and sharing geographic data.', logo: '/software-logos/qgis-dark-tight.png' },
+    { name: 'Agisoft Metashape', category: 'Drone mapping', badge: 'Photogrammetry', description: 'Photogrammetry software that turns photographs into 3D spatial data, models, and orthomosaics.', logo: '/software-logos/agisoft-metashape-dark-tight.png' },
+    { name: 'AutoCAD Civil 3D', category: 'Civil design', badge: 'Autodesk', description: 'Civil engineering design software for planning, documenting, and delivering infrastructure projects.', logo: '/software-logos/autocad-civil-3d-dark-tight.png' },
   ];
   const [softwareList, setSoftwareList] = useState<SoftwareTool[]>(
     equipSec?.content?.softwareList && equipSec.content.softwareList.length > 0
@@ -434,7 +543,7 @@ export function LandingPageView({
   const handleAddSoftware = () => {
     setSoftwareList([
       ...softwareList,
-      { name: 'New Engineering Software', category: 'Specialized Suite', badge: 'Professional' },
+      { name: '', category: '', badge: '', description: '', logo: '' },
     ]);
   };
 
@@ -460,17 +569,18 @@ export function LandingPageView({
   // ==========================================
   // SECTION 6: NEWS & BULLETINS STATE
   // ==========================================
-  const newsSec = sections['home:news_summary'] || {};
+  const newsSec = sections['home:news_summary'] || EMPTY_SECTION;
   const [newsSubtitle, setNewsSubtitle] = useState((newsSec?.subtitle || 'RESEARCH & APPLIED GEODESY').replace(/^\/\s*/, ''));
   const [newsTitle, setNewsTitle] = useState(newsSec?.title || 'Innovative thinking');
   const [newsroomTitle, setNewsroomTitle] = useState(newsSec?.content?.newsroomTitle || 'Latest news');
   const [newsMode, setNewsMode] = useState<'latest' | 'manual'>(newsSec?.content?.mode || 'latest');
   const [selectedArticleIds, setSelectedArticleIds] = useState<string[]>(newsSec?.content?.selectedArticleIds || []);
+  const [selectionDialogType, setSelectionDialogType] = useState<'services' | 'projects' | 'equipment' | 'team' | 'articles' | null>(null);
 
   // ==========================================
   // SECTION 7: LEAD & GROW (CAREERS) STATE
   // ==========================================
-  const cultureSec = sections['home:culture_summary'] || {};
+  const cultureSec = sections['home:culture_summary'] || EMPTY_SECTION;
   const [cultureSubtitle, setCultureSubtitle] = useState((cultureSec?.subtitle || 'NATIONAL TALENT & ENGINEERING CAREERS').replace(/^\/\s*/, ''));
   const [cultureTitle, setCultureTitle] = useState(cultureSec?.title || 'Lead and grow');
   const [cultureDesc, setCultureDesc] = useState(
@@ -482,6 +592,89 @@ export function LandingPageView({
   const [cultureBtn2Text, setCultureBtn2Text] = useState(cultureSec?.content?.btn2Text || 'Life at Geospatial Works');
   const [cultureBtn2Href, setCultureBtn2Href] = useState(cultureSec?.content?.btn2Href || '/career');
   const [cultureImageUrl, setCultureImageUrl] = useState(cultureSec?.content?.imageUrl || '/real-media/career-engineering-team.jpg');
+
+  // Homepage team section copy and featured people. Profiles themselves are edited in Team.
+  const teamSec = sections['home:team_summary'] || EMPTY_SECTION;
+  const [teamEyebrow, setTeamEyebrow] = useState(teamSec?.subtitle || 'PEOPLE MAKE THE DIFFERENCE');
+  const [teamTitle, setTeamTitle] = useState(teamSec?.title || 'Meet the people behind the work.');
+  const [teamDescription, setTeamDescription] = useState(teamSec?.content?.description || 'Good projects begin with people who care about the details. Meet a few of the team members helping build a clearer picture of Bangladesh.');
+  const [featuredTeamIds, setFeaturedTeamIds] = useState<string[]>(teamSec?.content?.featuredMemberIds || []);
+  const activeMembers = teamMembers.filter((member) => member.isActive !== false && (member.id || member.slug));
+
+  // Reload editor values when the authenticated API data arrives or this section
+  // is saved. Keep unsaved edits intact when a different section changes.
+  useEffect(() => {
+    setManEyebrowBlue(manifestoSec.content?.eyebrowBlue || 'GEOSPATIAL PRECISION');
+    setManEyebrowRed(manifestoSec.content?.eyebrowRed || 'ENGINEERING EXCELLENCE');
+    setManStatement(manifestoSec.title || 'Geospatial Works is an engineering, geospatial, and precision surveying consultancy delivering integrated technical solutions for infrastructure development, spatial planning, and sustainable resource management across Bangladesh.');
+    setManSubtext(manifestoSec.content?.subtext || 'Combining engineering expertise with advanced geospatial technologies, modern surveying instruments, and digital design capabilities, we support projects from field data acquisition and spatial analysis to engineering design and 3D visualization.');
+    setManBtnText(manifestoSec.content?.btnText || 'Who we are');
+    setManBtnHref(manifestoSec.content?.btnHref || '/about');
+    setManMetric1Val(manifestoSec.content?.metric1Val || '1,500+');
+    setManMetric1Unit(manifestoSec.content?.metric1Unit || 'km²');
+    setManMetric1Label(manifestoSec.content?.metric1Label || 'Area Surveyed & Mapped');
+    setManMetric1Sub(manifestoSec.content?.metric1Sub || 'Corridors & Agricultural Basins Surveyed');
+    setManMetric2Val(manifestoSec.content?.metric2Val || '35+');
+    setManMetric2Label(manifestoSec.content?.metric2Label || 'National Infrastructure Projects');
+    setManMetric2Sub(manifestoSec.content?.metric2Sub || 'Completed National Infrastructure Commissions');
+    setPartnersList(manifestoSec.content?.partners || defaultPartnersList);
+  }, [manifestoSec]);
+
+  useEffect(() => {
+    setShapingSubtitle((shapingSec.subtitle || 'WHAT WE DO').replace(/^\/\s*/, ''));
+    setShapingKicker(shapingSec.content?.kicker || 'INNOVATION • RESILIENCE • IMPACT');
+    setShapingTitle(shapingSec.title || 'Shaping the Future with Precision Geomatics');
+    setShapingDesc(shapingSec.content?.description || 'From sub-centimeter geodetic networks and automated drone photogrammetry to digital twins and bathymetric river surveys, we provide the spatial backbone for Bangladesh’s transformation.');
+    setShapingManifesto(shapingSec.content?.manifestoQuote || 'We combine future-focused thinking and technical know-how to power local impact. Our teams develop deep understanding and a partnership of trust with our clients across over 100 sectors and services.');
+    setShapingBtnText(shapingSec.content?.btnText || 'What we do');
+    setShapingBtnHref(shapingSec.content?.btnHref || '/services');
+  }, [shapingSec]);
+
+  useEffect(() => {
+    setProjSubtitle((projSec.subtitle || 'REAL-WORLD IMPACT').replace(/^\/\s*/, ''));
+    setProjKicker(projSec.content?.kicker || '35+ NATIONAL CONTRACTS ACROSS 8 DIVISIONS');
+    setProjTitle(projSec.title || 'Pioneering projects delivering measurable impact.');
+    setProjDesc(projSec.content?.description || 'Across Bangladesh, we work with clients to dream big, challenge conventions and transform our world for the better.');
+    setProjBtnText(projSec.content?.btnText || 'View all projects');
+    setProjBtnHref(projSec.content?.btnHref || '/projects');
+  }, [projSec]);
+
+  useEffect(() => {
+    setEquipSubtitle((equipSec.subtitle || 'PHYSICAL & TECHNICAL RESOURCES').replace(/^\/\s*/, ''));
+    setEquipTitle(equipSec.title || 'Instruments & facilities');
+    setEquipDesc(equipSec.content?.description || 'Geospatial Works maintains an extensive inventory of geodetic GNSS receivers, enterprise UAV systems, optical instruments, and dedicated high-performance workstations.');
+    setEquipLabTitle(equipSec.content?.labTitle || 'High-Throughput Spatial Compute & Modeling Stack');
+    setEquipNasText(equipSec.content?.nasText || 'UAV Point Clouds • Orthomosaics • LiDAR & Geodatabases');
+    setWorkstations(equipSec.content?.workstations?.length ? equipSec.content.workstations : defaultWorkstations);
+    setSelectedEquipIds(equipSec.content?.selectedEquipmentIds || []);
+    setSoftwareList(equipSec.content?.softwareList?.length ? equipSec.content.softwareList : defaultSoftware);
+  }, [equipSec]);
+
+  useEffect(() => {
+    setNewsSubtitle((newsSec.subtitle || 'RESEARCH & APPLIED GEODESY').replace(/^\/\s*/, ''));
+    setNewsTitle(newsSec.title || 'Innovative thinking');
+    setNewsroomTitle(newsSec.content?.newsroomTitle || 'Latest news');
+    setNewsMode(newsSec.content?.mode || 'latest');
+    setSelectedArticleIds(newsSec.content?.selectedArticleIds || []);
+  }, [newsSec]);
+
+  useEffect(() => {
+    setCultureSubtitle((cultureSec.subtitle || 'NATIONAL TALENT & ENGINEERING CAREERS').replace(/^\/\s*/, ''));
+    setCultureTitle(cultureSec.title || 'Lead and grow');
+    setCultureDesc(cultureSec.content?.description || 'What if you could build a career that’s as unique as you? With us you can. We empower spatial analysts, surveyors, and civil engineers to work on nation-critical mega projects.');
+    setCultureBtn1Text(cultureSec.content?.btn1Text || 'Search and apply');
+    setCultureBtn1Href(cultureSec.content?.btn1Href || '/career');
+    setCultureBtn2Text(cultureSec.content?.btn2Text || 'Life at Geospatial Works');
+    setCultureBtn2Href(cultureSec.content?.btn2Href || '/career');
+    setCultureImageUrl(cultureSec.content?.imageUrl || '/real-media/career-engineering-team.jpg');
+  }, [cultureSec]);
+
+  useEffect(() => {
+    setTeamEyebrow(teamSec.subtitle || 'PEOPLE MAKE THE DIFFERENCE');
+    setTeamTitle(teamSec.title || 'Meet the people behind the work.');
+    setTeamDescription(teamSec.content?.description || 'Good projects begin with people who care about the details. Meet a few of the team members helping build a clearer picture of Bangladesh.');
+    setFeaturedTeamIds(Array.isArray(teamSec.content?.featuredMemberIds) ? teamSec.content.featuredMemberIds : activeMembers.slice(0, 4).map((member) => member.id || member.slug!).filter(Boolean));
+  }, [teamSec, teamMembers]);
 
 
   // Global Saving & Uploading States
@@ -531,6 +724,18 @@ export function LandingPageView({
 
   // Section Save Handlers
   const handleSaveActiveSlide = async () => {
+    if (!slideHeading.trim() || !slideDesc.trim()) {
+      triggerFeedback('Add a heading and description before saving the slide.', 'error');
+      return;
+    }
+    if (slideMediaType === 'image' && !slideImageUrl.trim()) {
+      triggerFeedback('Choose an image before saving this slide.', 'error');
+      return;
+    }
+    if (slideMediaType === 'video' && !slideVideoUrl.trim()) {
+      triggerFeedback('Upload a video before saving this slide.', 'error');
+      return;
+    }
     setSavingSection(true);
     try {
       const payload: Partial<HeroSlideItem> = {
@@ -542,15 +747,18 @@ export function LandingPageView({
         videoUrl: slideVideoUrl,
         primaryActionText: slideBtnText,
         primaryActionHref: slideBtnHref,
-        isActive: true,
+        secondaryActionText: slideSecondaryText,
+        secondaryActionHref: slideSecondaryHref,
+        isActive: slideIsActive,
       };
 
       if (activeSlide.id && activeSlide.id !== 'temp') {
         payload.id = activeSlide.id;
       }
 
-      await onSaveHeroSlide(payload);
-      triggerFeedback('Hero slide updated & saved!');
+      const saved = await onSaveHeroSlide(payload);
+      if (!saved) throw new Error('The hero slide could not be saved.');
+      triggerFeedback(activeSlide.id === 'temp' ? 'Hero slide added.' : 'Hero slide saved.');
     } catch (err: any) {
       triggerFeedback(err.message || 'Failed to save hero slide', 'error');
     } finally {
@@ -559,23 +767,25 @@ export function LandingPageView({
   };
 
   const handleCreateNewSlide = () => {
-    onSaveHeroSlide({
-      eyebrow: 'GEOSPATIAL WORKS BANGLADESH',
-      heading: 'NEW BANGLADESH INFRASTRUCTURE HORIZON',
-      description: 'Precision geomatics, civil infrastructure engineering, and hydrographic survey across all 64 districts.',
-      imageUrl: '/real-media/hero-geospatial-landscape.jpg',
-      mediaType: 'image',
-      videoUrl: '',
-      primaryActionText: 'Explore our services',
-      primaryActionHref: '/services',
-    });
     setSelectedSlideIndex(heroSlides.length);
+    setSlideEyebrow('');
+    setSlideHeading('');
+    setSlideDesc('');
+    setSlideImageUrl('');
+    setSlideMediaType('image');
+    setSlideVideoUrl('');
+    setSlideBtnText('');
+    setSlideBtnHref('');
+    setSlideSecondaryText('');
+    setSlideSecondaryHref('');
+    setSlideIsActive(true);
+    triggerFeedback('New slide draft opened. Add its content and save when ready.');
   };
 
   const handleSaveManifesto = async () => {
     setSavingSection(true);
     try {
-      await onUpdateSection('home', 'manifesto', {
+      const saved = await onUpdateSection('home', 'manifesto', {
         title: manStatement,
         subtitle: `${manEyebrowBlue} • ${manEyebrowRed}`,
         content: {
@@ -594,7 +804,7 @@ export function LandingPageView({
           partners: partnersList,
         },
       });
-      triggerFeedback('Manifesto & Key Metrics saved!');
+      triggerFeedback(saved ? 'Homepage introduction and partner logos saved.' : 'Could not save this homepage section.', saved ? 'success' : 'error');
     } finally {
       setSavingSection(false);
     }
@@ -603,7 +813,7 @@ export function LandingPageView({
   const handleSaveShaping = async () => {
     setSavingSection(true);
     try {
-      await onUpdateSection('home', 'shaping_future', {
+      const saved = await onUpdateSection('home', 'shaping_future', {
         title: shapingTitle,
         subtitle: shapingSubtitle,
         content: {
@@ -614,7 +824,7 @@ export function LandingPageView({
           btnHref: shapingBtnHref,
         },
       });
-      triggerFeedback('Services showcase saved!');
+      triggerFeedback(saved ? 'Homepage services section saved.' : 'Could not save this homepage section.', saved ? 'success' : 'error');
     } finally {
       setSavingSection(false);
     }
@@ -623,7 +833,7 @@ export function LandingPageView({
   const handleSaveProjects = async () => {
     setSavingSection(true);
     try {
-      await onUpdateSection('home', 'projects_summary', {
+      const saved = await onUpdateSection('home', 'projects_summary', {
         title: projTitle,
         subtitle: projSubtitle,
         content: {
@@ -633,7 +843,7 @@ export function LandingPageView({
           btnHref: projBtnHref,
         },
       });
-      triggerFeedback('Pioneering projects saved!');
+      triggerFeedback(saved ? 'Homepage projects section saved.' : 'Could not save this homepage section.', saved ? 'success' : 'error');
     } finally {
       setSavingSection(false);
     }
@@ -642,7 +852,7 @@ export function LandingPageView({
   const handleSaveEquipment = async () => {
     setSavingSection(true);
     try {
-      await onUpdateSection('home', 'equipment_summary', {
+      const saved = await onUpdateSection('home', 'equipment_summary', {
         title: equipTitle,
         subtitle: equipSubtitle,
         content: {
@@ -654,7 +864,7 @@ export function LandingPageView({
           softwareList: softwareList,
         },
       });
-      triggerFeedback('Instrumentation, Workstations & Software saved!');
+      triggerFeedback(saved ? 'Instruments and software section saved.' : 'Could not save this homepage section.', saved ? 'success' : 'error');
     } finally {
       setSavingSection(false);
     }
@@ -663,7 +873,7 @@ export function LandingPageView({
   const handleSaveNews = async () => {
     setSavingSection(true);
     try {
-      await onUpdateSection('home', 'news_summary', {
+      const saved = await onUpdateSection('home', 'news_summary', {
         title: newsTitle,
         subtitle: newsSubtitle,
         content: {
@@ -672,7 +882,7 @@ export function LandingPageView({
           newsroomTitle,
         },
       });
-      triggerFeedback('News & Bulletins saved!');
+      triggerFeedback(saved ? 'Homepage news section saved.' : 'Could not save this homepage section.', saved ? 'success' : 'error');
     } finally {
       setSavingSection(false);
     }
@@ -681,7 +891,7 @@ export function LandingPageView({
   const handleSaveCulture = async () => {
     setSavingSection(true);
     try {
-      await onUpdateSection('home', 'culture_summary', {
+      const saved = await onUpdateSection('home', 'culture_summary', {
         title: cultureTitle,
         subtitle: cultureSubtitle,
         content: {
@@ -693,10 +903,22 @@ export function LandingPageView({
           imageUrl: cultureImageUrl,
         },
       });
-      triggerFeedback('Lead & Grow careers saved!');
+      triggerFeedback(saved ? 'Homepage careers section saved.' : 'Could not save this homepage section.', saved ? 'success' : 'error');
     } finally {
       setSavingSection(false);
     }
+  };
+
+  const handleSaveTeam = async () => {
+    setSavingSection(true);
+    try {
+      const saved = await onUpdateSection('home', 'team_summary', {
+        title: teamTitle,
+        subtitle: teamEyebrow,
+        content: { description: teamDescription, featuredMemberIds: featuredTeamIds.slice(0, 4) },
+      });
+      triggerFeedback(saved ? 'Homepage team section saved.' : 'Could not save the team section.', saved ? 'success' : 'error');
+    } finally { setSavingSection(false); }
   };
 
   const activeProjectsCount = projects.filter((p) => p.isMilestone).length;
@@ -707,21 +929,85 @@ export function LandingPageView({
     selectedEquipIds.length > 0
       ? equipment.filter((e) => selectedEquipIds.includes(e.id))
       : equipment.slice(0, 3);
+  const sectionNames: Record<string, string> = {
+    hero: 'Hero', manifesto: 'About', services: 'Services', projects: 'Projects',
+    equipment: 'Equipment', team: 'Team', news: 'News', leadgrow: 'Careers',
+  };
+  const selectionDefinitions = {
+    services: {
+      title: 'Choose homepage services', description: 'Select the services shown in the homepage service section.',
+      options: services.map((item) => ({ id: item.id, title: item.title, detail: item.category, image: item.imageUrl, selected: item.isActive })),
+      toggle: (id: string) => { const item = services.find((entry) => entry.id === id); if (item) void onToggleServiceActive(id, !item.isActive); },
+      clear: () => services.filter((item) => item.isActive).forEach((item) => void onToggleServiceActive(item.id, false)),
+      maxSelected: undefined as number | undefined,
+    },
+    projects: {
+      title: 'Choose homepage projects', description: 'Select the projects featured in the homepage project section.',
+      options: projects.map((item) => ({ id: item.id, title: item.title, detail: [item.client, item.location].filter(Boolean).join(' · '), image: item.imageUrl, selected: item.isMilestone })),
+      toggle: (id: string) => { const item = projects.find((entry) => entry.id === id); if (item) void onToggleProjectMilestone(id, !item.isMilestone); },
+      clear: () => projects.filter((item) => item.isMilestone).forEach((item) => void onToggleProjectMilestone(item.id, false)),
+      maxSelected: undefined as number | undefined,
+    },
+    equipment: {
+      title: 'Choose equipment to feature', description: 'Pick the equipment cards displayed on the homepage.',
+      options: equipment.map((item) => ({ id: item.id, title: item.name, detail: [item.category, item.quantity].filter(Boolean).join(' · '), image: item.imageUrl, selected: selectedEquipIds.includes(item.id) })),
+      toggle: handleToggleEquipmentSelect,
+      clear: () => setSelectedEquipIds([]),
+      maxSelected: undefined as number | undefined,
+    },
+    team: {
+      title: 'Choose featured team members', description: 'Select up to four active profiles for the homepage.',
+      options: activeMembers.map((item) => ({ id: item.id || item.slug!, title: item.name, detail: item.role, image: item.image, selected: featuredTeamIds.includes(item.id || item.slug!) })),
+      toggle: (id: string) => setFeaturedTeamIds((current) => current.includes(id) ? current.filter((value) => value !== id) : current.length < 4 ? [...current, id] : current),
+      clear: () => setFeaturedTeamIds([]), maxSelected: 4,
+    },
+    articles: {
+      title: 'Choose homepage articles', description: 'Select published articles for the homepage news list.',
+      options: articles.filter((item) => item.isPublished).map((item) => ({ id: item.id, title: item.title, detail: item.category, image: item.imageUrl, selected: selectedArticleIds.includes(item.id) })),
+      toggle: (id: string) => setSelectedArticleIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]),
+      clear: () => setSelectedArticleIds([]),
+      maxSelected: undefined as number | undefined,
+    },
+  };
+  const activeSelection = selectionDialogType ? selectionDefinitions[selectionDialogType] : null;
 
   return (
-    <div className="space-y-4 pb-20 max-w-[1720px] mx-auto select-none font-sans">
+    <div className={`gw-home-editor mx-auto max-w-[1720px] space-y-5 pb-12 font-sans ${panels.editor ? '' : 'editor-hidden'} ${panels.preview ? '' : 'preview-hidden'}`}>
+      {activeSelection && selectionDialogType && <SelectionPicker
+        title={activeSelection.title}
+        description={activeSelection.description}
+        options={activeSelection.options}
+        onToggle={activeSelection.toggle}
+        onClear={activeSelection.clear}
+        onClose={() => setSelectionDialogType(null)}
+        maxSelected={activeSelection.maxSelected}
+      />}
       {/* =========================================================================
           TOP NAVIGATION TABS (8 SECTIONS CORRESPONDING TO HOMEPAGE FLOW)
           ========================================================================= */}
-      <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 bg-white rounded-2xl border border-slate-200/90 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <div className="min-w-0"><p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">Editing homepage <span className="mx-1 text-slate-300">/</span> <span className="font-semibold text-blue-800">{sectionNames[activeSubSection]}</span></p><p className="mt-0.5 text-xs text-slate-500">Save changes in the section form below.</p></div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => setPanels((current) => current.editor && !current.preview ? current : { ...current, editor: !current.editor })} aria-expanded={panels.editor} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
+            <PanelLeftClose size={14} />{panels.editor ? 'Hide editor' : 'Show editor'}
+          </button>
+          <button type="button" onClick={() => setPanels((current) => current.preview && !current.editor ? current : { ...current, preview: !current.preview })} aria-expanded={panels.preview} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
+            {panels.preview ? <EyeOff size={14} /> : <Eye size={14} />}{panels.preview ? 'Hide preview' : 'Show preview'}
+          </button>
+          <button type="button" onClick={() => setLivePreviewOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-[#F4382D] px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-red-700">View full homepage <ArrowRight size={14} /></button>
+        </div>
+      </div>
+
+      <nav aria-label="Homepage sections" role="tablist" className="gw-home-tabs flex items-center gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm">
         {[
-          { key: 'hero', label: '1. Hero Cinema', icon: Video },
-          { key: 'manifesto', label: '2. Manifesto & Metrics', icon: Building2 },
-          { key: 'services', label: '3. Services Track', icon: Sliders },
-          { key: 'projects', label: '4. Landmark Projects', icon: FolderKanban },
-          { key: 'equipment', label: '5. Hardware & Labs', icon: Wrench },
-          { key: 'news', label: '6. News & Bulletins', icon: Newspaper },
-          { key: 'leadgrow', label: '7. Lead & Grow', icon: HeartHandshake },
+          { key: 'hero', label: 'Hero', icon: Video },
+          { key: 'manifesto', label: 'About', icon: Building2 },
+          { key: 'services', label: 'Services', icon: Sliders },
+          { key: 'projects', label: 'Projects', icon: FolderKanban },
+          { key: 'equipment', label: 'Equipment', icon: Wrench },
+          { key: 'team', label: 'Team', icon: Building2 },
+          { key: 'news', label: 'News', icon: Newspaper },
+          { key: 'leadgrow', label: 'Careers', icon: HeartHandshake },
         ].map((tab) => {
           const Icon = tab.icon;
           const isSelected = activeSubSection === tab.key;
@@ -729,35 +1015,64 @@ export function LandingPageView({
             <button
               key={tab.key}
               onClick={() => setActiveSubSection(tab.key as any)}
-              className={`whitespace-nowrap flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              type="button"
+              role="tab"
+              aria-selected={isSelected}
+              tabIndex={isSelected ? 0 : -1}
+              aria-controls="homepage-section-editor"
+              onKeyDown={(event) => {
+                const tabs = Array.from(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? []);
+                const currentIndex = tabs.indexOf(event.currentTarget);
+                const nextIndex = event.key === 'ArrowRight' ? (currentIndex + 1) % tabs.length
+                  : event.key === 'ArrowLeft' ? (currentIndex - 1 + tabs.length) % tabs.length
+                  : event.key === 'Home' ? 0
+                  : event.key === 'End' ? tabs.length - 1
+                  : -1;
+                if (nextIndex >= 0) {
+                  event.preventDefault();
+                  tabs[nextIndex]?.focus();
+                  tabs[nextIndex]?.click();
+                }
+              }}
+              className={`flex min-h-[42px] shrink-0 items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition sm:flex-1 ${
                 isSelected
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-[#102A43] text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
               }`}
             >
-              <Icon size={14} className={isSelected ? 'text-white' : 'text-slate-400'} />
+              <Icon size={14} className={isSelected ? 'text-[#7FB3FF]' : 'text-slate-400'} />
               <span>{tab.label}</span>
             </button>
           );
         })}
-      </div>
+      </nav>
+
+      {livePreviewOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-3 sm:p-6">
+        <div className="flex h-[min(92vh,1000px)] w-full max-w-[1500px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5">
+            <div><h2 className="text-sm font-semibold text-slate-900">Homepage preview</h2><p className="text-xs text-slate-500">This is the actual public page. Save your edits, then refresh to see them here.</p></div>
+            <div className="flex gap-2"><button type="button" onClick={() => setPreviewVersion((value) => value + 1)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Refresh preview</button><button type="button" onClick={() => setLivePreviewOpen(false)} className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Close</button></div>
+          </div>
+          <iframe key={previewVersion} title="Actual public homepage preview" src={`${process.env.NEXT_PUBLIC_SITE_PREVIEW_URL || 'http://localhost:3001'}/#${({ hero: 'homepage-hero', manifesto: 'homepage-about', services: 'homepage-services', projects: 'homepage-projects', equipment: 'homepage-equipment', team: 'homepage-team', news: 'homepage-news', leadgrow: 'homepage-careers' } as Record<string, string>)[activeSubSection]}`} className="min-h-0 flex-1 border-0 bg-white" />
+        </div>
+      </div>}
 
       {/* =========================================================================
           1. HERO CINEMA: (FORM LEFT, 16:9 LIVE PREVIEW RIGHT)
           ========================================================================= */}
       {activeSubSection === 'hero' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Hero Carousel Settings</h3>
-                <p className="text-[11px] text-slate-400">Configure slides, video/image media, and clean CTA button.</p>
+                <h3 className="text-sm font-bold text-slate-900">Hero slides</h3>
+                <p className="text-[11px] text-slate-500">Edit the main image, heading, and buttons.</p>
               </div>
               <button
                 onClick={handleSaveActiveSlide}
                 disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>{savingSection ? 'Saving...' : 'Save Slide'}</span>
@@ -766,13 +1081,13 @@ export function LandingPageView({
 
             {/* Slide Selector Pills */}
             {slideMediaType === 'video' ? (
-              <div className="flex items-center justify-between p-2.5 bg-indigo-50/70 rounded-xl border border-indigo-200">
+              <div className="flex items-center justify-between p-2.5 bg-blue-50/70 rounded-xl border border-blue-200">
                 <div className="flex items-center gap-2">
-                  <Video size={14} className="text-indigo-600" />
-                  <span className="text-xs font-bold text-indigo-900">Cinematic Video Mode (Dedicated Single Slide)</span>
+                  <Video size={14} className="text-[#1D5EC8]" />
+                  <span className="text-xs font-semibold text-blue-900">Video slide</span>
                 </div>
-                <span className="text-[10px] font-semibold text-indigo-600 bg-white px-2 py-0.5 rounded-full border border-indigo-200">
-                  Carousel Paused
+                  <span className="text-[10px] font-medium text-slate-600 bg-white px-2 py-0.5 rounded-full border border-slate-200">
+                  One video slide at a time
                 </span>
               </div>
             ) : (
@@ -785,19 +1100,22 @@ export function LandingPageView({
                       onClick={() => setSelectedSlideIndex(idx)}
                       className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
                         selectedSlideIndex === idx
-                          ? 'bg-indigo-600 text-white shadow-xs'
+                          ? 'bg-[#1D5EC8] text-white shadow-xs'
                           : 'bg-white text-slate-600 hover:bg-slate-200 border border-slate-200'
                       }`}
                     >
                       Slide {idx + 1}
                     </button>
                   ))}
+                  {selectedSlideIndex >= heroSlides.length && (
+                    <span className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">New draft</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     type="button"
                     onClick={handleCreateNewSlide}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition"
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition"
                     title="Add new slide"
                   >
                     <Plus size={13} />
@@ -808,7 +1126,9 @@ export function LandingPageView({
                       type="button"
                       onClick={() => {
                         if (activeSlide.id && activeSlide.id !== 'temp') {
-                          onDeleteHeroSlide(activeSlide.id);
+                          if (window.confirm('Delete this hero slide? This cannot be undone.')) {
+                            onDeleteHeroSlide(activeSlide.id);
+                          }
                           setSelectedSlideIndex(0);
                         }
                       }}
@@ -824,14 +1144,18 @@ export function LandingPageView({
 
             {/* Fields */}
             <div className="space-y-3">
+              <label className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">
+                <span>Show this slide on the website</span>
+                <input type="checkbox" checked={slideIsActive} onChange={(e) => setSlideIsActive(e.target.checked)} className="h-4 w-4 accent-blue-600" />
+              </label>
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Eyebrow Badge</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Small heading</label>
                 <input
                   type="text"
                   value={slideEyebrow}
                   onChange={(e) => setSlideEyebrow(e.target.value)}
                   placeholder="GEOSPATIAL WORKS BANGLADESH"
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-red-600 focus:bg-white focus:border-indigo-500"
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-red-600 focus:bg-white focus:border-blue-500"
                 />
               </div>
 
@@ -841,30 +1165,30 @@ export function LandingPageView({
                   type="text"
                   value={slideHeading}
                   onChange={(e) => setSlideHeading(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-indigo-500 uppercase tracking-tight"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-blue-500 uppercase tracking-tight"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Description Paragraph</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">Description</label>
                 <textarea
                   rows={3}
                   value={slideDesc}
                   onChange={(e) => setSlideDesc(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed focus:bg-white focus:border-indigo-500"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed focus:bg-white focus:border-blue-500"
                 />
               </div>
 
               {/* Media Type & Upload */}
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700">Slide Media Asset</span>
+                  <span className="text-xs font-semibold text-slate-700">Slide image or video</span>
                   <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 text-xs">
                     <button
                       type="button"
                       onClick={() => setSlideMediaType('image')}
                       className={`flex items-center gap-1 px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
-                        slideMediaType === 'image' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-900'
+                        slideMediaType === 'image' ? 'bg-[#1D5EC8] text-white' : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
                       <ImageIcon size={12} />
@@ -874,7 +1198,7 @@ export function LandingPageView({
                       type="button"
                       onClick={() => setSlideMediaType('video')}
                       className={`flex items-center gap-1 px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
-                        slideMediaType === 'video' ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-900'
+                        slideMediaType === 'video' ? 'bg-[#1D5EC8] text-white' : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
                       <Video size={12} />
@@ -883,33 +1207,22 @@ export function LandingPageView({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={slideMediaType === 'video' ? slideVideoUrl : slideImageUrl}
-                    onChange={(e) =>
-                      slideMediaType === 'video' ? setSlideVideoUrl(e.target.value) : setSlideImageUrl(e.target.value)
-                    }
-                    placeholder={slideMediaType === 'video' ? 'https://.../video.mp4' : '/real-media/...'}
-                    className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800"
-                  />
-                  <label className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer flex-shrink-0">
-                    <Upload size={13} />
-                    <span>{uploadingHeroMedia ? '...' : 'Upload'}</span>
-                    <input
-                      type="file"
-                      accept={slideMediaType === 'video' ? 'video/*' : 'image/*'}
-                      onChange={(e) => handleMediaUpload(e, 'hero')}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
+                {slideMediaType === 'image' ? (
+                  <MediaAssetField label="Hero image" value={slideImageUrl} onChoose={() => onOpenMediaPicker(setSlideImageUrl)} onRemove={() => setSlideImageUrl('')} />
+                ) : (
+                  <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:flex-row sm:items-center">
+                    <div className="grid aspect-video w-full place-items-center overflow-hidden rounded-lg bg-slate-950 text-slate-300 sm:w-40">
+                      {slideVideoUrl ? <video src={slideVideoUrl} muted playsInline className="h-full w-full object-cover" /> : <Video size={22} />}
+                    </div>
+                    <div className="flex-1"><p className="text-sm font-medium text-slate-800">{slideVideoUrl ? 'Video selected' : 'No video selected'}</p><p className="mt-1 text-xs text-slate-500">Upload an MP4 or WebM file for this hero slide.</p><label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-lg bg-[#1D5EC8] px-3 py-2 text-xs font-semibold text-white hover:bg-[#164ea8]">{uploadingHeroMedia ? 'Uploading…' : slideVideoUrl ? 'Replace video' : 'Choose video'}<input type="file" accept="video/mp4,video/webm,video/quicktime" onChange={(e) => handleMediaUpload(e, 'hero')} className="sr-only" disabled={uploadingHeroMedia} /></label></div>
+                  </div>
+                )}
               </div>
 
               {/* Action Button Details */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">CTA Button Text</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Main button text</label>
                   <input
                     type="text"
                     value={slideBtnText}
@@ -919,24 +1232,34 @@ export function LandingPageView({
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">CTA Destination Link (Select Page)</label>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">Main button page</label>
                   <PageSelect value={slideBtnHref} onChange={setSlideBtnHref} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Second Button Text</label>
+                  <input type="text" value={slideSecondaryText} onChange={(e) => setSlideSecondaryText(e.target.value)} placeholder="Optional" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Second Button Link</label>
+                  <PageSelect value={slideSecondaryHref} onChange={setSlideSecondaryHref} />
                 </div>
               </div>
             </div>
           </div>
 
           {/* RIGHT 7 COLS: 16:9 LIVE CINEMATIC DESKTOP PREVIEW */}
-          <div className="lg:col-span-7 sticky top-4 space-y-2">
+          <div className="gw-preview-panel lg:col-span-7 sticky top-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-800 px-1">
               <div className="flex items-center gap-1.5">
-                <Monitor size={15} className="text-indigo-600" />
-                <span>Live 16:9 Cinema Viewport Mirror</span>
+                <Monitor size={15} className="text-[#1D5EC8]" />
+                <span>Hero preview</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  REAL-TIME PREVIEW
+                  Updates as you edit
                 </span>
               </div>
             </div>
@@ -1009,18 +1332,18 @@ export function LandingPageView({
           2. MANIFESTO & KEY FACTS: (FORM LEFT, LIVE PREVIEW RIGHT)
           ========================================================================= */}
       {activeSubSection === 'manifesto' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Manifesto, Metrics &amp; Partners</h3>
-                <p className="text-[11px] text-slate-400">Section 2: High-impact company statement and authority logos.</p>
+                <h3 className="text-base font-semibold text-slate-950">About and partners</h3>
+                <p className="text-xs text-slate-500">Edit the introduction, key numbers, and partner logos.</p>
               </div>
               <button
                 onClick={handleSaveManifesto}
                 disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>{savingSection ? 'Saving...' : 'Save Section'}</span>
@@ -1030,130 +1353,142 @@ export function LandingPageView({
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[11px] font-bold text-blue-600 mb-1">Eyebrow Left (Blue)</label>
+                  <label className="block text-[11px] font-bold text-blue-800 mb-1">Small heading (blue)</label>
                   <input
                     type="text"
                     value={manEyebrowBlue}
                     onChange={(e) => setManEyebrowBlue(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-blue-600"
+                    className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-xl text-sm font-semibold text-slate-950"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-red-600 mb-1">Eyebrow Right (Red)</label>
+                  <label className="block text-[11px] font-bold text-red-700 mb-1">Small heading (red)</label>
                   <input
                     type="text"
                     value={manEyebrowRed}
                     onChange={(e) => setManEyebrowRed(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-red-600"
+                    className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-xl text-sm font-semibold text-slate-950"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Bold Statement (H2 / Leading)</label>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Main heading</label>
                 <textarea
                   rows={3}
                   value={manStatement}
                   onChange={(e) => setManStatement(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 leading-relaxed"
+                  className="w-full p-3 bg-slate-100 border border-slate-300 rounded-xl text-sm font-semibold text-slate-950 leading-relaxed"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Supporting Narrative Subtext</label>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Introduction text</label>
                 <textarea
                   rows={3}
                   value={manSubtext}
                   onChange={(e) => setManSubtext(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed"
+                  className="w-full p-3 bg-slate-100 border border-slate-300 rounded-xl text-sm text-slate-950 leading-relaxed"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Button Text</label>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Button label</label>
                   <input
                     type="text"
                     value={manBtnText}
                     onChange={(e) => setManBtnText(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                    className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-xl text-sm font-semibold text-slate-950"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Button Link (Select Page)</label>
+                  <label className="block text-[11px] font-bold text-slate-700 mb-1">Button destination</label>
                   <PageSelect value={manBtnHref} onChange={setManBtnHref} />
                 </div>
               </div>
 
               {/* Metric 1 & Metric 2 Inputs */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
-                <span className="text-xs font-bold text-slate-800 block">Key Metrics (Dual Color Display)</span>
-                
-                {/* Metric 1 */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-1">
-                    <label className="block text-[10px] font-bold text-blue-600 mb-0.5">Metric 1 Number</label>
+              <details className="gw-edit-group">
+                <summary><span>Homepage figures</span><span className="gw-edit-group-hint">Area surveyed · projects completed</span></summary>
+                <div className="mt-3 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="rounded-lg border border-slate-200 bg-white p-3">
+                  <h4 className="mb-2 text-xs font-semibold text-slate-900">Area surveyed</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Value</label>
                     <input
                       type="text"
                       value={manMetric1Val}
                       onChange={(e) => setManMetric1Val(e.target.value)}
-                      className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-extrabold text-blue-600"
+                      className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-bold text-slate-950"
                     />
                   </div>
-                  <div className="col-span-1">
-                    <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Unit (e.g. km²)</label>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Unit</label>
                     <input
                       type="text"
                       value={manMetric1Unit}
                       onChange={(e) => setManMetric1Unit(e.target.value)}
-                      className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700"
+                      className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-medium text-slate-950"
                     />
                   </div>
-                  <div className="col-span-1">
-                    <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Title Label</label>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Heading</label>
                     <input
                       type="text"
                       value={manMetric1Label}
                       onChange={(e) => setManMetric1Label(e.target.value)}
-                      className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-700"
+                      className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Supporting line</label>
+                    <input type="text" value={manMetric1Sub} onChange={(e) => setManMetric1Sub(e.target.value)} className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950" />
+                  </div>
                   </div>
                 </div>
 
-                {/* Metric 2 */}
-                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200">
+                <div className="rounded-lg border border-slate-200 bg-white p-3">
+                  <h4 className="mb-2 text-xs font-semibold text-slate-900">Projects completed</h4>
+                  <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] font-bold text-red-600 mb-0.5">Metric 2 Number</label>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Value</label>
                     <input
                       type="text"
                       value={manMetric2Val}
                       onChange={(e) => setManMetric2Val(e.target.value)}
-                      className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-extrabold text-red-600"
+                      className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-bold text-slate-950"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 mb-0.5">Title Label</label>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Heading</label>
                     <input
                       type="text"
                       value={manMetric2Label}
                       onChange={(e) => setManMetric2Label(e.target.value)}
-                      className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs text-slate-700"
+                      className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950"
                     />
                   </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Supporting line</label>
+                    <input type="text" value={manMetric2Sub} onChange={(e) => setManMetric2Sub(e.target.value)} className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950" />
+                  </div>
+                  </div>
                 </div>
-              </div>
+                </div>
+              </details>
 
               {/* Trusted Institutional Partners Manager */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 block">Trusted Partners &amp; Authorities</span>
-                    <span className="text-[10px] text-slate-500">Edit logo path, department name &amp; acronym</span>
-                  </div>
+              <details className="gw-edit-group">
+                <summary><span>Partner logos</span><span className="gw-edit-group-hint">{partnersList.length} partners</span></summary>
+                <div className="mt-3 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs text-slate-500">Names, short labels, and logos shown on the homepage.</p>
                   <button
                     type="button"
                     onClick={handleAddPartner}
-                    className="flex items-center gap-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-[11px] font-bold transition cursor-pointer"
+                    className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[11px] font-bold transition cursor-pointer"
                   >
                     <Plus size={12} />
                     <span>Add Partner</span>
@@ -1162,65 +1497,76 @@ export function LandingPageView({
 
                 <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                   {partnersList.map((partner, idx) => (
-                    <div key={idx} className="p-2.5 bg-white rounded-lg border border-slate-200 shadow-2xs space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-slate-700">Partner #{idx + 1}</span>
+                    <details key={idx} className="gw-edit-group p-2.5">
+                      <summary><span className="truncate">{partner.name || `New partner ${idx + 1}`}</span><span className="gw-edit-group-hint">{partner.logo ? 'Logo added' : 'Logo needed'}</span></summary>
+                      <div className="mt-3 space-y-2">
+                      <div className="flex items-center justify-end">
                         <button
                           type="button"
                           onClick={() => handleRemovePartner(idx)}
-                          className="text-slate-400 hover:text-red-600 p-0.5"
-                          title="Remove Partner"
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-red-50 hover:text-red-700"
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={13} /> Remove partner
                         </button>
                       </div>
-                      <div className="grid grid-cols-2 gap-1.5">
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <label className="block text-xs font-semibold text-slate-700">Organization name
                         <input
                           type="text"
                           value={partner.name}
                           onChange={(e) => handleUpdatePartner(idx, 'name', e.target.value)}
-                          placeholder="Full Authority Name"
-                          className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] font-semibold text-slate-800"
+                          placeholder="For example: Dhaka North City Corporation"
+                          className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-950"
                         />
+                        </label>
+                        <label className="block text-xs font-semibold text-slate-700">Short name
                         <input
                           type="text"
                           value={partner.short}
                           onChange={(e) => handleUpdatePartner(idx, 'short', e.target.value)}
-                          placeholder="Short Code (e.g. DNCC)"
-                          className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] font-bold text-indigo-700"
+                          placeholder="For example: DNCC"
+                          className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-950"
                         />
+                        </label>
                       </div>
-                      <div className="grid grid-cols-2 gap-1.5">
+                      <label className="block text-xs font-semibold text-slate-700">Small line under the name
                         <input
                           type="text"
                           value={partner.subtext}
                           onChange={(e) => handleUpdatePartner(idx, 'subtext', e.target.value)}
-                          placeholder="Subtext (e.g. Rail Authority)"
-                          className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] text-slate-600"
+                          placeholder="For example: City Corporation"
+                          className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-950"
                         />
-                        <input
-                          type="text"
-                          value={partner.logo}
-                          onChange={(e) => handleUpdatePartner(idx, 'logo', e.target.value)}
-                          placeholder="Logo / SVG Path"
-                          className="px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[10px] font-mono text-slate-600"
-                        />
+                      </label>
+                      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <div className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-300 bg-white p-2">
+                          {partner.logo ? <img src={partner.logo} alt={`${partner.name || 'Partner'} logo preview`} className="h-full w-full object-contain" /> : <span className="text-center text-[10px] font-medium text-slate-500">No logo selected</span>}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onOpenMediaPicker((url) => handleUpdatePartner(idx, 'logo', url))}
+                          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 hover:border-blue-400 hover:text-blue-800"
+                        >
+                          {partner.logo ? 'Change logo' : 'Choose from library'}
+                        </button>
                       </div>
-                    </div>
+                      </div>
+                    </details>
                   ))}
                 </div>
-              </div>
+                </div>
+              </details>
             </div>
           </div>
 
           {/* RIGHT 7 COLS: LIVE MANIFESTO PREVIEW */}
-          <div className="lg:col-span-7 sticky top-4 space-y-2">
+          <div className="gw-preview-panel lg:col-span-7 sticky top-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-800 px-1">
               <div className="flex items-center gap-1.5">
-                <Monitor size={15} className="text-indigo-600" />
-                <span>Live Manifesto &amp; Metrics Preview</span>
+                <Monitor size={15} className="text-[#1D5EC8]" />
+                <span>About preview</span>
               </div>
-              <span className="text-[11px] text-slate-400">Desktop Viewport</span>
+              <span className="text-[11px] text-slate-400">Desktop preview</span>
             </div>
 
             <div className="bg-[#0B0D12] text-white rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-2xl space-y-8">
@@ -1297,9 +1643,9 @@ export function LandingPageView({
           3. SERVICES SHOWCASE: (FORM LEFT, LIVE PREVIEW RIGHT)
           ========================================================================= */}
       {activeSubSection === 'services' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-sm font-bold text-slate-900">Services Track Narrative</h3>
@@ -1308,7 +1654,7 @@ export function LandingPageView({
               <button
                 onClick={handleSaveShaping}
                 disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>{savingSection ? 'Saving...' : 'Save Track'}</span>
@@ -1316,7 +1662,7 @@ export function LandingPageView({
             </div>
 
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[11px] font-bold text-red-600 mb-1">Subtitle Tag</label>
                   <input
@@ -1385,76 +1731,24 @@ export function LandingPageView({
               </div>
             </div>
 
-            {/* Service Toggle Selector */}
-            <div className="pt-2 border-t border-slate-100">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-800">
-                  Visible On Homepage ({activeServicesCount}/{services.length})
-                </span>
-                <div className="flex gap-1.5 text-[10px] font-bold">
-                  <button
-                    type="button"
-                    onClick={() => services.forEach((s) => onToggleServiceActive(s.id, true))}
-                    className="text-indigo-600 hover:underline cursor-pointer"
-                  >
-                    Select All
-                  </button>
-                  <span>•</span>
-                  <button
-                    type="button"
-                    onClick={() => services.forEach((s) => onToggleServiceActive(s.id, false))}
-                    className="text-slate-400 hover:underline cursor-pointer"
-                  >
-                    Deselect
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                {services.map((svc) => (
-                  <div
-                    key={svc.id}
-                    onClick={() => onToggleServiceActive(svc.id, !svc.isActive)}
-                    className={`flex items-center justify-between p-2 rounded-xl border transition cursor-pointer text-xs ${
-                      svc.isActive
-                        ? 'bg-indigo-50/60 border-indigo-200 text-indigo-900 font-semibold'
-                        : 'bg-slate-50 border-slate-200 text-slate-500 opacity-60'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-200 flex-shrink-0">
-                        <img
-                          src={svc.imageUrl || '/real-media/service-topographic-uav.png'}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="truncate text-xs font-bold">{svc.title}</div>
-                        <div className="text-[10px] text-slate-400 truncate">{svc.category}</div>
-                      </div>
-                    </div>
-                    <span
-                      className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                        svc.isActive ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-400'
-                      }`}
-                    >
-                      {svc.isActive ? <Check size={13} /> : null}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div className="border-t border-slate-200 pt-4">
+              <SelectionLauncher
+                label="Services shown on homepage"
+                selected={activeServicesCount}
+                summary={services.filter((item) => item.isActive).slice(0, 3).map((item) => item.title).join(' · ') || 'No services selected'}
+                onClick={() => setSelectionDialogType('services')}
+              />
             </div>
           </div>
 
           {/* RIGHT 7 COLS: LIVE SERVICES TRACK PREVIEW */}
-          <div className="lg:col-span-7 sticky top-4 space-y-2">
+          <div className="gw-preview-panel lg:col-span-7 sticky top-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-800 px-1">
               <div className="flex items-center gap-1.5">
-                <Monitor size={15} className="text-indigo-600" />
-                <span>Live Services Track Preview</span>
+                <Monitor size={15} className="text-[#1D5EC8]" />
+                <span>Services preview</span>
               </div>
-              <span className="text-[11px] text-slate-400">Desktop Viewport</span>
+              <span className="text-[11px] text-slate-400">Desktop preview</span>
             </div>
 
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xl space-y-6">
@@ -1525,9 +1819,9 @@ export function LandingPageView({
           4. PIONEERING LANDMARK PROJECTS: (FORM LEFT, LIVE PREVIEW RIGHT)
           ========================================================================= */}
       {activeSubSection === 'projects' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-sm font-bold text-slate-900">Landmarks Showcase Setup</h3>
@@ -1536,7 +1830,7 @@ export function LandingPageView({
               <button
                 onClick={handleSaveProjects}
                 disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>{savingSection ? 'Saving...' : 'Save Showcase'}</span>
@@ -1603,108 +1897,24 @@ export function LandingPageView({
               </div>
             </div>
 
-            {/* Landmark Project Selector with Search & Filter */}
-            <div className="pt-2 border-t border-slate-100 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800">
-                  Featured On Carousel ({activeProjectsCount}/{projects.length})
-                </span>
-                <div className="flex gap-1.5 text-[10px] font-bold">
-                  <button
-                    type="button"
-                    onClick={() => projects.forEach((p) => onToggleProjectMilestone(p.id, true))}
-                    className="text-indigo-600 hover:underline cursor-pointer"
-                  >
-                    Select All
-                  </button>
-                  <span>•</span>
-                  <button
-                    type="button"
-                    onClick={() => projects.forEach((p) => onToggleProjectMilestone(p.id, false))}
-                    className="text-slate-400 hover:underline cursor-pointer"
-                  >
-                    Deselect
-                  </button>
-                </div>
-              </div>
-
-              {/* Search & Filter Bar */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={projSearchQuery}
-                  onChange={(e) => setProjSearchQuery(e.target.value)}
-                  placeholder="Filter by title, client, or location..."
-                  className="flex-1 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white"
-                />
-                <select
-                  value={projCategoryFilter}
-                  onChange={(e) => setProjCategoryFilter(e.target.value)}
-                  className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-semibold text-slate-700 focus:outline-none cursor-pointer"
-                >
-                  <option value="all">All Status</option>
-                  <option value="milestones">Featured Only</option>
-                  <option value="unselected">Unfeatured</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                {projects
-                  .filter((proj) => {
-                    if (projCategoryFilter === 'milestones' && !proj.isMilestone) return false;
-                    if (projCategoryFilter === 'unselected' && proj.isMilestone) return false;
-                    if (!projSearchQuery.trim()) return true;
-                    const q = projSearchQuery.toLowerCase();
-                    return (
-                      proj.title.toLowerCase().includes(q) ||
-                      (proj.client && proj.client.toLowerCase().includes(q)) ||
-                      (proj.location && proj.location.toLowerCase().includes(q))
-                    );
-                  })
-                  .map((proj) => (
-                    <div
-                      key={proj.id}
-                      onClick={() => onToggleProjectMilestone(proj.id, !proj.isMilestone)}
-                      className={`flex items-center justify-between p-2 rounded-xl border transition cursor-pointer text-xs ${
-                        proj.isMilestone
-                          ? 'bg-indigo-50/60 border-indigo-200 text-indigo-900 font-semibold'
-                          : 'bg-slate-50 border-slate-200 text-slate-500 opacity-60'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-200 flex-shrink-0">
-                          <img
-                            src={proj.imageUrl || '/inner/bridge-aerial.webp'}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="truncate text-xs font-bold">{proj.title}</div>
-                          <div className="text-[10px] text-slate-400 truncate">{proj.client || proj.location}</div>
-                        </div>
-                      </div>
-                      <span
-                        className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                          proj.isMilestone ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-400'
-                        }`}
-                      >
-                        {proj.isMilestone ? <Check size={13} /> : null}
-                      </span>
-                    </div>
-                  ))}
-              </div>
+            <div className="border-t border-slate-200 pt-4">
+              <SelectionLauncher
+                label="Projects shown on homepage"
+                selected={activeProjectsCount}
+                summary={projects.filter((item) => item.isMilestone).slice(0, 3).map((item) => item.title).join(' · ') || 'No projects selected'}
+                onClick={() => setSelectionDialogType('projects')}
+              />
             </div>
           </div>
 
           {/* RIGHT 7 COLS: LIVE PROJECTS SHOWCASE PREVIEW */}
-          <div className="lg:col-span-7 sticky top-4 space-y-2">
+          <div className="gw-preview-panel lg:col-span-7 sticky top-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-800 px-1">
               <div className="flex items-center gap-1.5">
-                <Monitor size={15} className="text-indigo-600" />
-                <span>Live Pioneering Projects Preview</span>
+                <Monitor size={15} className="text-[#1D5EC8]" />
+                <span>Projects preview</span>
               </div>
-              <span className="text-[11px] text-slate-400">Desktop Viewport</span>
+              <span className="text-[11px] text-slate-400">Desktop preview</span>
             </div>
 
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xl space-y-6">
@@ -1788,9 +1998,9 @@ export function LandingPageView({
           (EXACTLY EDITABLE: WORKSTATIONS ADD/REMOVE/EDIT + HARDWARE SELECTION + SOFTWARE SUITE)
           ========================================================================= */}
       {activeSubSection === 'equipment' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4 max-h-[85vh] overflow-y-auto">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 sticky top-0 bg-white z-10">
               <div>
                 <h3 className="text-sm font-bold text-slate-900">Hardware Fleet, Nodes &amp; Software</h3>
@@ -1799,7 +2009,7 @@ export function LandingPageView({
               <button
                 onClick={handleSaveEquipment}
                 disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>{savingSection ? 'Saving...' : 'Save All'}</span>
@@ -1866,7 +2076,7 @@ export function LandingPageView({
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Cpu size={14} className="text-indigo-600" />
+                    <Cpu size={14} className="text-[#1D5EC8]" />
                     <span>Processing Workstation Nodes ({workstations.length})</span>
                   </span>
                   <span className="text-[10px] text-slate-400">Add, edit specs, or remove nodes live</span>
@@ -1874,7 +2084,7 @@ export function LandingPageView({
                 <button
                   type="button"
                   onClick={handleAddWorkstation}
-                  className="flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-lg transition cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1 bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-[11px] font-bold rounded-lg transition cursor-pointer"
                 >
                   <Plus size={12} />
                   <span>Add Node</span>
@@ -1957,74 +2167,14 @@ export function LandingPageView({
               </div>
             </div>
 
-            {/* 2. PHYSICAL HARDWARE FLEET: SELECT TO SHOWCASE */}
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Wrench size={14} className="text-indigo-600" />
-                    <span>Select Physical Hardware to Showcase ({selectedEquipIds.length} Selected)</span>
-                  </span>
-                  <span className="text-[10px] text-slate-400">Toggle which equipment units are displayed in the main 3-card showcase</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[10px] font-bold">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedEquipIds(equipment.map((e) => e.id))}
-                    className="text-indigo-600 hover:underline cursor-pointer"
-                  >
-                    All
-                  </button>
-                  <span>•</span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedEquipIds([])}
-                    className="text-slate-400 hover:underline cursor-pointer"
-                  >
-                    Reset
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-                {equipment.map((eq) => {
-                  const isChecked = selectedEquipIds.includes(eq.id);
-                  return (
-                    <div
-                      key={eq.id}
-                      onClick={() => handleToggleEquipmentSelect(eq.id)}
-                      className={`flex items-center justify-between p-2 rounded-xl border transition cursor-pointer text-xs ${
-                        isChecked
-                          ? 'bg-indigo-50/70 border-indigo-200 text-indigo-900 font-semibold'
-                          : 'bg-white border-slate-200 text-slate-600'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-200 flex-shrink-0">
-                          <img
-                            src={eq.imageUrl || '/real-media/slide_42_img_193.jpg'}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="truncate text-xs font-bold">{eq.name}</div>
-                          <div className="text-[10px] text-slate-400 truncate">
-                            {eq.category} • {eq.quantity}
-                          </div>
-                        </div>
-                      </div>
-                      <span
-                        className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                          isChecked ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-300'
-                        }`}
-                      >
-                        {isChecked ? <Check size={13} /> : null}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+            {/* Choose equipment in a searchable dialog so the editor stays compact. */}
+            <div className="rounded-xl border border-slate-200 bg-white p-3.5">
+              <SelectionLauncher
+                label="Equipment shown on homepage"
+                selected={selectedEquipIds.length}
+                summary={equipment.filter((item) => selectedEquipIds.includes(item.id)).slice(0, 3).map((item) => item.name).join(' · ') || 'Choose equipment cards to feature'}
+                onClick={() => setSelectionDialogType('equipment')}
+              />
             </div>
 
             {/* 3. SOFTWARE LOGOS & SUITE: ADD / REMOVE / EDIT */}
@@ -2032,15 +2182,15 @@ export function LandingPageView({
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Layers size={14} className="text-indigo-600" />
-                    <span>Core Software Suite ({softwareList.length})</span>
+                    <Layers size={14} className="text-[#1D5EC8]" />
+                    <span>Software logos &amp; details ({softwareList.length})</span>
                   </span>
-                  <span className="text-[10px] text-slate-400">Directly add, edit &amp; remove software applications</span>
+                  <span className="text-[11px] text-slate-600">Manage the tools shown on the homepage and equipment page.</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleAddSoftware}
-                  className="flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-lg transition cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1 bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-[11px] font-bold rounded-lg transition cursor-pointer"
                 >
                   <Plus size={12} />
                   <span>Add Software</span>
@@ -2055,8 +2205,9 @@ export function LandingPageView({
                         type="text"
                         value={sw.name}
                         onChange={(e) => handleUpdateSoftware(idx, 'name', e.target.value)}
-                        placeholder="Software Name"
-                        className="flex-1 px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-slate-900"
+                        placeholder="Software name"
+                        aria-label="Software name"
+                        className="flex-1 px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-semibold text-slate-950"
                       />
                       <button
                         type="button"
@@ -2069,25 +2220,48 @@ export function LandingPageView({
                     </div>
                     <div className="grid grid-cols-2 gap-1.5">
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">Category</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Category</label>
                         <input
                           type="text"
                           value={sw.category}
                           onChange={(e) => handleUpdateSoftware(idx, 'category', e.target.value)}
-                          placeholder="e.g. Geospatial GIS"
-                          className="w-full px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-700"
+                          placeholder="For example: Mapping"
+                          className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950"
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">Badge / Suite</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Publisher or edition</label>
                         <input
                           type="text"
                           value={sw.badge}
                           onChange={(e) => handleUpdateSoftware(idx, 'badge', e.target.value)}
-                          placeholder="e.g. ESRI Enterprise"
-                          className="w-full px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-700"
+                          placeholder="For example: Esri"
+                          className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950"
                         />
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">What the team uses it for</label>
+                      <textarea
+                        rows={2}
+                        value={sw.description || ''}
+                        onChange={(e) => handleUpdateSoftware(idx, 'description', e.target.value)}
+                        placeholder="Explain in plain language how this tool is used."
+                        className="w-full resize-y px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950"
+                      />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                      <div className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-300 bg-white p-2">
+                        {sw.logo ? <img src={sw.logo} alt={`${sw.name || 'Software'} logo preview`} className="h-full w-full object-contain" /> : <span className="text-center text-[10px] font-medium text-slate-500">No logo selected</span>}
+                      </div>
+                      <div className="min-w-0 flex-1"><span className="block text-xs font-semibold text-slate-800">Software logo</span><span className="mt-0.5 block text-xs text-slate-600">Choose a logo from the media library. The preview appears here.</span></div>
+                      <button
+                        type="button"
+                        onClick={() => onOpenMediaPicker((url) => handleUpdateSoftware(idx, 'logo', url))}
+                        className="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 hover:border-blue-400 hover:text-blue-800"
+                      >
+                        {sw.logo ? 'Change logo' : 'Choose from library'}
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -2096,13 +2270,13 @@ export function LandingPageView({
           </div>
 
           {/* RIGHT 7 COLS: LIVE EQUIPMENT, NODES & SOFTWARE PREVIEW */}
-          <div className="lg:col-span-7 sticky top-4 space-y-2">
+          <div className="gw-preview-panel lg:col-span-7 sticky top-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-800 px-1">
               <div className="flex items-center gap-1.5">
-                <Monitor size={15} className="text-indigo-600" />
-                <span>Live Instruments, Nodes &amp; Software Preview</span>
+                <Monitor size={15} className="text-[#1D5EC8]" />
+                <span>Equipment preview</span>
               </div>
-              <span className="text-[11px] text-slate-400">Desktop Viewport</span>
+              <span className="text-[11px] text-slate-400">Desktop preview</span>
             </div>
 
             <div className="bg-[#0B0D12] text-white rounded-2xl p-6 sm:p-7 border border-slate-800 shadow-2xl space-y-6">
@@ -2184,13 +2358,52 @@ export function LandingPageView({
         </div>
       )}
 
+      {activeSubSection === 'team' && (
+        <div id="homepage-section-editor" className="gw-section-grid grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)]">
+          <section className="gw-editor-panel rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Homepage team section</p>
+                <h2 className="mt-1 text-lg font-semibold text-slate-950">Choose the people visitors see</h2>
+                <p className="mt-1 text-sm text-slate-500">Profiles and photos are managed in Team.</p>
+              </div>
+              <button type="button" onClick={handleSaveTeam} disabled={savingSection} className="shrink-0 rounded-lg bg-[#F4382D] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60">{savingSection ? 'Saving…' : 'Save section'}</button>
+            </div>
+            <div className="mt-5 space-y-4">
+              <label className="block text-sm font-medium text-slate-700">Small heading<input value={teamEyebrow} onChange={(event) => setTeamEyebrow(event.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></label>
+              <label className="block text-sm font-medium text-slate-700">Main heading<input value={teamTitle} onChange={(event) => setTeamTitle(event.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></label>
+              <label className="block text-sm font-medium text-slate-700">Short description<textarea rows={3} value={teamDescription} onChange={(event) => setTeamDescription(event.target.value)} className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 px-3 py-2.5 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></label>
+              <div>
+                <SelectionLauncher
+                  label="Featured team members (up to 4)"
+                  selected={featuredTeamIds.length}
+                  summary={activeMembers.filter((member) => featuredTeamIds.includes(member.id || member.slug || '')).map((member) => member.name).join(' · ') || 'Choose active profiles to feature'}
+                  onClick={() => setSelectionDialogType('team')}
+                />
+              </div>
+            </div>
+          </section>
+          <section className="gw-preview-panel rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Preview</p>
+            <h3 className="mt-1 text-lg font-semibold text-slate-950">{teamTitle}</h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{teamDescription}</p>
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {activeMembers.filter((member) => featuredTeamIds.includes(member.id || member.slug || '')).map((member) => <div key={member.id || member.slug} className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                {member.image ? <img src={member.image} alt={member.name} className="aspect-[4/5] w-full object-cover object-top" /> : <div className="flex aspect-[4/5] items-center justify-center text-xl font-semibold text-blue-700">{member.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('')}</div>}
+                <div className="p-2.5"><p className="truncate text-xs font-semibold text-slate-900">{member.name}</p><p className="mt-0.5 truncate text-[11px] text-slate-500">{member.role}</p></div>
+              </div>)}
+            </div>
+          </section>
+        </div>
+      )}
+
       {/* =========================================================================
           6. NEWS & BULLETINS: (FORM LEFT, LIVE PREVIEW RIGHT)
           ========================================================================= */}
       {activeSubSection === 'news' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-sm font-bold text-slate-900">News &amp; Bulletins Setup</h3>
@@ -2199,7 +2412,7 @@ export function LandingPageView({
               <button
                 onClick={handleSaveNews}
                 disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>{savingSection ? 'Saving...' : 'Save News'}</span>
@@ -2246,7 +2459,7 @@ export function LandingPageView({
                     onClick={() => setNewsMode('latest')}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                       newsMode === 'latest'
-                        ? 'bg-indigo-600 text-white shadow-xs'
+                        ? 'bg-[#1D5EC8] text-white shadow-xs'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
@@ -2257,7 +2470,7 @@ export function LandingPageView({
                     onClick={() => setNewsMode('manual')}
                     className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                       newsMode === 'manual'
-                        ? 'bg-indigo-600 text-white shadow-xs'
+                        ? 'bg-[#1D5EC8] text-white shadow-xs'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
@@ -2269,59 +2482,25 @@ export function LandingPageView({
 
             {/* Manual Article Selector */}
             {newsMode === 'manual' && (
-              <div className="pt-2 border-t border-slate-100">
-                <span className="text-xs font-bold text-slate-800 block mb-2">
-                  Select Articles to Feature ({selectedArticleIds.length} Selected)
-                </span>
-                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                  {articles.map((art) => {
-                    const isSelected = selectedArticleIds.includes(art.id);
-                    return (
-                      <div
-                        key={art.id}
-                        onClick={() =>
-                          setSelectedArticleIds((prev) =>
-                            prev.includes(art.id) ? prev.filter((id) => id !== art.id) : [...prev, art.id]
-                          )
-                        }
-                        className={`flex items-center justify-between p-2 rounded-xl border transition cursor-pointer text-xs ${
-                          isSelected
-                            ? 'bg-indigo-50/60 border-indigo-200 text-indigo-900 font-semibold'
-                            : 'bg-slate-50 border-slate-200 text-slate-500 opacity-60'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-200 flex-shrink-0">
-                            {art.imageUrl && <img src={art.imageUrl} alt="" className="w-full h-full object-cover" />}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="truncate text-xs font-bold">{art.title}</div>
-                            <div className="text-[10px] text-slate-400">{art.category}</div>
-                          </div>
-                        </div>
-                        <span
-                          className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                            isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-400'
-                          }`}
-                        >
-                          {isSelected ? <Check size={13} /> : null}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="border-t border-slate-200 pt-4">
+                <SelectionLauncher
+                  label="Articles shown on homepage"
+                  selected={selectedArticleIds.length}
+                  summary={articles.filter((item) => selectedArticleIds.includes(item.id)).slice(0, 3).map((item) => item.title).join(' · ') || 'Choose published articles'}
+                  onClick={() => setSelectionDialogType('articles')}
+                />
               </div>
             )}
           </div>
 
           {/* RIGHT 7 COLS: LIVE NEWS & BULLETINS PREVIEW */}
-          <div className="lg:col-span-7 sticky top-4 space-y-2">
+          <div className="gw-preview-panel lg:col-span-7 sticky top-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-800 px-1">
               <div className="flex items-center gap-1.5">
-                <Monitor size={15} className="text-indigo-600" />
-                <span>Live News &amp; Bulletins Preview</span>
+                <Monitor size={15} className="text-[#1D5EC8]" />
+                <span>News preview</span>
               </div>
-              <span className="text-[11px] text-slate-400">Desktop Viewport</span>
+              <span className="text-[11px] text-slate-400">Desktop preview</span>
             </div>
 
             <div className="bg-[#0B0D12] text-white rounded-2xl p-6 sm:p-7 border border-slate-800 shadow-2xl space-y-6">
@@ -2389,9 +2568,9 @@ export function LandingPageView({
           7. LEAD & GROW (CAREERS): (FORM LEFT, LIVE PREVIEW RIGHT)
           ========================================================================= */}
       {activeSubSection === 'leadgrow' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-sm font-bold text-slate-900">Lead &amp; Grow (Careers) Setup</h3>
@@ -2400,7 +2579,7 @@ export function LandingPageView({
               <button
                 onClick={handleSaveCulture}
                 disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
               >
                 <Save size={13} />
                 <span>{savingSection ? 'Saving...' : 'Save Culture'}</span>
@@ -2439,28 +2618,7 @@ export function LandingPageView({
                 />
               </div>
 
-              {/* Photo Input */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Engineer Portrait Image</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={cultureImageUrl}
-                    onChange={(e) => setCultureImageUrl(e.target.value)}
-                    className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800"
-                  />
-                  <label className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer flex-shrink-0">
-                    <Upload size={13} />
-                    <span>Upload</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleMediaUpload(e, 'culture')}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              </div>
+              <MediaAssetField label="Careers section image" value={cultureImageUrl} onChoose={() => onOpenMediaPicker(setCultureImageUrl)} onRemove={() => setCultureImageUrl('')} />
 
               {/* Button 1 & 2 */}
               <div className="grid grid-cols-2 gap-2">
@@ -2498,13 +2656,13 @@ export function LandingPageView({
           </div>
 
           {/* RIGHT 7 COLS: LIVE LEAD & GROW PREVIEW */}
-          <div className="lg:col-span-7 sticky top-4 space-y-2">
+          <div className="gw-preview-panel lg:col-span-7 sticky top-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-800 px-1">
               <div className="flex items-center gap-1.5">
-                <Monitor size={15} className="text-indigo-600" />
-                <span>Live Lead &amp; Grow Preview</span>
+                <Monitor size={15} className="text-[#1D5EC8]" />
+                <span>Careers preview</span>
               </div>
-              <span className="text-[11px] text-slate-400">Desktop Viewport</span>
+              <span className="text-[11px] text-slate-400">Desktop preview</span>
             </div>
 
             <div className="bg-[#141212] text-white rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-2xl space-y-6">

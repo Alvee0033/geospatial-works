@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 
 interface LoginPageProps {
@@ -58,9 +59,14 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
       <div className="w-full max-w-[420px]">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-slate-900 text-white font-bold text-lg rounded-xl shadow-sm mb-3">
-            GW
-          </div>
+          <Image
+            src="/gw-logo-pure-original.png"
+            alt="Geospatial Works"
+            width={54}
+            height={54}
+            priority
+            className="mx-auto mb-3 h-12 w-12 object-contain"
+          />
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Sign in to Admin
           </h1>

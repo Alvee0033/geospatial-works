@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { X, Camera, Check } from 'lucide-react';
+import { MediaAssetField } from './MediaAssetField';
 
 export interface ArticleItem {
   id: string;
@@ -234,38 +235,7 @@ export function NewsModal({
               />
             </div>
 
-            {/* Article Cover Image */}
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
-                Article Cover Image URL
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={formImageUrl}
-                  onChange={(e) => setFormImageUrl(e.target.value)}
-                  placeholder="/geospatial-river-hero.webp"
-                  className="flex-1 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-mono text-slate-700 focus:outline-none transition"
-                />
-                <button
-                  type="button"
-                  onClick={onOpenMediaPicker}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs"
-                >
-                  <Camera size={14} /> Browse
-                </button>
-              </div>
-              {formImageUrl && (
-                <div className="mt-3 relative w-48 h-28 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-xs group">
-                  <img src={formImageUrl} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                    <span className="text-[10px] font-bold text-white bg-black/60 px-2 py-1 rounded-md">
-                      Preview
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
+            <MediaAssetField label="Article image" value={formImageUrl} onChoose={onOpenMediaPicker} onRemove={() => setFormImageUrl('')} />
           </form>
 
           {/* Sticky Bottom Action Footer */}

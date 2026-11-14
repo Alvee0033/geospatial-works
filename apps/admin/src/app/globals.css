@@ -31,3 +31,176 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #cbd5e1;
 }
+
+/* Focused, collapsible split view for the homepage editor. */
+.gw-home-editor .gw-section-grid {
+  transition: grid-template-columns 180ms ease;
+  align-items: start;
+}
+
+.gw-home-editor .gw-editor-panel,
+.gw-home-editor .gw-preview-panel {
+  min-width: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.gw-home-editor .gw-editor-panel {
+  max-height: calc(100vh - 210px);
+  overflow: auto;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: 0 2px 12px rgb(15 23 42 / 4%);
+  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-width: thin;
+}
+
+.gw-home-editor .gw-editor-panel > div:first-child {
+  position: sticky;
+  z-index: 12;
+  top: -1.25rem;
+  margin: -1.25rem -1.25rem 0;
+  padding: 1.15rem 1.25rem 1rem;
+  border-bottom: 1px solid #e9eef5;
+  background: rgb(255 255 255 / 96%);
+  backdrop-filter: blur(8px);
+}
+
+.gw-home-editor .gw-editor-panel input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.gw-home-editor .gw-editor-panel textarea,
+.gw-home-editor .gw-editor-panel select {
+  min-height: 2.55rem;
+  font-size: 0.8125rem;
+  color: #111827;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  border-width: 1px;
+  caret-color: #1d5ec8;
+}
+
+.gw-home-editor .gw-editor-panel input:not([type='checkbox']):not([type='radio']):not([type='file'])::placeholder,
+.gw-home-editor .gw-editor-panel textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.gw-home-editor .gw-editor-panel input:not([type='checkbox']):not([type='radio']):not([type='file']):focus,
+.gw-home-editor .gw-editor-panel textarea:focus,
+.gw-home-editor .gw-editor-panel select:focus {
+  background-color: #fff;
+  border-color: #1d5ec8;
+  box-shadow: 0 0 0 3px rgb(29 94 200 / 16%);
+}
+
+.gw-home-editor .gw-home-tabs {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.gw-home-editor .gw-home-tabs button:focus-visible,
+.gw-home-editor button:focus-visible,
+.gw-home-editor summary:focus-visible {
+  outline: 2px solid #1d5ec8;
+  outline-offset: 2px;
+}
+
+.gw-home-editor .gw-preview-panel {
+  top: 1rem;
+}
+
+.gw-home-editor .gw-preview-panel > div:first-child {
+  min-height: 2rem;
+  color: #334155;
+}
+
+.gw-home-editor .gw-edit-group {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.8rem;
+  background: #fff;
+  padding: 0.8rem 0.9rem;
+}
+
+.gw-home-editor .gw-edit-group > summary {
+  display: flex;
+  cursor: pointer;
+  list-style: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: #172033;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.gw-home-editor .gw-edit-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.gw-home-editor .gw-edit-group > summary::after {
+  content: '+';
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.gw-home-editor .gw-edit-group[open] > summary::after {
+  content: '−';
+  background: #eff6ff;
+  color: #1d5ec8;
+}
+
+.gw-home-editor .gw-edit-group-hint {
+  margin-left: auto;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+.gw-home-editor.editor-hidden .gw-editor-panel,
+.gw-home-editor.preview-hidden .gw-preview-panel {
+  display: none;
+}
+
+.gw-home-editor.editor-hidden .gw-preview-panel,
+.gw-home-editor.preview-hidden .gw-editor-panel {
+  grid-column: 1 / -1 !important;
+}
+
+.gw-home-editor input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.gw-home-editor textarea,
+.gw-home-editor select {
+  border-radius: 0.65rem;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+.gw-home-editor input:focus,
+.gw-home-editor textarea:focus,
+.gw-home-editor select:focus {
+  outline: none;
+  border-color: #3678f6;
+  box-shadow: 0 0 0 3px rgb(54 120 246 / 12%);
+}
+
+@media (max-width: 640px) {
+  .gw-home-editor {
+    padding-bottom: 1.5rem;
+  }
+
+  .gw-home-editor .gw-editor-panel {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .gw-home-editor .gw-editor-panel > div:first-child {
+    position: static;
+    margin: 0;
+    padding: 0 0 1rem;
+    backdrop-filter: none;
+  }
+}

@@ -28,12 +28,14 @@ import {
   Send,
 } from 'lucide-react';
 import { PageSectionItem } from './AboutSectionDrawer';
+import { ServiceItem } from './ServiceModal';
 
 export type WysiwygPageId = 'our-story' | 'future-ready' | 'safety' | 'standards' | 'impact';
 
 interface AboutWysiwygEditorProps {
   pageId: WysiwygPageId;
   sections: Record<string, PageSectionItem>;
+  services: ServiceItem[];
   onSaveSection: (
     pageKey: string,
     sectionKey: string,
@@ -63,7 +65,7 @@ function EditableText({
   multiline?: boolean;
   rows?: number;
 }) {
-  const common = `transition-all outline-none rounded px-1.5 py-0.5 -mx-1 border border-dashed border-white/20 hover:border-indigo-400/80 hover:bg-indigo-500/10 focus:border-indigo-500 focus:bg-indigo-500/15 focus:ring-1 focus:ring-indigo-500/50 cursor-text ${className}`;
+  const common = `block min-w-0 max-w-full box-border transition-all outline-none rounded-lg px-2 py-1 border border-blue-300 bg-blue-50/95 text-slate-950 shadow-sm hover:border-blue-500 hover:bg-blue-100 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-500/25 cursor-text placeholder:text-slate-600 ${className}`;
 
   if (multiline) {
     return (
@@ -159,7 +161,7 @@ function EditableBulletList({
                 type="text"
                 value={item}
                 onChange={(e) => handleItemChange(idx, e.target.value)}
-                className="w-full text-inherit bg-transparent hover:ring-1 hover:ring-indigo-400 focus:ring-2 focus:ring-indigo-500 rounded px-1 -mx-1 outline-none transition"
+                className="w-full min-w-0 rounded-lg border border-blue-300 bg-blue-50/95 px-2 py-1 text-sm text-slate-950 shadow-sm outline-none transition placeholder:text-slate-600 hover:border-blue-500 hover:bg-blue-100 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-500/25"
               />
               <button
                 type="button"
@@ -538,91 +540,44 @@ const defaultImpactData = {
 export function AboutWysiwygEditor({
   pageId,
   sections,
+  services,
   onSaveSection,
   onOpenMediaPicker,
   triggerFeedback,
 }: AboutWysiwygEditorProps) {
   const activePage = pageId;
 
-  const [storyData, setStoryData] = useState<any>(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('gw_wysiwyg_our-story') : null;
-    return saved ? { ...defaultStoryData, ...JSON.parse(saved) } : defaultStoryData;
-  });
-
-  const [futureReadyData, setFutureReadyData] = useState<any>(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('gw_wysiwyg_future-ready') : null;
-    return saved ? { ...defaultFutureReadyData, ...JSON.parse(saved) } : defaultFutureReadyData;
-  });
-
-  const [safetyData, setSafetyData] = useState<any>(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('gw_wysiwyg_safety') : null;
-    return saved ? { ...defaultSafetyData, ...JSON.parse(saved) } : defaultSafetyData;
-  });
-
-  const [standardsData, setStandardsData] = useState<any>(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('gw_wysiwyg_standards') : null;
-    return saved ? { ...defaultStandardsData, ...JSON.parse(saved) } : defaultStandardsData;
-  });
-
-  const [impactData, setImpactData] = useState<any>(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('gw_wysiwyg_impact') : null;
-    return saved ? { ...defaultImpactData, ...JSON.parse(saved) } : defaultImpactData;
-  });
+  const [storyData, setStoryData] = useState<any>(defaultStoryData);
+  const [futureReadyData, setFutureReadyData] = useState<any>(defaultFutureReadyData);
+  const [safetyData, setSafetyData] = useState<any>(defaultSafetyData);
+  const [standardsData, setStandardsData] = useState<any>(defaultStandardsData);
+  const [impactData, setImpactData] = useState<any>(defaultImpactData);
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sync from props if present in database
+  // The database is authoritative. Browser drafts used to override saved content,
+  // which made the preview differ from the live page after refresh or login.
   useEffect(() => {
-    if (sections['our-story:full_page_wysiwyg']?.content) {
-      setStoryData((prev: any) => ({ ...prev, ...sections['our-story:full_page_wysiwyg'].content }));
-    }
-    if (sections['future-ready:full_page_wysiwyg']?.content) {
-      setFutureReadyData((prev: any) => ({ ...prev, ...sections['future-ready:full_page_wysiwyg'].content }));
-    }
-    if (sections['safety:full_page_wysiwyg']?.content) {
-      setSafetyData((prev: any) => ({ ...prev, ...sections['safety:full_page_wysiwyg'].content }));
-    }
-    if (sections['standards:full_page_wysiwyg']?.content) {
-      setStandardsData((prev: any) => ({ ...prev, ...sections['standards:full_page_wysiwyg'].content }));
-    }
-    if (sections['impact:full_page_wysiwyg']?.content) {
-      setImpactData((prev: any) => ({ ...prev, ...sections['impact:full_page_wysiwyg'].content }));
-    }
+    setStoryData({ ...defaultStoryData, ...sections['our-story:full_page_wysiwyg']?.content });
+    setFutureReadyData({ ...defaultFutureReadyData, ...sections['future-ready:full_page_wysiwyg']?.content });
+    setSafetyData({ ...defaultSafetyData, ...sections['safety:full_page_wysiwyg']?.content });
+    setStandardsData({ ...defaultStandardsData, ...sections['standards:full_page_wysiwyg']?.content });
+    setImpactData({ ...defaultImpactData, ...sections['impact:full_page_wysiwyg']?.content });
   }, [sections]);
 
   const handleDataChange = (page: WysiwygPageId, field: string, value: any) => {
     setHasUnsavedChanges(true);
     if (page === 'our-story') {
-      setStoryData((prev: any) => {
-        const next = { ...prev, [field]: value };
-        if (typeof window !== 'undefined') localStorage.setItem('gw_wysiwyg_our-story', JSON.stringify(next));
-        return next;
-      });
+      setStoryData((prev: any) => ({ ...prev, [field]: value }));
     } else if (page === 'future-ready') {
-      setFutureReadyData((prev: any) => {
-        const next = { ...prev, [field]: value };
-        if (typeof window !== 'undefined') localStorage.setItem('gw_wysiwyg_future-ready', JSON.stringify(next));
-        return next;
-      });
+      setFutureReadyData((prev: any) => ({ ...prev, [field]: value }));
     } else if (page === 'safety') {
-      setSafetyData((prev: any) => {
-        const next = { ...prev, [field]: value };
-        if (typeof window !== 'undefined') localStorage.setItem('gw_wysiwyg_safety', JSON.stringify(next));
-        return next;
-      });
+      setSafetyData((prev: any) => ({ ...prev, [field]: value }));
     } else if (page === 'standards') {
-      setStandardsData((prev: any) => {
-        const next = { ...prev, [field]: value };
-        if (typeof window !== 'undefined') localStorage.setItem('gw_wysiwyg_standards', JSON.stringify(next));
-        return next;
-      });
+      setStandardsData((prev: any) => ({ ...prev, [field]: value }));
     } else if (page === 'impact') {
-      setImpactData((prev: any) => {
-        const next = { ...prev, [field]: value };
-        if (typeof window !== 'undefined') localStorage.setItem('gw_wysiwyg_impact', JSON.stringify(next));
-        return next;
-      });
+      setImpactData((prev: any) => ({ ...prev, [field]: value }));
     }
   };
 
@@ -701,7 +656,7 @@ export function AboutWysiwygEditor({
         <button
           onClick={handleSaveToDatabase}
           disabled={isSaving}
-          className="flex items-center gap-2 px-6 py-3 rounded-full text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 transition-all shadow-xl hover:shadow-2xl hover:shadow-indigo-500/30 disabled:opacity-50 group border border-indigo-400/30 cursor-pointer"
+          className="flex items-center gap-2 px-6 py-3 rounded-full text-xs font-black text-white bg-[#1D5EC8] hover:bg-[#164EA8] active:scale-95 transition-all shadow-xl disabled:opacity-50 group border border-blue-300/40 cursor-pointer"
         >
           {isSaving ? (
             <RefreshCw size={15} className="animate-spin" />
@@ -711,6 +666,8 @@ export function AboutWysiwygEditor({
           <span>{isSaving ? 'Publishing...' : hasUnsavedChanges ? 'Publish Changes *' : 'Save to Live Database'}</span>
         </button>
       </div>
+
+      <p className="mb-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-slate-700">Edit text in the blue fields, use photo buttons to change images, then save your changes.</p>
 
       {/* =========================================================================
           LIVE EDITORIAL WYSIWYG CANVAS (100% IDENTICAL STYLING TO PUBLIC PAGES)
@@ -876,8 +833,9 @@ export function AboutWysiwygEditor({
                         ...storyData.disciplines,
                         {
                           number: `0${storyData.disciplines.length + 1}`,
-                          title: 'New Engineering Discipline',
-                          desc: 'Description of the engineering capability, methodologies, and deliverables.',
+                          serviceId: '',
+                          title: 'Choose a service',
+                          desc: '',
                           bullets: ['Core deliverable point one', 'Standard compliance point two'],
                           image: '/real-media/service-topographic-uav.png',
                         },
@@ -886,7 +844,7 @@ export function AboutWysiwygEditor({
                     }}
                     className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#F4382D] text-white text-xs font-bold font-mono flex items-center gap-1.5 transition shrink-0 shadow"
                   >
-                    <Plus size={14} /> Add Discipline Card
+                    <Plus size={14} /> Add service card
                   </button>
                 </div>
 
@@ -923,16 +881,27 @@ export function AboutWysiwygEditor({
 
                       <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
                         <div className="space-y-1.5">
-                          <h3 className="text-base font-bold text-[#141212]">
-                            <EditableText
-                              value={d.title}
-                              onChange={(val) => {
+                          <label className="block text-xs font-semibold text-slate-700">
+                            Service
+                            <select
+                              value={d.serviceId || services.find((item) => item.title === d.title)?.id || ''}
+                              onChange={(event) => {
+                                const service = services.find((item) => item.id === event.target.value);
                                 const next = [...storyData.disciplines];
-                                next[idx].title = val;
+                                next[idx] = service ? {
+                                  ...next[idx], serviceId: service.id, title: service.title,
+                                  desc: service.description, image: service.imageUrl || next[idx].image,
+                                  bullets: service.features?.length ? [...service.features] : next[idx].bullets,
+                                } : { ...next[idx], serviceId: '' };
                                 handleDataChange('our-story', 'disciplines', next);
                               }}
-                            />
-                          </h3>
+                              className="mt-1.5 w-full rounded-lg border border-slate-400 bg-white px-3 py-2.5 text-sm font-semibold text-slate-950 shadow-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/25"
+                            >
+                              <option value="">Choose a service</option>
+                              {services.map((service) => <option key={service.id} value={service.id}>{service.title}{service.isActive ? '' : ' (not currently listed)'}</option>)}
+                            </select>
+                            <span className="mt-1.5 block text-xs font-normal text-slate-600">Shown on the page: <strong className="font-semibold text-slate-800">{d.title || 'Choose a service'}</strong></span>
+                          </label>
                           <p className="text-xs text-neutral-600 leading-relaxed">
                             <EditableText
                               value={d.desc}

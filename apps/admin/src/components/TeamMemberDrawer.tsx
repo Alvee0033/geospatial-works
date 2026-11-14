@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { MediaAssetField } from './MediaAssetField';
 import {
   X,
   Camera,
@@ -383,33 +384,7 @@ export function TeamMemberDrawer({
                   </div>
                 </div>
 
-                {/* Portrait Image */}
-                <div>
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
-                    Profile Portrait Image URL (4:5 Aspect Ratio)
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={formImage}
-                      onChange={(e) => setFormImage(e.target.value)}
-                      placeholder="/team-photos/delwar_hossain.jpg"
-                      className="flex-1 bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-mono text-slate-700 focus:outline-none transition"
-                    />
-                    <button
-                      type="button"
-                      onClick={onOpenMediaPicker}
-                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs"
-                    >
-                      <Camera size={14} /> Browse
-                    </button>
-                  </div>
-                  {formImage && (
-                    <div className="mt-3 relative w-24 h-30 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shadow-xs">
-                      <img src={formImage} alt="" className="w-full h-full object-cover object-top" />
-                    </div>
-                  )}
-                </div>
+                <MediaAssetField label="Profile photo" value={formImage} onChoose={onOpenMediaPicker} onRemove={() => setFormImage('')} aspect="portrait" />
 
                 {/* Sort Order */}
                 <div className="w-48">

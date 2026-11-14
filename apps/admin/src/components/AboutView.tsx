@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ArrowUpRight, X } from 'lucide-react';
 import {
   Compass,
   Sparkles,
@@ -11,6 +12,7 @@ import {
 import { PageSectionItem } from './AboutSectionDrawer';
 import { TeamMemberItem } from './TeamMemberDrawer';
 import { ProjectItem } from './ProjectsView';
+import { ServiceItem } from './ServiceModal';
 import { AboutWysiwygEditor, WysiwygPageId } from './AboutWysiwygEditor';
 
 export type AboutSubTab =
@@ -24,6 +26,7 @@ interface AboutViewProps {
   sections: Record<string, PageSectionItem>;
   teamMembers?: TeamMemberItem[];
   projects: ProjectItem[];
+  services: ServiceItem[];
   loading: boolean;
   searchQuery: string;
   onOpenEditSectionDrawer?: (section: PageSectionItem) => void;
@@ -45,6 +48,7 @@ interface AboutViewProps {
 export function AboutView({
   sections,
   projects,
+  services,
   loading,
   searchQuery,
   onNavigateToProjects,
@@ -53,6 +57,8 @@ export function AboutView({
   triggerFeedback,
 }: AboutViewProps) {
   const [subTab, setSubTab] = useState<AboutSubTab>('our-story');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewVersion, setPreviewVersion] = useState(0);
 
   // Sub-menu definitions (All 5 topical modules have full visual WYSIWYG matching public pages)
   const subMenus = [
@@ -135,17 +141,20 @@ export function AboutView({
           })}
         </div>
 
-        {/* Quick link to live page */}
-        <a
-          href={`https://geospatialworks.com.bd${subMenus.find((s) => s.id === subTab)?.route || '/about/our-story'}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hidden sm:flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-slate-500 hover:text-indigo-600 rounded-md hover:bg-slate-50 transition shrink-0"
-        >
-          <span>View Live</span>
-          <span className="text-[10px]">↗</span>
-        </a>
+        <button type="button" onClick={() => setPreviewOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800">
+          Preview actual page <ArrowUpRight size={14} />
+        </button>
       </div>
+
+      {previewOpen && <div className="fixed inset-0 z-[75] flex items-center justify-center bg-slate-950/60 p-3 sm:p-6">
+        <section role="dialog" aria-modal="true" aria-labelledby="about-preview-title" className="flex h-[min(92vh,1050px)] w-full max-w-[1400px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5">
+            <div><h2 id="about-preview-title" className="text-sm font-semibold text-slate-950">Actual page preview</h2><p className="mt-0.5 text-xs text-slate-500">Save your edits, then refresh to see the published page.</p></div>
+            <div className="flex items-center gap-2"><button type="button" onClick={() => setPreviewVersion((version) => version + 1)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">Refresh preview</button><button type="button" onClick={() => setPreviewOpen(false)} aria-label="Close preview" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={17} /></button></div>
+          </header>
+          <iframe key={previewVersion} title="Actual public About page" src={`${process.env.NEXT_PUBLIC_SITE_PREVIEW_URL || 'http://localhost:3001'}${subMenus.find((item) => item.id === subTab)?.route || '/about/our-story'}`} className="min-h-0 flex-1 border-0 bg-white" />
+        </section>
+      </div>}
 
       {/* =========================================================================
           IN-PAGE WYSIWYG EDITOR FOR ALL 5 PAGES (MATCHES PUBLIC DESIGN 1:1)
@@ -158,6 +167,7 @@ export function AboutView({
         <AboutWysiwygEditor
           pageId={subTab as WysiwygPageId}
           sections={sections}
+          services={services}
           onSaveSection={onSaveWysiwygSection}
           onOpenMediaPicker={onOpenMediaPicker}
           triggerFeedback={triggerFeedback}

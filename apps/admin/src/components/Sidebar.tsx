@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import {
   LayoutDashboard,
   FolderKanban,
@@ -59,9 +60,14 @@ export function Sidebar({
       <div className="p-5">
         {/* Logo & Brand Header */}
         <div className="flex items-center gap-3 mb-8 px-2">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-indigo-100 font-black text-sm">
-            GW
-          </div>
+          <Image
+            src="/gw-logo-pure-original.png"
+            alt="Geospatial Works"
+            width={44}
+            height={44}
+            priority
+            className="h-10 w-10 shrink-0 object-contain"
+          />
           <div>
             <h2 className="text-sm font-bold text-slate-900 leading-tight">Geospatial Works</h2>
             <p className="text-[11px] text-slate-400 font-medium">Admin Portal</p>
@@ -98,7 +104,7 @@ export function Sidebar({
           >
             <div className="flex items-center gap-2.5">
               <MonitorPlay size={16} />
-              <span>Landing Page</span>
+              <span>Homepage</span>
             </div>
             <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
               CMS
@@ -116,7 +122,7 @@ export function Sidebar({
           >
             <div className="flex items-center gap-2.5">
               <Users size={16} />
-              <span>Team &amp; Engineers</span>
+              <span>Team</span>
             </div>
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold border border-indigo-200/60">
               {teamCount}
@@ -170,7 +176,7 @@ export function Sidebar({
           >
             <div className="flex items-center gap-2.5">
               <Newspaper size={16} />
-              <span>News &amp; Bulletins</span>
+              <span>News</span>
             </div>
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200/60">
               {articlesCount}
@@ -188,7 +194,7 @@ export function Sidebar({
           >
             <div className="flex items-center gap-2.5">
               <Building2 size={16} />
-              <span>Who We Are (About)</span>
+              <span>About</span>
             </div>
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold border border-slate-200/60">
               5
@@ -206,7 +212,7 @@ export function Sidebar({
           >
             <div className="flex items-center gap-2.5">
               <Briefcase size={16} />
-              <span>Careers &amp; Hiring</span>
+              <span>Jobs</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-red-100 text-[#F4382D] font-bold">
@@ -231,7 +237,7 @@ export function Sidebar({
           >
             <div className="flex items-center gap-2.5">
               <Mail size={16} />
-              <span>Leads &amp; Enquiries</span>
+              <span>Enquiries</span>
             </div>
             {inquiriesCount > 0 && (
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold border border-indigo-200/60">
