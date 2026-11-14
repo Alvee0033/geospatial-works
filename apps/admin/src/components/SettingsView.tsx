@@ -425,71 +425,74 @@ export function SettingsView({
   return (
     <div className="space-y-6">
       {/* Top Navigation Tabs for Settings */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-2.5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {/* Subtab: Company & Contact Settings */}
           <button
             onClick={() => setSubTab('contact')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
               subTab === 'contact'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <MapPin size={16} />
-            <span>Company &amp; Contact Info (Edit All)</span>
+            <MapPin size={15} />
+            <span>Corporate Info &amp; Geodetics</span>
           </button>
 
           {/* Subtab: User Accounts */}
           <button
             onClick={() => setSubTab('users')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
               subTab === 'users'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <Users size={16} />
-            <span>User Accounts ({users.length})</span>
+            <Users size={15} />
+            <span>User Accounts</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${subTab === 'users' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
+              {users.length}
+            </span>
           </button>
 
           {/* Subtab: RBAC Matrix */}
           <button
             onClick={() => setSubTab('rbac')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
               subTab === 'rbac'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <Shield size={16} />
-            <span>Access Control Matrix (RBAC)</span>
+            <Shield size={15} />
+            <span>Access Control (RBAC)</span>
           </button>
 
           {/* Subtab: Security */}
           <button
             onClick={() => setSubTab('security')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
               subTab === 'security'
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            <Lock size={16} />
-            <span>Security &amp; Encryption</span>
+            <Lock size={15} />
+            <span>Security &amp; Architecture</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pr-1">
           {subTab === 'contact' && (
             <a
               href="https://geospatialworks.com.bd/contact"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
             >
               <span>View Live Contact Page</span>
-              <ExternalLink size={13} />
+              <ExternalLink size={12} className="text-slate-400" />
             </a>
           )}
 
@@ -502,10 +505,10 @@ export function SettingsView({
                 setNewRole('EDITOR');
                 setCreateModalOpen(true);
               }}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-2 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-lg bg-[#F4382D] hover:bg-red-700 text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
-              <UserPlus size={16} />
-              <span>Provision New User</span>
+              <UserPlus size={14} />
+              <span>Provision User</span>
             </button>
           )}
         </div>
@@ -920,88 +923,45 @@ export function SettingsView({
                 </div>
 
                 {/* =========================================================================
-                    INTERACTIVE MAGNETIC PIN LIVE SIMULATOR
-                    Admins can physically experience the magnetic cursor pull here
+                    ENTERPRISE GEODETIC MAP - ACTUAL INTERACTIVE MAP EMBED
+                    Renders the actual live geographic location with surveyor coordinates
                     ========================================================================= */}
-                <div className="pt-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-indigo-600 flex items-center gap-1.5">
-                      <Sparkles size={13} />
-                      Interactive Magnetic Pin Preview
+                <div className="pt-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                      <Compass size={14} className="text-blue-600" />
+                      Actual Enterprise Map Location
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">Move mouse below</span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {contactInfo.latitude && contactInfo.longitude
+                        ? `${contactInfo.latitude}°N, ${contactInfo.longitude}°E`
+                        : 'Dhaka HQ'}
+                    </span>
                   </div>
 
-                  <div
-                    onMouseEnter={() => setIsHoveringMap(true)}
-                    onMouseLeave={() => {
-                      setIsHoveringMap(false);
-                      setMousePos({ x: 0, y: 0 });
-                    }}
-                    onMouseMove={(e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const x = e.clientX - (rect.left + rect.width / 2);
-                      const y = e.clientY - (rect.top + rect.height / 2);
-                      // Damped magnetic pull physics
-                      setMousePos({
-                        x: Math.max(-40, Math.min(40, x * 0.25)),
-                        y: Math.max(-30, Math.min(30, y * 0.25)),
-                      });
-                    }}
-                    className="relative h-64 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-[#0B1F44] border border-slate-800 overflow-hidden shadow-inner flex items-center justify-center cursor-crosshair select-none group"
-                  >
-                    {/* Tactical Geodetic Grid Background */}
-                    <div
-                      className="absolute inset-0 opacity-20 pointer-events-none"
-                      style={{
-                        backgroundImage:
-                          'radial-gradient(circle at 1px 1px, #3B82F6 1px, transparent 0)',
-                        backgroundSize: '24px 24px',
-                      }}
+                  <div className="relative h-64 w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-inner group">
+                    <iframe
+                      title="Geospatial Works HQ Location"
+                      src={
+                        contactInfo.mapEmbedUrl ||
+                        `https://www.google.com/maps?q=${encodeURIComponent(
+                          contactInfo.address + ', ' + contactInfo.city
+                        )}&output=embed`
+                      }
+                      className="w-full h-full border-0"
+                      loading="lazy"
+                      allowFullScreen
+                      referrerPolicy="no-referrer-when-downgrade"
                     />
 
-                    {/* Geodetic Center Crosshair Target */}
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      <div className="w-32 h-32 rounded-full border border-blue-500/20 animate-ping opacity-30" />
-                      <div className="absolute w-24 h-24 rounded-full border border-cyan-400/30" />
-                      <div className="absolute w-48 h-px bg-blue-500/20" />
-                      <div className="absolute h-48 w-px bg-blue-500/20" />
+                    {/* Telemetry Overlay Pill */}
+                    <div className="absolute top-2.5 left-2.5 bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-white text-[10px] font-mono shadow-md flex items-center gap-2 pointer-events-none">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>{contactInfo.companyName} HQ</span>
                     </div>
 
-                    {/* The Magnetic Pin */}
-                    <div
-                      className="relative z-10 flex flex-col items-center transition-transform duration-100 ease-out"
-                      style={{
-                        transform: `translate3d(${mousePos.x}px, ${mousePos.y}px, 0)`,
-                      }}
-                    >
-                      {/* Floating Geodetic Badge */}
-                      <div className="mb-2 px-3 py-1 rounded-lg bg-black/80 backdrop-blur-md border border-white/20 text-white text-[10px] font-mono shadow-xl flex items-center gap-1.5 whitespace-nowrap">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#F4382D] animate-ping" />
-                        <span>HQ LAT: {contactInfo.latitude}°N</span>
-                      </div>
-
-                      {/* Needle Pin Marker */}
-                      <div className="relative group-hover:scale-110 transition-transform">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#F4382D] to-orange-500 text-white flex items-center justify-center shadow-lg shadow-red-500/40 ring-4 ring-white/20">
-                          <MapPin size={22} className="text-white drop-shadow-md" />
-                        </div>
-                        {/* Pointed Pin Tip Base */}
-                        <div className="w-2 h-2 bg-[#F4382D] mx-auto rotate-45 -mt-1 shadow-xs" />
-                      </div>
-
-                      {/* Ground Magnetic Pulse Shadow */}
-                      <div className="w-8 h-2 rounded-full bg-cyan-400/40 blur-xs mt-1" />
-                    </div>
-
-                    {/* Telemetry HUD in Corner */}
-                    <div className="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[10px] text-cyan-300 font-mono space-y-0.5">
-                      <div>DATUM: {contactInfo.datum}</div>
-                      <div>MAGNETIC DAMPING: ACTIVE</div>
-                    </div>
-
-                    <div className="absolute top-3 right-3 bg-slate-900/90 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[10px] text-slate-300 font-mono">
-                      EL: {contactInfo.elevation}
+                    <div className="absolute bottom-2.5 right-2.5 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-cyan-300 text-[9px] font-mono shadow-md pointer-events-none">
+                      DATUM: {contactInfo.datum || 'WGS 84'}
                     </div>
                   </div>
                 </div>

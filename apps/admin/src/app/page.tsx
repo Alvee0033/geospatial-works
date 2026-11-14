@@ -41,6 +41,7 @@ export default function AdminPage() {
   const [applications, setApplications] = useState<ApplicationItem[]>([]);
   const [inquiries, setInquiries] = useState<InquiryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataLoadErrors, setDataLoadErrors] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [revalidating, setRevalidating] = useState(false);
   const [feedback, setFeedback] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
@@ -276,41 +277,55 @@ export default function AdminPage() {
 
   const loadAllData = async () => {
     setLoading(true);
-    try {
-      const [projRes, svcRes, artRes, teamRes, secRes, jobsRes, appsRes, heroRes, equipRes, inqRes] = await Promise.all([
-        fetch(`${API_BASE}/projects/admin/all`, { headers: getAuthHeaders() }),
-        fetch(`${API_BASE}/services/admin/all`, { headers: getAuthHeaders() }),
-        fetch(`${API_BASE}/articles/admin/all`, { headers: getAuthHeaders() }),
-        fetch(`${API_BASE}/team/admin/all`, { headers: getAuthHeaders() }).catch(() => fetch(`${API_BASE}/team`)),
-        fetch(`${API_BASE}/cms/admin/sections`, { headers: getAuthHeaders() }).catch(() => null),
-        fetch(`${API_BASE}/careers/admin/jobs`, { headers: getAuthHeaders() }).catch(() => fetch(`${API_BASE}/careers/jobs`)),
-        fetch(`${API_BASE}/careers/admin/applications`, { headers: getAuthHeaders() }).catch(() => null),
-        fetch(`${API_BASE}/cms/admin/hero-slides`, { headers: getAuthHeaders() }).catch(() => fetch(`${API_BASE}/cms/hero-slides`)),
-        fetch(`${API_BASE}/fleet/equipment`).catch(() => null),
-        fetch(`${API_BASE}/contact/admin/inquiries`, { headers: getAuthHeaders() }).catch(() => null),
-      ]);
-      if (projRes && projRes.ok) setProjects(await projRes.json());
-      if (svcRes && svcRes.ok) setServices(await svcRes.json());
-      if (artRes && artRes.ok) setArticles(await artRes.json());
-      if (teamRes && teamRes.ok) setTeamMembers(await teamRes.json());
-      if (jobsRes && jobsRes.ok) setJobs(await jobsRes.json());
-      if (appsRes && appsRes.ok) setApplications(await appsRes.json());
-      if (heroRes && heroRes.ok) setHeroSlides(await heroRes.json());
-      if (equipRes && equipRes.ok) setEquipment(await equipRes.json());
-      if (inqRes && inqRes.ok) setInquiries(await inqRes.json());
-      if (secRes && secRes.ok) {
-        const secList: PageSectionItem[] = await secRes.json();
-        const secMap: Record<string, PageSectionItem> = {};
-        secList.forEach((s) => {
-          secMap[`${s.pageKey}:${s.sectionKey}`] = s;
-        });
-        setSections(secMap);
+    const headers = getAuthHeaders();
+    const resources: Array<{
+      label: string;
+      url: string;
+      headers: Record<string, string>;
+      apply: (value: unknown) => void;
+    }> = [
+      { label: 'Projects', url: `${API_BASE}/projects/admin/all`, headers, apply: (value) => setProjects(value as ProjectItem[]) },
+      { label: 'Services', url: `${API_BASE}/services/admin/all`, headers, apply: (value) => setServices(value as ServiceItem[]) },
+      { label: 'News', url: `${API_BASE}/articles/admin/all`, headers, apply: (value) => setArticles(value as ArticleItem[]) },
+      { label: 'Team', url: `${API_BASE}/team/admin/all`, headers, apply: (value) => setTeamMembers(value as TeamMemberItem[]) },
+      {
+        label: 'Page content',
+        url: `${API_BASE}/cms/admin/sections`,
+        headers,
+        apply: (value) => {
+          const sectionMap: Record<string, PageSectionItem> = {};
+          (value as PageSectionItem[]).forEach((section) => {
+            sectionMap[`${section.pageKey}:${section.sectionKey}`] = section;
+          });
+          setSections(sectionMap);
+        },
+      },
+      { label: 'Job posts', url: `${API_BASE}/careers/admin/jobs`, headers, apply: (value) => setJobs(value as JobPostItem[]) },
+      { label: 'Applications', url: `${API_BASE}/careers/admin/applications`, headers, apply: (value) => setApplications(value as ApplicationItem[]) },
+      { label: 'Hero slides', url: `${API_BASE}/cms/admin/hero-slides`, headers, apply: (value) => setHeroSlides(value as HeroSlideItem[]) },
+      { label: 'Equipment', url: `${API_BASE}/fleet/equipment`, headers: { 'Content-Type': 'application/json' }, apply: (value) => setEquipment(value as EquipmentItem[]) },
+      { label: 'Enquiries', url: `${API_BASE}/contact/admin/inquiries`, headers, apply: (value) => setInquiries(value as InquiryItem[]) },
+    ];
+
+    const results = await Promise.allSettled(
+      resources.map(async ({ label, url, headers: requestHeaders }) => {
+        const response = await fetch(url, { headers: requestHeaders });
+        if (!response.ok) throw new Error(`${label} (${response.status})`);
+        return response.json() as Promise<unknown>;
+      })
+    );
+    const errors: string[] = [];
+    results.forEach((result, index) => {
+      const resource = resources[index];
+      if (result.status === 'rejected') {
+        errors.push(result.reason instanceof Error ? result.reason.message : `${resource.label} could not be loaded`);
+        return;
       }
-    } catch (e) {
-      console.error('Failed to fetch data', e);
-    } finally {
-      setLoading(false);
-    }
+      resource.apply(result.value);
+    });
+    setDataLoadErrors(errors);
+    if (errors.length) console.error('Admin data load failures:', errors);
+    setLoading(false);
   };
 
   const handlePurgeCache = async () => {
@@ -450,8 +465,8 @@ export default function AdminPage() {
     }
   };
 
-  const handleToggleMilestone = async (proj: ProjectItem) => {
-    const updated = !proj.isMilestone;
+  const handleToggleMilestone = async (proj: ProjectItem, desiredState?: boolean) => {
+    const updated = desiredState ?? !proj.isMilestone;
     try {
       const res = await fetch(`${API_BASE}/projects/admin/${proj.id}`, {
         method: 'PUT',
@@ -593,8 +608,8 @@ export default function AdminPage() {
     }
   };
 
-  const handleToggleServiceActive = async (svc: ServiceItem) => {
-    const updated = !svc.isActive;
+  const handleToggleServiceActive = async (svc: ServiceItem, desiredState?: boolean) => {
+    const updated = desiredState ?? !svc.isActive;
     try {
       const res = await fetch(`${API_BASE}/services/admin/${svc.id}`, {
         method: 'PUT',
@@ -1249,6 +1264,9 @@ export default function AdminPage() {
           onOpenCreateServiceModal={openCreateServiceModal}
           onOpenCreateNewsModal={openCreateNewsModal}
           onOpenCreateTeamModal={openCreateTeamDrawer}
+          onOpenCreateJobModal={openCreateJobModal}
+          onRefreshData={loadAllData}
+          loading={loading}
           onPurgeCache={handlePurgeCache}
           revalidating={revalidating}
         />
@@ -1267,10 +1285,24 @@ export default function AdminPage() {
 
         {/* Views */}
         <main className="flex-1 overflow-y-auto p-8">
+          {dataLoadErrors.length > 0 && (
+            <div role="alert" className="mb-5 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-semibold">Some content could not be loaded from the admin API.</p>
+                <p className="mt-1 text-xs text-amber-800">{dataLoadErrors.join(' · ')}</p>
+              </div>
+              <button type="button" onClick={loadAllData} disabled={loading} className="shrink-0 rounded-xl border border-amber-300 bg-white px-3 py-2 text-xs font-semibold hover:bg-amber-100 disabled:opacity-50">
+                {loading ? 'Refreshing…' : 'Retry loading'}
+              </button>
+            </div>
+          )}
           {activeTab === 'dashboard' && (
             <DashboardView
               projects={projects}
               inquiriesCount={inquiries.length}
+              servicesCount={services.length}
+              articlesCount={articles.length}
+              teamCount={teamMembers.length}
               onNavigateToProjects={() => setActiveTab('projects')}
               onNavigateToInquiries={() => handleSetActiveTab('inquiries')}
               onOpenCreateModal={openCreateProjectModal}
@@ -1285,7 +1317,12 @@ export default function AdminPage() {
               projects={projects}
               equipment={equipment}
               articles={articles}
+              teamMembers={teamMembers}
               sections={sections}
+              onOpenMediaPicker={(callback) => {
+                setMediaTargetCallback(() => (url: string) => callback(url));
+                setMediaModalOpen(true);
+              }}
               onSaveHeroSlide={async (slide) => {
                 const token = getAuthHeaders();
                 const isUpdate = !!slide.id;
@@ -1297,10 +1334,16 @@ export default function AdminPage() {
                   body: JSON.stringify(slide),
                 });
                 if (res.ok) {
-                  triggerFeedback(isUpdate ? 'Slide updated successfully!' : 'New hero slide added!');
-                  loadAllData();
+                  const savedSlide = await res.json();
+                  setHeroSlides((current) =>
+                    isUpdate
+                      ? current.map((item) => item.id === savedSlide.id ? savedSlide : item)
+                      : [...current, savedSlide]
+                  );
+                  return true;
                 } else {
-                  triggerFeedback('Failed to save slide', 'error');
+                  triggerFeedback('Failed to save hero slide. Check the API and try again.', 'error');
+                  return false;
                 }
               }}
               onDeleteHeroSlide={async (id) => {
@@ -1309,8 +1352,8 @@ export default function AdminPage() {
                   headers: getAuthHeaders(),
                 });
                 if (res.ok) {
-                  triggerFeedback('Hero slide deleted');
-                  loadAllData();
+                  setHeroSlides((current) => current.filter((slide) => slide.id !== id));
+                  triggerFeedback('Hero slide deleted.');
                 } else {
                   triggerFeedback('Failed to delete hero slide', 'error');
                 }
@@ -1323,22 +1366,18 @@ export default function AdminPage() {
                   data.subtitle || '',
                   data.content || {}
                 );
-                if (success) {
-                  triggerFeedback(`Updated ${sectionKey.replace(/_/g, ' ')} section!`);
-                } else {
-                  triggerFeedback('Failed to update section', 'error');
-                }
+                return success;
               }}
               onToggleServiceActive={async (id, active) => {
                 const svc = services.find((s) => s.id === id);
                 if (svc) {
-                  await handleToggleServiceActive(svc);
+                  await handleToggleServiceActive(svc, active);
                 }
               }}
               onToggleProjectMilestone={async (id, isMilestone) => {
                 const proj = projects.find((p) => p.id === id);
                 if (proj) {
-                  await handleToggleMilestone(proj);
+                  await handleToggleMilestone(proj, isMilestone);
                 }
               }}
               onRefresh={loadAllData}
@@ -1401,6 +1440,7 @@ export default function AdminPage() {
               sections={sections}
               teamMembers={teamMembers}
               projects={projects}
+              services={services}
               loading={loading}
               searchQuery={searchQuery}
               onOpenEditSectionDrawer={openEditSectionDrawer}
@@ -1436,7 +1476,6 @@ export default function AdminPage() {
               loading={loading}
               onUpdateStatus={handleUpdateInquiryStatus}
               onDeleteInquiry={handleDeleteInquiry}
-              onCreateInquiry={handleCreateInquiry}
               onRefresh={loadAllData}
               triggerFeedback={triggerFeedback}
             />
