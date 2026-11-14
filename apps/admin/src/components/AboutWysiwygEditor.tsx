@@ -65,7 +65,7 @@ function EditableText({
   multiline?: boolean;
   rows?: number;
 }) {
-  const common = `block min-w-0 max-w-full box-border transition-all outline-none rounded-lg px-2 py-1 border border-blue-300 bg-blue-50/95 text-slate-950 shadow-sm hover:border-blue-500 hover:bg-blue-100 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-500/25 cursor-text placeholder:text-slate-600 ${className}`;
+  const common = `block min-w-0 max-w-full box-border transition-colors duration-150 outline-none rounded-md px-2 py-1 bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] focus:bg-white focus:text-slate-900 border border-dashed border-slate-300 hover:border-slate-400 focus:border-solid focus:border-slate-800 focus:ring-1 focus:ring-slate-800 text-inherit cursor-text placeholder:text-slate-400 font-inherit ${className}`;
 
   if (multiline) {
     return (
@@ -667,13 +667,16 @@ export function AboutWysiwygEditor({
         </button>
       </div>
 
-      <p className="mb-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-slate-700">Edit text in the blue fields, use photo buttons to change images, then save your changes.</p>
+      <div className="mb-3 flex items-center justify-between text-xs text-slate-500 px-1">
+        <span>Click any dashed field to edit inline. Changes preview live in place.</span>
+        <span className="font-mono text-[11px] text-slate-400">1:1 Public Layout</span>
+      </div>
 
       {/* =========================================================================
           LIVE EDITORIAL WYSIWYG CANVAS (100% IDENTICAL STYLING TO PUBLIC PAGES)
           ========================================================================= */}
-      <div className="bg-slate-200/60 p-2 sm:p-4 rounded-2xl border border-slate-300/80 shadow-inner overflow-hidden">
-        <div className="w-full bg-white text-[#141212] rounded-xl shadow-2xl border border-slate-300 overflow-hidden font-sans">
+      <div className="bg-slate-100 p-2 sm:p-4 rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="w-full bg-white text-[#141212] rounded-xl shadow-lg border border-slate-200 overflow-hidden font-sans">
           {/* =========================================================================
               PAGE 1: OUR STORY & PURPOSE
               ========================================================================= */}
