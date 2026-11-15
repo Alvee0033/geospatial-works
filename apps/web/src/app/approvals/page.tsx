@@ -22,6 +22,8 @@ import {
   ShieldAlert,
   Users,
   Eye,
+  MessageSquare,
+  Send,
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
@@ -41,6 +43,112 @@ export default function ApprovalsQueuePage() {
   // Voucher preview & inspection modal
   const [previewVoucherUrl, setPreviewVoucherUrl] = useState<string | null>(null);
   const [inspectExpense, setInspectExpense] = useState<any | null>(null);
+  const [newComment, setNewComment] = useState('');
+  const [postingComment, setPostingComment] = useState(false);
+  const commentsEndRef = React.useRef<HTMLDivElement>(null);
+
+  // Auto-scroll remarks stream when new comment arrives or opens
+  useEffect(() => {
+    if (inspectExpense?.comments?.length) {
+      commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [inspectExpense?.comments?.length]);
+
+  // Open inspection and immediately ensure freshest comments
+  const handleOpenInspectExpense = async (exp: any) => {
+    setInspectExpense(exp);
+    setNewComment('');
+    try {
+      const fresh = await ApiClient.getExpenseById(exp.id);
+      if (fresh) {
+        setInspectExpense(fresh);
+        setExpenses((prev) => prev.map((item) => (item.id === exp.id ? fresh : item)));
+      }
+    } catch {
+      // Keep existing data on transient fetch error
+    }
+  };
+
+  // Resolve comment author name, role, avatar, and reviewer styling
+  const getCommentAuthorInfo = (c: any) => {
+    const rawName = (c.authorName || c.author_name || c.userName || c.user_name || '').trim();
+    const rawRole = (c.authorRole || c.author_role || '').toLowerCase();
+    const authorId = c.authorId || c.author_id;
+
+    const matchedUser = users.find(
+      (u) =>
+        (authorId && (u.id === authorId || u.userId === authorId)) ||
+        (rawName && u.name && u.name.toLowerCase() === rawName.toLowerCase()) ||
+        (rawName && u.full_name && u.full_name.toLowerCase() === rawName.toLowerCase())
+    );
+
+    let authorName = rawName;
+    if (!authorName || authorName === 'User' || authorName === 'Admin' || authorName === 'Administrator') {
+      if (matchedUser?.name) authorName = matchedUser.name;
+      else if (matchedUser?.full_name) authorName = matchedUser.full_name;
+      else if (matchedUser?.fullName) authorName = matchedUser.fullName;
+      else if (rawName) authorName = rawName;
+      else authorName = 'Team Member';
+    }
+
+    const avatarUrl =
+      c.avatarUrl ||
+      c.authorAvatar ||
+      c.author_avatar ||
+      c.userAvatarUrl ||
+      matchedUser?.avatarUrl ||
+      matchedUser?.avatar_url;
+
+    const isReviewer =
+      rawRole.includes('admin') ||
+      rawRole.includes('manager') ||
+      rawRole.includes('finance') ||
+      rawRole.includes('auditor') ||
+      (c.authorRole && c.authorRole !== 'project_member');
+
+    let displayRole = 'Team Member';
+    if (rawRole.includes('main_admin') || rawRole.includes('super')) displayRole = 'Super Admin';
+    else if (rawRole.includes('admin')) displayRole = 'Admin';
+    else if (rawRole.includes('project_manager') || rawRole.includes('manager')) displayRole = 'Project Manager';
+    else if (rawRole.includes('finance')) displayRole = 'Finance';
+    else if (
+      inspectExpense &&
+      (authorId === inspectExpense.employeeId ||
+        authorName.toLowerCase() ===
+          (inspectExpense.employeeName || inspectExpense.employee_name || '').toLowerCase())
+    ) {
+      displayRole = 'Claimant';
+    } else if (matchedUser?.role) {
+      displayRole = matchedUser.role.replace('_', ' ').toUpperCase();
+    }
+
+    return { authorName, displayRole, avatarUrl, isReviewer };
+  };
+
+  // Post comment to expense discussion thread
+  const handleAddComment = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!inspectExpense?.id || !newComment.trim() || postingComment) return;
+
+    const commentText = newComment.trim();
+    setPostingComment(true);
+    try {
+      await ApiClient.addExpenseComment(inspectExpense.id, commentText);
+      setNewComment('');
+      const updatedExpense = await ApiClient.getExpenseById(inspectExpense.id);
+      if (updatedExpense) {
+        setInspectExpense(updatedExpense);
+        setExpenses((prev) =>
+          prev.map((item) => (item.id === inspectExpense.id ? updatedExpense : item))
+        );
+      }
+    } catch (err: any) {
+      console.error('Failed to post remark:', err);
+      alert(`Failed to post remark: ${err.message || 'Unknown error'}`);
+    } finally {
+      setPostingComment(false);
+    }
+  };
 
   // Rejection modal
   const [itemToReject, setItemToReject] = useState<{ id: string; type: 'expense' | 'leave'; name: string } | null>(null);
@@ -505,7 +613,25 @@ export default function ApprovalsQueuePage() {
                               <div className="flex items-center justify-end gap-1.5">
                                 <button
                                   type="button"
-                                  onClick={() => setInspectExpense(exp)}
+                                  onClick={() => handleOpenInspectExpense(exp)}
+                                  className={`p-1.5 rounded-xl transition-all shadow-xs relative flex items-center gap-1 ${
+                                    (exp.comments?.length || 0) > 0
+                                      ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold'
+                                      : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                                  }`}
+                                  title="Audit Remarks & Clarification Thread"
+                                >
+                                  <MessageSquare size={13} />
+                                  {(exp.comments?.length || 0) > 0 && (
+                                    <span className="text-[11px] font-bold">{exp.comments.length}</span>
+                                  )}
+                                  {((exp.comments?.length || 0) > 0 || exp.justificationStatus === 'clarification_requested') && (
+                                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenInspectExpense(exp)}
                                   className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1 transition-all shadow-xs"
                                   title="Inspect Expense Details"
                                 >
@@ -773,35 +899,99 @@ export default function ApprovalsQueuePage() {
                 </div>
               )}
 
-              {/* Audit Comments Thread */}
-              {inspectExpense.comments && inspectExpense.comments.length > 0 && (
-                <div className="space-y-2 text-xs">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Audit Remarks ({inspectExpense.comments.length})
+              {/* Audit Remarks & Clarification Thread */}
+              <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 flex flex-col h-[320px]">
+                <div className="flex items-center justify-between pb-2 shrink-0">
+                  <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
+                    <MessageSquare size={14} className="text-indigo-600" />
+                    Audit Remarks & Clarification Thread ({inspectExpense.comments?.length || 0})
                   </span>
-                  <div className="space-y-2 max-h-36 overflow-y-auto">
-                    {inspectExpense.comments.map((c: any, idx: number) => (
-                      <div key={idx} className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-2">
-                        <UserAvatar
-                          src={c.avatarUrl || c.userAvatarUrl}
-                          name={c.userName || 'Administrator'}
-                          size="sm"
-                          shape="rounded"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="font-bold text-slate-900 text-xs">{c.userName || 'Admin'}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">
-                              {c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                            </span>
-                          </div>
-                          <p className="text-slate-700 text-xs">{c.comment || c.text}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  {(inspectExpense.comments?.length || 0) > 0 && (
+                    <span className="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">
+                      Live Thread
+                    </span>
+                  )}
                 </div>
-              )}
+
+                {/* Comment list stream - separately scrollable */}
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-2.5 pr-1.5 my-1">
+                  {(!inspectExpense.comments || inspectExpense.comments.length === 0) ? (
+                    <div className="h-full flex flex-col items-center justify-center py-6 text-center bg-white border border-dashed border-slate-200 rounded-xl">
+                      <MessageSquare size={22} className="mx-auto text-slate-300 mb-1" />
+                      <p className="text-slate-600 font-medium text-xs">No audit remarks or clarification questions yet.</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Ask the claimant for clarification or leave an audit note below.</p>
+                    </div>
+                  ) : (
+                    <>
+                      {inspectExpense.comments.map((c: any, idx: number) => {
+                        const { authorName, displayRole, avatarUrl, isReviewer } = getCommentAuthorInfo(c);
+                        return (
+                          <div
+                            key={c.id || idx}
+                            className={`p-3 rounded-xl border flex items-start gap-2.5 transition-all ${
+                              isReviewer
+                                ? 'bg-indigo-50/60 border-indigo-100'
+                                : 'bg-white border-slate-200/80'
+                            }`}
+                          >
+                            <UserAvatar
+                              src={avatarUrl}
+                              name={authorName}
+                              size="sm"
+                              shape="rounded"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-bold text-slate-900 text-xs">{authorName}</span>
+                                  <span
+                                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider ${
+                                      isReviewer
+                                        ? 'bg-indigo-100 text-indigo-700'
+                                        : 'bg-slate-200/80 text-slate-700'
+                                    }`}
+                                  >
+                                    {displayRole}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {c.createdAt
+                                    ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                    : ''}
+                                </span>
+                              </div>
+                              <p className="text-slate-800 text-xs leading-relaxed whitespace-pre-wrap">
+                                {c.comment || c.comment_text || c.text}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div ref={commentsEndRef} />
+                    </>
+                  )}
+                </div>
+
+                {/* Write & Send Box - pinned at bottom of card */}
+                <form onSubmit={handleAddComment} className="flex items-center gap-2 pt-2 border-t border-slate-200/70 shrink-0">
+                  <input
+                    type="text"
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Ask for clarification or reply to audit remarks..."
+                    disabled={postingComment}
+                    className="flex-1 px-3.5 py-2.5 bg-white border border-slate-200 focus:border-indigo-500 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all shadow-2xs"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newComment.trim() || postingComment}
+                    className="px-4 py-2.5 bg-[#0D1117] hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-xs shrink-0"
+                  >
+                    <Send size={13} />
+                    <span>{postingComment ? 'Posting...' : 'Send'}</span>
+                  </button>
+                </form>
+              </div>
 
               {/* Modal Actions */}
               <div className="flex items-center justify-between pt-3 border-t border-slate-100">

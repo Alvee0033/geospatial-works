@@ -1725,25 +1725,45 @@ function ProjectDetailContent() {
                         No audit remarks posted yet.
                       </p>
                     ) : (
-                      inspectExp.comments.map((c: any, idx: number) => (
-                        <div key={idx} className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-2.5">
-                          <UserAvatar
-                            src={c.avatarUrl || c.userAvatarUrl}
-                            name={c.userName || 'Auditor'}
-                            size="sm"
-                            shape="rounded"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-0.5">
-                              <span className="font-bold text-slate-900 text-xs">{c.userName || 'Auditor'}</span>
-                              <span className="text-[10px] text-slate-400 font-mono">
-                                {c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                              </span>
+                      inspectExp.comments.map((c: any, idx: number) => {
+                        const authorName = c.authorName || c.author_name || c.userName || c.user_name || 'Team Member';
+                        const authorRole = (c.authorRole || c.author_role || '').toLowerCase();
+                        const isReviewer = authorRole.includes('admin') || authorRole.includes('manager') || authorRole.includes('finance') || authorRole.includes('auditor') || (c.authorRole && c.authorRole !== 'project_member');
+                        const displayRole = authorRole.includes('admin') ? 'Admin' : authorRole.includes('manager') ? 'Project Manager' : authorRole ? authorRole.replace('_', ' ') : 'Member';
+                        return (
+                          <div
+                            key={c.id || idx}
+                            className={`p-2.5 rounded-xl border flex items-start gap-2.5 ${
+                              isReviewer ? 'bg-indigo-50/60 border-indigo-100' : 'bg-slate-50 border-slate-100'
+                            }`}
+                          >
+                            <UserAvatar
+                              src={c.avatarUrl || c.authorAvatar || c.userAvatarUrl}
+                              name={authorName}
+                              size="sm"
+                              shape="rounded"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-0.5">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-bold text-slate-900 text-xs">{authorName}</span>
+                                  <span
+                                    className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                                      isReviewer ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200/70 text-slate-700'
+                                    }`}
+                                  >
+                                    {displayRole}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                </span>
+                              </div>
+                              <p className="text-slate-700 text-xs">{c.comment || c.comment_text || c.text}</p>
                             </div>
-                            <p className="text-slate-700 text-xs">{c.comment || c.text}</p>
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
 

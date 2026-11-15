@@ -128,6 +128,61 @@ export default function ExpensesPage() {
     }
   };
 
+  const getCommentAuthorInfo = (c: any, currentExpense?: any) => {
+    const rawName = (c.authorName || c.author_name || c.userName || c.user_name || '').trim();
+    const rawRole = (c.authorRole || c.author_role || '').toLowerCase();
+    const authorId = c.authorId || c.author_id;
+
+    const matchedUser = users.find(
+      (u) =>
+        (authorId && (u.id === authorId || u.userId === authorId)) ||
+        (rawName && u.name && u.name.toLowerCase() === rawName.toLowerCase()) ||
+        (rawName && u.full_name && u.full_name.toLowerCase() === rawName.toLowerCase())
+    );
+
+    let authorName = rawName;
+    if (!authorName || authorName === 'User' || authorName === 'Admin' || authorName === 'Administrator') {
+      if (matchedUser?.name) authorName = matchedUser.name;
+      else if (matchedUser?.full_name) authorName = matchedUser.full_name;
+      else if (matchedUser?.fullName) authorName = matchedUser.fullName;
+      else if (rawName) authorName = rawName;
+      else authorName = 'Team Member';
+    }
+
+    const avatarUrl =
+      c.avatarUrl ||
+      c.authorAvatar ||
+      c.author_avatar ||
+      c.userAvatarUrl ||
+      matchedUser?.avatarUrl ||
+      matchedUser?.avatar_url;
+
+    const isReviewer =
+      rawRole.includes('admin') ||
+      rawRole.includes('manager') ||
+      rawRole.includes('finance') ||
+      rawRole.includes('auditor') ||
+      (c.authorRole && c.authorRole !== 'project_member');
+
+    let displayRole = 'Team Member';
+    if (rawRole.includes('main_admin') || rawRole.includes('super')) displayRole = 'Super Admin';
+    else if (rawRole.includes('admin')) displayRole = 'Admin';
+    else if (rawRole.includes('project_manager') || rawRole.includes('manager')) displayRole = 'Project Manager';
+    else if (rawRole.includes('finance')) displayRole = 'Finance';
+    else if (
+      currentExpense &&
+      (authorId === (currentExpense.employeeId || currentExpense.userId) ||
+        authorName.toLowerCase() ===
+          (currentExpense.employeeName || currentExpense.employee_name || '').toLowerCase())
+    ) {
+      displayRole = 'Claimant';
+    } else if (matchedUser?.role) {
+      displayRole = matchedUser.role.replace('_', ' ').toUpperCase();
+    }
+
+    return { authorName, displayRole, avatarUrl, isReviewer };
+  };
+
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     const targetId = inspectExp?.id || threadModalExp?.id;
@@ -534,23 +589,42 @@ export default function ExpensesPage() {
                   {(!inspectExp.comments || inspectExp.comments.length === 0) ? (
                     <p className="text-slate-400 py-2 text-center">No discussion entries recorded.</p>
                   ) : (
-                    inspectExp.comments.map((c: any, idx: number) => (
-                      <div key={idx} className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-start gap-2.5">
-                        <UserAvatar
-                          src={c.avatarUrl || c.userAvatarUrl}
-                          name={c.userName || 'Administrator'}
-                          size="sm"
-                          shape="rounded"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="font-bold text-slate-900 text-xs">{c.userName || 'Administrator'}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">{c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                    inspectExp.comments.map((c: any, idx: number) => {
+                      const { authorName, displayRole, avatarUrl, isReviewer } = getCommentAuthorInfo(c, inspectExp);
+                      return (
+                        <div
+                          key={c.id || idx}
+                          className={`p-2.5 rounded-xl border flex items-start gap-2.5 ${
+                            isReviewer ? 'bg-indigo-50/60 border-indigo-100' : 'bg-slate-50 border-slate-100'
+                          }`}
+                        >
+                          <UserAvatar
+                            src={avatarUrl}
+                            name={authorName}
+                            size="sm"
+                            shape="rounded"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-0.5">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-slate-900 text-xs">{authorName}</span>
+                                <span
+                                  className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                                    isReviewer ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200/70 text-slate-700'
+                                  }`}
+                                >
+                                  {displayRole}
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {c.createdAt ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                              </span>
+                            </div>
+                            <p className="text-slate-700 text-xs">{c.comment || c.comment_text || c.text}</p>
                           </div>
-                          <p className="text-slate-700 text-xs">{c.comment || c.text}</p>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
 
@@ -668,25 +742,42 @@ export default function ExpensesPage() {
                   <p className="text-[10px] text-slate-400">Ask the employee for details or post a remark below.</p>
                 </div>
               ) : (
-                threadModalExp.comments.map((c: any, idx: number) => (
-                  <div key={idx} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-2.5">
-                    <UserAvatar
-                      src={c.avatarUrl || c.userAvatarUrl}
-                      name={c.userName || 'Administrator'}
-                      size="sm"
-                      shape="rounded"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="font-bold text-slate-900 text-xs">{c.userName || 'Administrator'}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          {c.createdAt ? new Date(c.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : ''}
-                        </span>
+                threadModalExp.comments.map((c: any, idx: number) => {
+                  const { authorName, displayRole, avatarUrl, isReviewer } = getCommentAuthorInfo(c, threadModalExp);
+                  return (
+                    <div
+                      key={c.id || idx}
+                      className={`p-3 rounded-2xl border flex items-start gap-2.5 transition-all ${
+                        isReviewer ? 'bg-indigo-50/60 border-indigo-100' : 'bg-slate-50 border-slate-100'
+                      }`}
+                    >
+                      <UserAvatar
+                        src={avatarUrl}
+                        name={authorName}
+                        size="sm"
+                        shape="rounded"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-slate-900 text-xs">{authorName}</span>
+                            <span
+                              className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                                isReviewer ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200/70 text-slate-700'
+                              }`}
+                            >
+                              {displayRole}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {c.createdAt ? new Date(c.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : ''}
+                          </span>
+                        </div>
+                        <p className="text-slate-700 text-xs leading-relaxed">{c.comment || c.comment_text || c.text}</p>
                       </div>
-                      <p className="text-slate-700 text-xs leading-relaxed">{c.comment || c.text}</p>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
 
