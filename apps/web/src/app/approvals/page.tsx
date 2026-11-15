@@ -776,16 +776,22 @@ export default function ApprovalsQueuePage() {
 
         {/* MODAL: Expense Claim Inspection Details */}
         {inspectExpense && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-                    <Receipt size={18} />
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+            <div className="bg-white rounded-3xl max-w-4xl w-full h-[90vh] max-h-[820px] shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              {/* Pinned Top Bar */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-2xs font-black">
+                    <Receipt size={20} />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">Voucher Claim Inspection</h3>
-                    <p className="text-[11px] text-slate-400 font-mono">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-slate-900">Voucher Claim Inspection</h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200/60">
+                        {inspectExpense.status || 'Pending'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 font-mono mt-0.5">
                       Ref #{String(inspectExpense.id || '').slice(0, 8)} •{' '}
                       {inspectExpense.date ? new Date(inspectExpense.date).toLocaleDateString() : 'N/A'}
                     </p>
@@ -794,215 +800,238 @@ export default function ApprovalsQueuePage() {
                 <button
                   type="button"
                   onClick={() => setInspectExpense(null)}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 flex items-center justify-center transition-all cursor-pointer"
+                  title="Close modal"
                 >
-                  <X size={15} />
+                  <X size={16} />
                 </button>
               </div>
 
-              {/* Grid Summary */}
-              <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs">
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
-                    Claimant Personnel
-                  </span>
-                  <span className="font-bold text-slate-900">
-                    {inspectExpense.employeeName || inspectExpense.employee_name || 'Staff Member'}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
-                    Project / Cost Code
-                  </span>
-                  <span className="font-semibold text-slate-800">
-                    {inspectExpense.projectName || inspectExpense.project_name || inspectExpense.projectId || 'General Overhead'}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
-                    Category Tag
-                  </span>
-                  <span className="font-semibold text-slate-800 capitalize">
-                    {inspectExpense.categoryName || inspectExpense.category_name || inspectExpense.category || 'General'}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
-                    Total Voucher Amount
-                  </span>
-                  <span className="font-mono font-black text-emerald-600 text-sm">
-                    ৳{(Number(inspectExpense.amount) || 0).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Justification & Note */}
-              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Claim Justification / Description
-                </span>
-                <p className="text-slate-700 leading-relaxed font-medium">
-                  {inspectExpense.note || inspectExpense.description || 'No detailed note was provided with this voucher claim.'}
-                </p>
-                {inspectExpense.justification && (
-                  <p className="text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg mt-1 font-medium">
-                    Remark: {inspectExpense.justification}
-                  </p>
-                )}
-              </div>
-
-              {/* Attached Voucher Slip */}
-              {(inspectExpense.receiptPhotoUrl ||
-                inspectExpense.receipt_photo_url ||
-                inspectExpense.receiptUrl ||
-                inspectExpense.receipt_url) ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                    <span className="flex items-center gap-1.5">
-                      <Receipt size={14} className="text-indigo-600" />
-                      Commercial Voucher Slip
-                    </span>
-                    <a
-                      href={
-                        inspectExpense.receiptPhotoUrl ||
-                        inspectExpense.receipt_photo_url ||
-                        inspectExpense.receiptUrl ||
-                        inspectExpense.receipt_url
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-[11px]"
-                    >
-                      <ExternalLink size={12} /> Open Full Size
-                    </a>
-                  </div>
-                  <div className="p-2 bg-slate-900 rounded-2xl border border-slate-200 flex justify-center overflow-hidden">
-                    <img
-                      src={
-                        inspectExpense.receiptPhotoUrl ||
-                        inspectExpense.receipt_photo_url ||
-                        inspectExpense.receiptUrl ||
-                        inspectExpense.receipt_url
-                      }
-                      alt="Expense voucher"
-                      className="max-h-72 w-auto object-contain rounded-xl shadow-xs"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200/60 text-center text-amber-800 text-xs">
-                  <AlertTriangle size={16} className="mx-auto text-amber-500 mb-1" />
-                  No physical or digital receipt photo was attached to this claim.
-                </div>
-              )}
-
-              {/* Audit Remarks & Clarification Thread */}
-              <div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 flex flex-col h-[320px]">
-                <div className="flex items-center justify-between pb-2 shrink-0">
-                  <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
-                    <MessageSquare size={14} className="text-indigo-600" />
-                    Audit Remarks & Clarification Thread ({inspectExpense.comments?.length || 0})
-                  </span>
-                  {(inspectExpense.comments?.length || 0) > 0 && (
-                    <span className="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">
-                      Live Thread
-                    </span>
-                  )}
-                </div>
-
-                {/* Comment list stream - separately scrollable */}
-                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain space-y-2.5 pr-1.5 my-1">
-                  {(!inspectExpense.comments || inspectExpense.comments.length === 0) ? (
-                    <div className="h-full flex flex-col items-center justify-center py-6 text-center bg-white border border-dashed border-slate-200 rounded-xl">
-                      <MessageSquare size={22} className="mx-auto text-slate-300 mb-1" />
-                      <p className="text-slate-600 font-medium text-xs">No audit remarks or clarification questions yet.</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Ask the claimant for clarification or leave an audit note below.</p>
+              {/* Main Body: Two Column Responsive Grid */}
+              <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-slate-100 bg-slate-50/50">
+                {/* Left Column: Voucher Info, Purpose, Receipt Preview */}
+                <div className="md:col-span-6 lg:col-span-5 p-5 overflow-y-auto space-y-3.5 flex flex-col">
+                  {/* Summary Metric Chips */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="p-3 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Claimant
+                      </span>
+                      <span className="font-bold text-slate-900 text-xs truncate block mt-0.5">
+                        {inspectExpense.employeeName || inspectExpense.employee_name || 'Staff Member'}
+                      </span>
                     </div>
-                  ) : (
-                    <>
-                      {inspectExpense.comments.map((c: any, idx: number) => {
-                        const { authorName, displayRole, avatarUrl, isReviewer } = getCommentAuthorInfo(c);
-                        return (
-                          <div
-                            key={c.id || idx}
-                            className={`p-3 rounded-xl border flex items-start gap-2.5 transition-all ${
-                              isReviewer
-                                ? 'bg-indigo-50/60 border-indigo-100'
-                                : 'bg-white border-slate-200/80'
-                            }`}
-                          >
-                            <UserAvatar
-                              src={avatarUrl}
-                              name={authorName}
-                              size="sm"
-                              shape="rounded"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="font-bold text-slate-900 text-xs">{authorName}</span>
-                                  <span
-                                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider ${
-                                      isReviewer
-                                        ? 'bg-indigo-100 text-indigo-700'
-                                        : 'bg-slate-200/80 text-slate-700'
-                                    }`}
-                                  >
-                                    {displayRole}
+
+                    <div className="p-3 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Total Amount
+                      </span>
+                      <span className="font-mono font-black text-emerald-600 text-sm block mt-0.5">
+                        ৳{(Number(inspectExpense.amount) || 0).toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Project / Code
+                      </span>
+                      <span className="font-semibold text-slate-800 text-xs truncate block mt-0.5">
+                        {inspectExpense.projectName || inspectExpense.project_name || inspectExpense.projectId || 'General'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Category
+                      </span>
+                      <span className="font-semibold text-slate-800 text-xs capitalize truncate block mt-0.5">
+                        {inspectExpense.categoryName || inspectExpense.category_name || inspectExpense.category || 'General'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Operational Note */}
+                  <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs text-xs space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      Claim Description / Note
+                    </span>
+                    <p className="text-slate-700 leading-relaxed font-medium text-xs whitespace-pre-wrap">
+                      {inspectExpense.note || inspectExpense.description || 'No detailed note was provided with this voucher claim.'}
+                    </p>
+                    {inspectExpense.justification && (
+                      <p className="text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg mt-1.5 font-medium border border-amber-200/60">
+                        Remark: {inspectExpense.justification}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Voucher Receipt Slip Preview */}
+                  <div className="flex-1 flex flex-col min-h-[180px]">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
+                      <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-slate-500">
+                        <Receipt size={13} className="text-indigo-600" />
+                        Commercial Voucher Slip
+                      </span>
+                      {(inspectExpense.receiptPhotoUrl ||
+                        inspectExpense.receipt_photo_url ||
+                        inspectExpense.receiptUrl ||
+                        inspectExpense.receipt_url) && (
+                        <a
+                          href={
+                            inspectExpense.receiptPhotoUrl ||
+                            inspectExpense.receipt_photo_url ||
+                            inspectExpense.receiptUrl ||
+                            inspectExpense.receipt_url
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-[11px] font-semibold"
+                        >
+                          <ExternalLink size={12} /> Open Full
+                        </a>
+                      )}
+                    </div>
+
+                    {(inspectExpense.receiptPhotoUrl ||
+                      inspectExpense.receipt_photo_url ||
+                      inspectExpense.receiptUrl ||
+                      inspectExpense.receipt_url) ? (
+                      <div className="flex-1 p-2 bg-slate-900 rounded-2xl border border-slate-200/80 flex items-center justify-center overflow-hidden min-h-[160px] max-h-[260px] shadow-inner">
+                        <img
+                          src={
+                            inspectExpense.receiptPhotoUrl ||
+                            inspectExpense.receipt_photo_url ||
+                            inspectExpense.receiptUrl ||
+                            inspectExpense.receipt_url
+                          }
+                          alt="Expense voucher"
+                          className="max-h-full w-auto object-contain rounded-lg transition-transform hover:scale-105 duration-200"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex-1 p-6 bg-white rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center text-center text-slate-400 text-xs">
+                        <AlertTriangle size={20} className="text-amber-500 mb-1.5 opacity-80" />
+                        <p className="font-semibold text-slate-600">No receipt slip attached</p>
+                        <p className="text-[11px] text-slate-400">Claim submitted without digital receipt photo.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column: Audit Remarks & Clarification Thread with Pinned Send Box */}
+                <div className="md:col-span-6 lg:col-span-7 flex flex-col h-full bg-white">
+                  {/* Thread Header */}
+                  <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+                      <span className="text-xs font-bold text-slate-900 tracking-wide">
+                        Audit Remarks & Clarifications
+                      </span>
+                    </div>
+                    <span className="text-[11px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full border border-indigo-100">
+                      {inspectExpense.comments?.length || 0} messages
+                    </span>
+                  </div>
+
+                  {/* Scrollable Comments Stream */}
+                  <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 space-y-3">
+                    {(!inspectExpense.comments || inspectExpense.comments.length === 0) ? (
+                      <div className="h-full flex flex-col items-center justify-center py-10 text-center px-4">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center mb-2.5">
+                          <MessageSquare size={22} />
+                        </div>
+                        <p className="text-slate-800 font-bold text-xs">No discussion entries recorded</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5 max-w-xs">
+                          Leave an audit remark, question, or verification note below to notify the claimant.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        {inspectExpense.comments.map((c: any, idx: number) => {
+                          const { authorName, displayRole, avatarUrl, isReviewer } = getCommentAuthorInfo(c);
+                          return (
+                            <div
+                              key={c.id || idx}
+                              className={`p-3 rounded-2xl border flex items-start gap-3 transition-all ${
+                                isReviewer
+                                  ? 'bg-indigo-50/60 border-indigo-100 shadow-2xs'
+                                  : 'bg-white border-slate-200/80 shadow-2xs'
+                              }`}
+                            >
+                              <UserAvatar
+                                src={avatarUrl}
+                                name={authorName}
+                                size="sm"
+                                shape="rounded"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="font-bold text-slate-900 text-xs">{authorName}</span>
+                                    <span
+                                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider ${
+                                        isReviewer
+                                          ? 'bg-indigo-100 text-indigo-700'
+                                          : 'bg-slate-100 text-slate-700'
+                                      }`}
+                                    >
+                                      {displayRole}
+                                    </span>
+                                  </div>
+                                  <span className="text-[10px] text-slate-400 font-mono">
+                                    {c.createdAt
+                                      ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                      : ''}
                                   </span>
                                 </div>
-                                <span className="text-[10px] text-slate-400 font-mono">
-                                  {c.createdAt
-                                    ? new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                    : ''}
-                                </span>
+                                <p className="text-slate-800 text-xs leading-relaxed whitespace-pre-wrap">
+                                  {c.comment || c.comment_text || c.text}
+                                </p>
                               </div>
-                              <p className="text-slate-800 text-xs leading-relaxed whitespace-pre-wrap">
-                                {c.comment || c.comment_text || c.text}
-                              </p>
                             </div>
-                          </div>
-                        );
-                      })}
-                      <div ref={commentsEndRef} />
-                    </>
-                  )}
-                </div>
+                          );
+                        })}
+                        <div ref={commentsEndRef} />
+                      </>
+                    )}
+                  </div>
 
-                {/* Write & Send Box - pinned at bottom of card */}
-                <form onSubmit={handleAddComment} className="flex items-center gap-2 pt-2 border-t border-slate-200/70 shrink-0">
-                  <input
-                    type="text"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Ask for clarification or reply to audit remarks..."
-                    disabled={postingComment}
-                    className="flex-1 px-3.5 py-2.5 bg-white border border-slate-200 focus:border-indigo-500 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all shadow-2xs"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!newComment.trim() || postingComment}
-                    className="px-4 py-2.5 bg-[#0D1117] hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-xs shrink-0"
-                  >
-                    <Send size={13} />
-                    <span>{postingComment ? 'Posting...' : 'Send'}</span>
-                  </button>
-                </form>
+                  {/* Write & Send Box - Pinned securely at bottom of Right Column */}
+                  <div className="p-3.5 border-t border-slate-200 bg-white shrink-0">
+                    <form onSubmit={handleAddComment} className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          placeholder="Type audit remark or clarification request..."
+                          disabled={postingComment}
+                          className="w-full pl-3.5 pr-3 py-2.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none transition-all shadow-2xs"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={!newComment.trim() || postingComment}
+                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer"
+                      >
+                        <Send size={13} />
+                        <span>{postingComment ? 'Sending...' : 'Send'}</span>
+                      </button>
+                    </form>
+                  </div>
+                </div>
               </div>
 
-              {/* Modal Actions */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              {/* Pinned Bottom Bar: Approval / Reject Actions */}
+              <div className="flex items-center justify-between px-6 py-3.5 border-t border-slate-100 bg-white shrink-0">
                 <button
                   type="button"
                   onClick={() => setInspectExpense(null)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-full text-xs transition-colors"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-full text-xs transition-colors cursor-pointer"
                 >
-                  Close
+                  Close Inspection
                 </button>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <button
                     type="button"
                     onClick={() => {
@@ -1015,9 +1044,9 @@ export default function ApprovalsQueuePage() {
                       });
                     }}
                     disabled={submitting}
-                    className="px-4 py-2 bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white rounded-full text-xs font-bold transition-all flex items-center gap-1"
+                    className="px-4 py-2 bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white rounded-full text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
                   >
-                    <X size={13} strokeWidth={2.5} /> Reject
+                    <X size={13} strokeWidth={2.5} /> Reject Claim
                   </button>
                   <button
                     type="button"
@@ -1027,9 +1056,9 @@ export default function ApprovalsQueuePage() {
                       handleApproveExpense(expId);
                     }}
                     disabled={submitting}
-                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold transition-all flex items-center gap-1 shadow-xs"
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
-                    <Check size={13} strokeWidth={2.5} /> Approve Claim
+                    <Check size={14} strokeWidth={2.5} /> Approve Voucher
                   </button>
                 </div>
               </div>
