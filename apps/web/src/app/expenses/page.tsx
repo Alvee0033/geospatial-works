@@ -42,6 +42,7 @@ export default function ExpensesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [expenseToEdit, setExpenseToEdit] = useState<any | null>(null);
+  const [threadModalExp, setThreadModalExp] = useState<any | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [newComment, setNewComment] = useState('');
 
@@ -129,12 +130,14 @@ export default function ExpensesPage() {
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inspectExp || !newComment.trim()) return;
+    const targetId = inspectExp?.id || threadModalExp?.id;
+    if (!targetId || !newComment.trim()) return;
     try {
-      await ApiClient.addExpenseComment(inspectExp.id, newComment.trim());
+      await ApiClient.addExpenseComment(targetId, newComment.trim());
       setNewComment('');
-      const updated = await ApiClient.getExpenseById(inspectExp.id);
-      setInspectExp(updated);
+      const updated = await ApiClient.getExpenseById(targetId);
+      if (inspectExp) setInspectExp(updated);
+      if (threadModalExp) setThreadModalExp(updated);
       await fetchRealExpenses();
     } catch (err: any) {
       alert(`Failed to post comment: ${err.message}`);
@@ -389,6 +392,23 @@ export default function ExpensesPage() {
                       <td className="py-3.5 px-3 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button
+                            onClick={() => setThreadModalExp(e)}
+                            className={`p-1.5 rounded-lg transition-colors relative flex items-center gap-1 ${
+                              (e.comments?.length || 0) > 0
+                                ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold'
+                                : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'
+                            }`}
+                            title="Clarification & Discussion Thread"
+                          >
+                            <MessageSquare size={13} />
+                            {(e.comments?.length || 0) > 0 && (
+                              <span className="text-[11px] font-bold">{e.comments.length}</span>
+                            )}
+                            {((e.comments?.length || 0) > 0 || e.justificationStatus === 'clarification_requested') && (
+                              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white" />
+                            )}
+                          </button>
+                          <button
                             onClick={() => setInspectExp(e)}
                             className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors"
                             title="Inspect Full Claim & Voucher"
@@ -578,6 +598,115 @@ export default function ExpensesPage() {
                 Close Audit
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dedicated Clarification Thread Modal */}
+      {threadModalExp && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-[28px] p-6 max-w-lg w-full border border-slate-200 shadow-2xl flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                  <MessageSquare size={16} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm">Clarification & Discussion Thread</h4>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    {threadModalExp.expenseCode || threadModalExp.id?.slice(0, 8)} • {threadModalExp.category} (${Number(threadModalExp.amount || 0).toFixed(2)})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setThreadModalExp(null);
+                  setNewComment('');
+                }}
+                className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 text-xs font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Expense details chip */}
+            <div className="mt-3 p-3 bg-slate-50 rounded-2xl border border-slate-100 text-xs flex justify-between items-center">
+              <div>
+                <span className="text-slate-500 block text-[10px] font-semibold uppercase">Claimant</span>
+                <span className="font-bold text-slate-800">{threadModalExp.userName || threadModalExp.employeeName || 'Staff Member'}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-slate-500 block text-[10px] font-semibold uppercase">Status</span>
+                <span className={`inline-flex items-center gap-1 font-bold text-[11px] ${
+                  threadModalExp.justificationStatus === 'clarification_requested' ? 'text-amber-600' : 'text-slate-700'
+                }`}>
+                  {threadModalExp.justificationStatus === 'clarification_requested' && (
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  )}
+                  {threadModalExp.justificationStatus || threadModalExp.status || 'Active'}
+                </span>
+              </div>
+            </div>
+
+            {/* Clarification Remarks if any */}
+            {threadModalExp.clarificationRemarks && (
+              <div className="mt-2.5 p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900">
+                <div className="font-bold flex items-center gap-1.5 mb-0.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  Reviewer Clarification Request:
+                </div>
+                <p className="text-amber-800 pl-3.5 italic">{threadModalExp.clarificationRemarks}</p>
+              </div>
+            )}
+
+            {/* Comment Thread Stream */}
+            <div className="flex-1 overflow-y-auto space-y-2.5 my-3 pr-1 min-h-[160px] max-h-[300px]">
+              {(!threadModalExp.comments || threadModalExp.comments.length === 0) ? (
+                <div className="h-full flex flex-col items-center justify-center py-8 text-slate-400">
+                  <MessageSquare size={28} className="mb-1.5 opacity-30" />
+                  <p className="text-xs">No clarification messages yet.</p>
+                  <p className="text-[10px] text-slate-400">Ask the employee for details or post a remark below.</p>
+                </div>
+              ) : (
+                threadModalExp.comments.map((c: any, idx: number) => (
+                  <div key={idx} className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-2.5">
+                    <UserAvatar
+                      src={c.avatarUrl || c.userAvatarUrl}
+                      name={c.userName || 'Administrator'}
+                      size="sm"
+                      shape="rounded"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="font-bold text-slate-900 text-xs">{c.userName || 'Administrator'}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          {c.createdAt ? new Date(c.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : ''}
+                        </span>
+                      </div>
+                      <p className="text-slate-700 text-xs leading-relaxed">{c.comment || c.text}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Post comment input */}
+            <form onSubmit={handleAddComment} className="pt-2 border-t border-slate-100 flex gap-2">
+              <input
+                type="text"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Write clarification message or note..."
+                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+              />
+              <button
+                type="submit"
+                disabled={!newComment.trim()}
+                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold rounded-xl flex items-center gap-1.5 text-xs shadow-xs"
+              >
+                <Send size={13} /> Send
+              </button>
+            </form>
           </div>
         </div>
       )}
