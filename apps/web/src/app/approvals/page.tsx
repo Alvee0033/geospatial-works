@@ -892,29 +892,53 @@ export default function ApprovalsQueuePage() {
                       )}
                     </div>
 
-                    {(inspectExpense.receiptPhotoUrl ||
-                      inspectExpense.receipt_photo_url ||
-                      inspectExpense.receiptUrl ||
-                      inspectExpense.receipt_url) ? (
-                      <div className="flex-1 p-2 bg-slate-900 rounded-2xl border border-slate-200/80 flex items-center justify-center overflow-hidden min-h-[160px] max-h-[260px] shadow-inner">
-                        <img
-                          src={
-                            inspectExpense.receiptPhotoUrl ||
-                            inspectExpense.receipt_photo_url ||
-                            inspectExpense.receiptUrl ||
-                            inspectExpense.receipt_url
-                          }
-                          alt="Expense voucher"
-                          className="max-h-full w-auto object-contain rounded-lg transition-transform hover:scale-105 duration-200"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex-1 p-6 bg-white rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center text-center text-slate-400 text-xs">
-                        <AlertTriangle size={20} className="text-amber-500 mb-1.5 opacity-80" />
-                        <p className="font-semibold text-slate-600">No receipt slip attached</p>
-                        <p className="text-[11px] text-slate-400">Claim submitted without digital receipt photo.</p>
-                      </div>
-                    )}
+                    {(() => {
+                      const photos: string[] = Array.isArray(inspectExpense.receiptPhotoUrls || inspectExpense.receipt_photo_urls) && (inspectExpense.receiptPhotoUrls || inspectExpense.receipt_photo_urls).length > 0
+                        ? (inspectExpense.receiptPhotoUrls || inspectExpense.receipt_photo_urls)
+                        : (inspectExpense.receiptPhotoUrl || inspectExpense.receipt_photo_url || inspectExpense.receiptUrl || inspectExpense.receipt_url
+                            ? [inspectExpense.receiptPhotoUrl || inspectExpense.receipt_photo_url || inspectExpense.receiptUrl || inspectExpense.receipt_url]
+                            : []);
+
+                      if (photos.length > 0) {
+                        return (
+                          <div className="flex-1 flex flex-col min-h-[160px] max-h-[260px]">
+                            <div className="flex gap-2 overflow-x-auto p-2 bg-slate-900 rounded-2xl border border-slate-800 flex-1 items-center">
+                              {photos.map((url, pIdx) => (
+                                <a
+                                  key={pIdx}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="shrink-0 h-full max-h-[220px] rounded-lg overflow-hidden border border-slate-700 bg-black flex items-center justify-center relative group"
+                                >
+                                  <img
+                                    src={url}
+                                    alt={`Voucher ${pIdx + 1}`}
+                                    className="max-h-[220px] w-auto object-contain transition-transform group-hover:scale-105"
+                                  />
+                                  <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">
+                                    #{pIdx + 1}
+                                  </span>
+                                </a>
+                              ))}
+                            </div>
+                            {photos.length > 1 && (
+                              <p className="text-[10px] text-slate-400 mt-1 text-center font-medium">
+                                {photos.length} vouchers attached • Scroll horizontally to inspect
+                              </p>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="flex-1 p-6 bg-white rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center text-center text-slate-400 text-xs">
+                          <AlertTriangle size={20} className="text-amber-500 mb-1.5 opacity-80" />
+                          <p className="font-semibold text-slate-600">No receipt slip attached</p>
+                          <p className="text-[11px] text-slate-400">Claim submitted without digital receipt photo.</p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 

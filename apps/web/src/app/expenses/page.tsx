@@ -55,6 +55,7 @@ export default function ExpensesPage() {
   const [formNote, setFormNote] = useState('');
   const [formDate, setFormDate] = useState('2026-10-20');
   const [formReceiptUrl, setFormReceiptUrl] = useState('');
+  const [formReceiptUrls, setFormReceiptUrls] = useState<string[]>([]);
 
   const fetchRealExpenses = async () => {
     setLoading(true);
@@ -205,6 +206,8 @@ export default function ExpensesPage() {
     try {
       const selectedProj = projects.find((p) => p.id === formProjectId);
       const selectedUser = users.find((u) => u.id === formEmployeeId);
+      const effectiveUrls = formReceiptUrls.length > 0 ? formReceiptUrls : (formReceiptUrl ? [formReceiptUrl] : []);
+      const primaryUrl = effectiveUrls[0] || null;
 
       const payload = {
         projectId: formProjectId,
@@ -217,8 +220,9 @@ export default function ExpensesPage() {
         officeBenefitAmount: Math.round(formAmount * 0.3),
         note: formNote,
         date: formDate ? new Date(formDate).toISOString() : new Date().toISOString(),
-        hasReceipt: Boolean(formReceiptUrl),
-        receiptPhotoUrl: formReceiptUrl || null,
+        hasReceipt: effectiveUrls.length > 0,
+        receiptPhotoUrl: primaryUrl,
+        receiptPhotoUrls: effectiveUrls,
         status: 'approved',
       };
 
@@ -226,6 +230,7 @@ export default function ExpensesPage() {
       setIsCreateModalOpen(false);
       setFormNote('');
       setFormReceiptUrl('');
+      setFormReceiptUrls([]);
       await fetchRealExpenses();
       alert('Expense claim created and recorded successfully');
     } catch (err: any) {
@@ -243,7 +248,11 @@ export default function ExpensesPage() {
     setFormAmount(Number(exp.amount) || 0);
     setFormNote(exp.note || '');
     setFormDate(exp.date ? exp.date.split('T')[0] : '');
-    setFormReceiptUrl(exp.receiptPhotoUrl || exp.receipt_photo_url || '');
+    const urls: string[] = Array.isArray(exp.receiptPhotoUrls || exp.receipt_photo_urls)
+      ? (exp.receiptPhotoUrls || exp.receipt_photo_urls)
+      : (exp.receiptPhotoUrl || exp.receipt_photo_url ? [exp.receiptPhotoUrl || exp.receipt_photo_url] : []);
+    setFormReceiptUrls(urls);
+    setFormReceiptUrl(urls[0] || exp.receiptPhotoUrl || exp.receipt_photo_url || '');
     setIsEditModalOpen(true);
   };
 
@@ -252,13 +261,16 @@ export default function ExpensesPage() {
     if (!expenseToEdit) return;
     setSubmitting(true);
     try {
+      const effectiveUrls = formReceiptUrls.length > 0 ? formReceiptUrls : (formReceiptUrl ? [formReceiptUrl] : []);
+      const primaryUrl = effectiveUrls[0] || null;
       const payload = {
         amount: formAmount,
         categoryName: formCategoryName,
         note: formNote,
         date: formDate ? new Date(formDate).toISOString() : undefined,
-        receiptPhotoUrl: formReceiptUrl || null,
-        hasReceipt: Boolean(formReceiptUrl),
+        receiptPhotoUrl: primaryUrl,
+        receiptPhotoUrls: effectiveUrls,
+        hasReceipt: effectiveUrls.length > 0,
       };
 
       await ApiClient.updateExpense(expenseToEdit.id, payload);
@@ -470,13 +482,15 @@ export default function ExpensesPage() {
                           >
                             <Eye size={14} />
                           </button>
-                          <button
-                            onClick={() => handleOpenEdit(e)}
-                            className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-lg transition-colors"
-                            title="Edit Claim"
-                          >
-                            <Edit2 size={13} />
-                          </button>
+                          {(e.status || 'pending').toLowerCase() !== 'approved' && (
+                            <button
+                              onClick={() => handleOpenEdit(e)}
+                              className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-lg transition-colors"
+                              title="Edit Claim"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                          )}
                           {(e.status || 'pending').toLowerCase() === 'pending' && (
                             <>
                               <button
@@ -495,13 +509,15 @@ export default function ExpensesPage() {
                               </button>
                             </>
                           )}
-                          <button
-                            onClick={() => handleDeleteExpense(e.id)}
-                            className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
-                            title="Delete Record"
-                          >
-                            <Trash2 size={13} />
-                          </button>
+                          {(e.status || 'pending').toLowerCase() !== 'approved' && (
+                            <button
+                              onClick={() => handleDeleteExpense(e.id)}
+                              className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
+                              title="Delete Record"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -562,22 +578,44 @@ export default function ExpensesPage() {
                 </div>
               )}
 
-              {/* High-Resolution Voucher Preview */}
-              {(inspectExp.receiptPhotoUrl || inspectExp.receipt_photo_url) && (
-                <div>
-                  <p className="text-slate-700 font-bold mb-1.5 flex items-center gap-1.5">
-                    <Receipt size={14} className="text-indigo-600" />
-                    <span>Attached Tax / Commercial Voucher Photo:</span>
-                  </p>
-                  <div className="p-2 bg-slate-50 rounded-2xl border border-slate-200 flex justify-center">
-                    <img
-                      src={inspectExp.receiptPhotoUrl || inspectExp.receipt_photo_url}
-                      alt="Receipt Voucher"
-                      className="max-h-80 w-auto rounded-xl object-contain shadow-xs"
-                    />
+              {/* High-Resolution Voucher Preview (Multi-Receipt Gallery) */}
+              {(() => {
+                const photos: string[] = Array.isArray(inspectExp.receiptPhotoUrls || inspectExp.receipt_photo_urls) && (inspectExp.receiptPhotoUrls || inspectExp.receipt_photo_urls).length > 0
+                  ? (inspectExp.receiptPhotoUrls || inspectExp.receipt_photo_urls)
+                  : (inspectExp.receiptPhotoUrl || inspectExp.receipt_photo_url ? [inspectExp.receiptPhotoUrl || inspectExp.receipt_photo_url] : []);
+                if (photos.length === 0) return null;
+                return (
+                  <div>
+                    <p className="text-slate-700 font-bold mb-1.5 flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5">
+                        <Receipt size={14} className="text-indigo-600" />
+                        <span>Attached Vouchers / Receipts ({photos.length}):</span>
+                      </span>
+                      {photos.length > 1 && <span className="text-[11px] text-slate-400 font-normal">Scroll to view all</span>}
+                    </p>
+                    <div className="flex gap-2 overflow-x-auto p-2 bg-slate-50 rounded-2xl border border-slate-200">
+                      {photos.map((url, pIdx) => (
+                        <a
+                          key={pIdx}
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="shrink-0 group relative rounded-xl overflow-hidden border border-slate-200 bg-white"
+                        >
+                          <img
+                            src={url}
+                            alt={`Receipt ${pIdx + 1}`}
+                            className="h-44 w-auto object-contain transition-transform group-hover:scale-105"
+                          />
+                          <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">
+                            #{pIdx + 1}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Discussion & Audit Comments Thread */}
               <div>
@@ -898,69 +936,86 @@ export default function ExpensesPage() {
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Receipt / Voucher Photo</label>
-                <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                  {formReceiptUrl ? (
-                    <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-white">
-                      <img src={formReceiptUrl} alt="Voucher receipt" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setFormReceiptUrl('')}
-                        className="absolute top-0.5 right-0.5 w-4 h-4 bg-rose-600 text-white rounded-full flex items-center justify-center text-[10px]"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-14 h-14 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-slate-400 bg-white shrink-0">
-                      <Receipt size={22} />
+                <label className="block text-slate-700 font-semibold mb-1">Receipt / Voucher Photos</label>
+                <div className="space-y-2 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  {/* Thumbnails row */}
+                  {formReceiptUrls.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {formReceiptUrls.map((url, uIdx) => (
+                        <div key={uIdx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-200 shrink-0 bg-white group">
+                          <img src={url} alt={`Receipt ${uIdx + 1}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = formReceiptUrls.filter((_, idx) => idx !== uIdx);
+                              setFormReceiptUrls(updated);
+                              setFormReceiptUrl(updated[0] || '');
+                            }}
+                            className="absolute top-0.5 right-0.5 w-4 h-4 bg-rose-600 text-white rounded-full flex items-center justify-center text-[10px]"
+                            title="Remove receipt"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
 
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] text-slate-500 mb-1.5">Upload scanned receipt or photo (PNG, JPG up to 5MB)</p>
-                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs font-semibold cursor-pointer hover:bg-slate-100 transition-colors shadow-2xs">
-                      {uploadingReceipt ? (
-                        <>
-                          <Loader2 size={13} className="animate-spin text-emerald-600" />
-                          <span>Uploading...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Upload size={13} className="text-emerald-600" />
-                          <span>Choose Receipt File</span>
-                        </>
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={uploadingReceipt}
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingReceipt(true);
-                          try {
-                            const reader = new FileReader();
-                            reader.onload = async () => {
-                              try {
-                                const dataUri = reader.result as string;
-                                setFormReceiptUrl(dataUri);
-                                const res = await ApiClient.uploadFile(dataUri, 'receipts');
-                                if (res?.url) setFormReceiptUrl(res.url);
-                              } catch (err) {
-                                console.error('Upload failed, keeping local preview', err);
-                              } finally {
-                                setUploadingReceipt(false);
-                              }
-                            };
-                            reader.readAsDataURL(file);
-                          } catch {
-                            setUploadingReceipt(false);
-                          }
-                        }}
-                      />
-                    </label>
+                  <div className="flex items-center gap-3">
+                    {formReceiptUrls.length === 0 && (
+                      <div className="w-12 h-12 rounded-lg border border-dashed border-slate-300 flex items-center justify-center text-slate-400 bg-white shrink-0">
+                        <Receipt size={20} />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] text-slate-500 mb-1.5">Upload one or multiple scanned receipts (PNG, JPG, PDF up to 5MB each)</p>
+                      <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs font-semibold cursor-pointer hover:bg-slate-100 transition-colors shadow-2xs">
+                        {uploadingReceipt ? (
+                          <>
+                            <Loader2 size={13} className="animate-spin text-emerald-600" />
+                            <span>Uploading files...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload size={13} className="text-emerald-600" />
+                            <span>Attach Receipt Files</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          multiple
+                          disabled={uploadingReceipt}
+                          className="hidden"
+                          onChange={async (e) => {
+                            const files = Array.from(e.target.files || []);
+                            if (files.length === 0) return;
+                            setUploadingReceipt(true);
+                            try {
+                              const dataUris = await Promise.all(
+                                files.map(
+                                  (f) =>
+                                    new Promise<string>((resolve) => {
+                                      const reader = new FileReader();
+                                      reader.onload = () => resolve(reader.result as string);
+                                      reader.readAsDataURL(f);
+                                    })
+                                )
+                              );
+                              const batchRes = await ApiClient.uploadBatch(dataUris, 'receipts');
+                              const uploadedUrls = (batchRes?.results || []).map((r: any) => r.url).filter(Boolean);
+                              const finalUrls = uploadedUrls.length > 0 ? uploadedUrls : dataUris;
+                              setFormReceiptUrls((prev) => [...prev, ...finalUrls]);
+                              setFormReceiptUrl((prev) => prev || finalUrls[0] || '');
+                            } catch (err) {
+                              console.error('Batch upload failed:', err);
+                            } finally {
+                              setUploadingReceipt(false);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>

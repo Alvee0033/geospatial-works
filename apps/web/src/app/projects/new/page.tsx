@@ -140,6 +140,7 @@ export default function NewProjectPage() {
   const [siteLongitude, setSiteLongitude] = useState<number | null>(null);
   const [siteLocationEnabled, setSiteLocationEnabled] = useState(false);
   const [siteRadiusMeters, setSiteRadiusMeters] = useState(200);
+  const [dailyFoodAllowance, setDailyFoodAllowance] = useState<number>(800);
 
   // Category Budgets
   const [budgetEquipment, setBudgetEquipment] = useState<number>(0);
@@ -406,6 +407,7 @@ export default function NewProjectPage() {
         site_latitude: siteLatitude,
         site_longitude: siteLongitude,
         site_radius_meters: siteRadiusMeters,
+        daily_food_allowance: dailyFoodAllowance,
       };
 
       const res = await ApiClient.createProject(payload);
@@ -559,8 +561,8 @@ export default function NewProjectPage() {
                     </div>
                     {siteLocationEnabled ? <div className="mt-3 space-y-3">
                       <LocationPickerMap
-                        latitude={siteLatitude ?? 23.8103}
-                        longitude={siteLongitude ?? 90.4125}
+                        latitude={siteLatitude ?? 23.7925}
+                        longitude={siteLongitude ?? 90.4078}
                         radiusMeters={siteRadiusMeters}
                         pinLabel="Project site"
                         onChange={(point) => { setSiteLatitude(point.latitude); setSiteLongitude(point.longitude); }}
@@ -573,31 +575,31 @@ export default function NewProjectPage() {
                           </span>
                         </div>
                         <p className="mt-1 text-[11px] text-slate-500">
-                          Field staff check-ins within this radius from the pinned coordinates will be approved (adjustable up to 1,000 km).
+                          Field staff check-ins within this radius from the pinned coordinates will be approved (capped at 2,500 m / 2.5 km).
                         </p>
                         <div className="mt-2.5 flex items-center gap-2">
                           <input
                             type="range"
                             min={50}
-                            max={1000000}
-                            step={siteRadiusMeters > 50000 ? 5000 : siteRadiusMeters > 5000 ? 500 : 25}
-                            value={siteRadiusMeters}
+                            max={2500}
+                            step={50}
+                            value={Math.min(2500, Math.max(50, siteRadiusMeters))}
                             onChange={(e) => setSiteRadiusMeters(Number(e.target.value))}
                             className="w-full accent-indigo-600 cursor-pointer"
                           />
                           <input
                             type="number"
-                            min={10}
-                            max={1000000}
+                            min={50}
+                            max={2500}
                             value={siteRadiusMeters}
-                            onChange={(e) => setSiteRadiusMeters(Math.min(1000000, Math.max(10, Number(e.target.value))))}
+                            onChange={(e) => setSiteRadiusMeters(Math.min(2500, Math.max(10, Number(e.target.value))))}
                             className="w-24 px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs font-bold text-slate-800 text-right"
                           />
                           <span className="text-xs text-slate-500 font-semibold">m</span>
                         </div>
                         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
                           <span className="text-slate-400 font-semibold mr-1">Quick Presets:</span>
-                          {[100, 500, 1000, 5000, 25000, 100000, 500000, 1000000].map((preset) => (
+                          {[50, 100, 200, 500, 1000, 1500, 2500].map((preset) => (
                             <button
                               key={preset}
                               type="button"
@@ -737,7 +739,7 @@ export default function NewProjectPage() {
 
                   <div>
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Food & Subsistence (৳)
+                      Food & Subsistence Budget (৳)
                     </label>
                     <input
                       type="number"
@@ -747,6 +749,21 @@ export default function NewProjectPage() {
                       onChange={(e) => setBudgetFood(e.target.value === '' ? 0 : Number(e.target.value))}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Daily Food Allowance / Staff (৳)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="800"
+                      value={dailyFoodAllowance || ''}
+                      onChange={(e) => setDailyFoodAllowance(e.target.value === '' ? 0 : Number(e.target.value))}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-400">Default is ৳800/day unless customized for this site.</p>
                   </div>
 
                   <div>

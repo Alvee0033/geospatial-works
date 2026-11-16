@@ -32,6 +32,10 @@ export interface Project {
   location?: string;
   imageUrl?: string;
   membersCount?: number;
+  dailyFoodAllowance?: number;
+  siteRadiusMeters?: number;
+  siteLatitude?: number;
+  siteLongitude?: number;
 }
 
 export interface Expense {
@@ -56,6 +60,7 @@ export interface Expense {
   date: string;
   hasReceipt: boolean;
   receiptPhotoUrl?: string;
+  receiptPhotoUrls?: string[];
   status: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
   justificationStatus?: 'none' | 'required' | 'submitted' | 'approved' | 'rejected';

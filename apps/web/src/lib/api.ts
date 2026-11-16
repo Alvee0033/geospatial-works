@@ -723,6 +723,16 @@ export class ApiClient {
     });
   }
 
+  static async uploadBatch(fileDataUris: string[], category: 'receipts' | 'avatars' | 'projects' = 'receipts') {
+    return this.request<{ results: { url: string; filename?: string; sizeBytes?: number }[] }>('/uploads/batch', {
+      method: 'POST',
+      body: JSON.stringify({
+        files: fileDataUris,
+        category,
+      }),
+    });
+  }
+
   // Notifications API
   static async getNotifications(options?: { bypassCache?: boolean }) {
     return this.request<any[]>('/notifications', { cache: 'no-store', bypassCache: true });
