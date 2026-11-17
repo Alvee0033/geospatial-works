@@ -264,12 +264,23 @@ export const NotificationPanel: React.FC = () => {
     };
   }, [isOpen]);
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
-
   const filteredNotifications = notifications.filter((n) => {
+    // If the logged in user is admin/finance/manager and was not the direct claimant, do not show rejected expense notifications
+    let currentUser: any = null;
+    if (typeof window !== 'undefined') {
+      try {
+        currentUser = JSON.parse(localStorage.getItem('gw_user') || 'null');
+      } catch (_) {}
+    }
+    const isAdmin = currentUser?.role === 'main_admin' || currentUser?.role === 'admin';
+    if (isAdmin && n.type === 'expense_rejected' && n.userId !== currentUser?.id) {
+      return false;
+    }
     if (filter === 'unread') return !n.isRead;
     return true;
   });
+
+  const unreadCount = filteredNotifications.filter((n) => !n.isRead).length;
 
   const handleMarkAsRead = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
