@@ -76,6 +76,18 @@ export default function ExpensesPage() {
       if (userData && userData.length > 0 && !formEmployeeId) {
         setFormEmployeeId(userData[0].id);
       }
+
+      // Deep link inspection from URL parameter ?id=<expenseId>
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetId = urlParams.get('id');
+        if (targetId && expData) {
+          const match = expData.find((e: any) => e.id === targetId);
+          if (match) {
+            setInspectExp(match);
+          }
+        }
+      }
     } catch (e) {
       console.error('Failed fetching expenses:', e);
     } finally {
@@ -550,6 +562,19 @@ export default function ExpensesPage() {
             </div>
 
             <div className="space-y-4 text-xs">
+              {/* Prominent Rejection Reason Banner */}
+              {inspectExp.status === 'rejected' && (inspectExp.rejectionReason || inspectExp.rejection_reason) && (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl">
+                  <div className="flex items-center gap-1.5 text-rose-700 font-bold mb-1">
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                    <span>Reason for Rejection:</span>
+                  </div>
+                  <p className="text-rose-900 font-semibold leading-relaxed">
+                    {inspectExp.rejectionReason || inspectExp.rejection_reason}
+                  </p>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-2xl">
                 <div>
                   <span className="text-slate-400 block mb-0.5">Claimant Personnel</span>

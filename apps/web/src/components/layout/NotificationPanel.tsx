@@ -342,6 +342,13 @@ export const NotificationPanel: React.FC = () => {
           link: '/approvals',
           linkText: 'Review in Approvals',
         };
+      case 'expense_rejected':
+        return {
+          icon: <AlertTriangle size={14} className="text-rose-600" />,
+          badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
+          link: notif.relatedExpenseId ? `/expenses?id=${notif.relatedExpenseId}` : '/expenses',
+          linkText: 'View Rejected Claim',
+        };
       case 'expense_approved':
         return {
           icon: <Check size={14} className="text-emerald-600" />,
