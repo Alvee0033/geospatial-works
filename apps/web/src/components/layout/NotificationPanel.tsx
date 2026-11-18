@@ -343,6 +343,32 @@ export const NotificationPanel: React.FC = () => {
     }
   };
 
+  const formatTimestamp = (dateStr?: string) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const isExpenseNotification = (type: string) => {
+    return (
+      type === 'expense_submitted' ||
+      type === 'expense_pending' ||
+      type === 'expense_approved' ||
+      type === 'expense_rejected'
+    );
+  };
+
   const getTypeMeta = (notif: NotificationItem) => {
     switch (notif.type) {
       case 'expense_submitted':
@@ -583,9 +609,18 @@ export const NotificationPanel: React.FC = () => {
                         </div>
                       </div>
 
-                      <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                      <p className="text-[11px] text-slate-600 line-clamp-3 leading-relaxed whitespace-pre-line">
                         {notif.message || notif.fullExplanation}
                       </p>
+
+                      {isExpenseNotification(notif.type) && (
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-50 text-amber-800 border border-amber-200/60 font-mono">
+                            <Clock size={9} className="text-amber-600 shrink-0" />
+                            <span>Logged: {formatTimestamp(notif.createdAt)}</span>
+                          </span>
+                        </div>
+                      )}
 
                       <div className="mt-2 flex items-center justify-between gap-2">
                         <Link

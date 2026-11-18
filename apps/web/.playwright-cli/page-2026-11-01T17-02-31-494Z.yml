@@ -1,0 +1,155 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img "Geospatial Works" [ref=e6]
+          - generic [ref=e7]:
+            - paragraph [ref=e8]: Geospatial Works
+            - paragraph [ref=e9]: Operations
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - paragraph [ref=e12]: Workspace
+            - navigation "Workspace" [ref=e13]:
+              - link "Overview" [ref=e14] [cursor=pointer]:
+                - /url: /dashboard
+              - link "Projects" [ref=e21] [cursor=pointer]:
+                - /url: /projects
+              - link "Tasks" [ref=e25] [cursor=pointer]:
+                - /url: /tasks
+              - link "Reports" [ref=e30] [cursor=pointer]:
+                - /url: /reports
+              - link "Cash flow" [ref=e35] [cursor=pointer]:
+                - /url: /payroll
+          - generic [ref=e40]:
+            - paragraph [ref=e41]: Finance
+            - generic [ref=e42]:
+              - button "Transactions" [expanded] [ref=e43]
+              - generic [ref=e51]:
+                - link "Activity" [ref=e52] [cursor=pointer]:
+                  - /url: /expenses
+                - link "Approvals" [ref=e53] [cursor=pointer]:
+                  - /url: /approvals
+                - link "Voucher audit" [ref=e54] [cursor=pointer]:
+                  - /url: /expenses/compliance
+          - generic [ref=e55]:
+            - paragraph [ref=e56]: Team
+            - navigation "Team" [ref=e57]:
+              - link "People" [ref=e58] [cursor=pointer]:
+                - /url: /employees
+              - link "Attendance" [ref=e65] [cursor=pointer]:
+                - /url: /attendance
+              - link "Leave" [ref=e71] [cursor=pointer]:
+                - /url: /leaves
+              - link "Messages" [ref=e75] [cursor=pointer]:
+                - /url: /chat
+          - navigation "Administration" [ref=e80]:
+            - link "Clients" [ref=e81] [cursor=pointer]:
+              - /url: /clients
+            - link "Settings" [ref=e87] [cursor=pointer]:
+              - /url: /settings
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - generic [ref=e94]: GW
+          - generic [ref=e95]:
+            - paragraph [ref=e96]: GW Admin
+            - paragraph [ref=e97]: Administrator
+          - img "Help" [ref=e98]
+        - button "Collapse menu" [ref=e101]
+    - generic [ref=e106]:
+      - banner [ref=e107]:
+        - generic [ref=e108]:
+          - generic [ref=e109]:
+            - generic [ref=e111]: Workspace
+            - generic [ref=e112]: /
+            - generic [ref=e113]: Attendance Operations
+          - textbox "Search workspace" [ref=e115]:
+            - /placeholder: Search
+        - generic [ref=e116]:
+          - button "Refresh Live DB Data" [ref=e117]
+          - button "Export Report" [ref=e123]
+          - button "Open notifications panel" [ref=e128]
+          - link "System Settings" [ref=e132] [cursor=pointer]:
+            - /url: /settings
+          - button "User profile settings menu" [ref=e137]:
+            - generic [ref=e138]: A
+            - generic [ref=e141]:
+              - paragraph [ref=e142]: GW Admin
+              - paragraph [ref=e143]: admin
+          - link "New project" [ref=e144] [cursor=pointer]:
+            - /url: /projects/new
+      - main [ref=e147]:
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - generic [ref=e150]:
+              - textbox [ref=e154] [cursor=pointer]: 2026-11-01
+              - textbox "Search staff, location, department..." [ref=e159]
+              - generic [ref=e160]:
+                - button "All (0)" [ref=e161]
+                - button "HQ (0)" [ref=e162]
+                - button "Field (0)" [ref=e163]
+                - button "AM (0)" [ref=e164]
+                - button "PM (0)" [ref=e165]
+            - generic [ref=e166]:
+              - button "Record Check-In" [ref=e167]
+              - link "Attendance Shifts & Deduction Settings" [ref=e171] [cursor=pointer]:
+                - /url: /settings
+          - generic [ref=e175]:
+            - generic [ref=e176]:
+              - generic [ref=e177]:
+                - generic [ref=e178]:
+                  - generic [ref=e179]: Geospatial Radar & Geofence
+                  - generic [ref=e185]:
+                    - generic [ref=e186]: Live Tracking
+                    - generic [ref=e188]: "HQ: 23.8103, 90.4125"
+                - generic [ref=e190]:
+                  - generic [ref=e192]:
+                    - button "🏢 HQ Focus" [ref=e193]
+                    - button "🌐 Fit All (0)" [ref=e195]
+                  - generic [ref=e197]:
+                    - generic [ref=e198]: HQ Geofence (≤500m)
+                    - generic [ref=e201]: Field Site (>500m)
+                    - generic [ref=e204]: Late Shift
+              - generic [ref=e207]: Click any staff pin on the map or roster to inspect coordinates.
+            - generic [ref=e208]:
+              - generic [ref=e209]:
+                - generic [ref=e210]:
+                  - generic [ref=e211]: Checked In
+                  - paragraph [ref=e217]: "0"
+                  - generic [ref=e218]: Out of 0 active
+                - generic [ref=e219]:
+                  - generic [ref=e220]: Turnout Rate
+                  - paragraph [ref=e226]: 0%
+                  - text: Present today
+                - generic [ref=e227]:
+                  - generic [ref=e228]: Office (HQ)
+                  - paragraph [ref=e234]: "0"
+                  - text: Within 500m radius
+                - generic [ref=e235]:
+                  - generic [ref=e236]: Field Sites
+                  - paragraph [ref=e241]: "0"
+                  - text: Remote deployments
+              - generic [ref=e242]:
+                - generic [ref=e243]:
+                  - generic [ref=e244]: Realtime Check-in Stream
+                  - generic [ref=e248]: "0"
+                - generic [ref=e249]: No records found for this filter
+          - generic [ref=e251]:
+            - generic [ref=e252]:
+              - generic [ref=e258]:
+                - heading "Personnel Attendance Master Registry" [level=3] [ref=e259]
+                - paragraph [ref=e260]: Complete verification records with verified geofencing status
+              - generic [ref=e261]: 0 Verified Entries
+            - table [ref=e263]:
+              - rowgroup [ref=e264]:
+                - row [ref=e265]:
+                  - columnheader "Employee Name & Role" [ref=e266]
+                  - columnheader "Session" [ref=e267]
+                  - columnheader "Check-In Time" [ref=e268]
+                  - columnheader "Verified Geofence Location" [ref=e269]
+                  - columnheader "HQ Offset" [ref=e270]
+                  - columnheader "Verification" [ref=e271]
+              - rowgroup [ref=e272]:
+                - row [ref=e273]:
+                  - cell "No records found matching current query or filters." [ref=e274]
+  - button "Open Next.js Dev Tools" [ref=e280] [cursor=pointer]

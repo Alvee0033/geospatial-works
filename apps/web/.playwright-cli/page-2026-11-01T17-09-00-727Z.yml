@@ -1,0 +1,189 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img "Geospatial Works" [ref=e6]
+          - generic [ref=e7]:
+            - paragraph [ref=e8]: Geospatial Works
+            - paragraph [ref=e9]: Operations
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - paragraph [ref=e12]: Workspace
+            - navigation "Workspace" [ref=e13]:
+              - link "Overview" [ref=e14] [cursor=pointer]:
+                - /url: /dashboard
+              - link "Projects" [ref=e21] [cursor=pointer]:
+                - /url: /projects
+              - link "Tasks" [ref=e25] [cursor=pointer]:
+                - /url: /tasks
+              - link "Reports" [ref=e30] [cursor=pointer]:
+                - /url: /reports
+              - link "Cash flow" [ref=e35] [cursor=pointer]:
+                - /url: /payroll
+          - generic [ref=e40]:
+            - paragraph [ref=e41]: Finance
+            - generic [ref=e42]:
+              - button "Transactions" [expanded] [ref=e43]
+              - generic [ref=e51]:
+                - link "Activity" [ref=e52] [cursor=pointer]:
+                  - /url: /expenses
+                - link "Approvals" [ref=e53] [cursor=pointer]:
+                  - /url: /approvals
+                - link "Voucher audit" [ref=e54] [cursor=pointer]:
+                  - /url: /expenses/compliance
+          - generic [ref=e55]:
+            - paragraph [ref=e56]: Team
+            - navigation "Team" [ref=e57]:
+              - link "People" [ref=e58] [cursor=pointer]:
+                - /url: /employees
+              - link "Attendance" [ref=e65] [cursor=pointer]:
+                - /url: /attendance
+              - link "Leave" [ref=e71] [cursor=pointer]:
+                - /url: /leaves
+              - link "Messages" [ref=e75] [cursor=pointer]:
+                - /url: /chat
+          - navigation "Administration" [ref=e80]:
+            - link "Clients" [ref=e81] [cursor=pointer]:
+              - /url: /clients
+            - link "Settings" [ref=e87] [cursor=pointer]:
+              - /url: /settings
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - generic [ref=e94]: GW
+          - generic [ref=e95]:
+            - paragraph [ref=e96]: GW Admin
+            - paragraph [ref=e97]: Administrator
+          - img "Help" [ref=e98]
+        - button "Collapse menu" [ref=e101]
+    - generic [ref=e106]:
+      - banner [ref=e107]:
+        - generic [ref=e108]:
+          - generic [ref=e109]:
+            - generic [ref=e111]: Workspace
+            - generic [ref=e112]: /
+            - generic [ref=e113]: Reports
+          - textbox "Search workspace" [ref=e115]:
+            - /placeholder: Search
+        - generic [ref=e116]:
+          - button "Open notifications panel" [ref=e118]:
+            - generic [ref=e226]: "97"
+          - link "System Settings" [ref=e122] [cursor=pointer]:
+            - /url: /settings
+          - button "User profile settings menu" [ref=e127]:
+            - generic [ref=e128]: A
+            - generic [ref=e131]:
+              - paragraph [ref=e132]: GW Admin
+              - paragraph [ref=e133]: admin
+          - link "New project" [ref=e134] [cursor=pointer]:
+            - /url: /projects/new
+      - main [ref=e137]:
+        - generic [ref=e138]:
+          - generic [ref=e139]:
+            - generic [ref=e140]:
+              - generic [ref=e141]:
+                - heading "Reports" [level=1] [ref=e142]
+                - paragraph [ref=e143]: Live operational and financial data
+              - button "Refresh" [ref=e144]
+            - tablist "Report type" [ref=e150]:
+              - tab "Project financials 2" [selected] [ref=e227]:
+                - text: Project financials
+                - generic [ref=e152]: "2"
+              - tab "Expenses 11" [ref=e228]:
+                - text: Expenses
+                - generic [ref=e154]: "11"
+              - tab "Tasks 6" [ref=e229]:
+                - text: Tasks
+                - generic [ref=e156]: "6"
+              - tab "Leave requests 2" [ref=e230]:
+                - text: Leave requests
+                - generic [ref=e158]: "2"
+              - tab "Attendance 1" [ref=e231]:
+                - text: Attendance
+                - generic [ref=e160]: "1"
+          - generic [ref=e161]:
+            - generic [ref=e162]:
+              - generic [ref=e163]:
+                - text: From
+                - textbox "From" [ref=e164]
+              - generic [ref=e165]:
+                - text: To
+                - textbox "To" [ref=e166]
+              - generic [ref=e167]:
+                - text: Project
+                - combobox "Project" [ref=e168]:
+                  - option "All projects" [selected]
+                  - option "Updated Test Project"
+                  - option "example"
+              - generic [ref=e169]:
+                - text: Employee
+                - combobox "Employee" [ref=e170]:
+                  - option "All employees" [selected]
+                  - option "David Chen"
+                  - option "Fahim Ahmed"
+                  - option "Gw Admin"
+                  - option "Rahim Chowdhury"
+                  - option "Rofik"
+                  - option "Sarah Jenkins"
+              - generic [ref=e171]:
+                - text: Status
+                - combobox "Status" [ref=e172]:
+                  - option "All statuses" [selected]
+                  - option "ongoing"
+              - generic [ref=e173]:
+                - text: Category / type
+                - combobox "Category / type" [ref=e174]:
+                  - option "All categories" [selected]
+            - generic [ref=e175]:
+              - textbox "Search report" [ref=e180]
+              - generic [ref=e181]: 2 of 2
+              - button "Clear" [ref=e182]
+              - button "csv" [ref=e183]
+              - button "Excel" [ref=e187]
+              - button "pdf" [ref=e191]
+              - button "Word" [ref=e195]
+          - generic [ref=e199]:
+            - generic [ref=e200]:
+              - heading "Project financials" [level=2] [ref=e201]
+              - generic [ref=e202]: 2 rows
+            - table [ref=e204]:
+              - rowgroup [ref=e205]:
+                - row [ref=e206]:
+                  - columnheader "Project" [ref=e207]
+                  - columnheader "Client" [ref=e208]
+                  - columnheader "Contract value" [ref=e209]
+                  - columnheader "Received" [ref=e210]
+                  - columnheader "Remaining" [ref=e211]
+                  - columnheader "Status" [ref=e212]
+                  - columnheader "Individual export" [ref=e213]
+              - rowgroup [ref=e214]:
+                - row [ref=e232]:
+                  - cell "Updated Test Project" [ref=e233]
+                  - cell "Ministry of Housing" [ref=e234]
+                  - cell "35000" [ref=e235]
+                  - cell "10900" [ref=e236]
+                  - cell "24100" [ref=e237]
+                  - cell "ongoing" [ref=e238]
+                  - cell [ref=e239]:
+                    - generic [ref=e240]:
+                      - button "Export this record as CSV" [active] [ref=e241]
+                      - button "PDF" [ref=e245]
+                - row [ref=e246]:
+                  - cell "example" [ref=e247]
+                  - cell "ex" [ref=e248]
+                  - cell "25000" [ref=e249]
+                  - cell "15600" [ref=e250]
+                  - cell "9400" [ref=e251]
+                  - cell "ongoing" [ref=e252]
+                  - cell [ref=e253]:
+                    - generic [ref=e254]:
+                      - button "Export this record as CSV" [ref=e255]
+                      - button "PDF" [ref=e259]
+    - status [ref=e285]:
+      - generic [ref=e286]:
+        - generic [ref=e290]:
+          - paragraph [ref=e291]: Action complete
+          - paragraph [ref=e292]: Record exported as CSV.
+        - button "Dismiss action update" [ref=e293]
+  - button "Open Next.js Dev Tools" [ref=e222] [cursor=pointer]
+  - alert [ref=e260]

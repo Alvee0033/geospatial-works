@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } from 'docx';
+import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, PageOrientation } from 'docx';
 
 export class ExportUtils {
   static exportToExcel(data: any[], fileName: string, sheetName = 'Data') {
@@ -11,21 +11,80 @@ export class ExportUtils {
     XLSX.writeFile(wb, `${fileName}.xlsx`);
   }
 
-  static exportToPdf(columns: string[], rows: any[][], title: string, fileName: string) {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(title, 14, 15);
-    doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
+  static exportToPdf(
+    columns: string[],
+    rows: any[][],
+    title: string,
+    fileName: string,
+    options?: { orientation?: 'portrait' | 'landscape' }
+  ) {
+    const orientation = options?.orientation ?? (columns.length > 6 ? 'landscape' : 'portrait');
+    const doc = new jsPDF(orientation, 'mm', 'a4');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
 
+    // Top Header Banner
+    doc.setFillColor(16, 36, 30);
+    doc.rect(0, 0, pageWidth, 20, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('GEOSPATIAL WORKS ERP', 14, 9);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(200, 215, 210);
+    doc.text(title.toUpperCase(), 14, 15);
+
+    doc.setFontSize(8);
+    doc.text(
+      `Generated: ${new Date().toLocaleString()}`,
+      pageWidth - 14,
+      12,
+      { align: 'right' }
+    );
+
+    const isCompact = columns.length > 8;
     autoTable(doc, {
       head: [columns],
       body: rows,
-      startY: 28,
+      startY: 25,
       theme: 'grid',
-      headStyles: { fillColor: [13, 17, 23], textColor: 255 },
-      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: {
+        fillColor: [16, 36, 30],
+        textColor: 255,
+        fontSize: isCompact ? 7 : 8,
+        fontStyle: 'bold',
+        cellPadding: 2,
+      },
+      styles: {
+        fontSize: isCompact ? 6.5 : 7.5,
+        cellPadding: 2,
+        overflow: 'linebreak',
+        textColor: [30, 41, 59],
+      },
+      margin: { left: 10, right: 10, bottom: 12 },
     });
+
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(148, 163, 184);
+      doc.text(
+        `Geospatial Works ERP • Confidential • Official Records`,
+        10,
+        pageHeight - 5
+      );
+      doc.text(
+        `Page ${i} of ${totalPages}`,
+        pageWidth - 10,
+        pageHeight - 5,
+        { align: 'right' }
+      );
+    }
 
     doc.save(`${fileName}.pdf`);
   }
@@ -330,14 +389,27 @@ export class ExportUtils {
   }
 
   static async exportToDocx(title: string, dataRows: string[][], fileName: string) {
+    const colCount = dataRows[0]?.length || 1;
+    const isWide = colCount > 6;
     const tableRows = dataRows.map(
-      (row) =>
+      (row, rowIndex) =>
         new TableRow({
+          tableHeader: rowIndex === 0,
           children: row.map(
             (cell) =>
               new TableCell({
-                width: { size: 100 / row.length, type: WidthType.PERCENTAGE },
-                children: [new Paragraph(cell)],
+                width: { size: 100 / colCount, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({
+                    children: [
+                      new TextRun({
+                        text: String(cell ?? ''),
+                        bold: rowIndex === 0,
+                        size: rowIndex === 0 ? 16 : 14,
+                      }),
+                    ],
+                  }),
+                ],
               })
           ),
         })
@@ -346,22 +418,35 @@ export class ExportUtils {
     const doc = new Document({
       sections: [
         {
+          properties: {
+            page: {
+              size: {
+                orientation: isWide ? PageOrientation.LANDSCAPE : PageOrientation.PORTRAIT,
+              },
+              margin: {
+                top: 720,
+                right: 720,
+                bottom: 720,
+                left: 720,
+              },
+            },
+          },
           children: [
             new Paragraph({
               children: [
                 new TextRun({
                   text: title,
                   bold: true,
-                  size: 32,
+                  size: 28,
                 }),
               ],
             }),
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `Generated on: ${new Date().toLocaleDateString()}`,
+                  text: `Generated on: ${new Date().toLocaleString()} • Geospatial Works ERP`,
                   italics: true,
-                  size: 20,
+                  size: 18,
                 }),
               ],
             }),

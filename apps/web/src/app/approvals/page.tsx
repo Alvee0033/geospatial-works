@@ -559,9 +559,16 @@ export default function ApprovalsQueuePage() {
                                   <p className="font-bold text-slate-900">
                                     {exp.employeeName || exp.employee_name || 'Staff'}
                                   </p>
-                                  <p className="text-[10px] text-slate-400 font-mono">
-                                    {exp.date ? new Date(exp.date).toLocaleDateString() : 'N/A'}
-                                  </p>
+                                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 font-mono">
+                                      <Calendar size={10} className="text-blue-500 shrink-0" />
+                                      <span>Claim Date: {exp.date ? new Date(exp.date).toLocaleDateString() : 'N/A'}</span>
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/70 font-mono">
+                                      <Clock size={10} className="text-slate-500 shrink-0" />
+                                      <span>Submitted: {(exp.createdAt || exp.created_at) ? new Date(exp.createdAt || exp.created_at).toLocaleDateString() : 'N/A'}</span>
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             </td>
@@ -791,10 +798,19 @@ export default function ApprovalsQueuePage() {
                         {inspectExpense.status || 'Pending'}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-                      Ref #{String(inspectExpense.id || '').slice(0, 8)} •{' '}
-                      {inspectExpense.date ? new Date(inspectExpense.date).toLocaleDateString() : 'N/A'}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                      <span className="text-[11px] text-slate-400 font-mono">
+                        Ref #{String(inspectExpense.id || '').slice(0, 8)}
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 font-mono">
+                        <Calendar size={10} className="text-blue-500 shrink-0" />
+                        <span>Claim Date: {inspectExpense.date ? new Date(inspectExpense.date).toLocaleDateString() : 'N/A'}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/70 font-mono">
+                        <Clock size={10} className="text-slate-500 shrink-0" />
+                        <span>Submitted: {(inspectExpense.createdAt || inspectExpense.created_at) ? new Date(inspectExpense.createdAt || inspectExpense.created_at).toLocaleDateString() : 'N/A'}</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <button
@@ -846,6 +862,28 @@ export default function ApprovalsQueuePage() {
                       </span>
                       <span className="font-semibold text-slate-800 text-xs capitalize truncate block mt-0.5">
                         {inspectExpense.categoryName || inspectExpense.category_name || inspectExpense.category || 'General'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Expense Claim Date
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-mono font-bold text-blue-700 text-xs mt-0.5">
+                        <Calendar size={12} className="text-blue-500" />
+                        {inspectExpense.date ? new Date(inspectExpense.date).toLocaleDateString() : 'N/A'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Submission Timestamp
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-mono font-bold text-slate-700 text-xs mt-0.5">
+                        <Clock size={12} className="text-slate-500" />
+                        {(inspectExpense.createdAt || inspectExpense.created_at)
+                          ? new Date(inspectExpense.createdAt || inspectExpense.created_at).toLocaleDateString()
+                          : 'N/A'}
                       </span>
                     </div>
                   </div>

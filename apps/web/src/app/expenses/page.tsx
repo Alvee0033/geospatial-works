@@ -22,6 +22,8 @@ import {
   Upload,
   Camera,
   Loader2,
+  Calendar,
+  Clock,
 } from 'lucide-react';
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
@@ -442,6 +444,16 @@ export default function ExpensesPage() {
                           <div>
                             <p className="font-bold text-slate-900">{e.employeeName || e.employee_name || 'Staff'}</p>
                             <p className="text-[11px] text-slate-400">{e.projectName || e.project_name || 'Project'}</p>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 font-mono">
+                                <Calendar size={10} className="text-blue-500 shrink-0" />
+                                <span>Claim Date: {e.date ? new Date(e.date).toLocaleDateString() : 'N/A'}</span>
+                              </span>
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/70 font-mono">
+                                <Clock size={10} className="text-slate-500 shrink-0" />
+                                <span>Submitted: {(e.createdAt || e.created_at) ? new Date(e.createdAt || e.created_at).toLocaleDateString() : 'N/A'}</span>
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -549,6 +561,16 @@ export default function ExpensesPage() {
               <div>
                 <h4 className="font-bold text-slate-900 text-base">Expense Claim Audit</h4>
                 <p className="text-xs text-slate-400">Claim ID: {inspectExp.id}</p>
+                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 font-mono">
+                    <Calendar size={10} className="text-blue-500 shrink-0" />
+                    <span>Claim Date: {inspectExp.date ? new Date(inspectExp.date).toLocaleDateString() : 'N/A'}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/70 font-mono">
+                    <Clock size={10} className="text-slate-500 shrink-0" />
+                    <span>Submitted: {(inspectExp.createdAt || inspectExp.created_at) ? new Date(inspectExp.createdAt || inspectExp.created_at).toLocaleDateString() : 'N/A'}</span>
+                  </span>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <StatusBadge status={inspectExp.status || 'pending'} />
@@ -592,6 +614,22 @@ export default function ExpensesPage() {
                   <span className="text-slate-400 block mb-0.5">Total Claimed Amount</span>
                   <span className="font-bold text-emerald-600 text-sm">
                     BDT {Number(inspectExp.amount).toLocaleString()}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block mb-0.5">Claim Date</span>
+                  <span className="inline-flex items-center gap-1 font-mono font-bold text-blue-700 text-xs mt-0.5">
+                    <Calendar size={12} className="text-blue-500" />
+                    {inspectExp.date ? new Date(inspectExp.date).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block mb-0.5">Submitted On</span>
+                  <span className="inline-flex items-center gap-1 font-mono font-bold text-slate-700 text-xs mt-0.5">
+                    <Clock size={12} className="text-slate-500" />
+                    {(inspectExp.createdAt || inspectExp.created_at)
+                      ? new Date(inspectExp.createdAt || inspectExp.created_at).toLocaleDateString()
+                      : 'N/A'}
                   </span>
                 </div>
               </div>
