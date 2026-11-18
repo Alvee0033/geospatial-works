@@ -35,6 +35,8 @@ export interface NotificationItem {
   createdAt: string;
   relatedProjectId?: string | null;
   relatedExpenseId?: string | null;
+  expenseDate?: string | null;
+  submittedDate?: string | null;
 }
 
 export const NotificationPanel: React.FC = () => {
@@ -153,6 +155,8 @@ export const NotificationPanel: React.FC = () => {
               createdAt: payload.createdAt || new Date().toISOString(),
               relatedProjectId: payload.relatedProjectId,
               relatedExpenseId: payload.relatedExpenseId,
+              expenseDate: payload.expenseDate || null,
+              submittedDate: payload.submittedDate || null,
             };
 
             // Avoid duplicate processing if already seen
@@ -615,9 +619,15 @@ export const NotificationPanel: React.FC = () => {
 
                       {isExpenseNotification(notif.type) && (
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-50 text-amber-800 border border-amber-200/60 font-mono">
-                            <Clock size={9} className="text-amber-600 shrink-0" />
-                            <span>Logged: {formatTimestamp(notif.createdAt)}</span>
+                          {notif.expenseDate && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 font-mono">
+                              <Calendar size={9} className="text-blue-500 shrink-0" />
+                              <span>Expense Date: {notif.expenseDate}</span>
+                            </span>
+                          )}
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/70 font-mono">
+                            <Clock size={9} className="text-slate-500 shrink-0" />
+                            <span>Submitted: {notif.submittedDate || formatTimestamp(notif.createdAt)}</span>
                           </span>
                         </div>
                       )}
