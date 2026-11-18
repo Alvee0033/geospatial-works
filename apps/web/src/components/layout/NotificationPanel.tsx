@@ -47,7 +47,24 @@ export const NotificationPanel: React.FC = () => {
   const [desktopPermission, setDesktopPermission] = useState<'default' | 'granted' | 'denied'>('default');
   const panelRef = useRef<HTMLDivElement>(null);
   const seenIdsRef = useRef<Set<string>>(new Set());
+  const seenFingerprintsRef = useRef<Map<string, number>>(new Map());
   const isFirstLoadRef = useRef(true);
+
+  const shouldTriggerDesktopNotification = (item: NotificationItem): boolean => {
+    if (seenIdsRef.current.has(item.id)) return false;
+    const now = Date.now();
+    const fingerprint = `${(item.title || '').trim()}::${(item.message || '').trim()}`;
+    const lastSeen = seenFingerprintsRef.current.get(fingerprint);
+    if (lastSeen && now - lastSeen < 60000) {
+      return false;
+    }
+    seenFingerprintsRef.current.set(fingerprint, now);
+    if (seenFingerprintsRef.current.size > 200) {
+      const oldestKey = seenFingerprintsRef.current.keys().next().value;
+      if (oldestKey) seenFingerprintsRef.current.delete(oldestKey);
+    }
+    return true;
+  };
 
   // Check desktop notification permission on mount
   useEffect(() => {
@@ -85,7 +102,7 @@ export const NotificationPanel: React.FC = () => {
           Notification.permission === 'granted'
         ) {
           for (const item of sorted) {
-            if (!item.isRead && !seenIdsRef.current.has(item.id)) {
+            if (!item.isRead && shouldTriggerDesktopNotification(item)) {
               try {
                 const desktopNotif = new Notification(item.title, {
                   body: item.message || item.fullExplanation || 'New update in Geospatial Works',
@@ -105,7 +122,7 @@ export const NotificationPanel: React.FC = () => {
           }
         }
 
-        const newSeen = new Set<string>();
+        const newSeen = new Set(seenIdsRef.current);
         for (const item of sorted) {
           newSeen.add(item.id);
         }
@@ -160,7 +177,7 @@ export const NotificationPanel: React.FC = () => {
             };
 
             // Avoid duplicate processing if already seen
-            if (seenIdsRef.current.has(item.id)) return;
+            if (!shouldTriggerDesktopNotification(item)) return;
             seenIdsRef.current.add(item.id);
 
             // Fire native Desktop OS push notification if granted
