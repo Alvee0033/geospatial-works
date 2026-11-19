@@ -556,6 +556,17 @@ export class ApiClient {
     return this.request<any[]>(`/salary/leaves${qs ? `?${qs}` : ''}`);
   }
 
+  static async getLeaveAllowances(year: number, userId?: string) {
+    const query = new URLSearchParams({ year: String(year), ...(userId ? { userId } : {}) });
+    return this.request<{ userId: string; year: number; leaveType: string; allowedDays: number }[]>(`/salary/leave-allowances?${query}`);
+  }
+
+  static async setLeaveAllowance(data: { userId: string; year: number; leaveType: string; allowedDays: number }) {
+    return this.request<{ userId: string; year: number; leaveType: string; allowedDays: number }>('/salary/leave-allowances', {
+      method: 'POST', body: JSON.stringify(data),
+    });
+  }
+
   static async createLeave(data: { userId: string; leaveType: string; startDate: string; endDate: string; reason?: string }) {
     return this.request<any>('/salary/leaves', {
       method: 'POST',

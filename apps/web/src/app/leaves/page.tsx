@@ -5,6 +5,7 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   CalendarDays,
+  Settings2,
   Plus,
   Trash2,
   FileText,
@@ -19,6 +20,8 @@ import { ApiClient } from '@/lib/api';
 import { notifyAction } from '@/components/feedback/ActionFeedback';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { LeaveClarificationThread } from '@/components/leaves/LeaveClarificationThread';
+import { LeaveHistoryPanel } from '@/components/leaves/LeaveHistoryPanel';
+import Link from 'next/link';
 
 export default function LeavesPage() {
   const [leaves, setLeaves] = useState<any[]>([]);
@@ -38,6 +41,9 @@ export default function LeavesPage() {
   const [canReviewLeaves, setCanReviewLeaves] = useState(false);
   const [canManageLeaveRecords, setCanManageLeaveRecords] = useState(false);
   const [currentUserName, setCurrentUserName] = useState('your account');
+  const [currentUserId, setCurrentUserId] = useState('');
+  const [currentUserRole, setCurrentUserRole] = useState('');
+  const [allowances, setAllowances] = useState<{ userId: string; leaveType: string; allowedDays: number }[]>([]);
   const [reviewingLeaveId, setReviewingLeaveId] = useState<string | null>(null);
   const openedLeaveDeepLink = useRef(false);
 
@@ -88,11 +94,18 @@ export default function LeavesPage() {
       setCanReviewLeaves(['main_admin', 'project_manager', 'finance_manager', 'finance'].includes(user.role));
       setCanManageLeaveRecords(['main_admin', 'finance_manager', 'finance'].includes(user.role));
       setCurrentUserName(user.fullName || user.name || user.email || 'your account');
+      setCurrentUserId(String(user.id || user._id || ''));
+      setCurrentUserRole(String(user.role || ''));
     } catch { setCanReviewLeaves(false); setCanManageLeaveRecords(false); }
     void fetchLeavesAndHolidays();
     const unsubscribe = ApiClient.subscribeToDataRefresh(() => { void fetchLeavesAndHolidays(true); });
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    const year = Number(selectedMonth.slice(0, 4));
+    ApiClient.getLeaveAllowances(year).then(setAllowances).catch(() => setAllowances([]));
+  }, [selectedMonth]);
 
   useEffect(() => {
     if (openedLeaveDeepLink.current || typeof window === 'undefined') return;
@@ -128,6 +141,17 @@ export default function LeavesPage() {
   const requestedDays = monthlyLeaves.reduce((sum, leave) => sum + leaveDaysInMonth(leave), 0);
   const approvedDays = monthlyLeaves.filter((leave) => leaveStatus(leave) === 'approved')
     .reduce((sum, leave) => sum + leaveDaysInMonth(leave), 0);
+  const balanceUserId = selectedEmployeeFilter !== 'all' ? selectedEmployeeFilter : canReviewLeaves ? '' : currentUserId;
+  const balanceEmployeeName = users.find((user) => user.id === balanceUserId)?.name || currentUserName;
+  const balanceYear = Number(selectedMonth.slice(0, 4));
+  const usedInYear = (type: string) => leaves.filter((leave) => leave.userId === balanceUserId && leave.leaveType === type && leaveStatus(leave) === 'approved')
+    .reduce((sum, leave) => {
+      const start = new Date(`${String(leave.startDate).slice(0, 10)}T00:00:00`).getTime();
+      const end = new Date(`${String(leave.endDate).slice(0, 10)}T00:00:00`).getTime();
+      const first = new Date(balanceYear, 0, 1).getTime();
+      const last = new Date(balanceYear, 11, 31).getTime();
+      return sum + (Number.isNaN(start) || Number.isNaN(end) ? 0 : Math.max(0, Math.floor((Math.min(end, last) - Math.max(start, first)) / 86400000) + 1));
+    }, 0);
 
   const handleLeaveDecision = async (id: string, approved: boolean) => {
     setReviewingLeaveId(id);
@@ -274,6 +298,7 @@ export default function LeavesPage() {
               <span>Add holiday</span>
             </button>
           ) : null}
+          {['main_admin', 'finance_manager'].includes(currentUserRole) && <Link href="/leaves/settings" className="ml-2 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Settings2 size={15} /> Leave Settings</Link>}
         </div>
       </div>
 
@@ -288,19 +313,18 @@ export default function LeavesPage() {
             <span className="text-xs font-semibold text-slate-500">{monthlyLeaves.length} requests this month</span>
           </div>
 
-          <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {[
-              ['Requests', monthlyLeaves.length, 'Applications in this month'],
-              ['Requested days', requestedDays, 'Days overlapping this month'],
-              ['Approved days', approvedDays, 'Approved days in this month'],
-            ].map(([label, value, note]) => (
-              <div key={String(label)} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <p className="text-[11px] font-semibold text-slate-500">{label}</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">{value}</p>
-                <p className="text-[10px] text-slate-500">{note}</p>
-              </div>
-            ))}
-          </div>
+          {balanceUserId ? <div className="mb-4">
+            <p className="mb-2 text-xs font-bold text-slate-700">{balanceEmployeeName} · {balanceYear} annual balance</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">{['casual', 'sick', 'emergency', 'paid', 'unpaid', 'maternity'].map((type) => {
+              const allowed = allowances.find((item) => item.userId === balanceUserId && item.leaveType === type)?.allowedDays;
+              const used = usedInYear(type);
+              return <div key={type} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                <p className="text-[11px] font-semibold capitalize text-slate-600">{type}</p>
+                <p className="mt-1 text-lg font-extrabold text-slate-900">{used}{allowed === undefined ? '' : ` / ${allowed}`}</p>
+                <p className="text-[10px] text-slate-500">{allowed === undefined ? 'Allowance not set' : `${allowed - used} days left`}</p>
+              </div>;
+            })}</div>
+          </div> : <div className="mb-4 rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-xs text-indigo-800">Choose an employee to see their allowed, used, and remaining leave days.</div>}
 
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-1.5" aria-label="Filter leave records by status">
@@ -760,6 +784,7 @@ export default function LeavesPage() {
                     </button>
                   </div>
                 )}
+                <LeaveHistoryPanel key={leave.id} leave={leave} leaves={leaves} onSelect={setDetailsModalLeave} />
                 <LeaveClarificationThread leaveId={leave.id} employeeName={name} />
               </div>
             </div>

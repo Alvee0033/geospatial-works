@@ -45,6 +45,7 @@ export default function ExpensesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [expenseToEdit, setExpenseToEdit] = useState<any | null>(null);
+  const [currentUserId, setCurrentUserId] = useState('');
   const [threadModalExp, setThreadModalExp] = useState<any | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -59,6 +60,13 @@ export default function ExpensesPage() {
   const [formDate, setFormDate] = useState('2026-10-20');
   const [formReceiptUrl, setFormReceiptUrl] = useState('');
   const [formReceiptUrls, setFormReceiptUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem('gw_user') || '{}');
+      setCurrentUserId(String(user.id || user._id || ''));
+    } catch { setCurrentUserId(''); }
+  }, []);
 
   const fetchRealExpenses = async () => {
     setLoading(true);
@@ -290,7 +298,7 @@ export default function ExpensesPage() {
       setIsEditModalOpen(false);
       setExpenseToEdit(null);
       await fetchRealExpenses();
-      alert('Expense record updated successfully');
+      alert(expenseToEdit.status === 'rejected' ? 'Expense corrected and resubmitted for approval.' : 'Expense record updated successfully');
     } catch (err: any) {
       alert(`Update failed: ${err.message}`);
     } finally {
@@ -505,11 +513,12 @@ export default function ExpensesPage() {
                           >
                             <Eye size={14} />
                           </button>
-                          {(e.status || 'pending').toLowerCase() !== 'approved' && (
+                          {(e.status || 'pending').toLowerCase() !== 'approved' &&
+                            ((e.status || 'pending').toLowerCase() !== 'rejected' || String(e.employeeId || e.employee_id) === currentUserId) && (
                             <button
                               onClick={() => handleOpenEdit(e)}
                               className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-lg transition-colors"
-                              title="Edit Claim"
+                              title={e.status === 'rejected' ? 'Edit and resubmit claim' : 'Edit claim'}
                             >
                               <Edit2 size={13} />
                             </button>
@@ -594,6 +603,12 @@ export default function ExpensesPage() {
                     {inspectExp.rejectionReason || inspectExp.rejection_reason}
                   </p>
                 </div>
+              )}
+              {inspectExp.status === 'rejected' && String(inspectExp.employeeId || inspectExp.employee_id) === currentUserId && (
+                <button type="button" onClick={() => { handleOpenEdit(inspectExp); setInspectExp(null); }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-xs font-bold text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                  <Edit2 size={15} /> Edit &amp; Resubmit for Approval
+                </button>
               )}
 
               <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-2xl">
@@ -906,7 +921,7 @@ export default function ExpensesPage() {
           <div className="bg-white rounded-[32px] p-6 max-w-lg w-full border border-slate-200 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <h4 className="font-bold text-slate-900 text-base">
-                {isCreateModalOpen ? 'Record Project Expense Claim' : 'Edit Expense Claim'}
+                {isCreateModalOpen ? 'Record Project Expense Claim' : expenseToEdit?.status === 'rejected' ? 'Edit & Resubmit Expense' : 'Edit Expense Claim'}
               </h4>
               <button
                 onClick={() => {
@@ -1109,7 +1124,7 @@ export default function ExpensesPage() {
                   disabled={submitting || uploadingReceipt}
                   className="px-6 py-2 bg-[#0D1117] hover:bg-slate-800 text-white font-bold rounded-full shadow-xs"
                 >
-                  {submitting ? 'Recording...' : isCreateModalOpen ? 'Record Expense' : 'Save Changes'}
+                  {submitting ? 'Saving...' : isCreateModalOpen ? 'Record Expense' : expenseToEdit?.status === 'rejected' ? 'Resubmit for Approval' : 'Save Changes'}
                 </button>
               </div>
             </form>
