@@ -29,6 +29,11 @@ export default function LeavesPage() {
   const [activeTab, setActiveTab] = useState<'leaves' | 'holidays'>('leaves');
   const [leaveStatusFilter, setLeaveStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [selectedEmployeeFilter, setSelectedEmployeeFilter] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [showAllRecords, setShowAllRecords] = useState(false);
   const [detailsModalLeave, setDetailsModalLeave] = useState<any | null>(null);
   const [canReviewLeaves, setCanReviewLeaves] = useState(false);
   const [canManageLeaveRecords, setCanManageLeaveRecords] = useState(false);
@@ -101,11 +106,28 @@ export default function LeavesPage() {
   }, [leaves]);
 
   const leaveStatus = (leave: any) => String(leave.status || (leave.isApproved || leave.is_approved ? 'approved' : 'pending')).toLowerCase();
+  const leaveDaysInMonth = (leave: any) => {
+    const start = new Date(`${String(leave.startDate).slice(0, 10)}T00:00:00`);
+    const end = new Date(`${String(leave.endDate).slice(0, 10)}T00:00:00`);
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const monthStart = new Date(year, month - 1, 1);
+    const monthEnd = new Date(year, month, 0);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 0;
+    const first = Math.max(start.getTime(), monthStart.getTime());
+    const last = Math.min(end.getTime(), monthEnd.getTime());
+    return Math.max(0, Math.floor((last - first) / 86400000) + 1);
+  };
+  const employeeLeaves = leaves.filter((leave) => selectedEmployeeFilter === 'all' || leave.userId === selectedEmployeeFilter);
+  const monthlyLeaves = employeeLeaves.filter((leave) => leaveDaysInMonth(leave) > 0);
   const visibleLeaves = leaves.filter((leave) => {
     const matchesStatus = leaveStatusFilter === 'all' || leaveStatus(leave) === leaveStatusFilter;
     const matchesEmployee = selectedEmployeeFilter === 'all' || leave.userId === selectedEmployeeFilter;
-    return matchesStatus && matchesEmployee;
+    return matchesStatus && matchesEmployee && leaveDaysInMonth(leave) > 0;
   });
+  const displayedLeaves = showAllRecords ? visibleLeaves : visibleLeaves.slice(0, 5);
+  const requestedDays = monthlyLeaves.reduce((sum, leave) => sum + leaveDaysInMonth(leave), 0);
+  const approvedDays = monthlyLeaves.filter((leave) => leaveStatus(leave) === 'approved')
+    .reduce((sum, leave) => sum + leaveDaysInMonth(leave), 0);
 
   const handleLeaveDecision = async (id: string, approved: boolean) => {
     setReviewingLeaveId(id);
@@ -260,10 +282,24 @@ export default function LeavesPage() {
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h3 className="font-bold text-slate-900 text-sm tracking-tight">Leave requests</h3>
-              <p className="text-xs text-slate-400">Review request status and dates.</p>
+              <h3 className="font-bold text-slate-900 text-sm tracking-tight">Past Leave Records</h3>
+              <p className="text-xs text-slate-500">Choose an employee and month to review their leave history.</p>
             </div>
-            <span className="text-xs font-semibold text-slate-500">{leaves.length} Applications</span>
+            <span className="text-xs font-semibold text-slate-500">{monthlyLeaves.length} requests this month</span>
+          </div>
+
+          <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            {[
+              ['Requests', monthlyLeaves.length, 'Applications in this month'],
+              ['Requested days', requestedDays, 'Days overlapping this month'],
+              ['Approved days', approvedDays, 'Approved days in this month'],
+            ].map(([label, value, note]) => (
+              <div key={String(label)} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-[11px] font-semibold text-slate-500">{label}</p>
+                <p className="mt-1 text-2xl font-extrabold text-slate-900">{value}</p>
+                <p className="text-[10px] text-slate-500">{note}</p>
+              </div>
+            ))}
           </div>
 
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -271,17 +307,21 @@ export default function LeavesPage() {
               {(['all', 'pending', 'approved', 'rejected'] as const).map((status) => (
                 <button key={status} type="button" onClick={() => setLeaveStatusFilter(status)} aria-pressed={leaveStatusFilter === status}
                   className={`rounded-full px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors ${leaveStatusFilter === status ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                  {status === 'rejected' ? 'Declined' : status} ({status === 'all' ? leaves.length : leaves.filter((leave) => leaveStatus(leave) === status).length})
+                  {status === 'rejected' ? 'Declined' : status} ({status === 'all' ? monthlyLeaves.length : monthlyLeaves.filter((leave) => leaveStatus(leave) === status).length})
                 </button>
               ))}
             </div>
 
             <div className="flex items-center gap-2">
+              <label htmlFor="leaveMonthFilter" className="text-xs font-semibold text-slate-500">Month:</label>
+              <input id="leaveMonthFilter" type="month" value={selectedMonth}
+                onChange={(e) => { setSelectedMonth(e.target.value); setShowAllRecords(false); }}
+                className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 focus:border-indigo-500 focus:outline-none" />
               <label htmlFor="employeeFilterSelect" className="text-xs font-semibold text-slate-500">Employee:</label>
               <select
                 id="employeeFilterSelect"
                 value={selectedEmployeeFilter}
-                onChange={(e) => setSelectedEmployeeFilter(e.target.value)}
+                onChange={(e) => { setSelectedEmployeeFilter(e.target.value); setShowAllRecords(false); }}
                 className="h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-xs focus:border-indigo-500 focus:outline-none"
               >
                 <option value="all">All Employees ({users.length})</option>
@@ -314,7 +354,7 @@ export default function LeavesPage() {
                     </td>
                   </tr>
                 ) : (
-                  visibleLeaves.map((l) => {
+                  displayedLeaves.map((l) => {
                     const status = leaveStatus(l);
                     const u = users.find((usr) => usr.id === l.userId || usr._id === l.userId);
                     const name = l.userName || (u ? (u.name || u.full_name) : 'Employee');
@@ -377,6 +417,12 @@ export default function LeavesPage() {
               </tbody>
             </table>
           </div>
+          {visibleLeaves.length > 5 && <div className="mt-4 flex justify-center">
+            <button type="button" onClick={() => setShowAllRecords(!showAllRecords)}
+              className="rounded-full border border-indigo-200 bg-indigo-50 px-5 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+              {showAllRecords ? 'Show less' : `View all ${visibleLeaves.length} records`}
+            </button>
+          </div>}
         </div>
       ) : (
         /* Holidays Table */
