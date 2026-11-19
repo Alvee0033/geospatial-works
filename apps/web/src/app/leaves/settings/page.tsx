@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Search, Settings2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Search, Settings2 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { ApiClient } from '@/lib/api';
 import { notifyAction } from '@/components/feedback/ActionFeedback';
@@ -36,6 +36,7 @@ export default function LeaveSettingsPage() {
   const [saving, setSaving] = useState('');
   const [error, setError] = useState('');
   const [reload, setReload] = useState(0);
+  const [expandedEmployeeId, setExpandedEmployeeId] = useState('');
 
   useEffect(() => {
     try { setRole(JSON.parse(localStorage.getItem('gw_user') || '{}').role || ''); } catch { setRole(''); }
@@ -87,14 +88,24 @@ export default function LeaveSettingsPage() {
       </div>
       {error && <div role="alert" className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800">{error}<button type="button" onClick={() => setReload((value) => value + 1)} className="ml-2 underline">Retry</button></div>}
       {loading ? <p className="p-8 text-center text-sm text-slate-500">Loading allowances…</p> : filtered.length === 0 ? <p className="p-8 text-center text-sm text-slate-500">No employees match these filters.</p> : <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        {filtered.map((person) => <div key={person.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-900">{person.name || person.full_name}</h3><p className="text-xs text-slate-500">{person.department || 'Employee'}</p>
-          <div className="mt-3 divide-y divide-slate-100">{leaveTypes.filter((item) => type === 'all' || item === type).map((item) => {
+        {filtered.map((person) => {
+          const expanded = expandedEmployeeId === person.id;
+          const configured = allowances.filter((item) => item.userId === person.id).length;
+          const usedTotal = leaveTypes.reduce((sum, item) => sum + usedInYear(leaves, person.id, item, year), 0);
+          return <section key={person.id} className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition ${expanded ? 'border-indigo-200 ring-1 ring-indigo-100' : 'border-slate-200 hover:border-slate-300'}`}>
+          <button type="button" aria-expanded={expanded} onClick={() => setExpandedEmployeeId(expanded ? '' : person.id)} className="flex w-full items-center gap-3 p-4 text-left focus-visible:outline-2 focus-visible:outline-indigo-500">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-sm font-bold text-indigo-700">{(person.name || person.full_name || '?').slice(0, 1).toUpperCase()}</span>
+            <span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-slate-900">{person.name || person.full_name}</span><span className="mt-0.5 block truncate text-xs text-slate-500">{person.department || 'Employee'} · {configured}/{leaveTypes.length} allowances · {usedTotal} days used</span></span>
+            <ChevronDown size={18} className={`shrink-0 text-slate-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+          </button>
+          {expanded && <div className="border-t border-slate-100 bg-slate-50/60 px-4 pb-2">
+          <div className="divide-y divide-slate-100">{leaveTypes.filter((item) => type === 'all' || item === type).map((item) => {
             const allowance = allowances.find((entry) => entry.userId === person.id && entry.leaveType === item);
             const used = usedInYear(leaves, person.id, item, year);
             return <AllowanceRow key={`${person.id}:${year}:${item}`} label={item} allowed={allowance?.allowedDays} used={used} saving={saving === `${person.id}:${item}`} onSave={(value) => save(person.id, item, value)} />;
-          })}</div>
-        </div>)}
+          })}</div></div>}
+        </section>;
+        })}
       </div>}
     </>}
   </AdminLayout>;
