@@ -110,19 +110,12 @@ function ProjectDetailContent() {
   const loadProjectData = async () => {
     setLoading(true);
     try {
-      const [proj, allExp, pTasks, users, myPermissions] = await Promise.all([
+      const [proj, allExp, pTasks, users] = await Promise.all([
         ApiClient.getProjectById(projectId).catch(() => null),
         ApiClient.getExpenses({ projectId }).catch(() => []),
         ApiClient.getTasks(projectId).catch(() => []),
         ApiClient.getUsers().catch(() => []),
-        ApiClient.getMyProjectPermissions(projectId).catch(() => null),
       ]);
-      const canManageAccess = Boolean(
-        myPermissions?.isSystemAdmin || myPermissions?.isCreator || myPermissions?.permissions?.canManageTeam,
-      );
-      const membersResult = canManageAccess
-        ? await ApiClient.getProjectMembers(projectId).then((data) => ({ data, failed: false })).catch(() => ({ data: [], failed: true }))
-        : { data: [], failed: false };
 
       if (proj) {
         setProject(proj);
@@ -132,14 +125,31 @@ function ProjectDetailContent() {
       setExpenses(allExp || []);
       setTasks(pTasks || []);
       setAllUsers(users || []);
-      setProjectMembers(membersResult.data || []);
-      setMemberAccessLoadFailed(membersResult.failed);
-      setCanManageMemberAccess(canManageAccess);
-      setCanGrantPermissions(
-        myPermissions?.isSystemAdmin || myPermissions?.isCreator
-          ? null
-          : resolveProjectMemberPermissions(myPermissions?.permissions),
-      );
+      setProjectMembers([]);
+      setMemberAccessLoadFailed(false);
+      setCanManageMemberAccess(false);
+      setCanGrantPermissions(null);
+
+      // Access controls are secondary to rendering the project itself. Load them
+      // in the background so a slow permissions endpoint cannot hold the page spinner.
+      void (async () => {
+        const myPermissions = await ApiClient.getMyProjectPermissions(projectId).catch(() => null);
+        const canManageAccess = Boolean(
+          myPermissions?.isSystemAdmin || myPermissions?.isCreator || myPermissions?.permissions?.canManageTeam,
+        );
+        setCanManageMemberAccess(canManageAccess);
+        setCanGrantPermissions(
+          myPermissions?.isSystemAdmin || myPermissions?.isCreator
+            ? null
+            : resolveProjectMemberPermissions(myPermissions?.permissions),
+        );
+        if (!canManageAccess) return;
+        try {
+          setProjectMembers(await ApiClient.getProjectMembers(projectId));
+        } catch {
+          setMemberAccessLoadFailed(true);
+        }
+      })();
     } catch (e) {
       console.error('Failed to load project details:', e);
     } finally {
