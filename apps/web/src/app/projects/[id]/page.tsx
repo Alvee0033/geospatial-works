@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { AdminLayout } from '@/components/layout/AdminLayout';
@@ -36,8 +36,18 @@ import {
   Image as ImageIcon,
   ExternalLink,
   MapPin,
+  Settings2,
+  ShieldCheck,
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import {
+  countGrantedProjectPermissions,
+  makeProjectMemberAccessPayload,
+  PROJECT_MEMBER_PERMISSION_OPTIONS,
+  resolveProjectMemberPermissions,
+  type ProjectMemberPermissionKey,
+  type ProjectMemberPermissions,
+} from '@/lib/projectMemberAccess';
 
 function ProjectDetailContent() {
   const router = useRouter();
@@ -48,11 +58,23 @@ function ProjectDetailContent() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [projectMembers, setProjectMembers] = useState<any[]>([]);
+  const [memberAccessLoadFailed, setMemberAccessLoadFailed] = useState(false);
+  const [memberAccessError, setMemberAccessError] = useState('');
+  const accessTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const [canManageMemberAccess, setCanManageMemberAccess] = useState(false);
+  const [canGrantPermissions, setCanGrantPermissions] = useState<ProjectMemberPermissions | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'budget' | 'team' | 'expenses' | 'revenue' | 'tasks'>('overview');
 
   // Modals
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isMemberAccessModalOpen, setIsMemberAccessModalOpen] = useState(false);
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
+  const [memberRoleTitle, setMemberRoleTitle] = useState('Member');
+  const [memberPermissions, setMemberPermissions] = useState<ProjectMemberPermissions>(
+    resolveProjectMemberPermissions({}),
+  );
   const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
@@ -88,12 +110,19 @@ function ProjectDetailContent() {
   const loadProjectData = async () => {
     setLoading(true);
     try {
-      const [proj, allExp, pTasks, users] = await Promise.all([
+      const [proj, allExp, pTasks, users, myPermissions] = await Promise.all([
         ApiClient.getProjectById(projectId).catch(() => null),
         ApiClient.getExpenses({ projectId }).catch(() => []),
         ApiClient.getTasks(projectId).catch(() => []),
         ApiClient.getUsers().catch(() => []),
+        ApiClient.getMyProjectPermissions(projectId).catch(() => null),
       ]);
+      const canManageAccess = Boolean(
+        myPermissions?.isSystemAdmin || myPermissions?.isCreator || myPermissions?.permissions?.canManageTeam,
+      );
+      const membersResult = canManageAccess
+        ? await ApiClient.getProjectMembers(projectId).then((data) => ({ data, failed: false })).catch(() => ({ data: [], failed: true }))
+        : { data: [], failed: false };
 
       if (proj) {
         setProject(proj);
@@ -103,6 +132,14 @@ function ProjectDetailContent() {
       setExpenses(allExp || []);
       setTasks(pTasks || []);
       setAllUsers(users || []);
+      setProjectMembers(membersResult.data || []);
+      setMemberAccessLoadFailed(membersResult.failed);
+      setCanManageMemberAccess(canManageAccess);
+      setCanGrantPermissions(
+        myPermissions?.isSystemAdmin || myPermissions?.isCreator
+          ? null
+          : resolveProjectMemberPermissions(myPermissions?.permissions),
+      );
     } catch (e) {
       console.error('Failed to load project details:', e);
     } finally {
@@ -113,6 +150,18 @@ function ProjectDetailContent() {
   useEffect(() => {
     loadProjectData();
   }, [projectId]);
+
+  useEffect(() => {
+    if (!isMemberAccessModalOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !submitting) {
+        setIsMemberAccessModalOpen(false);
+        accessTriggerRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isMemberAccessModalOpen, submitting]);
 
   if (loading) {
     return (
@@ -204,6 +253,31 @@ function ProjectDetailContent() {
   // Team members
   const memberIds: string[] = project.teamMemberIds || project.team_member_ids || [];
   const assignedUsers = allUsers.filter((u) => memberIds.includes(u.id));
+
+  const openMemberAccessModal = (userId: string) => {
+    const existing = projectMembers.find((member) => member.userId === userId);
+    if (!existing || memberAccessLoadFailed) return;
+    setEditingMemberId(userId);
+    setMemberRoleTitle(existing?.roleInProject || 'Member');
+    setMemberPermissions(resolveProjectMemberPermissions(existing?.permissions));
+    setMemberAccessError('');
+    setIsMemberAccessModalOpen(true);
+  };
+
+  const saveMemberAccess = async () => {
+    if (!editingMemberId || !memberRoleTitle.trim()) return;
+    setSubmitting(true);
+    try {
+      const payload = makeProjectMemberAccessPayload(editingMemberId, memberRoleTitle, memberPermissions);
+      const updatedMembers = await ApiClient.addOrUpdateProjectMember(project.id, payload);
+      setProjectMembers(updatedMembers || []);
+      setIsMemberAccessModalOpen(false);
+    } catch (err: any) {
+      setMemberAccessError(`Could not update project member access: ${err.message || 'Please try again.'}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Handler: Add Revenue
   const handleAddRevenue = async (e: React.FormEvent) => {
@@ -924,7 +998,7 @@ function ProjectDetailContent() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Project Staff & Key Personnel</h3>
-                <p className="text-xs text-slate-400">Engineers and surveyors authorized to log GPS attendance and expenses</p>
+                <p className="text-xs text-slate-400">Review each person’s project role and configure their access.</p>
               </div>
               <button
                 onClick={() => setIsAssignModalOpen(true)}
@@ -941,30 +1015,54 @@ function ProjectDetailContent() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {assignedUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl flex items-center justify-between gap-3 hover:border-slate-300 transition-all"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <UserAvatar
-                        src={user.avatarUrl || user.avatar_url}
-                        name={user.name || 'Staff'}
-                        size="md"
-                        shape="rounded"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
-                        <p className="text-[10px] text-slate-400 truncate">{user.designation || user.role}</p>
-                        <p className="text-[10px] text-indigo-600 truncate">{user.email}</p>
+                {assignedUsers.map((user) => {
+                  const memberAccess = projectMembers.find((member) => member.userId === user.id);
+                  const permissions = resolveProjectMemberPermissions(memberAccess?.permissions);
+                  const grantedCount = countGrantedProjectPermissions(permissions);
+                  return (
+                    <div
+                      key={user.id}
+                      className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl flex items-center justify-between gap-3 hover:border-slate-300 transition-all"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <UserAvatar
+                          src={user.avatarUrl || user.avatar_url}
+                          name={user.name || 'Staff'}
+                          size="md"
+                          shape="rounded"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
+                          <p className="text-[10px] text-slate-400 truncate">{user.designation || user.role}</p>
+                          <p className="text-[10px] text-indigo-600 truncate">{user.email}</p>
+                          <p className="mt-1 text-[10px] font-semibold text-slate-600 truncate">
+                            {memberAccessLoadFailed
+                              ? <button type="button" onClick={loadProjectData} className="mt-1 text-[10px] font-semibold text-rose-700 underline">Access settings could not be loaded · Retry</button>
+                              : memberAccess && <>Project role: {memberAccess.roleInProject || 'Member'} · {grantedCount}/10 permissions</>}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex shrink-0 flex-col items-end gap-2">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          Active
+                        </span>
+                        {canManageMemberAccess && !memberAccessLoadFailed && memberAccess && (
+                          <button
+                            type="button"
+                            ref={accessTriggerRef}
+                            onClick={() => openMemberAccessModal(user.id)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[10px] font-bold text-indigo-700 transition-colors hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                            aria-label={`Manage role and permissions for ${user.name || 'team member'}`}
+                          >
+                            <Settings2 size={13} />
+                            Manage access
+                          </button>
+                        )}
                       </div>
                     </div>
-
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Active
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1397,6 +1495,130 @@ function ProjectDetailContent() {
             </div>
           </div>
         )}
+
+        {/* MODAL: Configure a project member's role and permissions */}
+        {isMemberAccessModalOpen && editingMemberId && (() => {
+          const editingUser = assignedUsers.find((user) => user.id === editingMemberId);
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-sm sm:p-6" role="presentation">
+              <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="member-access-title"
+                className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl"
+              >
+                <header className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4 sm:px-6">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700">
+                      <ShieldCheck size={20} />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 id="member-access-title" className="text-base font-bold text-slate-900">Project role & access</h3>
+                      <p className="truncate text-xs text-slate-500">{editingUser?.name || 'Team member'}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Close access settings"
+                    onClick={() => setIsMemberAccessModalOpen(false)}
+                    className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  >
+                    <X size={18} />
+                  </button>
+                </header>
+
+                <div className="space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+                  <div className="space-y-2">
+                    <label htmlFor="project-member-role" className="text-xs font-bold uppercase tracking-wide text-slate-600">
+                      Role title
+                    </label>
+                    <input
+                      id="project-member-role"
+                      value={memberRoleTitle}
+                      onChange={(event) => setMemberRoleTitle(event.target.value)}
+                      maxLength={80}
+                      required
+                      placeholder="e.g. Site lead, field engineer"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-medium text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">Project permissions</h4>
+                        <p className="text-[11px] text-slate-500">Choose the actions this person can perform on this project.</p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600">
+                        {countGrantedProjectPermissions(memberPermissions)} of 10 enabled
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {PROJECT_MEMBER_PERMISSION_OPTIONS.map((option) => {
+                        const checked = memberPermissions[option.key];
+                        const canGrant = canGrantPermissions === null || canGrantPermissions[option.key];
+                        const activeTone = option.tone === 'blue'
+                          ? 'border-blue-200 bg-blue-50 text-blue-950'
+                          : option.tone === 'emerald'
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-950'
+                            : option.tone === 'violet'
+                              ? 'border-violet-200 bg-violet-50 text-violet-950'
+                              : 'border-amber-200 bg-amber-50 text-amber-950';
+                        return (
+                          <label
+                            key={option.key}
+                            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3 transition-colors ${checked ? activeTone : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              disabled={!canGrant && !checked}
+                              onChange={(event) => setMemberPermissions((current) => ({
+                                ...current,
+                                [option.key as ProjectMemberPermissionKey]: event.target.checked,
+                              }))}
+                              className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 accent-indigo-600 focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                            <span className="min-w-0">
+                              <span className="block text-xs font-bold">{option.label}</span>
+                              <span className="mt-0.5 block text-[10px] leading-relaxed text-slate-500">{option.description}</span>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {canGrantPermissions !== null && (
+                    <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900">
+                      You can grant only permissions that you already hold. Existing access you cannot grant can be revoked here.
+                    </p>
+                  )}
+                </div>
+
+                <footer className="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+                  {memberAccessError && <p role="alert" className="mr-auto self-center text-xs font-medium text-rose-700">{memberAccessError}</p>}
+                  <button
+                    type="button"
+                    onClick={() => setIsMemberAccessModalOpen(false)}
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveMemberAccess}
+                    disabled={submitting || !memberRoleTitle.trim()}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0D1117] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ShieldCheck size={14} />
+                    {submitting ? 'Saving access…' : 'Save access'}
+                  </button>
+                </footer>
+              </section>
+            </div>
+          );
+        })()}
 
         {/* MODAL: Assign Team Members */}
         {isAssignModalOpen && (
