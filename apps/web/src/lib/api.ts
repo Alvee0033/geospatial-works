@@ -73,8 +73,8 @@ export class ApiClient {
           'Accept': 'application/json',
           ...(options.headers as Record<string, string> || {}),
         };
-        // Only set Content-Type for requests with a body — DELETE without body must NOT have Content-Type: application/json
-        if (method !== 'DELETE' || options.body) {
+        // Only set Content-Type for requests with a body
+        if (options.body) {
           headers['Content-Type'] = 'application/json';
         }
         if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
@@ -572,6 +572,7 @@ export class ApiClient {
   static async approveLeave(id: string) {
     return this.request<any>(`/salary/leaves/${id}/approve`, {
       method: 'POST',
+      body: JSON.stringify({}),
     });
   }
 
