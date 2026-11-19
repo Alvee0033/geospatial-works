@@ -597,7 +597,7 @@ export default function ExpensesPage() {
                 <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl">
                   <div className="flex items-center gap-1.5 text-rose-700 font-bold mb-1">
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                    <span>Reason for Rejection:</span>
+                    <span>Reason:</span>
                   </div>
                   <p className="text-rose-900 font-semibold leading-relaxed">
                     {inspectExp.rejectionReason || inspectExp.rejection_reason}

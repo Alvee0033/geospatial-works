@@ -296,8 +296,10 @@ export const NotificationPanel: React.FC = () => {
         currentUser = JSON.parse(localStorage.getItem('gw_user') || 'null');
       } catch (_) {}
     }
-    const isAdmin = currentUser?.role === 'main_admin' || currentUser?.role === 'admin';
-    if (isAdmin && n.type === 'expense_rejected' && n.userId !== currentUser?.id) {
+    const role = String(currentUser?.role || '').toLowerCase();
+    const isPrivileged = ['main_admin', 'admin', 'super_admin', 'finance', 'finance_manager', 'project_manager', 'manager'].includes(role)
+      || role.includes('admin') || role.includes('manager');
+    if (isPrivileged && n.type === 'expense_rejected' && n.userId !== currentUser?.id) {
       return false;
     }
     if (filter === 'unread') return !n.isRead;
@@ -595,6 +597,10 @@ export const NotificationPanel: React.FC = () => {
             ) : (
               filteredNotifications.map((notif) => {
                 const meta = getTypeMeta(notif);
+                const notificationText = notif.message || notif.fullExplanation || '';
+                const reasonIndex = notif.type === 'expense_rejected' ? notificationText.toLowerCase().indexOf('reason:') : -1;
+                const rejectionReason = reasonIndex >= 0 ? notificationText.slice(reasonIndex + 7).trim() : '';
+                const summaryText = reasonIndex >= 0 ? notificationText.slice(0, reasonIndex).trim() : notificationText;
                 return (
                   <div
                     key={notif.id}
@@ -642,8 +648,9 @@ export const NotificationPanel: React.FC = () => {
                       </div>
 
                       <p className="text-[11px] text-slate-600 line-clamp-3 leading-relaxed whitespace-pre-line">
-                        {notif.message || notif.fullExplanation}
+                        {summaryText}
                       </p>
+                      {rejectionReason && <p className="mt-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-2 text-[10px] leading-relaxed text-rose-800"><span className="font-extrabold text-rose-700">Reason: </span>{rejectionReason}</p>}
 
                       {isExpenseNotification(notif.type) && (
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
