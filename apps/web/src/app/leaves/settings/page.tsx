@@ -8,6 +8,14 @@ import { ApiClient } from '@/lib/api';
 import { notifyAction } from '@/components/feedback/ActionFeedback';
 
 const leaveTypes = ['casual', 'sick', 'emergency', 'paid', 'unpaid', 'maternity'];
+const leaveTypeStyles: Record<string, { icon: string; text: string; track: string; bar: string; border: string }> = {
+  casual: { icon: 'bg-blue-100 text-blue-700', text: 'text-blue-800', track: 'bg-blue-100', bar: 'bg-blue-600', border: 'border-blue-200' },
+  sick: { icon: 'bg-emerald-100 text-emerald-700', text: 'text-emerald-800', track: 'bg-emerald-100', bar: 'bg-emerald-600', border: 'border-emerald-200' },
+  emergency: { icon: 'bg-amber-100 text-amber-700', text: 'text-amber-800', track: 'bg-amber-100', bar: 'bg-amber-500', border: 'border-amber-200' },
+  paid: { icon: 'bg-violet-100 text-violet-700', text: 'text-violet-800', track: 'bg-violet-100', bar: 'bg-violet-600', border: 'border-violet-200' },
+  unpaid: { icon: 'bg-slate-100 text-slate-700', text: 'text-slate-800', track: 'bg-slate-100', bar: 'bg-slate-500', border: 'border-slate-200' },
+  maternity: { icon: 'bg-pink-100 text-pink-700', text: 'text-pink-800', track: 'bg-pink-100', bar: 'bg-pink-600', border: 'border-pink-200' },
+};
 type Allowance = { userId: string; year: number; leaveType: string; allowedDays: number };
 type Employee = { id: string; name?: string; full_name?: string; department?: string; isActive?: boolean; is_active?: boolean };
 
@@ -113,8 +121,21 @@ export default function LeaveSettingsPage() {
 
 function AllowanceRow({ label, allowed, used, saving, onSave }: { label: string; allowed?: number; used: number; saving: boolean; onSave: (value: string) => void }) {
   const [value, setValue] = useState(allowed?.toString() || '');
-  return <div className="flex flex-wrap items-center gap-3 py-3"><div className="min-w-32 flex-1"><p className="text-xs font-semibold capitalize text-slate-800">{label}</p><p className="text-[11px] text-slate-500">{used} used · {allowed === undefined ? 'Allowance not set' : `${allowed - used} left`}</p></div>
-    <input type="number" min="0" max="366" aria-label={`${label} allowed days`} value={value} onChange={(event) => setValue(event.target.value)} className="w-20 rounded-lg border border-slate-200 px-2 py-1.5 text-right text-xs" />
-    <button type="button" disabled={saving || value === '' || value === allowed?.toString()} onClick={() => onSave(value)} className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-40">{saving ? 'Saving…' : 'Save'}</button>
+  const [editing, setEditing] = useState(false);
+  useEffect(() => { setValue(allowed?.toString() || ''); setEditing(false); }, [allowed]);
+  const style = leaveTypeStyles[label] || leaveTypeStyles.casual;
+  const remaining = allowed === undefined ? undefined : Math.max(0, allowed - used);
+  const progress = allowed && allowed > 0 ? Math.min(100, (used / allowed) * 100) : 0;
+  return <div className={`my-2 rounded-xl border ${style.border} bg-white p-3`}>
+    <div className="flex items-center gap-3">
+      <span aria-hidden="true" className={`grid size-9 shrink-0 place-items-center rounded-xl text-sm font-bold uppercase ${style.icon}`}>{label.slice(0, 1)}</span>
+      <div className="min-w-0 flex-1"><p className={`text-xs font-bold capitalize ${style.text}`}>{label} leave</p><p className="mt-0.5 text-[11px] text-slate-500">{used} used · {allowed === undefined ? 'Allowance not set' : `${remaining} remaining of ${allowed} days`}</p></div>
+      {!editing && <button type="button" onClick={() => setEditing(true)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">Edit</button>}
+    </div>
+    {allowed !== undefined && allowed > 0 && <div role="progressbar" aria-label={`${label} leave used`} aria-valuemin={0} aria-valuemax={allowed} aria-valuenow={Math.min(used, allowed)} className={`mt-3 h-1.5 overflow-hidden rounded-full ${style.track}`}><div className={`h-full rounded-full ${style.bar}`} style={{ width: `${progress}%` }} /></div>}
+    {editing && <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-slate-100 pt-3"><label className="flex-1 text-[11px] font-semibold text-slate-600">Allowed days<input type="number" min="0" max="366" aria-label={`${label} allowed days`} value={value} onChange={(event) => setValue(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-xs" /></label>
+      <button type="button" disabled={saving || value === '' || value === allowed?.toString()} onClick={() => onSave(value)} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-40">{saving ? 'Saving…' : 'Save'}</button>
+      <button type="button" onClick={() => { setValue(allowed?.toString() || ''); setEditing(false); }} className="rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
+    </div>}
   </div>;
 }
