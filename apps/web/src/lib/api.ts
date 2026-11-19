@@ -583,6 +583,20 @@ export class ApiClient {
     });
   }
 
+  static async getLeaveComments(id: string) {
+    return this.request<any[]>(`/salary/leaves/${id}/comments`, {
+      cache: 'no-store',
+      bypassCache: true,
+    });
+  }
+
+  static async addLeaveComment(id: string, comment: string) {
+    return this.request<any>(`/salary/leaves/${id}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
+    });
+  }
+
   static async getHolidays(year?: number) {
     const qs = year ? `?year=${year}` : '';
     return this.request<any[]>(`/salary/holidays${qs}`);

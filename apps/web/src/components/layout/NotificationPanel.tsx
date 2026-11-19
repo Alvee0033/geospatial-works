@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Filter,
   UserPlus,
+  MessageSquare,
   X,
   Trash2,
 } from 'lucide-react';
@@ -35,6 +36,7 @@ export interface NotificationItem {
   createdAt: string;
   relatedProjectId?: string | null;
   relatedExpenseId?: string | null;
+  relatedLeaveId?: string | null;
   expenseDate?: string | null;
   submittedDate?: string | null;
 }
@@ -172,6 +174,7 @@ export const NotificationPanel: React.FC = () => {
               createdAt: payload.createdAt || new Date().toISOString(),
               relatedProjectId: payload.relatedProjectId,
               relatedExpenseId: payload.relatedExpenseId,
+              relatedLeaveId: payload.relatedLeaveId,
               expenseDate: payload.expenseDate || null,
               submittedDate: payload.submittedDate || null,
             };
@@ -413,6 +416,14 @@ export const NotificationPanel: React.FC = () => {
           badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
           link: '/expenses',
           linkText: 'View Expenses',
+        };
+      case 'leave_comment':
+      case 'leave_decision':
+        return {
+          icon: <MessageSquare size={14} className="text-indigo-600" />,
+          badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+          link: notif.relatedLeaveId ? `/leaves?leaveId=${encodeURIComponent(notif.relatedLeaveId)}` : '/leaves',
+          linkText: 'Open leave conversation',
         };
       case 'attendance_reminder':
         return {

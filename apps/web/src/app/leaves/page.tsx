@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
@@ -18,6 +18,7 @@ import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { notifyAction } from '@/components/feedback/ActionFeedback';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { LeaveClarificationThread } from '@/components/leaves/LeaveClarificationThread';
 
 export default function LeavesPage() {
   const [leaves, setLeaves] = useState<any[]>([]);
@@ -33,6 +34,7 @@ export default function LeavesPage() {
   const [canManageLeaveRecords, setCanManageLeaveRecords] = useState(false);
   const [currentUserName, setCurrentUserName] = useState('your account');
   const [reviewingLeaveId, setReviewingLeaveId] = useState<string | null>(null);
+  const openedLeaveDeepLink = useRef(false);
 
   // Modals
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
@@ -86,6 +88,17 @@ export default function LeavesPage() {
     const unsubscribe = ApiClient.subscribeToDataRefresh(() => { void fetchLeavesAndHolidays(true); });
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (openedLeaveDeepLink.current || typeof window === 'undefined') return;
+    const leaveId = new URLSearchParams(window.location.search).get('leaveId');
+    if (!leaveId) return;
+    const leave = leaves.find((item) => String(item.id) === leaveId);
+    if (!leave) return;
+    openedLeaveDeepLink.current = true;
+    setActiveTab('leaves');
+    setDetailsModalLeave(leave);
+  }, [leaves]);
 
   const leaveStatus = (leave: any) => String(leave.status || (leave.isApproved || leave.is_approved ? 'approved' : 'pending')).toLowerCase();
   const visibleLeaves = leaves.filter((leave) => {
@@ -617,7 +630,7 @@ export default function LeavesPage() {
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-xs">
-            <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in duration-150">
+            <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl animate-in fade-in duration-150 sm:p-6">
               <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
                   <CalendarDays size={18} className="text-indigo-600" />
@@ -701,6 +714,7 @@ export default function LeavesPage() {
                     </button>
                   </div>
                 )}
+                <LeaveClarificationThread leaveId={leave.id} employeeName={name} />
               </div>
             </div>
           </div>

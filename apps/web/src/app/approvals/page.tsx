@@ -26,6 +26,7 @@ import {
   Send,
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { LeaveClarificationThread } from '@/components/leaves/LeaveClarificationThread';
 
 export default function ApprovalsQueuePage() {
   const [activeTab, setActiveTab] = useState<'expenses' | 'leaves'>('expenses');
@@ -43,6 +44,7 @@ export default function ApprovalsQueuePage() {
   // Voucher preview & inspection modal
   const [previewVoucherUrl, setPreviewVoucherUrl] = useState<string | null>(null);
   const [inspectExpense, setInspectExpense] = useState<any | null>(null);
+  const [inspectLeave, setInspectLeave] = useState<any | null>(null);
   const [newComment, setNewComment] = useState('');
   const [postingComment, setPostingComment] = useState(false);
   const commentsEndRef = React.useRef<HTMLDivElement>(null);
@@ -254,14 +256,16 @@ export default function ApprovalsQueuePage() {
   };
 
   // Actions: Leave Approve
-  const handleApproveLeave = async (id: string) => {
+  const handleApproveLeave = async (id: string): Promise<boolean> => {
     setSubmitting(true);
     try {
       await ApiClient.approveLeave(id);
       setLeaves(leaves.map((l) => (l.id === id ? { ...l, status: 'approved' } : l)));
+      return true;
     } catch (err: any) {
       console.error('Failed to approve leave:', err);
       alert(`Approval failed: ${err.message}`);
+      return false;
     } finally {
       setSubmitting(false);
     }
@@ -278,6 +282,7 @@ export default function ApprovalsQueuePage() {
       } else {
         await ApiClient.rejectLeave(itemToReject.id, rejectionReason);
         setLeaves(leaves.map((l) => (l.id === itemToReject.id ? { ...l, status: 'rejected' } : l)));
+        setInspectLeave((current: any) => current?.id === itemToReject.id ? { ...current, status: 'rejected' } : current);
       }
       setItemToReject(null);
     } catch (err: any) {
@@ -706,7 +711,7 @@ export default function ApprovalsQueuePage() {
                       const matchedUser = users.find(
                         (u) => u.id === (leave.userId || leave.user_id) || u.name === (leave.employeeName || leave.employee_name)
                       );
-                      const name = leave.employeeName || leave.employee_name || 'Staff';
+                      const name = leave.userName || leave.employeeName || leave.employee_name || 'Staff';
                       const avatar = leave.avatarUrl || leave.avatar_url || matchedUser?.avatarUrl || matchedUser?.avatar_url;
 
                       return (
@@ -747,6 +752,15 @@ export default function ApprovalsQueuePage() {
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               type="button"
+                              onClick={() => setInspectLeave(leave)}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-100 bg-indigo-50 px-2.5 py-1.5 text-[10px] font-bold text-indigo-700 transition hover:bg-indigo-100"
+                              title="Open leave details and clarification thread"
+                            >
+                              <MessageSquare size={13} />
+                              <span className="hidden lg:inline">Details &amp; messages</span>
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => handleApproveLeave(leave.id)}
                               disabled={submitting}
                               className="p-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded-xl transition-all shadow-xs"
@@ -778,6 +792,53 @@ export default function ApprovalsQueuePage() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {inspectLeave && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm sm:p-6">
+            <section role="dialog" aria-modal="true" aria-labelledby="leave-review-title" className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 shadow-2xl">
+              <header className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600"><Calendar size={19} /></span>
+                  <div className="min-w-0">
+                    <h2 id="leave-review-title" className="truncate text-sm font-bold text-slate-900">Leave details &amp; clarification</h2>
+                    <p className="text-[11px] text-slate-500">Review together with the employee</p>
+                  </div>
+                </div>
+                <button type="button" onClick={() => setInspectLeave(null)} aria-label="Close leave details" className="rounded-full p-2 text-slate-500 hover:bg-slate-100"><X size={18} /></button>
+              </header>
+              <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto p-3 sm:p-5 lg:grid-cols-[minmax(240px,0.8fr)_minmax(0,1.2fr)]">
+                <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+                  <div className="flex items-center gap-3">
+                    <UserAvatar src={inspectLeave.userAvatarUrl || inspectLeave.avatarUrl || inspectLeave.avatar_url} name={inspectLeave.userName || inspectLeave.employeeName || 'Employee'} size="lg" shape="rounded" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-900">{inspectLeave.userName || inspectLeave.employeeName || inspectLeave.employee_name || 'Employee'}</p>
+                      <p className="text-xs capitalize text-slate-500">{inspectLeave.department || 'Team member'}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Leave type</p><p className="mt-1 font-bold capitalize text-slate-800">{inspectLeave.leaveType || inspectLeave.type || 'Leave'}</p></div>
+                    <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Duration</p><p className="mt-1 font-bold text-slate-800">{inspectLeave.totalDays || inspectLeave.days || 1} days</p></div>
+                  </div>
+                  <div className="rounded-xl border border-slate-100 p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Date range</p>
+                    <p className="mt-1 font-mono text-xs font-semibold text-slate-800">{inspectLeave.startDate || inspectLeave.start_date || '—'} → {inspectLeave.endDate || inspectLeave.end_date || '—'}</p>
+                  </div>
+                  <div className="rounded-xl border border-slate-100 p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Reason</p>
+                    <p className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-slate-700">{inspectLeave.reason || 'No explanation provided.'}</p>
+                  </div>
+                </div>
+                <LeaveClarificationThread leaveId={inspectLeave.id} employeeName={inspectLeave.userName || inspectLeave.employeeName || 'the employee'} />
+              </div>
+              {String(inspectLeave.status || 'pending').toLowerCase() === 'pending' && (
+                <footer className="flex shrink-0 justify-end gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
+                  <button type="button" disabled={submitting} onClick={() => setItemToReject({ id: inspectLeave.id, type: 'leave', name: `${inspectLeave.userName || inspectLeave.employeeName || 'Employee'} Leave` })} className="rounded-xl border border-rose-200 px-4 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 disabled:opacity-50">Decline</button>
+                  <button type="button" disabled={submitting} onClick={async () => { if (await handleApproveLeave(inspectLeave.id)) setInspectLeave(null); }} className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50">{submitting ? 'Saving…' : 'Approve leave'}</button>
+                </footer>
+              )}
+            </section>
           </div>
         )}
 
