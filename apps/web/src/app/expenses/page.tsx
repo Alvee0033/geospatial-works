@@ -28,6 +28,7 @@ import {
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { getExpenseReceiptUrls } from '@/lib/expenseReceipts';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -262,9 +263,7 @@ export default function ExpensesPage() {
     setFormAmount(Number(exp.amount) || 0);
     setFormNote(exp.note || '');
     setFormDate(exp.date ? exp.date.split('T')[0] : '');
-    const urls: string[] = Array.isArray(exp.receiptPhotoUrls || exp.receipt_photo_urls)
-      ? (exp.receiptPhotoUrls || exp.receipt_photo_urls)
-      : (exp.receiptPhotoUrl || exp.receipt_photo_url ? [exp.receiptPhotoUrl || exp.receipt_photo_url] : []);
+    const urls = getExpenseReceiptUrls(exp);
     setFormReceiptUrls(urls);
     setFormReceiptUrl(urls[0] || exp.receiptPhotoUrl || exp.receipt_photo_url || '');
     setIsEditModalOpen(true);
@@ -643,9 +642,7 @@ export default function ExpensesPage() {
 
               {/* High-Resolution Voucher Preview (Multi-Receipt Gallery) */}
               {(() => {
-                const photos: string[] = Array.isArray(inspectExp.receiptPhotoUrls || inspectExp.receipt_photo_urls) && (inspectExp.receiptPhotoUrls || inspectExp.receipt_photo_urls).length > 0
-                  ? (inspectExp.receiptPhotoUrls || inspectExp.receipt_photo_urls)
-                  : (inspectExp.receiptPhotoUrl || inspectExp.receipt_photo_url ? [inspectExp.receiptPhotoUrl || inspectExp.receipt_photo_url] : []);
+                const photos = getExpenseReceiptUrls(inspectExp);
                 if (photos.length === 0) return null;
                 return (
                   <div>
@@ -1067,11 +1064,12 @@ export default function ExpensesPage() {
                               );
                               const batchRes = await ApiClient.uploadBatch(dataUris, 'receipts');
                               const uploadedUrls = (batchRes?.results || []).map((r: any) => r.url).filter(Boolean);
-                              const finalUrls = uploadedUrls.length > 0 ? uploadedUrls : dataUris;
-                              setFormReceiptUrls((prev) => [...prev, ...finalUrls]);
-                              setFormReceiptUrl((prev) => prev || finalUrls[0] || '');
+                              if (uploadedUrls.length !== files.length) throw new Error('Some receipts did not upload. Please try again.');
+                              setFormReceiptUrls((prev) => [...prev, ...uploadedUrls]);
+                              setFormReceiptUrl((prev) => prev || uploadedUrls[0] || '');
                             } catch (err) {
                               console.error('Batch upload failed:', err);
+                              alert(err instanceof Error ? err.message : 'Receipt upload failed. Please try again.');
                             } finally {
                               setUploadingReceipt(false);
                             }
@@ -1108,7 +1106,7 @@ export default function ExpensesPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || uploadingReceipt}
                   className="px-6 py-2 bg-[#0D1117] hover:bg-slate-800 text-white font-bold rounded-full shadow-xs"
                 >
                   {submitting ? 'Recording...' : isCreateModalOpen ? 'Record Expense' : 'Save Changes'}

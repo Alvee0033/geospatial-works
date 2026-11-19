@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { LeaveClarificationThread } from '@/components/leaves/LeaveClarificationThread';
+import { getExpenseReceiptUrls } from '@/lib/expenseReceipts';
 
 export default function ApprovalsQueuePage() {
   const [activeTab, setActiveTab] = useState<'expenses' | 'leaves'>('expenses');
@@ -278,7 +279,8 @@ export default function ApprovalsQueuePage() {
     try {
       if (itemToReject.type === 'expense') {
         await ApiClient.rejectExpense(itemToReject.id, rejectionReason);
-        setExpenses(expenses.map((e) => (e.id === itemToReject.id ? { ...e, status: 'rejected' } : e)));
+        setExpenses((current) => current.map((e) => (e.id === itemToReject.id ? { ...e, status: 'rejected', rejectionReason } : e)));
+        setInspectExpense((current: any) => current?.id === itemToReject.id ? { ...current, status: 'rejected', rejectionReason } : current);
       } else {
         await ApiClient.rejectLeave(itemToReject.id, rejectionReason);
         setLeaves(leaves.map((l) => (l.id === itemToReject.id ? { ...l, status: 'rejected' } : l)));
@@ -971,17 +973,9 @@ export default function ApprovalsQueuePage() {
                         <Receipt size={13} className="text-indigo-600" />
                         Commercial Voucher Slip
                       </span>
-                      {(inspectExpense.receiptPhotoUrl ||
-                        inspectExpense.receipt_photo_url ||
-                        inspectExpense.receiptUrl ||
-                        inspectExpense.receipt_url) && (
+                      {getExpenseReceiptUrls(inspectExpense).length > 0 && (
                         <a
-                          href={
-                            inspectExpense.receiptPhotoUrl ||
-                            inspectExpense.receipt_photo_url ||
-                            inspectExpense.receiptUrl ||
-                            inspectExpense.receipt_url
-                          }
+                          href={getExpenseReceiptUrls(inspectExpense)[0]}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-[11px] font-semibold"
@@ -992,11 +986,7 @@ export default function ApprovalsQueuePage() {
                     </div>
 
                     {(() => {
-                      const photos: string[] = Array.isArray(inspectExpense.receiptPhotoUrls || inspectExpense.receipt_photo_urls) && (inspectExpense.receiptPhotoUrls || inspectExpense.receipt_photo_urls).length > 0
-                        ? (inspectExpense.receiptPhotoUrls || inspectExpense.receipt_photo_urls)
-                        : (inspectExpense.receiptPhotoUrl || inspectExpense.receipt_photo_url || inspectExpense.receiptUrl || inspectExpense.receipt_url
-                            ? [inspectExpense.receiptPhotoUrl || inspectExpense.receipt_photo_url || inspectExpense.receiptUrl || inspectExpense.receipt_url]
-                            : []);
+                      const photos = getExpenseReceiptUrls(inspectExpense);
 
                       if (photos.length > 0) {
                         return (
