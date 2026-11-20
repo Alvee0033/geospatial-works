@@ -29,6 +29,7 @@ const pageInfo: Record<AdminTab, { title: string; description: string; url: stri
   about: { title: 'About', description: 'Update information about the company.', url: '/about' },
   careers: { title: 'Jobs and applications', description: 'Manage open roles and applications.', url: '/career' },
   inquiries: { title: 'Enquiries', description: 'Read and respond to messages sent through the website.', url: '/contact' },
+  inbox: { title: 'Messages inbox', description: 'Reply to messages from your WhatsApp Business and Facebook Page.', url: '/contact' },
   settings: { title: 'Settings', description: 'Manage access to the admin panel.', url: '/' },
 };
 

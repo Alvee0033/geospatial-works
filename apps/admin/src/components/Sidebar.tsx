@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   LogOut,
   Mail,
+  MessageSquareText,
 } from 'lucide-react';
 
 export type AdminTab =
@@ -26,6 +27,7 @@ export type AdminTab =
   | 'team'
   | 'careers'
   | 'inquiries'
+  | 'inbox'
   | 'settings';
 
 interface SidebarProps {
@@ -241,6 +243,15 @@ export function Sidebar({
                 {inquiriesCount}
               </span>
             )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('inbox')}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              activeTab === 'inbox' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-2.5"><MessageSquareText size={15} /><span>Messages Inbox</span></div>
           </button>
 
           <div className="pt-3">

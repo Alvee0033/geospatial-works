@@ -18,6 +18,7 @@ import { CareersView, ApplicationItem } from '../components/CareersView';
 import { JobDrawer, JobPostItem } from '../components/JobModal';
 import { LandingPageView, HeroSlideItem, EquipmentItem } from '../components/LandingPageView';
 import { LeadsView, InquiryItem, InquiryStatus } from '../components/LeadsView';
+import { InboxView } from '../components/InboxView';
 import { SettingsView } from '../components/SettingsView';
 import { LoginPage } from '../components/LoginPage';
 import { AdminTab } from '../components/Sidebar';
@@ -176,6 +177,7 @@ export default function AdminPage() {
         'team',
         'careers',
         'inquiries',
+        'inbox',
         'settings',
       ];
       const searchParams = new URLSearchParams(window.location.search);
@@ -1479,6 +1481,10 @@ export default function AdminPage() {
               onRefresh={loadAllData}
               triggerFeedback={triggerFeedback}
             />
+          )}
+
+          {activeTab === 'inbox' && (
+            <InboxView getAuthHeaders={getAuthHeaders} triggerFeedback={triggerFeedback} />
           )}
 
           {activeTab === 'settings' && (

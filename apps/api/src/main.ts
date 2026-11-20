@@ -9,10 +9,10 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
 
   // Body parser limit for rich CVs and geospatial datasets
-  app.use(express.json({ limit: '25mb' }));
+  app.use(express.json({ limit: '25mb', verify: (request, _response, body) => { (request as express.Request & { rawBody?: Buffer }).rawBody = Buffer.from(body); } }));
   app.use(express.urlencoded({ limit: '25mb', extended: true }));
   app.use('/uploads', express.static(uploadDir, { immutable: true, maxAge: '30d' }));
 

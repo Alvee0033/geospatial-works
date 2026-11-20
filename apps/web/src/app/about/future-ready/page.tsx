@@ -56,14 +56,34 @@ const workstations = [
 ];
 
 export default async function FutureReadyPage() {
-  const sections = await CmsApi.getSections('future-ready').catch(() => ({} as Record<string, PageSectionData>));
-  const wysiwyg = sections['full_page_wysiwyg']?.content as Record<string, string | undefined> | undefined;
+  const [sections, homeSections] = await Promise.all([
+    CmsApi.getSections('future-ready').catch(() => ({} as Record<string, PageSectionData>)),
+    CmsApi.getSections('home').catch(() => ({} as Record<string, PageSectionData>)),
+  ]);
+  const wysiwyg = sections['full_page_wysiwyg']?.content as Record<string, any> | undefined;
+  const equipmentContent = homeSections['equipment_summary']?.content || {};
   const configuredTitle = wysiwyg?.heroTitle;
   const title = configuredTitle && !/future[ -]?ready geodesy/i.test(configuredTitle)
     ? configuredTitle
     : 'Instruments & Facilities';
   const description = wysiwyg?.heroSubtitle || 'A closer look at the tools our team uses to survey land, make maps, and support projects across Bangladesh.';
   const heroImage = wysiwyg?.heroImage || '/real-media/equipment-dji-drones.jpg';
+  const displayedInstruments = Array.isArray(wysiwyg?.fleet) && wysiwyg.fleet.length
+    ? wysiwyg.fleet.map((item: any, index: number) => ({
+        name: item.name || 'Survey equipment', label: item.discipline || 'FIELD EQUIPMENT',
+        detail: item.specs || '', image: item.image || instruments[index % instruments.length].image,
+        facts: Array.isArray(item.bullets) ? item.bullets : [],
+      }))
+    : instruments;
+  const displayedWorkstations = Array.isArray(wysiwyg?.workstationSpecs) && wysiwyg.workstationSpecs.length
+    ? wysiwyg.workstationSpecs.map((item: any, index: number) => ({ name: item.component || `Workstation ${index + 1}`, spec: item.spec || '' }))
+    : workstations.map(([name, cpu, ram, gpu]) => ({ name, spec: `${cpu} · ${ram} · ${gpu}` }));
+  const displayedSoftware = Array.isArray(equipmentContent.softwareList)
+    ? equipmentContent.softwareList.filter((tool: any) => tool.name?.trim() && tool.logo).map((tool: any) => ({
+        name: tool.name, category: tool.category || 'Software',
+        description: tool.description || `${tool.name} is part of the digital tools used by our team.`, logo: tool.logo,
+      }))
+    : softwareExpertise;
 
   return (
     <CorporateShell>
@@ -97,7 +117,7 @@ export default async function FutureReadyPage() {
             <p className="max-w-md text-sm leading-6 text-[#53656a]">From land measurements to aerial photos and river depths, our teams use equipment suited to each site.</p>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {instruments.map((item, index) => (
+            {displayedInstruments.map((item: typeof instruments[number], index: number) => (
               <article key={item.name} className="group min-w-0 border-t-2 border-[#dce2dc] bg-white transition-colors hover:border-[#FB1D10]">
                 <div className="relative aspect-[1.65] overflow-hidden bg-[#e8ece8]">
                   <Image src={item.image} alt={item.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw" className="object-cover transition duration-700 group-hover:scale-[1.035]" />
@@ -125,12 +145,10 @@ export default async function FutureReadyPage() {
             </div>
             <div>
               <div className="grid grid-cols-2 border-l border-t border-white/15 sm:grid-cols-4">
-                {workstations.map(([name, cpu, ram, gpu]) => (
-                  <div key={name} className="min-h-[126px] border-b border-r border-white/15 p-4 sm:p-5">
-                    <span className="text-[9px] font-bold uppercase tracking-[.15em] text-[#60A5FA]">{name}</span>
-                    <p className="mt-3 text-sm font-semibold">{cpu}</p>
-                    <p className="mt-1 text-xs text-white/55">{ram}</p>
-                    <p className="mt-2 text-[10px] text-white/75">{gpu}</p>
+                {displayedWorkstations.map((item: { name: string; spec: string }) => (
+                  <div key={item.name} className="min-h-[126px] border-b border-r border-white/15 p-4 sm:p-5">
+                    <span className="text-[9px] font-bold uppercase tracking-[.15em] text-[#60A5FA]">{item.name}</span>
+                    <p className="mt-3 text-sm font-semibold">{item.spec}</p>
                   </div>
                 ))}
               </div>
@@ -150,7 +168,7 @@ export default async function FutureReadyPage() {
             <p className="max-w-md text-sm leading-6 text-[#53656a]">A selection of the software used for survey work, maps, design, and project planning.</p>
           </div>
           <div className="grid grid-cols-2 border-l border-t border-[#dce2dc] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {softwareExpertise.map((tool) => (
+            {displayedSoftware.map((tool: { name: string; category: string; description: string; logo: string }) => (
               <article key={tool.name} className="group flex min-h-[142px] flex-col justify-between border-b border-r border-[#dce2dc] bg-transparent p-4 transition-colors hover:bg-white sm:p-5">
                 <SoftwareDetailsButton tool={tool}>
                 <div className="flex h-[62px] items-center justify-start">

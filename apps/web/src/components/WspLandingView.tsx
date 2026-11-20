@@ -29,6 +29,7 @@ import SoftwareDetailsButton from './SoftwareDetailsButton';
 import RequestCvButton from './RequestCvButton';
 import type { ArticleData, HeroSlideData, PageSectionData, ProjectData, ServiceData, TeamMemberData } from '@/lib/cms-api';
 import { softwareExpertise } from '@/lib/software-expertise';
+import type { SoftwareTool } from '@/lib/software-expertise';
 
 interface WspLandingViewProps {
   heroSlides?: LandingHeroSlide[];
@@ -95,8 +96,14 @@ export default function WspLandingView({
   const equipSec = sections['home:equipment_summary'] || sections['equipment_summary'] || {};
   const newsSec = sections['home:news_summary'] || sections['news_summary'] || {};
   const cultureSec = sections['home:culture_summary'] || sections['culture_summary'] || {};
+  const teamSec = sections['home:team_summary'] || sections['team_summary'] || {};
   const touchSec = sections['home:keep_in_touch'] || sections['keep_in_touch'] || {};
-  const activeTeamMembers = teamMembers.filter((member) => member.isActive).slice(0, 4);
+  const activeTeamMembers = (() => {
+    const active = teamMembers.filter((member) => member.isActive);
+    const order: string[] = teamSec.content?.featuredMemberIds || [];
+    if (!order.length) return active.slice(0, 4);
+    return order.map((id) => active.find((member) => member.id === id || member.slug === id)).filter((member): member is TeamMemberData => !!member).slice(0, 4);
+  })();
   const partners: LandingPartner[] = (manSec.content?.partners?.length ? manSec.content.partners : [
     { name: 'Dhaka North City Corporation', short: 'DNCC', subtext: 'City Corporation', logo: '/partners/partner_2.webp' },
     { name: 'Bangladesh Railway', short: 'Bangladesh Railway', subtext: 'Rail Authority', logo: '/partners/bangladesh_railway.svg' },
@@ -113,12 +120,35 @@ export default function WspLandingView({
       { id: 'NODE 04', cpu: 'Intel Core i7', ram: '32GB DDR5', gpu: 'Processing Node', isAccent: false },
     ]
   );
-  const featuredSoftware = [
+  const legacyFeaturedSoftware = [
     { ...softwareExpertise.find((tool) => tool.name === 'ArcGIS')!, name: 'ArcGIS Pro', logo: '/software-logos/arcgis-pro-dark-tight.png' },
     { name: 'QGIS', category: 'Mapping and GIS', description: 'QGIS is an open-source geographic information system used to create maps, view location data, and work with spatial information.', logo: '/software-logos/qgis-dark-tight.png' },
     { ...softwareExpertise.find((tool) => tool.name === 'Agisoft Metashape')!, logo: '/software-logos/agisoft-metashape-dark-tight.png' },
     { ...softwareExpertise.find((tool) => tool.name === 'Civil 3D')!, name: 'AutoCAD Civil 3D', logo: '/software-logos/autocad-civil-3d-dark-tight.png' },
   ];
+  const hasManagedSoftware = Array.isArray(equipSec.content?.softwareList);
+  const featuredSoftware: SoftwareTool[] = hasManagedSoftware
+    ? equipSec.content.softwareList
+        .filter((tool: { name?: string }) => tool.name?.trim())
+        .map((tool: { name: string; category?: string; description?: string; logo?: string }) => {
+          const lowerName = tool.name.toLowerCase();
+          const legacy = softwareExpertise.find((item) => {
+            const legacyName = item.name.toLowerCase();
+            return legacyName === lowerName || lowerName.includes(legacyName) || legacyName.includes(lowerName);
+          }) || legacyFeaturedSoftware.find((item) => {
+            const legacyName = item.name.toLowerCase();
+            return legacyName === lowerName || lowerName.includes(legacyName) || legacyName.includes(lowerName);
+          });
+          return {
+            name: tool.name,
+            category: tool.category || legacy?.category || 'Software',
+            description: tool.description || legacy?.description || `${tool.name} is part of the digital tools used by our team.`,
+            logo: tool.logo || legacy?.logo || '',
+          };
+        })
+        .filter((tool: { logo: string }) => !!tool.logo)
+        .slice(0, 4)
+    : legacyFeaturedSoftware;
 
   // Pioneering Projects Carousel State with Freeform Continuous Swipe & Momentum
   const [activeProjectIdx, setActiveProjectIdx] = useState(0);
@@ -351,7 +381,7 @@ export default function WspLandingView({
           super-smooth Framer Motion photo cross-fade & Ken Burns scale animation,
           fluent staggered text-up entrance, slide indicator bars, and '||' pause toggle.
           ========================================================================= */}
-      <section className="wsp-hero-wrapper w-full h-[calc(100svh-68px)] sm:h-[calc(100vh-76px)] lg:h-[calc(100vh-85px)] min-h-[560px] sm:min-h-[660px] lg:min-h-[740px] relative overflow-hidden bg-black flex items-end sm:items-center justify-center border-b border-white/[0.08]">
+      <section id="homepage-hero" className="wsp-hero-wrapper w-full h-[calc(100svh-68px)] sm:h-[calc(100vh-76px)] lg:h-[calc(100vh-85px)] min-h-[560px] sm:min-h-[660px] lg:min-h-[740px] relative overflow-hidden bg-black flex items-end sm:items-center justify-center border-b border-white/[0.08]">
         {/* Framer Motion Photo / Video Transition */}
         <div className="absolute inset-0 overflow-hidden">
           <AnimatePresence initial={false}>
@@ -516,7 +546,7 @@ export default function WspLandingView({
           Exact WSP Layout: Dark pitch background (#141212), Left has large statement paragraph
           and red outline button, Right has huge red numbers and labels.
           ========================================================================= */}
-      <section className="wsp-manifesto bg-[#0B0D12] text-white py-20 md:py-28 border-b border-white/[0.08]">
+      <section id="homepage-about" className="wsp-manifesto bg-[#0B0D12] text-white py-20 md:py-28 border-b border-white/[0.08]">
         <motion.div
           initial={{ opacity: 0, y: 45, filter: 'blur(4px)' }}
           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -616,7 +646,7 @@ export default function WspLandingView({
           - Horizontal swipe track bleeding seamlessly past screen edges with continuous momentum drag
           - Below track: Manifesto paragraph and styled action button
           ========================================================================= */}
-      <section className="wsp-shaping bg-[#FFFFFF] text-[#141212] pt-14 pb-16 md:pt-18 md:pb-20 overflow-hidden select-none">
+      <section id="homepage-services" className="wsp-shaping bg-[#FFFFFF] text-[#141212] pt-14 pb-16 md:pt-18 md:pb-20 overflow-hidden select-none">
         <motion.div
           initial={{ opacity: 0, y: 35 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -734,7 +764,7 @@ export default function WspLandingView({
           Right column with two-line bold title, narrative, "View all projects" button, and < > 1 — 8 pager.
           Hover glow: luminous corner bloom outwards in brand electric blue & survey red.
           ========================================================================= */}
-      <section className="wsp-projects bg-[#FFFFFF] text-[#141212] py-20 md:py-28 overflow-hidden select-none">
+      <section id="homepage-projects" className="wsp-projects bg-[#FFFFFF] text-[#141212] py-20 md:py-28 overflow-hidden select-none">
         <div className="w-full flex flex-col lg:flex-row items-start justify-between gap-8 lg:gap-12">
           
           {/* Left Column: Horizontal Scrollable Carousel bleeding from left screen edge */}
@@ -862,7 +892,7 @@ export default function WspLandingView({
           Multi-brand geodetic fleet, enterprise UAV drones, RTK GNSS & GIS workstations.
           ========================================================================= */}
       <div className="wsp-brand-gradient-flow">
-      <section className="wsp-resources text-white py-16 md:py-20">
+      <section id="homepage-equipment" className="wsp-resources text-white py-16 md:py-20">
         <motion.div
           initial={{ opacity: 0, y: 45, filter: 'blur(4px)' }}
           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -1042,7 +1072,7 @@ export default function WspLandingView({
                 <div className="wsp-software-tile" key={tool.name} role="listitem">
                   <SoftwareDetailsButton tool={tool}>
                     <span className="wsp-software-tile-content">
-                      <Image src={tool.logo} alt={`${tool.name} logo`} width={360} height={180} sizes="(max-width: 620px) 48vw, (max-width: 1024px) 26vw, 24vw" loading="lazy" />
+                      <img src={tool.logo} alt={`${tool.name} logo`} loading="lazy" />
                     </span>
                   </SoftwareDetailsButton>
                 </div>
@@ -1062,7 +1092,7 @@ export default function WspLandingView({
           Four active profiles come from the team database and are managed in Admin.
           ========================================================================= */}
       {activeTeamMembers.length > 0 && (
-        <section className="landing-team-section">
+        <section id="homepage-team" className="landing-team-section">
           <motion.div
             initial={{ opacity: 0, y: 36 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1072,11 +1102,11 @@ export default function WspLandingView({
           >
             <div className="landing-team-heading">
               <div className="landing-team-title">
-                <span className="landing-team-eyebrow"><i /> PEOPLE MAKE THE DIFFERENCE</span>
-                <h2>Meet the people<br /><em>behind the work.</em></h2>
+                <span className="landing-team-eyebrow"><i /> {teamSec.subtitle || 'PEOPLE MAKE THE DIFFERENCE'}</span>
+                <h2>{teamSec.title || <>Meet the people<br /><em>behind the work.</em></>}</h2>
               </div>
               <div className="landing-team-intro">
-                <p>Good projects begin with people who care about the details. Meet a few of the team members helping build a clearer picture of Bangladesh.</p>
+                <p>{teamSec.content?.description || 'Good projects begin with people who care about the details. Meet a few of the team members helping build a clearer picture of Bangladesh.'}</p>
                 <Link href="/team" className="landing-team-cta">
                   Meet the full team <ArrowRight size={17} />
                 </Link>
@@ -1139,7 +1169,7 @@ export default function WspLandingView({
           Exact WSP Layout: Dark pitch background (#141212). Top has 3 article cards,
           Bottom has "Latest news" on left and interactive news list with red dates on right.
           ========================================================================= */}
-      <section className="wsp-insights text-white py-24 md:py-32">
+      <section id="homepage-news" className="wsp-insights text-white py-24 md:py-32">
         <motion.div
           initial={{ opacity: 0, y: 45, filter: 'blur(4px)' }}
           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -1243,7 +1273,7 @@ export default function WspLandingView({
           Exact WSP Layout: Dark pitch background (#141212), smiling engineer portrait
           with bold red & blue geometric ribbon pattern on left, narrative + two buttons on right.
           ========================================================================= */}
-      <section className="wsp-careers text-white py-24 md:py-32">
+      <section id="homepage-careers" className="wsp-careers text-white py-24 md:py-32">
         <motion.div
           initial={{ opacity: 0, y: 45, filter: 'blur(4px)' }}
           whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}

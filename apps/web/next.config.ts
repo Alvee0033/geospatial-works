@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    const backendOrigin = (process.env.BACKEND_INTERNAL_URL || 'http://gw-site-api:4000').replace(/\/$/, '');
+    const backendOrigin = (process.env.BACKEND_INTERNAL_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : 'http://gw-site-api:4000')).replace(/\/$/, '');
     return [
       {
         source: '/api/:path*',

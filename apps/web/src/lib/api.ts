@@ -439,7 +439,21 @@ export class ApiClient {
   }
 
   static async getClients() {
-    return this.request<any[]>('/clients');
+    return this.request<any[]>('/clients/admin/all');
+  }
+
+  static async createClientContact(data: { clientName: string; whatsappPhone?: string; messengerUrl?: string }) {
+    return this.request<any>('/clients/admin', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateClientContact(id: string, data: { clientName: string; whatsappPhone?: string; messengerUrl?: string }) {
+    return this.request<any>(`/clients/admin/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
   }
 
   // Tasks API

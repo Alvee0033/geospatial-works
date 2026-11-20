@@ -4,7 +4,7 @@ import path from 'path';
 const apiInternalUrl = process.env.BACKEND_INTERNAL_URL || 'http://localhost:4000';
 const publicSiteInternalUrl =
   process.env.PUBLIC_SITE_INTERNAL_URL ||
-  (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'http://localhost:3000');
+  (process.env.NODE_ENV === 'development' ? 'http://localhost:3011' : 'http://localhost:3000');
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,

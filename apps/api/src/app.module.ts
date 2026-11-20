@@ -36,6 +36,15 @@ import { ArticlesModule } from './modules/articles/articles.module';
 import { CareersModule } from './modules/careers/careers.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { UsersModule } from './modules/users/users.module';
+import { ClientContact } from './entities/client-contact.entity';
+import { InboxConversation } from './entities/inbox-conversation.entity';
+import { InboxMessage } from './entities/inbox-message.entity';
+import { GmailInboxConnection } from './entities/gmail-connection.entity';
+import { ExternalInbox1794470400000 } from './migrations/1794470400000-ExternalInbox';
+import { ClientsModule } from './modules/clients/clients.module';
+import { InboxModule } from './modules/inbox/inbox.module';
+import { ClientMessagingContacts1794384000000 } from './migrations/1794384000000-ClientMessagingContacts';
+import { GmailInbox1794556800000 } from './migrations/1794556800000-GmailInbox';
 
 @Module({
   imports: [
@@ -73,15 +82,24 @@ import { UsersModule } from './modules/users/users.module';
           Article,
           JobPost,
           JobApplication,
+          ClientContact,
+          InboxConversation,
+          InboxMessage,
+          GmailInboxConnection,
         ],
-        synchronize: process.env.NODE_ENV !== 'production',
+        // Never mutate a database schema implicitly at startup. Use a reviewed
+        // migration, or explicitly opt in to synchronization for a throwaway DB.
+        synchronize: config.get<string>('DATABASE_SYNCHRONIZE') === 'true' && process.env.NODE_ENV !== 'production',
         migrations: [
           CmsContentSource1762819200000,
           ProjectsOnlyApprovedSource1762905600000,
           CorporateOfficeContact1794270000000,
           ContentDetailFields1794325484540,
+          ClientMessagingContacts1794384000000,
+          ExternalInbox1794470400000,
+          GmailInbox1794556800000,
         ],
-        migrationsRun: process.env.NODE_ENV === 'production',
+        migrationsRun: config.get<string>('DATABASE_MIGRATIONS_RUN') === 'true',
         logging: false,
       }),
     }),
@@ -97,6 +115,8 @@ import { UsersModule } from './modules/users/users.module';
     CareersModule,
     SeedModule,
     UsersModule,
+    ClientsModule,
+    InboxModule,
   ],
   providers: [
     {
