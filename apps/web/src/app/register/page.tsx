@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ApiClient } from '@/lib/api';
 import { Lock, Mail, User, Building2, Briefcase, Phone, ArrowRight, CheckCircle2, AlertCircle, Smartphone } from 'lucide-react';
@@ -10,11 +10,26 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [department, setDepartment] = useState('');
+  const [departmentOptions, setDepartmentOptions] = useState<Array<{ id: string; name: string }>>([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(true);
+  const [departmentLoadError, setDepartmentLoadError] = useState('');
   const [designation, setDesignation] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    ApiClient.getPublicDepartments()
+      .then((items) => {
+        const options = Array.isArray(items) ? items : [];
+        setDepartmentOptions(options);
+        setDepartment(options[0]?.name || '');
+        if (!options.length) setDepartmentLoadError('No departments are available. Please contact an administrator.');
+      })
+      .catch((err: unknown) => setDepartmentLoadError(err instanceof Error ? err.message : 'Could not load departments.'))
+      .finally(() => setDepartmentsLoading(false));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,17 +156,22 @@ export default function RegisterPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Department</label>
+                  <label htmlFor="registration-department" className="block text-xs font-semibold text-slate-700 mb-1.5">Department *</label>
                   <div className="relative flex items-center">
                     <Building2 size={15} className="absolute left-3.5 text-slate-400" />
-                    <input
-                      type="text"
+                    <select
+                      id="registration-department"
+                      required
+                      disabled={departmentsLoading || departmentOptions.length === 0}
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
-                      placeholder="e.g. GIS & Survey"
                       className="w-full pl-10 pr-4 py-2.5 bg-slate-50/50 border border-[#EAEBEF] rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all"
-                    />
+                    >
+                      <option value="" disabled>{departmentsLoading ? 'Loading departments…' : 'Select a department'}</option>
+                      {departmentOptions.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}
+                    </select>
                   </div>
+                  {departmentLoadError && <p role="alert" className="mt-1 text-[11px] text-rose-600">{departmentLoadError}</p>}
                 </div>
 
                 <div>

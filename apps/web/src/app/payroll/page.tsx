@@ -67,7 +67,6 @@ export default function PayrollPage() {
   const filteredDeductions = filteredEmployees.reduce((sum, emp) => sum + (emp.attendanceDeductionsEnabled === false ? 0 : Number(emp.totalAbsenceDeductions || 0)) + Number(emp.totalPenalties || 0), 0);
   const presentTotal = filteredEmployees.reduce((sum, emp) => sum + Number(emp.presentDays || 0), 0);
   const leaveTotal = filteredEmployees.reduce((sum, emp) => sum + Number(emp.paidLeaveDays || 0) + Number(emp.unpaidLeaveDays || 0), 0);
-  const attendanceDeductionsEnabled = employees.length === 0 || employees.some((emp) => emp.attendanceDeductionsEnabled !== false);
 
   const handleOpenSalaryEdit = (emp: any) => {
     setSalaryUser(emp);
@@ -211,7 +210,7 @@ export default function PayrollPage() {
       isRefreshing={loading}
     >
       <div className="w-full max-w-[1440px] mx-auto px-5 py-5 space-y-3">
-      <div className={`grid grid-cols-1 md:grid-cols-3 ${attendanceDeductionsEnabled ? 'xl:grid-cols-5' : 'xl:grid-cols-4'} gap-2`}>
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-5">
         <StatCard
           title="Payroll due"
           value={`BDT ${filteredPayable.toLocaleString()}`}
@@ -228,14 +227,14 @@ export default function PayrollPage() {
           variant="mint"
           compact
         />
-        {attendanceDeductionsEnabled && <StatCard
-          title="Deductions"
+        <StatCard
+          title="Total deductions"
           value={`BDT ${filteredDeductions.toLocaleString()}`}
-          subtitle="Absence and leave cuts"
+          subtitle="Attendance plus other adjustments"
           icon={AlertTriangle}
           variant="rose"
           compact
-        />}
+        />
         <StatCard title="People present" value={presentTotal.toLocaleString()} subtitle="Full present days in view" icon={Users} variant="mint" compact />
         <StatCard title="Leave days" value={leaveTotal.toLocaleString()} subtitle="Paid and unpaid leave" icon={Clock3} variant="indigo" compact />
       </div>
@@ -305,7 +304,8 @@ export default function PayrollPage() {
                 <th className="py-3 px-3">Base Contract</th>
                 <th className="py-3 px-3">Working Days</th>
                 <th className="py-3 px-3">Days with attendance</th>
-                {attendanceDeductionsEnabled && <th className="py-3 px-3">Absence / leave deductions</th>}
+                <th className="py-3 px-3">Absence / leave deductions</th>
+                <th className="py-3 px-3">Other deductions</th>
                 <th className="py-3 px-3">Net Disbursable</th>
                 <th className="py-3 px-3">Status</th>
                 <th className="py-3 px-3 text-right">Actions</th>
@@ -314,7 +314,7 @@ export default function PayrollPage() {
             <tbody className="divide-y divide-slate-50 text-xs">
               {filteredEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan={attendanceDeductionsEnabled ? 8 : 7} className="py-12 text-center text-slate-400 font-medium">
+                  <td colSpan={9} className="py-12 text-center text-slate-400 font-medium">
                     {loading ? 'Executing payroll calculations...' : 'No personnel records found for this period.'}
                   </td>
                 </tr>
@@ -344,7 +344,8 @@ export default function PayrollPage() {
                     <td className="py-3.5 px-3 font-semibold text-emerald-600">
                       {Number(emp.attendanceDays ?? (Number(emp.presentDays || 0) + Number(emp.halfDays || 0)))} days {emp.halfDays > 0 ? `(${emp.halfDays} half-day)` : ''}
                     </td>
-                    {attendanceDeductionsEnabled && <td className="py-3.5 px-3 font-semibold text-rose-600">- BDT {Number(emp.attendanceDeductionsEnabled === false ? 0 : emp.totalAbsenceDeductions || 0).toLocaleString()}</td>}
+                    <td className="py-3.5 px-3 font-semibold text-rose-600">- BDT {Number(emp.attendanceDeductionsEnabled === false ? 0 : emp.totalAbsenceDeductions || 0).toLocaleString()}</td>
+                    <td className="py-3.5 px-3 font-medium text-slate-600">- BDT {Number(emp.totalPenalties || 0).toLocaleString()}</td>
                     <td className="py-3.5 px-3 font-bold text-slate-900 text-sm">
                       BDT {Number(emp.finalPayableSalary || 0).toLocaleString()}
                     </td>
@@ -421,7 +422,7 @@ export default function PayrollPage() {
               </div>
             </div>
 
-            <div className={`grid grid-cols-2 gap-2 border-b border-slate-100 bg-slate-50/70 p-4 text-center text-xs sm:grid-cols-3 ${inspectEmployee.attendanceDeductionsEnabled === false ? 'lg:grid-cols-5' : 'lg:grid-cols-6'}`}>
+            <div className="grid grid-cols-2 gap-2 border-b border-slate-100 bg-slate-50/70 p-4 text-center text-xs sm:grid-cols-3 lg:grid-cols-7">
                 <div>
                   <span className="text-[10px] text-slate-400 block">Daily Rate</span>
                   <span className="font-bold text-slate-800">
@@ -440,10 +441,14 @@ export default function PayrollPage() {
                   <span className="text-[10px] text-slate-400 block">Half Days</span>
                   <span className="font-bold text-amber-600">{inspectEmployee.halfDays || 0}</span>
                 </div>
-                {inspectEmployee.attendanceDeductionsEnabled !== false && <div>
+                <div>
                   <span className="text-[10px] text-slate-400 block">Absence / leave deductions</span>
-                  <span className="font-bold text-rose-600">BDT {Number(inspectEmployee.totalAbsenceDeductions || 0).toLocaleString()}</span>
-                </div>}
+                  <span className="font-bold text-rose-600">BDT {Number(inspectEmployee.attendanceDeductionsEnabled === false ? 0 : inspectEmployee.totalAbsenceDeductions || 0).toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block">Other deductions</span>
+                  <span className="font-bold text-rose-600">BDT {Number(inspectEmployee.totalPenalties || 0).toLocaleString()}</span>
+                </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block">Net Payable</span>
                   <span className="font-bold text-slate-900">
@@ -462,7 +467,7 @@ export default function PayrollPage() {
                       <th className="py-2.5 px-3">Morning log</th>
                       <th className="py-2.5 px-3">Afternoon log</th>
                       <th className="py-2.5 px-3">Location</th>
-                      {inspectEmployee.attendanceDeductionsEnabled !== false && <th className="py-2.5 px-3 text-right">Deduction Units</th>}
+                      <th className="py-2.5 px-3 text-right">Deduction Units</th>
                       <th className="py-2.5 px-3">Notes</th>
                     </tr>
                   </thead>
@@ -495,7 +500,7 @@ export default function PayrollPage() {
                         <td className="py-2 px-3 text-slate-600">
                           {day.morningLocation?.address || day.afternoonLocation?.address || (day.morningLocation ? `${day.morningLocation.lat}, ${day.morningLocation.lng}` : day.afternoonLocation ? `${day.afternoonLocation.lat}, ${day.afternoonLocation.lng}` : '—')}
                         </td>
-                        {inspectEmployee.attendanceDeductionsEnabled !== false && <td className="py-2 px-3 text-right font-bold text-rose-600">{day.deductionUnits > 0 ? `-${day.deductionUnits} unit` : '0'}</td>}
+                        <td className="py-2 px-3 text-right font-bold text-rose-600">{day.deductionUnits > 0 && inspectEmployee.attendanceDeductionsEnabled !== false ? `-${day.deductionUnits} unit` : '0'}</td>
                         <td className="max-w-xs py-2 px-3 text-slate-500">{day.notes || '—'}</td>
                       </tr>
                     ))}
@@ -504,7 +509,7 @@ export default function PayrollPage() {
             </div>
             <div className="border-t border-slate-100 px-6 py-3 text-[11px] text-slate-500">
               Showing all {inspectEmployee.dailyBreakdown?.length || 0} calendar days for {month}/{year}.
-              {inspectEmployee.attendanceDeductionsEnabled === false && ' All absence deductions are disabled; manually entered payroll adjustments still apply.'}
+              {inspectEmployee.attendanceDeductionsEnabled === false && ' Absence / leave deduction is disabled and set to 0. Other deductions are listed separately.'}
             </div>
           </aside>
         </div>

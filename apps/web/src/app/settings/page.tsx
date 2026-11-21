@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { 
   Clock, DollarSign, Percent, FolderTree, Database, ShieldCheck,
-  Plus, Trash2, Edit2, Check, AlertTriangle, Search, Save, Building,
+  Plus, Trash2, Edit2, Check, AlertTriangle, Search, Save, Building, GitMerge,
   Calendar, MapPin, Coffee, TrendingUp, X, ShieldAlert, RefreshCw, History
 } from 'lucide-react';
 import { ApiClient } from '@/lib/api';
@@ -77,6 +77,8 @@ export default function SettingsPage() {
   const [departmentDraft, setDepartmentDraft] = useState('');
   const [editingDepartment, setEditingDepartment] = useState<{ id: string; name: string } | null>(null);
   const [departmentSaving, setDepartmentSaving] = useState(false);
+  const [mergingDepartmentId, setMergingDepartmentId] = useState<string | null>(null);
+  const [mergeTargetId, setMergeTargetId] = useState('');
   
   // Storage & Retainage State
   const [retentionDays, setRetentionDays] = useState(90);
@@ -280,6 +282,23 @@ export default function SettingsPage() {
       showStatus(editingDepartment ? 'Department renamed and employee records updated.' : 'Department added.');
     } catch (err: any) {
       showStatus(err.message || 'Could not save department', 'error');
+    } finally {
+      setDepartmentSaving(false);
+    }
+  };
+
+  const mergeDepartment = async (source: { id: string; name: string; employeeCount: number }) => {
+    const target = departments.find((department) => department.id === mergeTargetId);
+    if (!target || !confirm(`Move ${source.employeeCount} staff from “${source.name}” into “${target.name}” and remove the duplicate department?`)) return;
+    setDepartmentSaving(true);
+    try {
+      await ApiClient.mergeDepartment(source.id, target.id);
+      setDepartments(await ApiClient.getDepartments());
+      setMergingDepartmentId(null);
+      setMergeTargetId('');
+      showStatus(`Merged ${source.name} into ${target.name}.`);
+    } catch (err: any) {
+      showStatus(err.message || 'Could not merge departments', 'error');
     } finally {
       setDepartmentSaving(false);
     }
@@ -927,7 +946,17 @@ export default function SettingsPage() {
                       {editingDepartment?.id === department.id ? <>
                         <button aria-label="Save department name" disabled={departmentSaving || !editingDepartment.name.trim()} onClick={() => void saveDepartment()} className="rounded-md p-1.5 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"><Check className="h-4 w-4" /></button>
                         <button aria-label="Cancel rename" onClick={() => setEditingDepartment(null)} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-200"><X className="h-4 w-4" /></button>
-                      </> : <button aria-label={`Rename ${department.name}`} onClick={() => setEditingDepartment({ id: department.id, name: department.name })} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-900"><Edit2 className="h-3.5 w-3.5" /></button>}
+                      </> : mergingDepartmentId === department.id ? <>
+                        <select aria-label={`Merge ${department.name} into`} value={mergeTargetId} onChange={(event) => setMergeTargetId(event.target.value)} className="max-w-32 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-[10px]">
+                          <option value="">Merge into…</option>
+                          {departments.filter((target) => target.id !== department.id).map((target) => <option key={target.id} value={target.id}>{target.name}</option>)}
+                        </select>
+                        <button aria-label="Confirm department merge" disabled={departmentSaving || !mergeTargetId} onClick={() => void mergeDepartment(department)} className="rounded-md p-1.5 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"><Check className="h-4 w-4" /></button>
+                        <button aria-label="Cancel department merge" onClick={() => { setMergingDepartmentId(null); setMergeTargetId(''); }} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+                      </> : <>
+                        <button aria-label={`Rename ${department.name}`} onClick={() => setEditingDepartment({ id: department.id, name: department.name })} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-900"><Edit2 className="h-3.5 w-3.5" /></button>
+                        <button aria-label={`Merge ${department.name}`} onClick={() => { setMergingDepartmentId(department.id); setMergeTargetId(''); }} className="rounded-md p-1.5 text-slate-500 hover:bg-amber-100 hover:text-amber-800"><GitMerge className="h-3.5 w-3.5" /></button>
+                      </>}
                     </div>
                   </div>
                 ))}

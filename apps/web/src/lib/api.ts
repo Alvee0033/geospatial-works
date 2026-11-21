@@ -503,6 +503,17 @@ export class ApiClient {
     });
   }
 
+  static async mergeDepartment(sourceId: string, targetDepartmentId: string) {
+    return this.request<{ id: string; name: string }>(`/users/departments/${sourceId}/merge`, {
+      method: 'POST',
+      body: JSON.stringify({ targetDepartmentId }),
+    });
+  }
+
+  static async getPublicDepartments() {
+    return this.request<Array<{ id: string; name: string }>>('/auth/departments', { bypassCache: true });
+  }
+
   static async getUserById(id: string) {
     return this.request<any>(`/users/${id}`);
   }
