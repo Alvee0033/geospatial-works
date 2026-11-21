@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, FileSpreadsheet, FileText, RefreshCw, Search, SlidersHorizontal } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { ApiClient } from '@/lib/api';
@@ -139,15 +139,20 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [reportMonth, setReportMonth] = useState(() => new Date().getMonth() + 1);
+  const [reportYear, setReportYear] = useState(() => new Date().getFullYear());
+  const refreshSequence = useRef(0);
 
   const refresh = async (silent = false) => {
+    const sequence = ++refreshSequence.current;
     if (!silent) setLoading(true);
     setError('');
-    // Fetch last 90 days of attendance by default so attendance reports have comprehensive records
+    // Load the selected attendance range; the default view covers the recent 90 days.
     const now = new Date();
     const pastDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-    const fromStr = pastDate.toISOString().slice(0, 10);
-    const toStr = now.toISOString().slice(0, 10);
+    const defaultFrom = pastDate.toISOString().slice(0, 10);
+    const fromStr = filters.from || (filters.to && filters.to < defaultFrom ? `${filters.to.slice(0, 7)}-01` : defaultFrom);
+    const toStr = filters.to || now.toISOString().slice(0, 10);
 
     const requests = await Promise.allSettled([
       ApiClient.getProjects(),
@@ -156,8 +161,9 @@ export default function ReportsPage() {
       ApiClient.getLeaves(),
       ApiClient.getAttendance({ from: fromStr, to: toStr }),
       ApiClient.getUsers(),
-      ApiClient.getSalaryReport(now.getMonth() + 1, now.getFullYear()).catch(() => null),
+      ApiClient.getSalaryReport(reportMonth, reportYear),
     ]);
+    if (sequence !== refreshSequence.current) return;
     const merged = mergeSettledData(
       { projects, expenses: data.expenses, tasks: data.tasks, leaves: data.leaves, attendance: data.attendance, users },
       Object.fromEntries(['projects', 'expenses', 'tasks', 'leaves', 'attendance', 'users'].map((key, index) => [key, requests[index]])),
@@ -256,7 +262,7 @@ export default function ReportsPage() {
         return {
           ...row,
           date: get(row, 'date', 'createdAt', 'created_at'),
-          projectName: projectName(row) || 'General',
+          projectName: projectName(row) || (get(row, 'projectId', 'project_id') ? 'Project unavailable' : 'Office expense'),
           employeeName: userName(row, 'employeeId', 'employee_id', 'userId', 'user_id') || 'Staff',
           categoryName: get(row, 'categoryName', 'category_name', 'category') || 'General',
           baseCost,
@@ -286,7 +292,7 @@ export default function ReportsPage() {
         ...row,
         date: get(row, 'startDate', 'start_date'),
         employeeName: userName(row, 'userId', 'user_id', 'employeeId', 'employee_id'),
-        reason: get(row, 'reason') || 'Personal',
+        reason: get(row, 'reason') || '—',
         status: get(row, 'status') || (row.isApproved || row.is_approved ? 'approved' : 'pending'),
       })),
       attendance: a.map((row) => {
@@ -302,7 +308,7 @@ export default function ReportsPage() {
           String(rawStatus).toLowerCase().includes('late') ||
           String(row.notes ?? '').toLowerCase().includes('late')
         );
-        const resolvedStatus = rawStatus ? String(rawStatus).toLowerCase() : (isLate ? 'late' : 'present');
+        const resolvedStatus = isLate && (!rawStatus || String(rawStatus).toLowerCase() === 'present') ? 'late' : rawStatus ? String(rawStatus).toLowerCase() : 'present';
         const addr = get(row, 'addressText', 'address_text', 'location', 'place', 'workLocation');
         const rawNote = get(row, 'notes', 'note', 'reason', 'remarks') || '';
 
@@ -315,30 +321,34 @@ export default function ReportsPage() {
           loginTime: timeLabel(rawTime),
           categoryName: workLoc,
           status: resolvedStatus,
-          addressText: addr || (workLoc === 'office' ? 'Office Premises' : 'Field / Remote'),
+          addressText: addr || '—',
           notes: rawNote || '—',
         };
       }),
-      payroll: salaryList.map((emp) => ({
+      payroll: requests[6].status === 'rejected' ? data.payroll : salaryList.map((emp) => ({
         id: get(emp, 'userId', 'user_id', 'id'),
+        userId: get(emp, 'userId', 'user_id', 'id'),
         employeeName: get(emp, 'userName', 'user_name', 'name') || 'Employee',
         department: get(emp, 'department') || '—',
         designation: get(emp, 'designation') || '—',
         monthlyBaseSalary: Number(get(emp, 'monthlyBaseSalary', 'monthly_base_salary', 'baseSalary')) || 0,
         totalAdditions: Number(get(emp, 'totalAdditions', 'total_additions')) || 0,
-        totalDeductions: (Number(get(emp, 'totalAbsenceDeductions', 'total_absence_deductions')) || 0) + (Number(get(emp, 'totalPenalties', 'total_penalties')) || 0),
-        finalPayableSalary: Number(get(emp, 'finalPayableSalary', 'final_payable_salary')) || (Number(get(emp, 'monthlyBaseSalary')) || 0),
+        totalDeductions: (emp.attendanceDeductionsEnabled === false ? 0 : Number(get(emp, 'totalAbsenceDeductions', 'total_absence_deductions')) || 0) + (Number(get(emp, 'totalPenalties', 'total_penalties')) || 0),
+        finalPayableSalary: Number(get(emp, 'finalPayableSalary', 'final_payable_salary')) || 0,
         status: emp.isConfirmed || emp.is_confirmed ? 'Finalized' : 'Pending Confirmation',
-        date: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`,
+        date: `${reportYear}-${String(reportMonth).padStart(2, '0')}-01`,
       })),
     };
     setProjects(p);
     setUsers(u);
     setData(nextData);
-    if (merged.failed.length === 0) writePageCache<ReportsPageCache>('reports', { data: nextData, projects: p, users: u });
-    if (merged.failed.length) setError('Could not refresh ' + merged.failed.map((key) => key === 'users' ? 'employees' : key).join(', ') + '. Showing the last records received from the server where available.');
+    if (merged.failed.length === 0 && requests[6].status === 'fulfilled') writePageCache<ReportsPageCache>('reports', { data: nextData, projects: p, users: u });
+    const failed = [...merged.failed, ...(requests[6].status === 'rejected' ? ['payroll'] : [])];
+    if (failed.length) setError('Could not refresh ' + failed.map((key) => key === 'users' ? 'employees' : key).join(', ') + '. Showing the last records received from the server where available.');
     setLoading(false);
   };
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
   useEffect(() => {
     const cached = readPageCache<ReportsPageCache>('reports');
     if (cached) {
@@ -346,9 +356,14 @@ export default function ReportsPage() {
       setProjects(cached.projects);
       setUsers(cached.users);
     }
-    void refresh(true);
-    return ApiClient.subscribeToDataRefresh(() => { void refresh(true); });
+    void refreshRef.current(true);
+    return ApiClient.subscribeToDataRefresh(() => { void refreshRef.current(true); });
   }, []);
+  useEffect(() => {
+    if (kind === 'payroll' || (kind === 'attendance' && (filters.from || filters.to))) {
+      queueMicrotask(() => { void refreshRef.current(true); });
+    }
+  }, [kind, reportMonth, reportYear, filters.from, filters.to]);
 
   const rows = data[kind];
   const filtered = useMemo(() => filterReportRows(rows, filters), [rows, filters]);
@@ -398,7 +413,7 @@ export default function ReportsPage() {
     }
 
     if (kind === 'attendance') {
-      const presentCount = filtered.filter((r) => String(r.status).toLowerCase().includes('present')).length;
+      const presentCount = filtered.filter((r) => ['present', 'late'].includes(String(r.status).toLowerCase())).length;
       const lateCount = filtered.filter((r) => String(r.status).toLowerCase().includes('late')).length;
       const onTimeCount = Math.max(0, presentCount - lateCount);
       const attendanceRate = totalCount ? Math.round((presentCount / totalCount) * 100) : 0;
@@ -459,7 +474,7 @@ export default function ReportsPage() {
   const exportRows = async (format: Format, targetRows = filtered) => {
     if (!targetRows.length || exporting) return;
     setExporting(true);
-    const reportTitle = (kinds.find((item) => item.id === kind)?.label || 'Report') + ' report';
+    const reportTitle = (kinds.find((item) => item.id === kind)?.label || 'Report') + (kind === 'payroll' ? ` — ${new Date(reportYear, reportMonth - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' })}` : '') + ' report';
     const recordName = targetRows.length === 1
       ? get(targetRows[0], 'projectName', 'title', 'employeeName', 'name', 'id')
       : '';
@@ -516,8 +531,9 @@ export default function ReportsPage() {
         );
         ExportUtils.exportToExcel(excelData, fileName, reportTitle.slice(0, 31));
       } else if (format === 'pdf') {
-        ExportUtils.exportToPdf(headings, values as string[][], reportTitle, fileName, {
+        await ExportUtils.exportToPdf(headings, values as string[][], reportTitle, fileName, {
           orientation: headings.length > 6 ? 'landscape' : 'portrait',
+          subtitle: `${targetRows.length} records · ${filters.from || 'All dates'} to ${filters.to || 'today'}`,
         });
       } else {
         await ExportUtils.exportToDocx(reportTitle, [headings, ...(values as string[][])], fileName);
@@ -614,6 +630,18 @@ export default function ReportsPage() {
             Filters
           </div>
           <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+            {kind === 'payroll' ? <>
+              <label className="text-[11px] font-medium text-slate-500">Month
+                <select aria-label="Payroll month" value={reportMonth} onChange={(event) => setReportMonth(Number(event.target.value))} className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700">
+                  {Array.from({ length: 12 }, (_, index) => <option key={index} value={index + 1}>{new Date(2024, index).toLocaleString('en-US', { month: 'long' })}</option>)}
+                </select>
+              </label>
+              <label className="text-[11px] font-medium text-slate-500">Year
+                <select aria-label="Payroll year" value={reportYear} onChange={(event) => setReportYear(Number(event.target.value))} className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700">
+                  {[reportYear - 2, reportYear - 1, reportYear, reportYear + 1].map((value) => <option key={value} value={value}>{value}</option>)}
+                </select>
+              </label>
+            </> : kind === 'financial' ? <p className="col-span-2 self-end text-xs text-slate-500">Current project financial snapshot</p> : <>
             <label className="text-[11px] font-medium text-slate-500">
               From
               <input
@@ -634,7 +662,8 @@ export default function ReportsPage() {
                 className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none focus:border-emerald-400"
               />
             </label>
-            <label className="text-[11px] font-medium text-slate-500">
+            </>}
+            {['financial', 'expenses', 'tasks'].includes(kind) && <label className="text-[11px] font-medium text-slate-500">
               Project
               <select
                 aria-label="Project"
@@ -649,8 +678,8 @@ export default function ReportsPage() {
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="text-[11px] font-medium text-slate-500">
+            </label>}
+            {kind !== 'financial' && <label className="text-[11px] font-medium text-slate-500">
               Employee
               <select
                 aria-label="Employee"
@@ -665,7 +694,7 @@ export default function ReportsPage() {
                   </option>
                 ))}
               </select>
-            </label>
+            </label>}
             <label className="text-[11px] font-medium text-slate-500">
               Status
               <select
@@ -680,7 +709,7 @@ export default function ReportsPage() {
                 ))}
               </select>
             </label>
-            <label className="text-[11px] font-medium text-slate-500">
+            {['expenses', 'leaves', 'attendance'].includes(kind) && <label className="text-[11px] font-medium text-slate-500">
               {kind === 'attendance' ? 'Work location' : kind === 'leaves' ? 'Leave type' : 'Category'}
               <select
                 aria-label={kind === 'attendance' ? 'Work location' : kind === 'leaves' ? 'Leave type' : 'Category'}
@@ -697,7 +726,7 @@ export default function ReportsPage() {
                   </option>
                 ))}
               </select>
-            </label>
+            </label>}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
             <div className="relative min-w-[220px] flex-1">

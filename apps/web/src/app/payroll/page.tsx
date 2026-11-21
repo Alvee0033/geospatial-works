@@ -19,6 +19,7 @@ import {
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { notifyAction } from '@/components/feedback/ActionFeedback';
 
 export default function PayrollPage() {
   const [report, setReport] = useState<any | null>(null);
@@ -30,6 +31,8 @@ export default function PayrollPage() {
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const [confirmingUserId, setConfirmingUserId] = useState<string | null>(null);
+  const [confirmationError, setConfirmationError] = useState('');
 
   // Set Salary Modal
   const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
@@ -96,6 +99,9 @@ export default function PayrollPage() {
   };
 
   const handleSaveCalculation = async (emp: any) => {
+    if (confirmingUserId || emp.isConfirmed) return;
+    setConfirmationError('');
+    setConfirmingUserId(emp.userId);
     try {
       await ApiClient.saveSalaryCalculation({
         userId: emp.userId,
@@ -103,10 +109,14 @@ export default function PayrollPage() {
         year,
         notes: `Finalized for ${month}/${year}`,
       });
-      alert(`Payroll calculation finalized for ${emp.userName}`);
-      await fetchPayroll();
+      const refreshed = await ApiClient.getSalaryReport(month, year);
+      setReport(refreshed);
+      const current = refreshed?.employees?.find((person: any) => person.userId === emp.userId);
+      if (current) setInspectEmployee(current);
     } catch (err: any) {
-      alert(`Failed to finalize calculation: ${err.message}`);
+      setConfirmationError(err.message || 'Could not confirm this calculation.');
+    } finally {
+      setConfirmingUserId(null);
     }
   };
 
@@ -162,15 +172,46 @@ export default function PayrollPage() {
     setExportMenuOpen(false);
   };
 
-  const handleExportAllAttendancePdf = () => {
-    const rows = dailyRows(employees).map((r) => [r.Employee, r.Department, r.Date, r.Weekday, r.Status, r['Leave Type'], r['Morning Time'], r['Morning Status'], r['Afternoon Time'], r['Afternoon Status'], r['Morning Location'], r['Afternoon Location'], r.Notes]);
-    ExportUtils.exportToPdf(['Employee', 'Department', 'Date', 'Day', 'Status', 'Leave', 'AM Time', 'AM Status', 'PM Time', 'PM Status', 'AM Location', 'PM Location', 'Notes'], rows, `Full Monthly Attendance — ${month}/${year}`, `GW_Full_Attendance_${year}_${month}`, { orientation: 'landscape' });
+  const handleExportAllAttendancePdf = async () => {
+    const period = new Date(year, month - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const ranges = [[1, 7], [8, 14], [15, 21], [22, 28], [29, daysInMonth]].filter(([start]) => start <= daysInMonth);
+    const mark = (status: string) => {
+      const value = status.toLowerCase();
+      if (value.includes('half')) return 'H';
+      if (value.includes('present')) return 'P';
+      if (value.includes('late')) return 'L';
+      if (value.includes('leave')) return 'V';
+      if (value.includes('weekend')) return 'W';
+      if (value.includes('holiday')) return 'W';
+      if (value.includes('absent') || value.includes('missing')) return 'A';
+      return '–';
+    };
+    const rows = employees.map((employee) => {
+      const byDate = new Map((employee.dailyBreakdown || []).map((day: any) => [Number(String(day.date).slice(-2)), mark(String(day.status || ''))]));
+      return [employee.userName, employee.department,
+        ...ranges.map(([start, end]) => Array.from({ length: end - start + 1 }, (_, offset) => `${start + offset}:${byDate.get(start + offset) || '–'}`).join(' ')),
+        Number(employee.attendanceDays || 0), Number(employee.paidLeaveDays || 0) + Number(employee.unpaidLeaveDays || 0),
+        `BDT ${Number(employee.attendanceDeductionsEnabled === false ? 0 : employee.totalAbsenceDeductions || 0).toLocaleString()}`,
+        `BDT ${Number(employee.finalPayableSalary || 0).toLocaleString()}`];
+    });
+    try {
+      await ExportUtils.exportToPdf(['Employee', 'Department', ...ranges.map(([start, end]) => `${start}–${end}`), 'Present', 'Leave', 'Absence cut', 'Net pay'], rows,
+        `Attendance Register — ${period}`, `GW_Attendance_Register_${year}_${month}`,
+        { orientation: 'landscape', subtitle: 'P Present · H Half day · L Late · V Leave · W Weekend / holiday · A Absent · – No record or future' });
+    } catch (error) {
+      notifyAction(error instanceof Error ? error.message : 'Could not export attendance register.', 'error');
+    }
     setExportMenuOpen(false);
   };
 
-  const handleExportFilteredPdf = () => {
+  const handleExportFilteredPdf = async () => {
     const rows = employeeSummaryRows(filteredEmployees).map((r) => [r['Employee ID'], r['Staff Name'], r.Department, r.Designation, r['Base Salary (BDT)'], r['Full Present Days'], r['Paid Leave Days'], r['Unpaid Leave Days'], r['Absence Deductions (BDT)'], r['Additions (BDT)'], r['Other Penalties (BDT)'], r['Net Payable (BDT)'], r['Finalized Status']]);
-    ExportUtils.exportToPdf(['ID', 'Employee', 'Department', 'Designation', 'Base', 'Present', 'Paid leave', 'Unpaid leave', 'Absence cuts', 'Additions', 'Other cuts', 'Net payable', 'Status'], rows, `Filtered Payroll Register — ${month}/${year}`, `GW_Filtered_Payroll_${year}_${month}`, { orientation: 'landscape' });
+    try {
+      await ExportUtils.exportToPdf(['ID', 'Employee', 'Department', 'Designation', 'Base', 'Present', 'Paid leave', 'Unpaid leave', 'Absence cuts', 'Additions', 'Other cuts', 'Net payable', 'Status'], rows, `Filtered Payroll Register — ${month}/${year}`, `GW_Filtered_Payroll_${year}_${month}`, { orientation: 'landscape' });
+    } catch (error) {
+      notifyAction(error instanceof Error ? error.message : 'Could not export payroll register.', 'error');
+    }
     setExportMenuOpen(false);
   };
 
@@ -379,6 +420,7 @@ export default function PayrollPage() {
                         {!emp.isConfirmed && (
                           <button
                             onClick={() => handleSaveCalculation(emp)}
+                            disabled={Boolean(confirmingUserId)}
                             className="p-1.5 hover:bg-emerald-50 rounded-lg text-emerald-600 transition-colors"
                             title="Confirm & Save Calculation"
                           >
@@ -415,12 +457,20 @@ export default function PayrollPage() {
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
+                {inspectEmployee.isConfirmed ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700"><CheckCircle2 size={14} /> Confirmed</span>
+                ) : (
+                  <button type="button" onClick={() => void handleSaveCalculation(inspectEmployee)} disabled={Boolean(confirmingUserId)} className="inline-flex items-center gap-2 rounded-lg bg-indigo-700 px-3 py-2 text-xs font-bold text-white hover:bg-indigo-800 disabled:cursor-wait disabled:opacity-60">
+                    <CheckCircle2 size={14} /> {confirmingUserId === inspectEmployee.userId ? 'Confirming…' : 'Confirm calculation'}
+                  </button>
+                )}
                 <button type="button" onClick={() => handleExportEmployeeBreakdown(inspectEmployee)} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800">
                   <Download size={14} /> Export month
                 </button>
                 <button type="button" aria-label="Close attendance details" onClick={() => setInspectEmployee(null)} className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">✕</button>
               </div>
             </div>
+            {confirmationError && <div role="alert" className="border-b border-rose-100 bg-rose-50 px-6 py-2 text-xs font-medium text-rose-700">{confirmationError}</div>}
 
             <div className="grid grid-cols-2 gap-2 border-b border-slate-100 bg-slate-50/70 p-4 text-center text-xs sm:grid-cols-3 lg:grid-cols-7">
                 <div>

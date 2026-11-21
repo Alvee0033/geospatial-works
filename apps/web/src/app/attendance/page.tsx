@@ -989,7 +989,7 @@ export default function AttendancePage() {
     };
   }, [selectedEmployeeForDetail, detailMonth, detailYear, monthlyRecords, leaves, timingSettings]);
 
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     if (!selectedEmployeeForDetail || !employeeMonthlyAnalysis) {
       notifyAction('Cannot export: No employee dossier selected.', 'error');
       return;
@@ -1001,7 +1001,8 @@ export default function AttendancePage() {
     ];
     const monthName = monthNames[detailMonth - 1] || `Month ${detailMonth}`;
 
-    ExportUtils.exportAttendanceDossierPdf({
+    try {
+    await ExportUtils.exportAttendanceDossierPdf({
       employee: {
         name: selectedEmployeeForDetail.name,
         email: selectedEmployeeForDetail.email,
@@ -1051,6 +1052,9 @@ export default function AttendancePage() {
     });
 
     notifyAction(`Exported PDF attendance report for ${selectedEmployeeForDetail.name}.`, 'success');
+    } catch (error) {
+      notifyAction(error instanceof Error ? error.message : 'Could not export the attendance report.', 'error');
+    }
   };
 
   const handleExport = () => {
