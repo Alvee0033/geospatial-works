@@ -4,6 +4,18 @@ import autoTable from 'jspdf-autotable';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, PageOrientation } from 'docx';
 
 export class ExportUtils {
+  static exportWorkbook(sheets: Array<{ name: string; rows: Record<string, any>[] }>, fileName: string) {
+    const wb = XLSX.utils.book_new();
+    for (const sheet of sheets) {
+      const ws = XLSX.utils.json_to_sheet(sheet.rows);
+      if (sheet.rows.length) {
+        ws['!cols'] = Object.keys(sheet.rows[0]).map((key) => ({ wch: Math.min(36, Math.max(12, key.length + 3)) }));
+      }
+      XLSX.utils.book_append_sheet(wb, ws, sheet.name.slice(0, 31));
+    }
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  }
+
   static exportToExcel(data: any[], fileName: string, sheetName = 'Data') {
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();

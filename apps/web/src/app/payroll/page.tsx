@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatCard } from '@/components/ui/StatCard';
 import {
@@ -12,6 +12,9 @@ import {
   Edit2,
   Save,
   AlertTriangle,
+  Users,
+  Clock3,
+  ChevronDown,
 } from 'lucide-react';
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
@@ -23,6 +26,10 @@ export default function PayrollPage() {
   const [year, setYear] = useState<number>(() => new Date().getFullYear());
   const [loading, setLoading] = useState(true);
   const [inspectEmployee, setInspectEmployee] = useState<any | null>(null);
+  const [personFilter, setPersonFilter] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   // Set Salary Modal
   const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
@@ -51,6 +58,16 @@ export default function PayrollPage() {
   const totalPayable = report?.totalPayable || 0;
   const totalBaseSalary = report?.totalBaseSalary || 0;
   const totalDeductions = report?.totalDeductions || 0;
+  const departments = useMemo(() => Array.from(new Set(employees.map((emp) => emp.department).filter(Boolean))).sort(), [employees]);
+  const filteredEmployees = useMemo(() => employees.filter((emp) => {
+    const personMatch = !personFilter || `${emp.userName || ''} ${emp.userId || ''} ${emp.designation || ''}`.toLowerCase().includes(personFilter.toLowerCase());
+    const departmentMatch = !departmentFilter || emp.department === departmentFilter;
+    const statusMatch = statusFilter === 'all' || (statusFilter === 'finalized' ? emp.isConfirmed : !emp.isConfirmed);
+    return personMatch && departmentMatch && statusMatch;
+  }), [employees, personFilter, departmentFilter, statusFilter]);
+  const filteredPayable = filteredEmployees.reduce((sum, emp) => sum + Number(emp.finalPayableSalary || 0), 0);
+  const presentTotal = filteredEmployees.reduce((sum, emp) => sum + Number(emp.presentDays || 0), 0);
+  const leaveTotal = filteredEmployees.reduce((sum, emp) => sum + Number(emp.paidLeaveDays || 0) + Number(emp.unpaidLeaveDays || 0), 0);
 
   const handleOpenSalaryEdit = (emp: any) => {
     setSalaryUser(emp);
@@ -94,8 +111,7 @@ export default function PayrollPage() {
     }
   };
 
-  const handleExport = () => {
-    const rows = employees.map((p) => ({
+  const employeeSummaryRows = (list: any[]) => list.map((p) => ({
       'Employee ID': p.userId,
       'Staff Name': p.userName,
       Department: p.department,
@@ -105,12 +121,63 @@ export default function PayrollPage() {
       'Days with attendance': Number(p.attendanceDays ?? (Number(p.presentDays || 0) + Number(p.halfDays || 0))),
       'Full Present Days': p.presentDays,
       'Half Days': p.halfDays,
+      'Paid Leave Days': p.paidLeaveDays,
+      'Unpaid Leave Days': p.unpaidLeaveDays,
+      'Missing Login Days': p.missingLoginDays,
+      'Confirmed Absent Days': p.confirmedAbsentDays,
       'Absence Deductions (BDT)': p.totalAbsenceDeductions,
       'Additions (BDT)': p.totalAdditions,
+      'Other Penalties (BDT)': p.totalPenalties,
+      'Attendance Deductions Enabled': p.attendanceDeductionsEnabled !== false ? 'Yes' : 'No',
       'Net Payable (BDT)': p.finalPayableSalary,
       'Finalized Status': p.isConfirmed ? 'Confirmed' : 'Pending Review',
     }));
-    ExportUtils.exportToExcel(rows, `GW_Monthly_Payroll_Real_${year}_${month}`);
+
+  const dailyRows = (list: any[]) => list.flatMap((p) => (p.dailyBreakdown || []).map((day: any) => ({
+    'Employee ID': p.userId,
+    Employee: p.userName,
+    Department: p.department || '',
+    Designation: p.designation || '',
+    Date: day.date,
+    Weekday: day.dayOfWeek,
+    Status: String(day.status || '').replaceAll('_', ' '),
+    'Leave Type': day.leaveType || '',
+    'Paid Leave': day.isPaidLeave ? 'Yes' : 'No',
+    'Morning Time': day.morningTime ? new Date(day.morningTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+    'Morning Status': day.morningStatus || '',
+    'Morning Work Mode': day.morningWorkMode || '',
+    'Afternoon Time': day.afternoonTime ? new Date(day.afternoonTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+    'Afternoon Status': day.afternoonStatus || '',
+    'Afternoon Work Mode': day.afternoonWorkMode || '',
+    'Morning Location': day.morningLocation?.address || '',
+    'Afternoon Location': day.afternoonLocation?.address || '',
+    'Deduction Units': day.deductionUnits || 0,
+    Notes: day.notes || '',
+  })));
+
+  const handleExportWorkbook = () => {
+    ExportUtils.exportWorkbook([
+      { name: 'Payroll Summary', rows: employeeSummaryRows(employees) },
+      { name: 'Full Month Attendance', rows: dailyRows(employees) },
+    ], `GW_Full_Payroll_Attendance_${year}_${month}`);
+    setExportMenuOpen(false);
+  };
+
+  const handleExportAllAttendancePdf = () => {
+    const rows = dailyRows(employees).map((r) => [r.Employee, r.Department, r.Date, r.Weekday, r.Status, r['Leave Type'], r['Morning Time'], r['Morning Status'], r['Afternoon Time'], r['Afternoon Status'], r['Morning Location'], r['Afternoon Location'], r.Notes]);
+    ExportUtils.exportToPdf(['Employee', 'Department', 'Date', 'Day', 'Status', 'Leave', 'AM Time', 'AM Status', 'PM Time', 'PM Status', 'AM Location', 'PM Location', 'Notes'], rows, `Full Monthly Attendance — ${month}/${year}`, `GW_Full_Attendance_${year}_${month}`, { orientation: 'landscape' });
+    setExportMenuOpen(false);
+  };
+
+  const handleExportFilteredPdf = () => {
+    const rows = employeeSummaryRows(filteredEmployees).map((r) => [r['Employee ID'], r['Staff Name'], r.Department, r.Designation, r['Base Salary (BDT)'], r['Full Present Days'], r['Paid Leave Days'], r['Unpaid Leave Days'], r['Absence Deductions (BDT)'], r['Additions (BDT)'], r['Other Penalties (BDT)'], r['Net Payable (BDT)'], r['Finalized Status']]);
+    ExportUtils.exportToPdf(['ID', 'Employee', 'Department', 'Designation', 'Base', 'Present', 'Paid leave', 'Unpaid leave', 'Absence cuts', 'Additions', 'Other cuts', 'Net payable', 'Status'], rows, `Filtered Payroll Register — ${month}/${year}`, `GW_Filtered_Payroll_${year}_${month}`, { orientation: 'landscape' });
+    setExportMenuOpen(false);
+  };
+
+  const handleExportFilteredExcel = () => {
+    ExportUtils.exportWorkbook([{ name: 'Filtered Payroll', rows: employeeSummaryRows(filteredEmployees) }, { name: 'Filtered Attendance', rows: dailyRows(filteredEmployees) }], `GW_Filtered_Payroll_${year}_${month}`);
+    setExportMenuOpen(false);
   };
 
   const handleExportEmployeeBreakdown = (employee: any) => {
@@ -118,6 +185,8 @@ export default function PayrollPage() {
       Date: day.date,
       Weekday: day.dayOfWeek,
       Status: String(day.status || '').replaceAll('_', ' '),
+      'Leave Type': day.leaveType || '',
+      'Paid Leave': day.isPaidLeave ? 'Yes' : 'No',
       'Morning check-in': day.morningTime ? new Date(day.morningTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
       'Morning status': day.morningStatus || '',
       'Morning work mode': day.morningWorkMode || '',
@@ -129,7 +198,8 @@ export default function PayrollPage() {
       'Deduction units': day.deductionUnits || 0,
       Notes: day.notes || '',
     }));
-    ExportUtils.exportToExcel(rows, `GW_Attendance_${employee.userName || employee.userId}_${year}_${month}`);
+    const summary = employeeSummaryRows([employee]);
+    ExportUtils.exportWorkbook([{ name: 'Payroll Summary', rows: summary }, { name: 'Full Month Attendance', rows }], `GW_Attendance_Payroll_${employee.userName || employee.userId}_${year}_${month}`);
   };
 
   return (
@@ -137,15 +207,15 @@ export default function PayrollPage() {
       title="Cash Flow & Payroll"
       subtitle="Review payroll totals, attendance adjustments, and payment status"
       onRefresh={fetchPayroll}
-      onExport={handleExport}
+      onExport={() => setExportMenuOpen((open) => !open)}
       isRefreshing={loading}
     >
       <div className="w-full max-w-[1440px] mx-auto px-5 py-5 space-y-3">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-2">
         <StatCard
           title="Payroll due"
           value={`BDT ${totalPayable.toLocaleString()}`}
-          subtitle={`${employees.length} staff · ${month}/${year}`}
+          subtitle={`${filteredEmployees.length} of ${employees.length} staff · ${month}/${year}`}
           icon={Banknote}
           variant="indigo"
           compact
@@ -166,6 +236,8 @@ export default function PayrollPage() {
           variant="rose"
           compact
         />
+        <StatCard title="People present" value={presentTotal.toLocaleString()} subtitle="Full present days in view" icon={Users} variant="mint" compact />
+        <StatCard title="Leave days" value={leaveTotal.toLocaleString()} subtitle="Paid and unpaid leave" icon={Clock3} variant="indigo" compact />
       </div>
 
       {/* Month / Year Control Bar */}
@@ -196,6 +268,20 @@ export default function PayrollPage() {
             ))}
           </select>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input aria-label="Filter people" placeholder="Find person or ID" value={personFilter} onChange={(e) => setPersonFilter(e.target.value)} className="w-40 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs" />
+          <select aria-label="Filter department" value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs"><option value="">All departments</option>{departments.map((department) => <option key={department} value={department}>{department}</option>)}</select>
+          <select aria-label="Filter payroll status" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs"><option value="all">All statuses</option><option value="finalized">Finalized</option><option value="pending">Calculated / pending</option></select>
+          <div className="relative">
+            <button type="button" aria-expanded={exportMenuOpen} onClick={() => setExportMenuOpen((open) => !open)} className="inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800"><Download size={14} /> Export <ChevronDown size={13} /></button>
+            {exportMenuOpen && <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+              <button onClick={handleExportWorkbook} className="block w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-slate-50">Full month report — all people (Excel)</button>
+              <button onClick={handleExportAllAttendancePdf} className="block w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-slate-50">Full attendance log — all people (PDF)</button>
+              <button onClick={handleExportFilteredExcel} className="block w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-slate-50">Filtered payroll and attendance (Excel)</button>
+              <button onClick={handleExportFilteredPdf} className="block w-full rounded-lg px-3 py-2 text-left text-xs hover:bg-slate-50">Filtered payroll register (PDF)</button>
+            </div>}
+          </div>
+        </div>
 
       </div>
 
@@ -207,7 +293,7 @@ export default function PayrollPage() {
             <p className="text-xs text-slate-400">Calculated from attendance and approved adjustments</p>
           </div>
           <div className="text-xs font-semibold text-slate-500">
-            Batch: {month}/{year}
+            {filteredEmployees.length} people · BDT {filteredPayable.toLocaleString()} net · {month}/{year}
           </div>
         </div>
 
@@ -226,14 +312,14 @@ export default function PayrollPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-xs">
-              {employees.length === 0 ? (
+              {filteredEmployees.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400 font-medium">
                     {loading ? 'Executing payroll calculations...' : 'No personnel records found for this period.'}
                   </td>
                 </tr>
               ) : (
-                employees.map((emp) => (
+                filteredEmployees.map((emp) => (
                   <tr key={emp.userId} className="hover:bg-slate-50/70 transition-colors">
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-2.5">
@@ -260,7 +346,7 @@ export default function PayrollPage() {
                     </td>
                     <td className="py-3.5 px-3 font-semibold text-rose-600">
                       - BDT {Number(emp.totalAbsenceDeductions || 0).toLocaleString()}
-                      {emp.attendanceDeductionsEnabled === false && <span className="mt-1 block text-[9px] font-medium text-slate-400">Punch deductions off</span>}
+                      {emp.attendanceDeductionsEnabled === false && <span className="mt-1 block text-[9px] font-medium text-slate-400">Absence deductions off</span>}
                     </td>
                     <td className="py-3.5 px-3 font-bold text-slate-900 text-sm">
                       BDT {Number(emp.finalPayableSalary || 0).toLocaleString()}
@@ -423,7 +509,7 @@ export default function PayrollPage() {
             </div>
             <div className="border-t border-slate-100 px-6 py-3 text-[11px] text-slate-500">
               Showing all {inspectEmployee.dailyBreakdown?.length || 0} calendar days for {month}/{year}.
-              {inspectEmployee.attendanceDeductionsEnabled === false && ' Punch-based deductions are off; unpaid leave and manual payroll deductions still apply.'}
+              {inspectEmployee.attendanceDeductionsEnabled === false && ' All absence deductions are disabled; manually entered payroll adjustments still apply.'}
             </div>
           </aside>
         </div>
