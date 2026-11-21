@@ -55,6 +55,15 @@ interface CategoryItem {
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+function sortCategories<T extends { name: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const aTransportation = a.name.trim().toLowerCase() === 'transportation';
+    const bTransportation = b.name.trim().toLowerCase() === 'transportation';
+    if (aTransportation !== bTransportation) return aTransportation ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+}
+
 export function formatHour(hour?: number): string {
   if (hour === undefined || hour === null || isNaN(hour)) return '—';
   const cleanH = ((Math.floor(hour) % 24) + 24) % 24;
@@ -208,7 +217,7 @@ export default function SettingsPage() {
         ApiClient.getAttendanceSettings().catch(() => null),
         ApiClient.getDepartments().catch(() => []),
       ]);
-      setCategories(cats || []);
+      setCategories(sortCategories(cats || []));
       setDepartments(departmentList || []);
       if (attSettings) {
         setAttendanceSettings(attSettings);
@@ -314,7 +323,7 @@ export default function SettingsPage() {
           policyLimit: catLimit ? Number(catLimit) : undefined,
           isActive: true
         });
-        setCategories([...categories, created]);
+        setCategories(sortCategories([...categories, created]));
         showStatus('Category created');
       } else if (categoryModal.category) {
         const updated = await ApiClient.updateCategory(categoryModal.category.id, {
@@ -333,11 +342,11 @@ export default function SettingsPage() {
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Delete this category?')) return;
+    if (!confirm('Remove this category from new expense claims? Existing expenses will keep their category history.')) return;
     try {
-      await ApiClient.deleteCategory(id);
-      setCategories(categories.filter(c => c.id !== id));
-      showStatus('Category removed');
+      const removed = await ApiClient.deleteCategory(id);
+      setCategories(categories.map((category) => category.id === id ? { ...category, ...removed, isActive: false } : category));
+      showStatus('Category removed from new claims');
     } catch (err: any) {
       showStatus(err.message || 'Error deleting category', 'error');
     }
