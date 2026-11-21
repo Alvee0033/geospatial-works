@@ -28,7 +28,7 @@ import {
 import { ExportUtils } from '@/lib/exportUtils';
 import { ApiClient } from '@/lib/api';
 import { UserAvatar } from '@/components/ui/UserAvatar';
-import { getExpenseReceiptUrls } from '@/lib/expenseReceipts';
+import { getExpenseCategoryTone, getExpenseReceiptGroups, getExpenseReceiptUrls } from '@/lib/expenseReceipts';
 
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
@@ -36,6 +36,11 @@ export default function ExpensesPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [expenseTypeFilter, setExpenseTypeFilter] = useState<'all' | 'project' | 'office'>('all');
+  const [monthFilter, setMonthFilter] = useState('');
+  const [employeeFilter, setEmployeeFilter] = useState('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [projectFilter, setProjectFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [inspectExp, setInspectExp] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,6 +57,7 @@ export default function ExpensesPage() {
 
   // Create/Edit Form State
   const [formProjectId, setFormProjectId] = useState('');
+  const [formExpenseType, setFormExpenseType] = useState<'project' | 'office'>('project');
   const [formEmployeeId, setFormEmployeeId] = useState('');
   const [formCategoryId, setFormCategoryId] = useState('');
   const [formCategoryName, setFormCategoryName] = useState('Transportation');
@@ -229,12 +235,14 @@ export default function ExpensesPage() {
     try {
       const selectedProj = projects.find((p) => p.id === formProjectId);
       const selectedUser = users.find((u) => u.id === formEmployeeId);
+      if (formExpenseType === 'project' && !selectedProj) throw new Error('Select a project for this claim.');
       const effectiveUrls = formReceiptUrls.length > 0 ? formReceiptUrls : (formReceiptUrl ? [formReceiptUrl] : []);
       const primaryUrl = effectiveUrls[0] || null;
 
       const payload = {
-        projectId: formProjectId,
-        projectName: selectedProj?.name || 'Project',
+        expenseType: formExpenseType,
+        projectId: formExpenseType === 'office' ? null : formProjectId,
+        projectName: formExpenseType === 'office' ? 'Office / Non-project' : selectedProj?.name || 'Project',
         employeeId: formEmployeeId,
         employeeName: selectedUser?.name || 'Staff',
         categoryId: formCategoryId || undefined,
@@ -309,24 +317,37 @@ export default function ExpensesPage() {
   const filtered = expenses.filter((e) => {
     const st = (e.status || 'pending').toLowerCase();
     const matchesStatus = statusFilter === 'all' || st === statusFilter;
+    const type = e.expenseType || e.expense_type || (e.projectId || e.project_id ? 'project' : 'office');
+    const matchesType = expenseTypeFilter === 'all' || type === expenseTypeFilter;
     const emp = (e.employeeName || e.employee_name || '').toLowerCase();
     const proj = (e.projectName || e.project_name || '').toLowerCase();
+    const matchedUser = users.find((u) => String(u.id) === String(e.employeeId || e.employee_id));
+    const department = String(matchedUser?.department || '').toLowerCase();
     const cat = (e.categoryName || e.category_name || '').toLowerCase();
+    const date = e.date ? new Date(e.date) : null;
+    const matchesMonth = !monthFilter || (date && `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` === monthFilter);
+    const matchesEmployee = employeeFilter === 'all' || String(e.employeeId || e.employee_id) === employeeFilter;
+    const matchesDepartment = departmentFilter === 'all' || department === departmentFilter.toLowerCase();
+    const matchesProject = projectFilter === 'all' || (type === 'project' && String(e.projectId || e.project_id) === projectFilter);
     const q = search.toLowerCase();
-    const matchesSearch = emp.includes(q) || proj.includes(q) || cat.includes(q);
-    return matchesStatus && matchesSearch;
+    const matchesSearch = emp.includes(q) || proj.includes(q) || cat.includes(q) || department.includes(q);
+    return matchesStatus && matchesType && matchesMonth && matchesEmployee && matchesDepartment && matchesProject && matchesSearch;
   });
 
   const totalGross = filtered.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
   const totalBase = filtered.reduce((acc, curr) => acc + (Number(curr.baseCost || curr.base_cost || curr.amount) || 0), 0);
   const totalVat = filtered.reduce((acc, curr) => acc + (Number(curr.vatAmount || curr.vat_amount) || 0), 0);
   const totalTax = filtered.reduce((acc, curr) => acc + (Number(curr.taxAmount || curr.tax_amount) || 0), 0);
+  const officeTotal = filtered.filter((e) => (e.expenseType || e.expense_type || (e.projectId || e.project_id ? 'project' : 'office')) === 'office').reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const projectTotal = totalGross - officeTotal;
 
   const handleExportExcel = () => {
     const rows = filtered.map((e) => ({
       'Claim ID': e.id,
       Employee: e.employeeName || e.employee_name || 'Staff',
-      Project: e.projectName || e.project_name || 'Project',
+      Department: users.find((u) => String(u.id) === String(e.employeeId || e.employee_id))?.department || '',
+      'Expense Type': e.expenseType || e.expense_type || (e.projectId || e.project_id ? 'project' : 'office'),
+      Project: e.projectName || e.project_name || 'Office / Non-project',
       Category: e.categoryName || e.category_name || 'General',
       'Base Cost (BDT)': e.baseCost || e.base_cost || e.amount,
       'VAT Amount (BDT)': e.vatAmount || e.vat_amount || 0,
@@ -343,14 +364,22 @@ export default function ExpensesPage() {
   return (
     <AdminLayout
       title="Transaction History"
-      subtitle="Review recorded project expenses, vouchers, and approval status"
+      subtitle="Review project and office expenses, vouchers, and approval status"
       onRefresh={fetchRealExpenses}
       onExport={handleExportExcel}
       isRefreshing={loading}
     >
-      {/* 4 Financial Metric Badges */}
+      {/* Financial Metric Badges */}
       <div className="w-full max-w-[1440px] mx-auto px-5 py-5 space-y-3">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2">
+        <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
+          <p className="text-[11px] font-semibold text-slate-400">Project Expenses</p>
+          <p className="text-lg font-bold text-slate-900 mt-1">BDT {projectTotal.toLocaleString()}</p>
+        </div>
+        <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
+          <p className="text-[11px] font-semibold text-violet-500">Office / Non-project</p>
+          <p className="text-lg font-bold text-violet-700 mt-1">BDT {officeTotal.toLocaleString()}</p>
+        </div>
         <div className="p-3 bg-white border border-[#EAEBEF] rounded-xl shadow-xs">
           <p className="text-[11px] font-semibold text-slate-400">Total Base Direct Cost</p>
           <p className="text-lg font-bold text-slate-900 mt-1">BDT {totalBase.toLocaleString()}</p>
@@ -406,6 +435,22 @@ export default function ExpensesPage() {
             </button>
           </div>
         </div>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+          <select aria-label="Expense type" value={expenseTypeFilter} onChange={(e) => setExpenseTypeFilter(e.target.value as typeof expenseTypeFilter)} className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs">
+            <option value="all">All expense types</option><option value="project">Project expense</option><option value="office">Office / non-project</option>
+          </select>
+          <input aria-label="Month" type="month" value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs" />
+          <select aria-label="Employee" value={employeeFilter} onChange={(e) => setEmployeeFilter(e.target.value)} className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs">
+            <option value="all">All employees</option>{users.map((u) => <option key={u.id} value={u.id}>{u.name || u.full_name || u.email}</option>)}
+          </select>
+          <select aria-label="Department" value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs">
+            <option value="all">All departments</option>{Array.from(new Set(users.map((u) => String(u.department || '').trim()).filter(Boolean))).sort().map((d) => <option key={d} value={d}>{d}</option>)}
+          </select>
+          <select aria-label="Project" value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-xs">
+            <option value="all">All projects</option>{projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          <button type="button" onClick={() => { setExpenseTypeFilter('all'); setMonthFilter(''); setEmployeeFilter('all'); setDepartmentFilter('all'); setProjectFilter('all'); setSearch(''); }} className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Clear filters</button>
+        </div>
 
         {/* Expenses Table */}
         <div className="overflow-x-auto">
@@ -450,7 +495,7 @@ export default function ExpensesPage() {
                           />
                           <div>
                             <p className="font-bold text-slate-900">{e.employeeName || e.employee_name || 'Staff'}</p>
-                            <p className="text-[11px] text-slate-400">{e.projectName || e.project_name || 'Project'}</p>
+                            <p className="text-[11px] text-slate-400">{(e.expenseType || e.expense_type || (e.projectId || e.project_id ? 'project' : 'office')) === 'office' ? 'Office / non-project' : (e.projectName || e.project_name || 'Project')}</p>
                             <div className="flex flex-wrap items-center gap-1.5 mt-1">
                               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 font-mono">
                                 <Calendar size={10} className="text-blue-500 shrink-0" />
@@ -657,7 +702,8 @@ export default function ExpensesPage() {
 
               {/* High-Resolution Voucher Preview (Multi-Receipt Gallery) */}
               {(() => {
-                const photos = getExpenseReceiptUrls(inspectExp);
+                const groups = getExpenseReceiptGroups(inspectExp);
+                const photos = groups.flatMap((group) => group.urls);
                 if (photos.length === 0) return null;
                 return (
                   <div>
@@ -668,24 +714,22 @@ export default function ExpensesPage() {
                       </span>
                       {photos.length > 1 && <span className="text-[11px] text-slate-400 font-normal">Scroll to view all</span>}
                     </p>
-                    <div className="flex gap-2 overflow-x-auto p-2 bg-slate-50 rounded-2xl border border-slate-200">
-                      {photos.map((url, pIdx) => (
-                        <a
-                          key={pIdx}
-                          href={url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="shrink-0 group relative rounded-xl overflow-hidden border border-slate-200 bg-white"
-                        >
-                          <img
-                            src={url}
-                            alt={`Receipt ${pIdx + 1}`}
-                            className="h-44 w-auto object-contain transition-transform group-hover:scale-105"
-                          />
-                          <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">
-                            #{pIdx + 1}
-                          </span>
-                        </a>
+                    <div className="max-h-96 space-y-3 overflow-y-auto">
+                      {groups.map((group, groupIndex) => (
+                        <section key={`${group.categoryId || group.categoryName}-${groupIndex}`} className="rounded-xl border border-slate-200 bg-white p-2.5">
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-extrabold ${getExpenseCategoryTone(group.categoryName)}`}>{group.categoryName}</span>
+                            <span className="text-[10px] text-slate-400">{group.urls.length} receipt{group.urls.length === 1 ? '' : 's'}</span>
+                          </div>
+                          <div className="flex gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-2">
+                            {group.urls.map((url, pIdx) => (
+                              <a key={`${url}-${pIdx}`} href={url} target="_blank" rel="noreferrer" className="group relative h-44 shrink-0 overflow-hidden rounded-lg border border-slate-200 bg-white">
+                                <img src={url} alt={`${group.categoryName} receipt ${pIdx + 1}`} className="h-full w-auto max-w-[240px] object-contain transition-transform group-hover:scale-105" />
+                                <span className="absolute bottom-1 right-1 rounded bg-black/60 px-1.5 py-0.5 font-mono text-[10px] text-white">#{pIdx + 1}</span>
+                              </a>
+                            ))}
+                          </div>
+                        </section>
                       ))}
                     </div>
                   </div>
@@ -938,12 +982,18 @@ export default function ExpensesPage() {
             <form onSubmit={isCreateModalOpen ? handleCreateSubmit : handleEditSubmit} className="space-y-4 text-xs">
               {isCreateModalOpen && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
+                  <div className="col-span-2">
+                    <label className="block text-slate-700 font-semibold mb-1">Expense Type</label>
+                    <select value={formExpenseType} onChange={(e) => setFormExpenseType(e.target.value as typeof formExpenseType)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium">
+                      <option value="project">Project expense</option><option value="office">Office / non-project expense</option>
+                    </select>
+                  </div>
+                  {formExpenseType === 'project' && <div>
                     <label className="block text-slate-700 font-semibold mb-1">Project</label>
                     <select
                       value={formProjectId}
                       onChange={(e) => setFormProjectId(e.target.value)}
-                      required
+                      required={formExpenseType === 'project'}
                       className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium"
                     >
                       {projects.map((p) => (
@@ -952,7 +1002,7 @@ export default function ExpensesPage() {
                         </option>
                       ))}
                     </select>
-                  </div>
+                  </div>}
                   <div>
                     <label className="block text-slate-700 font-semibold mb-1">Claimant Employee</label>
                     <select

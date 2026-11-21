@@ -61,6 +61,20 @@ export interface Expense {
   hasReceipt: boolean;
   receiptPhotoUrl?: string;
   receiptPhotoUrls?: string[];
+  categoryItems?: {
+    categoryId: string;
+    categoryName: string;
+    categoryIcon?: string;
+    amount: number;
+    baseCost: number;
+    vatRate?: number;
+    vatAmount?: number;
+    taxRate?: number;
+    taxAmount?: number;
+    details?: Record<string, unknown>;
+    receiptPhotoUrls?: string[];
+    hasReceipt?: boolean;
+  }[];
   status: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
   justificationStatus?: 'none' | 'required' | 'submitted' | 'approved' | 'rejected';

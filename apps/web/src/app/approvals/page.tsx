@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { LeaveClarificationThread } from '@/components/leaves/LeaveClarificationThread';
-import { getExpenseReceiptUrls } from '@/lib/expenseReceipts';
+import { getExpenseCategoryTone, getExpenseReceiptGroups, getExpenseReceiptUrls } from '@/lib/expenseReceipts';
 
 export default function ApprovalsQueuePage() {
   const [activeTab, setActiveTab] = useState<'expenses' | 'leaves'>('expenses');
@@ -986,31 +986,30 @@ export default function ApprovalsQueuePage() {
                     </div>
 
                     {(() => {
-                      const photos = getExpenseReceiptUrls(inspectExpense);
+                      const groups = getExpenseReceiptGroups(inspectExpense);
+                      const photos = groups.flatMap((group) => group.urls);
 
                       if (photos.length > 0) {
                         return (
-                          <div className="flex-1 flex flex-col min-h-[160px] max-h-[260px]">
-                            <div className="flex gap-2 overflow-x-auto p-2 bg-slate-900 rounded-2xl border border-slate-800 flex-1 items-center">
-                              {photos.map((url, pIdx) => (
-                                <a
-                                  key={pIdx}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="shrink-0 h-full max-h-[220px] rounded-lg overflow-hidden border border-slate-700 bg-black flex items-center justify-center relative group"
-                                >
-                                  <img
-                                    src={url}
-                                    alt={`Voucher ${pIdx + 1}`}
-                                    className="max-h-[220px] w-auto object-contain transition-transform group-hover:scale-105"
-                                  />
-                                  <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">
-                                    #{pIdx + 1}
+                          <div className="flex-1 flex flex-col min-h-[160px] max-h-[420px] overflow-y-auto space-y-3">
+                            {groups.map((group, groupIndex) => (
+                              <section key={`${group.categoryId || group.categoryName}-${groupIndex}`} className="rounded-2xl border border-slate-200 bg-white p-2.5">
+                                <div className="mb-2 flex items-center justify-between gap-2">
+                                  <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-extrabold ${getExpenseCategoryTone(group.categoryName)}`}>
+                                    {group.categoryName}
                                   </span>
-                                </a>
-                              ))}
-                            </div>
+                                  <span className="text-[10px] text-slate-400">{group.urls.length} receipt{group.urls.length === 1 ? '' : 's'}</span>
+                                </div>
+                                <div className="flex gap-2 overflow-x-auto p-2 bg-slate-900 rounded-xl border border-slate-800 items-center">
+                                  {group.urls.map((url, pIdx) => (
+                                    <a key={`${url}-${pIdx}`} href={url} target="_blank" rel="noopener noreferrer" className="shrink-0 h-44 rounded-lg overflow-hidden border border-slate-700 bg-black flex items-center justify-center relative group">
+                                      <img src={url} alt={`${group.categoryName} receipt ${pIdx + 1}`} className="h-full w-auto max-w-[240px] object-contain transition-transform group-hover:scale-105" />
+                                      <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">#{pIdx + 1}</span>
+                                    </a>
+                                  ))}
+                                </div>
+                              </section>
+                            ))}
                             {photos.length > 1 && (
                               <p className="text-[10px] text-slate-400 mt-1 text-center font-medium">
                                 {photos.length} vouchers attached • Scroll horizontally to inspect
