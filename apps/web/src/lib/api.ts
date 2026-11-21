@@ -528,7 +528,7 @@ export class ApiClient {
     return this.request<any>(`/salary/employee/${userId}`);
   }
 
-  static async setEmployeeSalary(userId: string, data: { baseSalary: number; allowances?: number; deductions?: number }) {
+  static async setEmployeeSalary(userId: string, data: { monthlySalary: number; standardWorkingDays?: number }) {
     return this.request<any>(`/salary/employee/${userId}`, {
       method: 'POST',
       body: JSON.stringify(data),

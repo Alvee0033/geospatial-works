@@ -533,16 +533,24 @@ export default function AttendancePage() {
     }
   };
 
-  const openCheckInForUser = (userOrRow: any, customDate?: string) => {
+  const openCheckInForUser = (userOrRow: any, customDate?: string, existingRecord?: any) => {
     const id = userOrRow.id || userOrRow._id;
+    const recordDate = existingRecord?.date ? String(existingRecord.date).split('T')[0] : customDate;
     setCheckInUserId(id);
-    if (customDate) setCheckInDate(customDate);
+    if (recordDate) setCheckInDate(recordDate);
     else setCheckInDate(selectedDate);
-    setCheckInLat(office.latitude);
-    setCheckInLng(office.longitude);
-    setCheckInAddress(office.address || office.name || 'Office HQ');
-    setCheckInWorkMode('office');
-    setCheckInStatus('present');
+    const rawLat = existingRecord?.latitude ?? existingRecord?.lat;
+    const rawLng = existingRecord?.longitude ?? existingRecord?.lng;
+    const lat = rawLat == null ? Number.NaN : Number(rawLat);
+    const lng = rawLng == null ? Number.NaN : Number(rawLng);
+    setCheckInLat(Number.isFinite(lat) ? lat : office.latitude);
+    setCheckInLng(Number.isFinite(lng) ? lng : office.longitude);
+    setCheckInAddress(existingRecord?.addressText || existingRecord?.address_text || office.address || office.name || 'Office HQ');
+    const workMode = existingRecord ? getWorkLocation(existingRecord) : 'office';
+    setCheckInWorkMode(workMode === 'unknown' ? 'office' : workMode);
+    setCheckInStatus(existingRecord?.status || 'present');
+    setCheckInSession(existingRecord?.sessionType || existingRecord?.session_type || 'morning');
+    setCheckInNotes(existingRecord?.notes || '');
     setIsCheckInModalOpen(true);
   };
 
@@ -1792,7 +1800,10 @@ export default function AttendancePage() {
                       </a>
                       <button
                         type="button"
-                        onClick={() => openCheckInForUser(selectedEmployeeForDetail)}
+                        onClick={() => {
+                          const record = monthlyRecords.find((item) => String(item.id) === dossierSelectedRecord.id);
+                          openCheckInForUser(selectedEmployeeForDetail, undefined, record);
+                        }}
                         className="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800"
                       >
                         Re-mark
@@ -2400,6 +2411,9 @@ export default function AttendancePage() {
                     <option value="present">Present (On-time)</option>
                     <option value="late">Late Check-in</option>
                     <option value="half_day">Half Day</option>
+                    {checkInStatus && !['present', 'late', 'half_day'].includes(checkInStatus) && (
+                      <option value={checkInStatus}>{checkInStatus.replaceAll('_', ' ')}</option>
+                    )}
                   </select>
                 </div>
               </div>
