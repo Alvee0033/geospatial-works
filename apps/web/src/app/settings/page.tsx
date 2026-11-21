@@ -224,7 +224,7 @@ export default function SettingsPage() {
               isDefault: true,
             }
           ],
-          isDeductionEnabled: true,
+          isDeductionEnabled: false,
           deductionType: 'rate_based',
           fullDayDeductionAmount: 1.0,
           halfDayDeductionAmount: 0.5,
