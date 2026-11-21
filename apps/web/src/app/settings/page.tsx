@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { 
   Clock, DollarSign, Percent, FolderTree, Database, ShieldCheck,
-  Plus, Trash2, Edit2, Check, AlertTriangle, Search, Save,
+  Plus, Trash2, Edit2, Check, AlertTriangle, Search, Save, Building,
   Calendar, MapPin, Coffee, TrendingUp, X, ShieldAlert, RefreshCw, History
 } from 'lucide-react';
 import { ApiClient } from '@/lib/api';
@@ -64,7 +64,7 @@ export function formatHour(hour?: number): string {
 }
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'schedule' | 'payroll' | 'benefits' | 'categories' | 'storage' | 'audit' | 'danger'>('schedule');
+  const [activeTab, setActiveTab] = useState<'schedule' | 'payroll' | 'benefits' | 'categories' | 'departments' | 'storage' | 'audit' | 'danger'>('schedule');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -73,6 +73,10 @@ export default function SettingsPage() {
   const [attendanceSettings, setAttendanceSettings] = useState<AttendanceSettingsState | null>(null);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [searchCategory, setSearchCategory] = useState('');
+  const [departments, setDepartments] = useState<Array<{ id: string; name: string; employeeCount: number }>>([]);
+  const [departmentDraft, setDepartmentDraft] = useState('');
+  const [editingDepartment, setEditingDepartment] = useState<{ id: string; name: string } | null>(null);
+  const [departmentSaving, setDepartmentSaving] = useState(false);
   
   // Storage & Retainage State
   const [retentionDays, setRetentionDays] = useState(90);
@@ -197,11 +201,13 @@ export default function SettingsPage() {
   const loadAllSettings = async () => {
     try {
       setLoading(true);
-      const [cats, attSettings] = await Promise.all([
+      const [cats, attSettings, departmentList] = await Promise.all([
         ApiClient.getCategories().catch(() => []),
-        ApiClient.getAttendanceSettings().catch(() => null)
+        ApiClient.getAttendanceSettings().catch(() => null),
+        ApiClient.getDepartments().catch(() => []),
       ]);
       setCategories(cats || []);
+      setDepartments(departmentList || []);
       if (attSettings) {
         setAttendanceSettings(attSettings);
       } else {
@@ -257,6 +263,25 @@ export default function SettingsPage() {
       showStatus(err.message || 'Error saving settings', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveDepartment = async () => {
+    const name = (editingDepartment?.name ?? departmentDraft).trim().replace(/\s+/g, ' ');
+    if (!name || departmentSaving) return;
+    setDepartmentSaving(true);
+    try {
+      if (editingDepartment) await ApiClient.renameDepartment(editingDepartment.id, name);
+      else await ApiClient.createDepartment(name);
+      const updated = await ApiClient.getDepartments();
+      setDepartments(updated || []);
+      setDepartmentDraft('');
+      setEditingDepartment(null);
+      showStatus(editingDepartment ? 'Department renamed and employee records updated.' : 'Department added.');
+    } catch (err: any) {
+      showStatus(err.message || 'Could not save department', 'error');
+    } finally {
+      setDepartmentSaving(false);
     }
   };
 
@@ -387,6 +412,7 @@ export default function SettingsPage() {
             { id: 'schedule', label: 'Work Schedule', icon: Clock },
             { id: 'payroll', label: 'Deductions & Holidays', icon: DollarSign },
             { id: 'benefits', label: 'Retainage & Profit', icon: Percent },
+            { id: 'departments', label: 'Departments', icon: Building },
             { id: 'categories', label: 'Expense Categories', icon: FolderTree },
             { id: 'storage', label: 'Data & Purge', icon: Database },
             { id: 'audit', label: 'Audit Trail', icon: ShieldCheck },
@@ -866,6 +892,50 @@ export default function SettingsPage() {
         )}
 
         {/* Tab 4: Expense Categories */}
+        {activeTab === 'departments' && (
+          <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="mb-4 flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900"><Building className="h-4 w-4 text-emerald-700" />Department directory</h2>
+                <p className="mt-1 text-xs text-slate-500">One canonical name per department. Existing staff departments were imported and case duplicates combined.</p>
+              </div>
+              <div className="flex w-full gap-2 sm:w-auto">
+                <input
+                  aria-label="Department name"
+                  value={departmentDraft}
+                  onChange={(event) => setDepartmentDraft(event.target.value)}
+                  onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void saveDepartment(); } }}
+                  placeholder="Add department name"
+                  maxLength={100}
+                  className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs sm:w-56"
+                />
+                <button disabled={departmentSaving || !departmentDraft.trim()} onClick={() => void saveDepartment()} className="inline-flex items-center gap-1.5 rounded-lg bg-[#10241E] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
+                  <Plus className="h-3.5 w-3.5" />Add
+                </button>
+              </div>
+            </div>
+            {departments.length ? (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {departments.map((department) => (
+                  <div key={department.id} className="flex min-h-14 items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                    {editingDepartment?.id === department.id ? (
+                      <input autoFocus aria-label={`Rename ${department.name}`} value={editingDepartment.name} onChange={(event) => setEditingDepartment({ ...editingDepartment, name: event.target.value })} className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs" />
+                    ) : (
+                      <div className="min-w-0"><p className="truncate text-xs font-bold text-slate-800">{department.name}</p><p className="text-[10px] text-slate-500">{department.employeeCount} staff</p></div>
+                    )}
+                    <div className="flex shrink-0 items-center gap-1">
+                      {editingDepartment?.id === department.id ? <>
+                        <button aria-label="Save department name" disabled={departmentSaving || !editingDepartment.name.trim()} onClick={() => void saveDepartment()} className="rounded-md p-1.5 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"><Check className="h-4 w-4" /></button>
+                        <button aria-label="Cancel rename" onClick={() => setEditingDepartment(null)} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+                      </> : <button aria-label={`Rename ${department.name}`} onClick={() => setEditingDepartment({ id: department.id, name: department.name })} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-900"><Edit2 className="h-3.5 w-3.5" /></button>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : <p className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-xs text-slate-500">No departments found yet. Add one here or refresh to import the current staff list.</p>}
+          </section>
+        )}
+
         {activeTab === 'categories' && (
           <div className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-100">

@@ -135,6 +135,7 @@ function EmployeesContent() {
 
   const [users, setUsers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<Array<{ id: string; name: string; employeeCount: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
@@ -169,10 +170,11 @@ function EmployeesContent() {
 
   const fetchUsers = async (silent = false) => {
     if (!silent) setLoading(true);
-    const results = await Promise.allSettled([ApiClient.getUsers(), ApiClient.getProjects()]);
+    const results = await Promise.allSettled([ApiClient.getUsers(), ApiClient.getProjects(), ApiClient.getDepartments()]);
     if (results[0].status === 'fulfilled') setUsers(results[0].value || []);
     if (results[1].status === 'fulfilled') setProjects(results[1].value || []);
-    const failed = results.flatMap((result, index) => result.status === 'rejected' ? [['employees', 'projects'][index]] : []);
+    if (results[2].status === 'fulfilled') setDepartmentOptions(results[2].value || []);
+    const failed = results.flatMap((result, index) => result.status === 'rejected' ? [['employees', 'projects', 'departments'][index]] : []);
     setLoadError(failed.length ? `Could not refresh ${failed.join(' or ')} from the server. Showing the last records received where available.` : '');
     if (!silent) setLoading(false);
   };
@@ -195,7 +197,7 @@ function EmployeesContent() {
     setFormEmployeeCode('');
     setFormPassword('');
     setFormPhone('');
-    setFormDepartment('');
+    setFormDepartment(departmentOptions[0]?.name || '');
     setFormDesignation('');
     setFormRole('project_member');
     setFormAssignedProjects([]);
@@ -361,12 +363,14 @@ function EmployeesContent() {
 
   // Enriched & Filtered Users
   const departments = useMemo(() => {
-    const set = new Set<string>();
-    users.forEach((u) => {
-      if (u.department) set.add(u.department);
+    if (departmentOptions.length) return departmentOptions.map((department) => department.name);
+    const names = new Map<string, string>();
+    users.forEach((user) => {
+      const name = String(user.department || '').trim();
+      if (name && !names.has(name.toLocaleLowerCase())) names.set(name.toLocaleLowerCase(), name);
     });
-    return Array.from(set);
-  }, [users]);
+    return Array.from(names.values()).sort((a, b) => a.localeCompare(b));
+  }, [departmentOptions, users]);
 
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
@@ -894,12 +898,15 @@ function EmployeesContent() {
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Department</label>
-                  <input
-                    type="text"
+                  <select
+                    required
                     value={formDepartment}
                     onChange={(e) => setFormDepartment(e.target.value)}
                     className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium"
-                  />
+                  >
+                    <option value="" disabled>Select department</option>
+                    {departments.map((department) => <option key={department} value={department}>{department}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Position / Designation</label>
@@ -1038,12 +1045,15 @@ function EmployeesContent() {
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Department</label>
-                  <input
-                    type="text"
+                  <select
+                    required
                     value={formDepartment}
                     onChange={(e) => setFormDepartment(e.target.value)}
                     className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium"
-                  />
+                  >
+                    <option value="" disabled>Select department</option>
+                    {departments.map((department) => <option key={department} value={department}>{department}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Position / Designation</label>

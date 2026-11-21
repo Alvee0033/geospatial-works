@@ -485,6 +485,24 @@ export class ApiClient {
     return this.request<any[]>(`/users${qs}`);
   }
 
+  static async getDepartments() {
+    return this.request<Array<{ id: string; name: string; employeeCount: number }>>('/users/departments');
+  }
+
+  static async createDepartment(name: string) {
+    return this.request<{ id: string; name: string }>('/users/departments', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  static async renameDepartment(id: string, name: string) {
+    return this.request<{ id: string; name: string }>(`/users/departments/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    });
+  }
+
   static async getUserById(id: string) {
     return this.request<any>(`/users/${id}`);
   }
