@@ -55,9 +55,6 @@ export default function PayrollPage() {
   }, [month, year]);
 
   const employees: any[] = report?.employees || [];
-  const totalPayable = report?.totalPayable || 0;
-  const totalBaseSalary = report?.totalBaseSalary || 0;
-  const totalDeductions = report?.totalDeductions || 0;
   const departments = useMemo(() => Array.from(new Set(employees.map((emp) => emp.department).filter(Boolean))).sort(), [employees]);
   const filteredEmployees = useMemo(() => employees.filter((emp) => {
     const personMatch = !personFilter || `${emp.userName || ''} ${emp.userId || ''} ${emp.designation || ''}`.toLowerCase().includes(personFilter.toLowerCase());
@@ -66,6 +63,8 @@ export default function PayrollPage() {
     return personMatch && departmentMatch && statusMatch;
   }), [employees, personFilter, departmentFilter, statusFilter]);
   const filteredPayable = filteredEmployees.reduce((sum, emp) => sum + Number(emp.finalPayableSalary || 0), 0);
+  const filteredBaseSalary = filteredEmployees.reduce((sum, emp) => sum + Number(emp.monthlyBaseSalary || 0), 0);
+  const filteredDeductions = filteredEmployees.reduce((sum, emp) => sum + Number(emp.totalAbsenceDeductions || 0) + Number(emp.totalPenalties || 0), 0);
   const presentTotal = filteredEmployees.reduce((sum, emp) => sum + Number(emp.presentDays || 0), 0);
   const leaveTotal = filteredEmployees.reduce((sum, emp) => sum + Number(emp.paidLeaveDays || 0) + Number(emp.unpaidLeaveDays || 0), 0);
 
@@ -214,7 +213,7 @@ export default function PayrollPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-2">
         <StatCard
           title="Payroll due"
-          value={`BDT ${totalPayable.toLocaleString()}`}
+          value={`BDT ${filteredPayable.toLocaleString()}`}
           subtitle={`${filteredEmployees.length} of ${employees.length} staff · ${month}/${year}`}
           icon={Banknote}
           variant="indigo"
@@ -222,7 +221,7 @@ export default function PayrollPage() {
         />
         <StatCard
           title="Base pay"
-          value={`BDT ${totalBaseSalary.toLocaleString()}`}
+          value={`BDT ${filteredBaseSalary.toLocaleString()}`}
           subtitle="Before adjustments"
           icon={CheckCircle2}
           variant="mint"
@@ -230,7 +229,7 @@ export default function PayrollPage() {
         />
         <StatCard
           title="Deductions"
-          value={`BDT ${totalDeductions.toLocaleString()}`}
+          value={`BDT ${filteredDeductions.toLocaleString()}`}
           subtitle="Attendance and payroll adjustments"
           icon={AlertTriangle}
           variant="rose"
