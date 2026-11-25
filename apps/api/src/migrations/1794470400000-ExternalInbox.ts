@@ -19,8 +19,8 @@ export class ExternalInbox1794470400000 implements MigrationInterface {
       "updatedAt" timestamptz NOT NULL DEFAULT now(),
       CONSTRAINT "UQ_inbox_conversation_external" UNIQUE ("channel", "businessAssetId", "participantId")
     )`);
-    await queryRunner.query(`CREATE TYPE "inbox_messages_channel_enum" AS ENUM ('WHATSAPP', 'MESSENGER')`);
-    await queryRunner.query(`CREATE TABLE "inbox_messages" (
+    await queryRunner.query(`DO $$ BEGIN CREATE TYPE "inbox_messages_channel_enum" AS ENUM ('WHATSAPP', 'MESSENGER'); EXCEPTION WHEN duplicate_object THEN null; END $$;`);
+    await queryRunner.query(`CREATE TABLE IF NOT EXISTS "inbox_messages" (
       "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       "conversationId" uuid NOT NULL REFERENCES "inbox_conversations"("id") ON DELETE CASCADE,
       "channel" "inbox_messages_channel_enum" NOT NULL,
@@ -30,7 +30,7 @@ export class ExternalInbox1794470400000 implements MigrationInterface {
       "sentAt" timestamptz NOT NULL,
       "receivedAt" timestamptz NOT NULL DEFAULT now()
     )`);
-    await queryRunner.query(`CREATE INDEX "IDX_inbox_message_conversation_date" ON "inbox_messages" ("conversationId", "sentAt")`);
+    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_inbox_message_conversation_date" ON "inbox_messages" ("conversationId", "sentAt")`);
   }
   async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE IF EXISTS "inbox_messages"`);
