@@ -53,6 +53,7 @@ export class SeedService implements OnApplicationBootstrap {
   }
 
   private async seedAdminUser() {
+    await this.userRepository.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "permissions" jsonb`);
     const email = process.env.BOOTSTRAP_ADMIN_EMAIL!;
     const existing = await this.userRepository.findOne({ where: { email } });
     const passwordHash = await bcrypt.hash(process.env.BOOTSTRAP_ADMIN_PASSWORD!, 12);
