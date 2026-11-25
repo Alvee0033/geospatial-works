@@ -11,8 +11,8 @@ export class GmailInbox1794556800000 implements MigrationInterface {
     await queryRunner.query(`CREATE TYPE "inbox_messages_channel_enum" AS ENUM ('WHATSAPP', 'MESSENGER', 'GMAIL')`);
     await queryRunner.query(`ALTER TABLE "inbox_messages" ALTER COLUMN "channel" TYPE "inbox_messages_channel_enum" USING "channel"::text::"inbox_messages_channel_enum"`);
     await queryRunner.query(`DROP TYPE "inbox_messages_channel_enum_old"`);
-    await queryRunner.query(`ALTER TABLE "inbox_conversations" ADD COLUMN "replyAddress" varchar(320), ADD COLUMN "emailThreadId" varchar(200), ADD COLUMN "emailSubject" varchar(500), ADD COLUMN "lastEmailMessageId" varchar(500)`);
-    await queryRunner.query(`CREATE TABLE "gmail_inbox_connection" (
+    await queryRunner.query(`ALTER TABLE "inbox_conversations" ADD COLUMN IF NOT EXISTS "replyAddress" varchar(320), ADD COLUMN IF NOT EXISTS "emailThreadId" varchar(200), ADD COLUMN IF NOT EXISTS "emailSubject" varchar(500), ADD COLUMN IF NOT EXISTS "lastEmailMessageId" varchar(500)`);
+    await queryRunner.query(`CREATE TABLE IF NOT EXISTS "gmail_inbox_connection" (
       "id" varchar(16) PRIMARY KEY,
       "email" varchar(320) NOT NULL,
       "encryptedRefreshToken" text NOT NULL,
