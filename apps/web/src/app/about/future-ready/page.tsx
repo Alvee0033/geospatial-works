@@ -78,20 +78,20 @@ export default async function FutureReadyPage() {
   const displayedWorkstations = Array.isArray(wysiwyg?.workstationSpecs) && wysiwyg.workstationSpecs.length
     ? wysiwyg.workstationSpecs.map((item: any, index: number) => ({ name: item.component || `Workstation ${index + 1}`, spec: item.spec || '' }))
     : workstations.map(([name, cpu, ram, gpu]) => ({ name, spec: `${cpu} · ${ram} · ${gpu}` }));
-  const rawSoftwareSource =
+  const rawSoftwareList =
     Array.isArray(wysiwyg?.softwareTools) && wysiwyg.softwareTools.length > 0
       ? wysiwyg.softwareTools
-      : equipmentContent.softwareList;
-  const configuredSoftware = Array.isArray(rawSoftwareSource)
-    ? rawSoftwareSource
-        .filter((tool: any) => tool.name?.trim() && tool.logo)
-        .map((tool: any) => ({
-          name: tool.name,
-          category: tool.category || 'Software',
-          description: tool.description || `${tool.name} is part of the digital tools used by our team.`,
-          logo: tool.logo,
-        }))
-    : [];
+      : Array.isArray(equipmentContent.softwareList)
+        ? equipmentContent.softwareList
+        : [];
+  const configuredSoftware = rawSoftwareList
+    .filter((tool: any) => tool.name?.trim())
+    .map((tool: any) => ({
+      name: tool.name,
+      category: tool.category || 'Software',
+      description: tool.description || `${tool.name} is part of the digital tools used by our team.`,
+      logo: tool.logo || '',
+    }));
   const displayedSoftware = configuredSoftware.length > 0 ? configuredSoftware : softwareExpertise;
 
   return (
