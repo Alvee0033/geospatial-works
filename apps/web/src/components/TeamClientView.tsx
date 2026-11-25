@@ -9,8 +9,10 @@ import {
   Award,
   Layers,
   Building,
+  ChevronDown,
 } from 'lucide-react';
 import RequestCvButton from './RequestCvButton';
+import fallbackTeamData from '@/data/teamMembers.json';
 
 interface TeamMember {
   id: string;
@@ -27,7 +29,7 @@ interface TeamMember {
 
 export default function TeamClientView() {
   const [activeCategory, setActiveCategory] = useState<string>('All');
-  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [members, setMembers] = useState<TeamMember[]>(fallbackTeamData as TeamMember[]);
 
   useEffect(() => {
     // Fetch live updated team directory from API if available
@@ -37,7 +39,7 @@ export default function TeamClientView() {
         return null;
       })
       .then((data) => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setMembers(data);
         }
       })
@@ -136,22 +138,57 @@ export default function TeamClientView() {
 
         {/* Categories Bar */}
         {members.length === 0 && <p className="py-10 text-neutral-500">Team profiles will appear here soon.</p>}
-        <div className="mb-8 border-b border-neutral-200">
-          <div className="flex items-center gap-2 overflow-x-auto pb-3 scrollbar-none">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setActiveCategory(cat)}
-                className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  activeCategory === cat
-                    ? 'bg-[#141212] text-white shadow-xs'
-                    : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-600'
-                }`}
+        <div className="mb-8 border-b border-neutral-200 pb-4">
+          {/* Mobile Select Dropdown (Zero Side Scroll) */}
+          <div className="block sm:hidden w-full">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-500 mb-1.5 block">
+              Filter by Discipline
+            </label>
+            <div className="relative">
+              <select
+                value={activeCategory}
+                onChange={(e) => setActiveCategory(e.target.value)}
+                className="w-full px-3.5 py-2.5 bg-neutral-50 border border-neutral-300 rounded-xl text-xs font-bold text-neutral-900 focus:bg-white focus:outline-none focus:border-red-500 appearance-none cursor-pointer"
               >
-                {cat}
-              </button>
-            ))}
+                {categories.map((cat) => {
+                  const count = cat === 'All' ? members.length : members.filter((m) => m.category === cat).length;
+                  return (
+                    <option key={cat} value={cat}>
+                      {cat} ({count})
+                    </option>
+                  );
+                })}
+              </select>
+              <ChevronDown size={15} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Desktop Category Filter Tabs (Clean Flex-Wrap) */}
+          <div className="hidden sm:flex flex-wrap items-center gap-2">
+            {categories.map((cat) => {
+              const count = cat === 'All' ? members.length : members.filter((m) => m.category === cat).length;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer rounded-lg flex items-center gap-1.5 ${
+                    activeCategory === cat
+                      ? 'bg-[#141212] text-white shadow-xs'
+                      : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-700'
+                  }`}
+                >
+                  <span>{cat}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                      activeCategory === cat ? 'bg-white/20 text-white' : 'bg-neutral-200 text-neutral-600'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

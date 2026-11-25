@@ -1,148 +1,358 @@
 'use client';
 
-import React from 'react';
-import { ArrowRight, BriefcaseBusiness, FolderKanban, Mail, Newspaper, Users } from 'lucide-react';
+import React, { useMemo } from 'react';
+import {
+  ArrowRight,
+  Briefcase,
+  BriefcaseBusiness,
+  FolderKanban,
+  Mail,
+  MessageSquareText,
+  Newspaper,
+  Plus,
+  Users,
+} from 'lucide-react';
 import { ProjectItem } from './ProjectsView';
+import { ServiceItem } from './ServiceModal';
+import { ArticleItem } from './NewsModal';
+import { TeamMemberItem } from './TeamMemberDrawer';
+import { JobPostItem } from './JobModal';
+import { ApplicationItem } from './CareersView';
+import { InquiryItem } from './LeadsView';
+import { AdminTab } from './Sidebar';
+import { Button, Badge, Card, PageHeader } from './ui';
 
 interface DashboardViewProps {
   projects: ProjectItem[];
+  services?: ServiceItem[];
+  articles?: ArticleItem[];
+  teamMembers?: TeamMemberItem[];
+  jobs?: JobPostItem[];
+  applications?: ApplicationItem[];
+  inquiries?: InquiryItem[];
   inquiriesCount?: number;
   servicesCount?: number;
   articlesCount?: number;
   teamCount?: number;
   onNavigateToProjects: () => void;
   onNavigateToInquiries?: () => void;
+  onNavigateTab?: (tab: AdminTab) => void;
   onOpenCreateModal: () => void;
 }
 
 export function DashboardView({
   projects,
-  inquiriesCount = 0,
-  servicesCount = 0,
-  articlesCount = 0,
-  teamCount = 0,
+  services = [],
+  articles = [],
+  teamMembers = [],
+  jobs = [],
+  applications = [],
+  inquiries = [],
+  inquiriesCount,
+  servicesCount,
+  articlesCount,
+  teamCount,
   onNavigateToProjects,
   onNavigateToInquiries,
+  onNavigateTab,
   onOpenCreateModal,
 }: DashboardViewProps) {
-  const stats = [
-    { label: 'Projects', count: projects.length, icon: FolderKanban, action: onNavigateToProjects, badge: 'Live' },
-    { label: 'Services', count: servicesCount, icon: BriefcaseBusiness, badge: 'Catalog' },
-    { label: 'Team Specialists', count: teamCount, icon: Users, badge: 'Staff' },
-    { label: 'Articles & News', count: articlesCount, icon: Newspaper, badge: 'Insights' },
-    { label: 'Client Inquiries', count: inquiriesCount, icon: Mail, action: onNavigateToInquiries, badge: inquiriesCount > 0 ? 'Action Req.' : 'Inbox' },
+  const totalServices = servicesCount ?? services.length;
+  const totalArticles = articlesCount ?? articles.length;
+  const totalTeam = teamCount ?? teamMembers.length;
+  const totalInquiries = inquiriesCount ?? inquiries.length;
+
+  const newLeadsCount = inquiries.filter((i) => i.status === 'NEW').length;
+  const contactedCount = inquiries.filter((i) => i.status === 'CONTACTED').length;
+  const inProgressCount = inquiries.filter((i) => i.status === 'IN_PROGRESS').length;
+  const resolvedCount = inquiries.filter((i) => i.status === 'RESOLVED').length;
+
+  const publishedArticles = articles.filter((a) => a.isPublished).length;
+  const activeServices = services.filter((s) => s.isActive).length;
+  const milestoneProjects = projects.filter((p) => p.isMilestone).length;
+
+  const stats: {
+    label: string;
+    count: number;
+    sub: string;
+    icon: React.ComponentType<{ size?: number }>;
+    tab: AdminTab;
+    highlight?: boolean;
+  }[] = [
+    {
+      label: 'Projects',
+      count: projects.length,
+      sub: `${milestoneProjects} milestone`,
+      icon: FolderKanban,
+      tab: 'projects',
+    },
+    {
+      label: 'Services',
+      count: totalServices,
+      sub: `${activeServices} active`,
+      icon: BriefcaseBusiness,
+      tab: 'services',
+    },
+    {
+      label: 'Team & CVs',
+      count: totalTeam,
+      sub: 'With PDF CVs',
+      icon: Users,
+      tab: 'team',
+    },
+    {
+      label: 'News & Articles',
+      count: totalArticles,
+      sub: `${publishedArticles} published`,
+      icon: Newspaper,
+      tab: 'news',
+    },
+    {
+      label: 'Careers',
+      count: jobs.length,
+      sub: `${applications.length} applications`,
+      icon: Briefcase,
+      tab: 'careers',
+    },
+    {
+      label: 'Enquiries',
+      count: totalInquiries,
+      sub: `${newLeadsCount} new leads`,
+      icon: Mail,
+      tab: 'inquiries',
+      highlight: newLeadsCount > 0,
+    },
   ];
+
+  const recentProjects = useMemo(
+    () => [...projects].sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999)).slice(0, 5),
+    [projects]
+  );
+
+  const recentInquiries = useMemo(
+    () =>
+      [...inquiries]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5),
+    [inquiries]
+  );
+
+  const teamByCategory = useMemo(() => {
+    const map = new Map<string, number>();
+    teamMembers.forEach((m) => {
+      const cat = m.category || 'Other';
+      map.set(cat, (map.get(cat) || 0) + 1);
+    });
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  }, [teamMembers]);
+
+  const go = (tab: AdminTab) => {
+    if (onNavigateTab) return onNavigateTab(tab);
+    if (tab === 'projects') onNavigateToProjects();
+    if (tab === 'inquiries') onNavigateToInquiries?.();
+  };
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        {stats.map(({ label, count, icon: Icon, action, badge }) => (
-          <button
-            key={label}
-            type="button"
-            onClick={action}
-            className={`flex flex-col justify-between p-4 rounded-xl border border-slate-200/90 bg-white text-left transition shadow-2xs ${
-              action ? 'hover:border-slate-400 hover:shadow-xs cursor-pointer' : 'cursor-default'
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-slate-500">{label}</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-medium">
-                {badge}
-              </span>
-            </div>
-            <div className="mt-3 flex items-baseline justify-between">
-              <span className="text-2xl font-bold font-mono tracking-tight text-slate-900">{count}</span>
-              <Icon size={18} className="text-slate-400" />
-            </div>
-          </button>
-        ))}
+      <PageHeader
+        title="Dashboard Overview"
+        description="Live summary of website content, team directory, and client enquiries"
+        actions={
+          <div className="flex items-center gap-2">
+            {onNavigateTab && (
+              <Button variant="secondary" onClick={() => go('inbox')} icon={<MessageSquareText size={14} />}>
+                Messages
+              </Button>
+            )}
+            <Button onClick={onOpenCreateModal} icon={<Plus size={15} />}>
+              Add Project
+            </Button>
+          </div>
+        }
+      />
+
+      {/* KPI Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {stats.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => go(item.tab)}
+              className="text-left bg-white rounded-xl border border-slate-200 p-4 shadow-2xs hover:border-indigo-300 hover:shadow-xs transition cursor-pointer flex flex-col justify-between gap-3"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-500 truncate">{item.label}</span>
+                <div
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                    item.highlight ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  <Icon size={14} />
+                </div>
+              </div>
+              <div>
+                <p className="text-2xl font-bold tracking-tight text-slate-900 tabular-nums">{item.count}</p>
+                <p className={`text-[11px] mt-0.5 ${item.highlight ? 'text-rose-600 font-semibold' : 'text-slate-400'}`}>
+                  {item.sub}
+                </p>
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-12">
-        <section className="lg:col-span-8 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-2xs">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
+      {/* Middle Row: Enquiry Pipeline + Team Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <Card padding="md" className="lg:col-span-7 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Enquiry Pipeline</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Distribution across CRM stages</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => go('inquiries')}>
+              Open Board <ArrowRight size={13} />
+            </Button>
+          </div>
+
+          <div className="space-y-3">
+            {[
+              { label: 'New Leads', count: newLeadsCount, bar: 'bg-rose-500', text: 'text-rose-700' },
+              { label: 'Contacted', count: contactedCount, bar: 'bg-amber-500', text: 'text-amber-700' },
+              { label: 'In Discussion', count: inProgressCount, bar: 'bg-indigo-500', text: 'text-indigo-700' },
+              { label: 'Closed / Converted', count: resolvedCount, bar: 'bg-emerald-500', text: 'text-emerald-700' },
+            ].map((stage) => {
+              const pct = totalInquiries > 0 ? Math.round((stage.count / totalInquiries) * 100) : 0;
+              return (
+                <div key={stage.label} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-700">{stage.label}</span>
+                    <span className={`font-mono font-bold ${stage.text}`}>
+                      {stage.count} ({pct}%)
+                    </span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div className={`h-full rounded-full ${stage.bar} transition-all`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card padding="md" className="lg:col-span-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Team by Discipline</h3>
+              <p className="text-xs text-slate-500 mt-0.5">{totalTeam} total professionals</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => go('team')}>
+              Directory <ArrowRight size={13} />
+            </Button>
+          </div>
+
+          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+            {teamByCategory.length === 0 ? (
+              <p className="text-xs text-slate-400 py-4 text-center">No team members recorded.</p>
+            ) : (
+              teamByCategory.map(([cat, count]) => (
+                <div
+                  key={cat}
+                  className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-100 text-xs"
+                >
+                  <span className="font-medium text-slate-700 truncate">{cat}</span>
+                  <Badge variant="brand">{count}</Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {/* Bottom Row: Recent Enquiries + Recent Projects */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <Card padding="none" className="overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Recent Enquiries</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Latest client submissions</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => go('inquiries')}>
+              View all <ArrowRight size={13} />
+            </Button>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {recentInquiries.length === 0 ? (
+              <div className="px-5 py-10 text-center text-xs text-slate-500">No enquiries yet.</div>
+            ) : (
+              recentInquiries.map((inq) => (
+                <div
+                  key={inq.id}
+                  onClick={() => go('inquiries')}
+                  className="px-5 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition cursor-pointer"
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-900 truncate">{inq.fullName}</p>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                      {inq.serviceType || 'General Consultation'} · {inq.email}
+                    </p>
+                  </div>
+                  <Badge
+                    variant={
+                      inq.status === 'NEW'
+                        ? 'danger'
+                        : inq.status === 'CONTACTED'
+                        ? 'warning'
+                        : inq.status === 'IN_PROGRESS'
+                        ? 'brand'
+                        : 'success'
+                    }
+                  >
+                    {inq.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+
+        <Card padding="none" className="overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Recent Projects</h3>
-              <p className="text-xs text-slate-500">Recently catalogued surveying and GIS undertakings.</p>
+              <p className="text-xs text-slate-500 mt-0.5">Top ordered portfolio projects</p>
             </div>
-            <button
-              type="button"
-              onClick={onNavigateToProjects}
-              className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-slate-700 hover:text-black cursor-pointer"
-            >
-              All projects <ArrowRight size={13} />
-            </button>
+            <Button variant="ghost" size="sm" onClick={onNavigateToProjects}>
+              View all <ArrowRight size={13} />
+            </Button>
           </div>
-          {projects.length ? (
-            <div className="divide-y divide-slate-100">
-              {projects.slice(0, 5).map((project) => (
-                <div key={project.id} className="flex min-w-0 items-center justify-between gap-3 px-5 py-3 hover:bg-slate-50/60 transition">
-                  <div className="flex min-w-0 items-center gap-3">
-                    {project.imageUrl ? (
-                      <img src={project.imageUrl} alt="" className="h-10 w-14 shrink-0 rounded object-cover border border-slate-200/60" />
-                    ) : (
-                      <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded bg-slate-100 text-slate-400">
-                        <FolderKanban size={15} />
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-bold text-slate-900">{project.title}</p>
-                      <p className="mt-0.5 truncate text-[11px] text-slate-500 font-mono">
-                        {[project.client, project.location].filter(Boolean).join(' · ') || project.category}
-                      </p>
-                    </div>
-                  </div>
-                  {project.isMilestone && (
-                    <span className="shrink-0 text-[10px] font-semibold font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                      Milestone
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="px-5 py-10 text-center text-xs text-slate-500">No projects recorded.</p>
-          )}
-        </section>
-
-        <section className="lg:col-span-4 rounded-xl border border-slate-200/90 bg-white p-5 shadow-2xs flex flex-col justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">Direct Actions</h3>
-            <p className="mt-0.5 text-xs text-slate-500">Quick shortcuts to content authoring.</p>
-            <div className="mt-4 space-y-2">
-              <button
-                type="button"
-                onClick={onOpenCreateModal}
-                className="flex w-full items-center justify-between rounded-lg border border-slate-200 p-3 text-left transition hover:border-slate-400 hover:bg-slate-50 cursor-pointer"
-              >
-                <span>
-                  <span className="block text-xs font-semibold text-slate-900">Publish New Project</span>
-                  <span className="mt-0.5 block text-[11px] text-slate-500">Add deliverables, coordinates &amp; case study</span>
-                </span>
-                <FolderKanban size={16} className="text-slate-400 shrink-0 ml-2" />
-              </button>
-
-              {onNavigateToInquiries && (
-                <button
-                  type="button"
-                  onClick={onNavigateToInquiries}
-                  className="flex w-full items-center justify-between rounded-lg border border-slate-200 p-3 text-left transition hover:border-slate-400 hover:bg-slate-50 cursor-pointer"
+          <div className="divide-y divide-slate-100">
+            {recentProjects.length === 0 ? (
+              <div className="px-5 py-10 text-center text-xs text-slate-500">No projects recorded yet.</div>
+            ) : (
+              recentProjects.map((project) => (
+                <div
+                  key={project.id}
+                  onClick={onNavigateToProjects}
+                  className="px-5 py-3 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition cursor-pointer"
                 >
-                  <span>
-                    <span className="block text-xs font-semibold text-slate-900">Review Inbound Leads</span>
-                    <span className="mt-0.5 block text-[11px] text-slate-500">{inquiriesCount} pending messages in Kanban/CRM</span>
-                  </span>
-                  <Mail size={16} className="text-slate-400 shrink-0 ml-2" />
-                </button>
-              )}
-            </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-900 truncate">{project.title}</p>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                      {project.client}
+                      {project.location ? ` · ${project.location}` : ''}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Badge variant="brand">{project.category}</Badge>
+                    {project.isMilestone && <Badge variant="warning">Milestone</Badge>}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-
-          <div className="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-400 font-mono">
-            Platform: Geospatial Works CMS v2.4
-          </div>
-        </section>
+        </Card>
       </div>
     </div>
   );

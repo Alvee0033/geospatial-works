@@ -1,0 +1,2776 @@
+{
+  "items": [
+    {
+      "className": " logo",
+      "href": "https://www.wsp.com/en-gl/",
+      "text": "WSP"
+    },
+    {
+      "className": " logo",
+      "href": "https://www.wsp.com/en-gl/",
+      "text": ""
+    },
+    {
+      "className": "mn__link level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/who-we-are",
+      "text": "Who we are"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/who-we-are",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/who-we-are/our-history",
+      "text": "Our history"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/future-ready",
+      "text": "Future Ready"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility",
+      "text": "Corporate responsibility"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/who-we-are/global-leadership",
+      "text": "Global leadership"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/who-we-are/global-strategic-plan",
+      "text": "Global Strategic Plan"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/our-impact",
+      "text": "Our impact"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/communities",
+      "text": "Communities"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity",
+      "text": "Ethics and integrity"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/health-safety",
+      "text": "Health and safety"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/inclusion-and-belonging",
+      "text": "Inclusion and belonging"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/indigenous-relations",
+      "text": "Indigenous relations"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "className": "box-link",
+      "href": "https://www.wsp.com/en-gl/our-impact",
+      "text": "Unlocking potential everywhere\n\nAs Visioneers we see the potential everywhere, harnessing it to embrace the complex challenges of today\u2019s world. Blazing the trails of purposeful innovation across new frontiers and designing a world where communities can thrive. \n\nDiscover our latest projects highlighting our commitment to innovation, sustainability and engineering excellence. See how we\u2019re shaping the future of communities around the globe."
+    },
+    {
+      "className": "mn__link level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/what-we-do",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/sectors",
+      "text": "Sectors"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/services",
+      "text": "Services"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/projects",
+      "text": "Projects"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/what-we-do",
+      "text": "Overview"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/property-and-buildings",
+      "text": "Property and Buildings"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/transportation-and-infrastructure",
+      "text": "Transport and Infrastructure"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/sectors/earth-and-environment",
+      "text": "Earth and Environment"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/sectors/mining-and-metals",
+      "text": "Mining and Metals"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/sectors/power-and-energy",
+      "text": "Power and Energy"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/industry",
+      "text": "Industry"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/water-solutions",
+      "text": "Water"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Advisory"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/services",
+      "text": "Services"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/property-and-buildings",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/commercial-and-mixed-use",
+      "text": "Commercial and Mixed Use"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/cultural",
+      "text": "Cultural"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/data-centers",
+      "text": "Data Centers"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/education",
+      "text": "Education"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/existing-buildings",
+      "text": "Existing Buildings"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/government-and-public-buildings",
+      "text": "Government"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/healthcare",
+      "text": "Healthcare"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/heritage-solutions",
+      "text": "Heritage"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/high-rise",
+      "text": "High-Rise"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/hospitality",
+      "text": "Hospitality"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/residential",
+      "text": "Residential"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/retail",
+      "text": "Retail"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/science",
+      "text": "Science"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/sports-and-events",
+      "text": "Sports and Events"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/telecommunications",
+      "text": "Telecommunication"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/timber",
+      "text": "Timber"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/workplace",
+      "text": "Workplace"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/transportation-and-infrastructure",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/asset-management-consulting-and-advisory",
+      "text": "Asset Management"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/aviation",
+      "text": "Aviation"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/building-information-modelling-bim",
+      "text": "BIM"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/bridges-and-civil-structures",
+      "text": "Bridges and Civil Structures"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/cities-and-communities",
+      "text": "Cities and Communities"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/design-build",
+      "text": "Design Build"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/intelligent-mobility",
+      "text": "Intelligent Mobility"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/maritime",
+      "text": "Maritime"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/public-private-partnerships-ppp",
+      "text": "PPP"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/rail-and-transit",
+      "text": "Rail and Transit"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/roads-and-highways",
+      "text": "Roads and Highways"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/transport-planning",
+      "text": "Transport Planning"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/tunnel-structures-and-systems",
+      "text": "Tunnel Structures and Systems"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/earth-and-environment",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/sustainability-and-climate-solutions",
+      "text": "Sustainability and Climate Solutions"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/air-quality",
+      "text": "Air Quality"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/biodiversity-and-natural-capital",
+      "text": "Biodiversity & Natural Capital"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/contaminated-land-and-soil-remediation",
+      "text": "Contaminated Land and Soil Remediation"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/environment-health-and-safety-management",
+      "text": "Environment, Health and Safety"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/environmental-and-social-impact-assessment-and-planning",
+      "text": "Environmental and Social Impact"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/compliance-due-diligence",
+      "text": "Environmental Compliance"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/environmental-due-diligence",
+      "text": "Environmental Due Diligence"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/geotechnical-and-ground-engineering",
+      "text": "Geotechnical & Ground Engineering"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/surveying-mapping-and-gis",
+      "text": "GIS, Mapping and Surveying"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/licensing-and-permitting",
+      "text": "Licensing and Permitting"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/materials-engineering-and-quality-management",
+      "text": "Materials Engineering and QM"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/pfas-management-investigation-and-treatment",
+      "text": "PFAS Management, Investigation and Treatment"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/strategic-environmental-assessment",
+      "text": "Strategic Environmental Assessment"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/waste-management-and-landfill",
+      "text": "Waste Management"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/mining-and-metals",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/geology",
+      "text": "Geology"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/geotechnical-and-ground-engineering",
+      "text": "Geotechnical and ground engineering"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/mine-closure-and-rehabilitation",
+      "text": "Mine closure and rehabilitation"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/mine-engineering",
+      "text": "Mine engineering"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/mine-infrastructure",
+      "text": "Mine infrastructure"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/mine-water-management",
+      "text": "Mine water management"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/mineral-processing",
+      "text": "Mineral processing"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/tailings-and-mine-waste-management",
+      "text": "Tailings mine waste management"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/power-and-energy",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/geothermal-energy",
+      "text": "Geothermal energy"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/hydrogen",
+      "text": "Hydrogen"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/hydropower",
+      "text": "Hydropower"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/nuclear-energy",
+      "text": "Nuclear energy"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/oil-and-gas",
+      "text": "Oil and gas"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/power-transmission-and-distribution",
+      "text": "Power transmission and distribution"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/solar-energy",
+      "text": "Solar energy"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/thermal-energy-and-bioenergy",
+      "text": "Thermal energy and bioenergy"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/wind-energy",
+      "text": "Wind energy"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/industry",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/aerospace",
+      "text": "Aerospace"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/automotive-industry",
+      "text": "Automotive and Battery Plants"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/chemical-industry",
+      "text": "Chemical Industry"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/construction-products",
+      "text": "Construction Products"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/consumer-products",
+      "text": "Consumer Products"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/food-and-beverages",
+      "text": "Food and Beverages"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/metal-industry",
+      "text": "Metal Industry"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/pharmaceutical-and-life-sciences",
+      "text": "Pharmaceutical and Life Sciences"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/process-energy",
+      "text": "Process Energy"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/pulp-and-paper",
+      "text": "Pulp and Paper"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/water-solutions",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/drinking-water-supply",
+      "text": "Drinking Water Supply"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/industrial-water-and-wastewater-management",
+      "text": "Industrial Water & Wastewater Management"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/water",
+      "text": "Water and Wastewater Treatment"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/water-resources",
+      "text": "Water Resources"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/water-transmission-and-wastewater-conveyance",
+      "text": "Water Transmission and Wastewater Conveyance"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/digital-solutions",
+      "text": "Digital Solutions"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/services",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Advisory"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/design",
+      "text": "Design Services"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/digital-solutions",
+      "text": "Digital Solutions"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/net-zero",
+      "text": "Net Zero"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/planning",
+      "text": "Planning Services"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/project-delivery",
+      "text": "Project Delivery"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/safety-and-security",
+      "text": "Safety and Security"
+    },
+    {
+      "className": "box-link",
+      "href": "https://www.wsp.com/en-gl/campaigns/supercharge-tomorrow",
+      "text": "Supercharge tomorrow\n\nAs global power demand rises, we\u2019re helping clients across all sectors accelerate the transition to a secure, resilient, and low-carbon energy future. WSP is shaping smarter energy systems, built to meet today\u2019s challenges and tomorrow\u2019s opportunities."
+    },
+    {
+      "className": "mn__link level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/insights",
+      "text": "Insights"
+    },
+    {
+      "className": "btn btn-text",
+      "href": "https://www.wsp.com/en-gl/insights",
+      "text": "View all"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/insights",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/climate",
+      "text": "Climate"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/mobility",
+      "text": "Mobility"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/places",
+      "text": "Places"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/resources",
+      "text": "Resources"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/society",
+      "text": "Society"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/technology",
+      "text": "Technology"
+    },
+    {
+      "className": "box-link",
+      "href": "https://www.wsp.com/en-gl/insights/visioneer-voices",
+      "text": "Visioneer Voices\n\nWhere thought leadership meets real-world impact."
+    },
+    {
+      "className": "mn__link level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/careers",
+      "text": "Careers"
+    },
+    {
+      "className": "btn btn-text",
+      "href": "https://www.wsp.com/en-gl/careers",
+      "text": "Find out more"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/careers",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/careers/job-opportunities",
+      "text": "Job opportunities"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/careers/early-career",
+      "text": "Early career"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/careers/experienced-professionals",
+      "text": "Experienced professionals"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/careers/why-join-us",
+      "text": "Why join us?"
+    },
+    {
+      "className": "box-link",
+      "href": "https://www.wsp.com/en-gl/careers/why-join-us",
+      "text": "Why join us?\n\nAt WSP, you will find the space you need to think bigger and build a career that\u2019s right for you."
+    },
+    {
+      "className": " mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "Who we are"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/who-we-are",
+      "text": "Overview"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/our-history",
+      "text": "Our history"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/future-ready",
+      "text": "Future Ready"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility",
+      "text": "Corporate responsibility"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Who we are"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/communities",
+      "text": "Communities"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity",
+      "text": "Ethics and integrity"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/health-safety",
+      "text": "Health and safety"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/inclusion-and-belonging",
+      "text": "Inclusion and belonging"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/indigenous-relations",
+      "text": "Indigenous relations"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/global-leadership",
+      "text": "Global leadership"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/global-strategic-plan",
+      "text": "Global Strategic Plan"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/our-impact",
+      "text": "Our impact"
+    },
+    {
+      "className": " mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/what-we-do",
+      "text": "Overview"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/property-and-buildings",
+      "text": "Property and Buildings"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/property-and-buildings",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/commercial-and-mixed-use",
+      "text": "Commercial and Mixed Use"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/cultural",
+      "text": "Cultural"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/data-centers",
+      "text": "Data Centers"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/education",
+      "text": "Education"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/existing-buildings",
+      "text": "Existing Buildings"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/government-and-public-buildings",
+      "text": "Government"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/healthcare",
+      "text": "Healthcare"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/heritage-solutions",
+      "text": "Heritage"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/high-rise",
+      "text": "High-Rise"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/hospitality",
+      "text": "Hospitality"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/residential",
+      "text": "Residential"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/retail",
+      "text": "Retail"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/science",
+      "text": "Science"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/sports-and-events",
+      "text": "Sports and Events"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/telecommunications",
+      "text": "Telecommunication"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/timber",
+      "text": "Timber"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/workplace",
+      "text": "Workplace"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/transportation-and-infrastructure",
+      "text": "Transport and Infrastructure"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/transportation-and-infrastructure",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/asset-management-consulting-and-advisory",
+      "text": "Asset Management"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/aviation",
+      "text": "Aviation"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/building-information-modelling-bim",
+      "text": "BIM"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/bridges-and-civil-structures",
+      "text": "Bridges and Civil Structures"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/cities-and-communities",
+      "text": "Cities and Communities"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/design-build",
+      "text": "Design Build"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/intelligent-mobility",
+      "text": "Intelligent Mobility"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/maritime",
+      "text": "Maritime"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/public-private-partnerships-ppp",
+      "text": "PPP"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/rail-and-transit",
+      "text": "Rail and Transit"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/roads-and-highways",
+      "text": "Roads and Highways"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/transport-planning",
+      "text": "Transport Planning"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/tunnel-structures-and-systems",
+      "text": "Tunnel Structures and Systems"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/earth-and-environment",
+      "text": "Earth and Environment"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/earth-and-environment",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/sustainability-and-climate-solutions",
+      "text": "Sustainability and Climate Solutions"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/air-quality",
+      "text": "Air Quality"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/biodiversity-and-natural-capital",
+      "text": "Biodiversity & Natural Capital"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/contaminated-land-and-soil-remediation",
+      "text": "Contaminated Land and Soil Remediation"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/environment-health-and-safety-management",
+      "text": "Environment, Health and Safety"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/environmental-and-social-impact-assessment-and-planning",
+      "text": "Environmental and Social Impact"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/compliance-due-diligence",
+      "text": "Environmental Compliance"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/environmental-due-diligence",
+      "text": "Environmental Due Diligence"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/geotechnical-and-ground-engineering",
+      "text": "Geotechnical & Ground Engineering"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/surveying-mapping-and-gis",
+      "text": "GIS, Mapping and Surveying"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/licensing-and-permitting",
+      "text": "Licensing and Permitting"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/materials-engineering-and-quality-management",
+      "text": "Materials Engineering and QM"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/pfas-management-investigation-and-treatment",
+      "text": "PFAS Management, Investigation and Treatment"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/strategic-environmental-assessment",
+      "text": "Strategic Environmental Assessment"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/waste-management-and-landfill",
+      "text": "Waste Management"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/mining-and-metals",
+      "text": "Mining and Metals"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/mining-and-metals",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/geology",
+      "text": "Geology"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/geotechnical-and-ground-engineering",
+      "text": "Geotechnical and ground engineering"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/mine-closure-and-rehabilitation",
+      "text": "Mine closure and rehabilitation"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/mine-engineering",
+      "text": "Mine engineering"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/mine-infrastructure",
+      "text": "Mine infrastructure"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/mine-water-management",
+      "text": "Mine water management"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/mineral-processing",
+      "text": "Mineral processing"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/tailings-and-mine-waste-management",
+      "text": "Tailings mine waste management"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/power-and-energy",
+      "text": "Power and Energy"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/power-and-energy",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/geothermal-energy",
+      "text": "Geothermal energy"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/hydrogen",
+      "text": "Hydrogen"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/hydropower",
+      "text": "Hydropower"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/nuclear-energy",
+      "text": "Nuclear energy"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/oil-and-gas",
+      "text": "Oil and gas"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/power-transmission-and-distribution",
+      "text": "Power transmission and distribution"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/solar-energy",
+      "text": "Solar energy"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/thermal-energy-and-bioenergy",
+      "text": "Thermal energy and bioenergy"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/wind-energy",
+      "text": "Wind energy"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/industry",
+      "text": "Industry"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/industry",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/aerospace",
+      "text": "Aerospace"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/automotive-industry",
+      "text": "Automotive and Battery Plants"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/chemical-industry",
+      "text": "Chemical Industry"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/construction-products",
+      "text": "Construction Products"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/consumer-products",
+      "text": "Consumer Products"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/food-and-beverages",
+      "text": "Food and Beverages"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/metal-industry",
+      "text": "Metal Industry"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/pharmaceutical-and-life-sciences",
+      "text": "Pharmaceutical and Life Sciences"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/process-energy",
+      "text": "Process Energy"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/pulp-and-paper",
+      "text": "Pulp and Paper"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/water-solutions",
+      "text": "Water"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/water-solutions",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/drinking-water-supply",
+      "text": "Drinking Water Supply"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/industrial-water-and-wastewater-management",
+      "text": "Industrial Water & Wastewater Management"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/water",
+      "text": "Water and Wastewater Treatment"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/water-resources",
+      "text": "Water Resources"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/water-transmission-and-wastewater-conveyance",
+      "text": "Water Transmission and Wastewater Conveyance"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Advisory"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/digital-solutions",
+      "text": "Digital Solutions"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/services",
+      "text": "Services"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/services",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Advisory"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/design",
+      "text": "Design Services"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/digital-solutions",
+      "text": "Digital Solutions"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/net-zero",
+      "text": "Net Zero"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/planning",
+      "text": "Planning Services"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/project-delivery",
+      "text": "Project Delivery"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/safety-and-security",
+      "text": "Safety and Security"
+    },
+    {
+      "className": " mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "Insights"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/insights",
+      "text": "Overview"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/climate",
+      "text": "Climate"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/mobility",
+      "text": "Mobility"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/places",
+      "text": "Places"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/resources",
+      "text": "Resources"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/society",
+      "text": "Society"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/technology",
+      "text": "Technology"
+    },
+    {
+      "className": " mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "Careers"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/careers",
+      "text": "Overview"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/careers/job-opportunities",
+      "text": "Job opportunities"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/careers/early-career",
+      "text": "Early career"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/careers/experienced-professionals",
+      "text": "Experienced professionals"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/careers/why-join-us",
+      "text": "Why join us?"
+    },
+    {
+      "className": "ln_sub-link",
+      "href": "https://www.wsp.com/fr-gl/",
+      "text": "FR"
+    },
+    {
+      "className": "sn__sub-link",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Select your language and location"
+    },
+    {
+      "className": "country tcl__link active",
+      "href": "https://www.wsp.com/en-gl/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/fr-gl/",
+      "text": "Fran\u00e7ais"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-ca/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/fr-ca/",
+      "text": "Fran\u00e7ais"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/es-la/",
+      "text": "Espa\u00f1ol"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/pt-br/",
+      "text": "Portugu\u00eas"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-us/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-za/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/zh-cn/",
+      "text": "\u4e2d\u6587(\u7b80\u4f53)"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-cn/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-hk/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-gl/sites/india",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-id/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-my/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-ph/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-sg/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/ko-kr/",
+      "text": "\ud55c\uad6d\uc5b4(\ub300\ud55c\ubbfc\uad6d)"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-kr/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-th/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/da-dk/",
+      "text": "Dansk"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/fi-fi/",
+      "text": "Suomi"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/fr-fr/",
+      "text": "Fran\u00e7ais"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/de-de/",
+      "text": "Deutsch"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-gl/sites/hungary",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/it-it/",
+      "text": "Italiano"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/nl-nl/",
+      "text": "Nederlands"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/nb-no/",
+      "text": "Norsk"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/pl-pl/",
+      "text": "Polski"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-gl/sites/romania",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/es-es/",
+      "text": "Espa\u00f1ol"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/sv-se/",
+      "text": "Svenska"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/de-ch/",
+      "text": "Deutsch"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/fr-ch/",
+      "text": "Fran\u00e7ais"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-gl/sites/turkey",
+      "text": "Turkish"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-gb/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-me/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-au/",
+      "text": "English"
+    },
+    {
+      "className": "country tcl__link ",
+      "href": "https://www.wsp.com/en-nz/",
+      "text": "English"
+    },
+    {
+      "className": "btn btn-secondary",
+      "href": "https://www.wsp.com/en-gl/contact-us/offices",
+      "text": "Worldwide offices"
+    },
+    {
+      "className": "mn__link  level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Investors"
+    },
+    {
+      "className": "btn btn-text",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Find out more"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Overview"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Reports and filings"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Stock information"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Shareholder information"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Presentations and events"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/audit-committee",
+      "text": "Audit committee"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/board-of-directors",
+      "text": "Board of directors"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity#business-conduct-hotline",
+      "text": "Business Conduct Hotline"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/constating-documents",
+      "text": "Constating documents"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-documents",
+      "text": "Governance documents"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-ethics-and-compensation-committee",
+      "text": "Governance ethics and compensation committee"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/mandates",
+      "text": "Mandates"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#AIF",
+      "text": "AIF"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Annual",
+      "text": "Annual"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Information-Circular",
+      "text": "Information circular"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Quarterly",
+      "text": "Quarterly"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sedar-Filings",
+      "text": "SEDAR+ filings"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information/analyst-coverage",
+      "text": "Analyst coverage"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/acquisitions",
+      "text": "Acquisitions"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/dividends",
+      "text": "Dividends"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/faq",
+      "text": "FAQ"
+    },
+    {
+      "className": "box-link",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events/wsp-q3-2026-results",
+      "text": "WSP's Q3 2026 Results\n\nWe released our 2026 third quarter results on November 4, 2026, after market close."
+    },
+    {
+      "className": "mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "Investors"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Overview"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/audit-committee",
+      "text": "Audit committee"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/board-of-directors",
+      "text": "Board of directors"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity#business-conduct-hotline",
+      "text": "Business Conduct Hotline"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/constating-documents",
+      "text": "Constating documents"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-documents",
+      "text": "Governance documents"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-ethics-and-compensation-committee",
+      "text": "Governance ethics and compensation committee"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/mandates",
+      "text": "Mandates"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Reports and filings"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#AIF",
+      "text": "AIF"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Annual",
+      "text": "Annual"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Information-Circular",
+      "text": "Information circular"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Quarterly",
+      "text": "Quarterly"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sedar-Filings",
+      "text": "SEDAR+ filings"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Stock information"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information/analyst-coverage",
+      "text": "Analyst coverage"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Shareholder information"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/acquisitions",
+      "text": "Acquisitions"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/dividends",
+      "text": "Dividends"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/faq",
+      "text": "FAQ"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Presentations and events"
+    },
+    {
+      "className": "mn__link  level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/news",
+      "text": "News"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/news",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/news",
+      "text": "Latest news"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Events for investors"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/events",
+      "text": "Events and webinars"
+    },
+    {
+      "className": "box-link",
+      "href": "https://www.wsp.com/en-gl/campaigns/climate-change-webinars",
+      "text": "Climate Change Webinars\n\nDiscover case studies addressing climate change adaptation and mitigation projects. WSP experts will discuss frameworks and methodologies to tackle the impacts of climate change."
+    },
+    {
+      "className": "mn__link  level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/contact-us",
+      "text": "Contact us"
+    },
+    {
+      "className": "mn__link  level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Investors"
+    },
+    {
+      "className": "btn btn-text",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Find out more"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Overview"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Reports and filings"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Stock information"
+    },
+    {
+      "className": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Shareholder information"
+    },
+    {
+      "className": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Presentations and events"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/audit-committee",
+      "text": "Audit committee"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/board-of-directors",
+      "text": "Board of directors"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity#business-conduct-hotline",
+      "text": "Business Conduct Hotline"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/constating-documents",
+      "text": "Constating documents"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-documents",
+      "text": "Governance documents"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-ethics-and-compensation-committee",
+      "text": "Governance ethics and compensation committee"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/mandates",
+      "text": "Mandates"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#AIF",
+      "text": "AIF"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Annual",
+      "text": "Annual"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Information-Circular",
+      "text": "Information circular"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Quarterly",
+      "text": "Quarterly"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sedar-Filings",
+      "text": "SEDAR+ filings"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information/analyst-coverage",
+      "text": "Analyst coverage"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Overview"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/acquisitions",
+      "text": "Acquisitions"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/dividends",
+      "text": "Dividends"
+    },
+    {
+      "className": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/faq",
+      "text": "FAQ"
+    },
+    {
+      "className": "box-link",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events/wsp-q3-2026-results",
+      "text": "WSP's Q3 2026 Results\n            We released our 2026 third quarter results on November 4, 2026, after market close."
+    },
+    {
+      "className": "mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "Investors"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Overview"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/audit-committee",
+      "text": "Audit committee"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/board-of-directors",
+      "text": "Board of directors"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity#business-conduct-hotline",
+      "text": "Business Conduct Hotline"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/constating-documents",
+      "text": "Constating documents"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-documents",
+      "text": "Governance documents"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-ethics-and-compensation-committee",
+      "text": "Governance ethics and compensation committee"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/mandates",
+      "text": "Mandates"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Reports and filings"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#AIF",
+      "text": "AIF"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Annual",
+      "text": "Annual"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Information-Circular",
+      "text": "Information circular"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Quarterly",
+      "text": "Quarterly"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sedar-Filings",
+      "text": "SEDAR+ filings"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Stock information"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information/analyst-coverage",
+      "text": "Analyst coverage"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Shareholder information"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Overview"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "className": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/acquisitions",
+      "text": "Acquisitions"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/dividends",
+      "text": "Dividends"
+    },
+    {
+      "className": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/faq",
+      "text": "FAQ"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Presentations and events"
+    },
+    {
+      "className": "mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "News"
+    },
+    {
+      "className": "",
+      "href": "https://www.wsp.com/en-gl/news",
+      "text": "Overview"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/news",
+      "text": "Latest news"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Events for investors"
+    },
+    {
+      "className": "  level-1",
+      "href": "https://www.wsp.com/en-gl/events",
+      "text": "Events and webinars"
+    },
+    {
+      "className": "mn__link  level-0",
+      "href": "https://www.wsp.com/en-gl/contact-us",
+      "text": "Contact us"
+    }
+  ],
+  "panels": [
+    {
+      "className": "topnav-section-title",
+      "html": "Who we are",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Corporate responsibility",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "What we do",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Property and Buildings",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Transport and Infrastructure",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Earth and Environment",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Mining and Metals",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Power and Energy",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Industry",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Water",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Advisory",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Services",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Insights",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Careers",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Investors",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Corporate governance",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Reports and filings",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Stock information",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Shareholder information",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "News",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Investors",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Corporate governance",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Reports and filings",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Stock information",
+      "id": ""
+    },
+    {
+      "className": "topnav-section-title",
+      "html": "Shareholder information",
+      "id": ""
+    }
+  ]
+}

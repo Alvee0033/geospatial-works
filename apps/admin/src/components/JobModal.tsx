@@ -59,10 +59,10 @@ export function JobDrawer({ isOpen, onClose, onSave, initialData }: JobDrawerPro
   const [title, setTitle] = useState(initialData?.title || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [department, setDepartment] = useState(initialData?.department || CAREER_DEPARTMENTS[0]);
-  const [location, setLocation] = useState(initialData?.location || 'Dhaka HQ & Field Deployments');
-  const [type, setType] = useState(initialData?.type || 'Full-time / Permanent');
-  const [experienceLevel, setExperienceLevel] = useState(initialData?.experienceLevel || '3-5 Years');
-  const [salaryRange, setSalaryRange] = useState(initialData?.salaryRange || 'Negotiable');
+  const [location, setLocation] = useState(initialData?.location || '');
+  const [type, setType] = useState(initialData?.type || '');
+  const [experienceLevel, setExperienceLevel] = useState(initialData?.experienceLevel || '');
+  const [salaryRange, setSalaryRange] = useState(initialData?.salaryRange || '');
   const [deadline, setDeadline] = useState(initialData?.deadline || '');
   const [summary, setSummary] = useState(initialData?.summary || '');
   const [description, setDescription] = useState(initialData?.description || '');

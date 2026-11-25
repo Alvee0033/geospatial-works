@@ -23,7 +23,8 @@ import { SettingsView } from '../components/SettingsView';
 import { LoginPage } from '../components/LoginPage';
 import { AdminTab } from '../components/Sidebar';
 import { MediaPickerModal } from '../components/MediaPickerModal';
-import { CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Toast, ConfirmDialog } from '../components/ui';
+import { ShieldCheck } from 'lucide-react';
 
 const API_BASE = '/api';
 
@@ -46,6 +47,13 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [revalidating, setRevalidating] = useState(false);
   const [feedback, setFeedback] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    title: string;
+    description: string;
+    confirmLabel?: string;
+    onConfirm: () => Promise<void> | void;
+  } | null>(null);
+  const [confirmLoading, setConfirmLoading] = useState(false);
   const [seedingProjectCaseStudies, setSeedingProjectCaseStudies] = useState(false);
 
   // Job Modal & Edit state
@@ -128,7 +136,7 @@ export default function AdminPage() {
   const [teamCategory, setTeamCategory] = useState(TEAM_CATEGORIES[0]);
   const [teamCredentials, setTeamCredentials] = useState('');
   const [teamBio, setTeamBio] = useState('');
-  const [teamImage, setTeamImage] = useState('/team/delwar-hossain.png');
+  const [teamImage, setTeamImage] = useState('');
   const [teamEmail, setTeamEmail] = useState('');
   const [teamPhone, setTeamPhone] = useState('');
   const [teamSortOrder, setTeamSortOrder] = useState(1);
@@ -446,25 +454,31 @@ export default function AdminPage() {
     }
   };
 
-  const handleDeleteProject = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
-    try {
-      const res = await fetch(`${API_BASE}/projects/admin/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        triggerFeedback('Project removed.');
-        loadAllData();
-        fetch('/site-revalidate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: 'all' }),
-        }).catch(() => {});
-      }
-    } catch {
-      triggerFeedback('Error deleting project', 'error');
-    }
+  const handleDeleteProject = (id: string, title: string) => {
+    setConfirmState({
+      title: 'Delete Project',
+      description: `Delete "${title}"? This action cannot be undone.`,
+      confirmLabel: 'Delete Project',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE}/projects/admin/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+          });
+          if (res.ok) {
+            triggerFeedback('Project removed.');
+            loadAllData();
+            fetch('/site-revalidate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: 'all' }),
+            }).catch(() => {});
+          }
+        } catch {
+          triggerFeedback('Error deleting project', 'error');
+        }
+      },
+    });
   };
 
   const handleToggleMilestone = async (proj: ProjectItem, desiredState?: boolean) => {
@@ -589,25 +603,31 @@ export default function AdminPage() {
     }
   };
 
-  const handleDeleteService = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
-    try {
-      const res = await fetch(`${API_BASE}/services/admin/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        triggerFeedback('Service deleted.');
-        loadAllData();
-        fetch('/site-revalidate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: 'all' }),
-        }).catch(() => {});
-      }
-    } catch {
-      triggerFeedback('Error deleting service', 'error');
-    }
+  const handleDeleteService = (id: string, title: string) => {
+    setConfirmState({
+      title: 'Delete Service',
+      description: `Delete "${title}"? This action cannot be undone.`,
+      confirmLabel: 'Delete Service',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE}/services/admin/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+          });
+          if (res.ok) {
+            triggerFeedback('Service deleted.');
+            loadAllData();
+            fetch('/site-revalidate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: 'all' }),
+            }).catch(() => {});
+          }
+        } catch {
+          triggerFeedback('Error deleting service', 'error');
+        }
+      },
+    });
   };
 
   const handleToggleServiceActive = async (svc: ServiceItem, desiredState?: boolean) => {
@@ -722,25 +742,31 @@ export default function AdminPage() {
     }
   };
 
-  const handleDeleteArticle = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
-    try {
-      const res = await fetch(`${API_BASE}/articles/admin/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        triggerFeedback('Article removed.');
-        loadAllData();
-        fetch('/site-revalidate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: 'all' }),
-        }).catch(() => {});
-      }
-    } catch {
-      triggerFeedback('Error deleting article', 'error');
-    }
+  const handleDeleteArticle = (id: string, title: string) => {
+    setConfirmState({
+      title: 'Delete Article',
+      description: `Delete "${title}"? This action cannot be undone.`,
+      confirmLabel: 'Delete Article',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE}/articles/admin/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+          });
+          if (res.ok) {
+            triggerFeedback('Article removed.');
+            loadAllData();
+            fetch('/site-revalidate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: 'all' }),
+            }).catch(() => {});
+          }
+        } catch {
+          triggerFeedback('Error deleting article', 'error');
+        }
+      },
+    });
   };
 
   const handleToggleArticlePublished = async (art: ArticleItem) => {
@@ -895,7 +921,7 @@ export default function AdminPage() {
     setTeamCategory(TEAM_CATEGORIES[0]);
     setTeamCredentials("");
     setTeamBio("");
-    setTeamImage("/team-photos/delwar_hossain.jpg");
+    setTeamImage("");
     setTeamEmail("");
     setTeamPhone("");
     setTeamSortOrder(teamMembers.length + 1);
@@ -915,7 +941,7 @@ export default function AdminPage() {
     setTeamCategory(m.category);
     setTeamCredentials(m.credentials || "");
     setTeamBio(m.bio || "");
-    setTeamImage(m.image || "/team-photos/delwar_hossain.jpg");
+    setTeamImage(m.image || "");
     setTeamEmail(m.email || "");
     setTeamPhone(m.phone || "");
     setTeamSortOrder(m.sortOrder || 1);
@@ -986,28 +1012,33 @@ export default function AdminPage() {
     }
   };
 
-  const handleDeleteTeamMember = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to remove ${name} from the leadership team?`)) return;
-    try {
-      const res = await fetch(`${API_BASE}/team/admin/${id}`, {
-        method: "DELETE",
-        headers: getAuthHeaders(),
-      });
-
-      if (res.ok) {
-        triggerFeedback(`Removed ${name} from leadership directory.`);
-        loadAllData();
-        fetch("/site-revalidate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path: "all" }),
-        }).catch(() => {});
-      } else {
-        triggerFeedback("Error deleting team member", "error");
-      }
-    } catch {
-      triggerFeedback("Error deleting team member", "error");
-    }
+  const handleDeleteTeamMember = (id: string, name: string) => {
+    setConfirmState({
+      title: 'Remove Team Member',
+      description: `Remove ${name} from the team directory? This action cannot be undone.`,
+      confirmLabel: 'Remove Member',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE}/team/admin/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+          });
+          if (res.ok) {
+            triggerFeedback(`Removed ${name} from team directory.`);
+            loadAllData();
+            fetch('/site-revalidate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: 'all' }),
+            }).catch(() => {});
+          } else {
+            triggerFeedback('Error deleting team member', 'error');
+          }
+        } catch {
+          triggerFeedback('Error deleting team member', 'error');
+        }
+      },
+    });
   };
 
   // ===================== CAREERS & JOB CRUD =====================
@@ -1052,25 +1083,31 @@ export default function AdminPage() {
     }
   };
 
-  const handleDeleteJob = async (id: string) => {
-    if (!confirm('Are you sure you want to remove this job opening? Associated applications will remain for candidate history.')) return;
-    try {
-      const res = await fetch(`${API_BASE}/careers/admin/jobs/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        triggerFeedback('Job opening removed.');
-        loadAllData();
-        fetch('/site-revalidate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/career' }),
-        }).catch(() => {});
-      }
-    } catch {
-      triggerFeedback('Error deleting job position', 'error');
-    }
+  const handleDeleteJob = (id: string) => {
+    setConfirmState({
+      title: 'Remove Job Opening',
+      description: 'Remove this job opening? Existing candidate applications will remain in history.',
+      confirmLabel: 'Remove Job',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE}/careers/admin/jobs/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+          });
+          if (res.ok) {
+            triggerFeedback('Job opening removed.');
+            loadAllData();
+            fetch('/site-revalidate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: '/career' }),
+            }).catch(() => {});
+          }
+        } catch {
+          triggerFeedback('Error deleting job position', 'error');
+        }
+      },
+    });
   };
 
   const handleUpdateAppStatus = async (
@@ -1095,20 +1132,26 @@ export default function AdminPage() {
     }
   };
 
-  const handleDeleteApplication = async (id: string) => {
-    if (!confirm('Permanently delete this candidate application record?')) return;
-    try {
-      const res = await fetch(`${API_BASE}/careers/admin/applications/${id}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        triggerFeedback('Candidate application record deleted.');
-        loadAllData();
-      }
-    } catch {
-      triggerFeedback('Failed to delete application', 'error');
-    }
+  const handleDeleteApplication = (id: string) => {
+    setConfirmState({
+      title: 'Delete Application',
+      description: 'Permanently delete this candidate application record? This cannot be undone.',
+      confirmLabel: 'Delete Record',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE}/careers/admin/applications/${id}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+          });
+          if (res.ok) {
+            triggerFeedback('Candidate application record deleted.');
+            loadAllData();
+          }
+        } catch {
+          triggerFeedback('Failed to delete application', 'error');
+        }
+      },
+    });
   };
 
   // --- Inquiry & Lead Handlers ---
@@ -1262,6 +1305,14 @@ export default function AdminPage() {
           activeTab={activeTab}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          onSelectTab={handleSetActiveTab}
+          searchSuggestions={[
+            ...projects.map((p) => ({ id: `proj-${p.id}`, label: p.title, sublabel: p.client, tab: 'projects' as const, group: 'Projects' as const })),
+            ...teamMembers.map((m) => ({ id: `team-${m.id || m.slug}`, label: m.name, sublabel: m.role, tab: 'team' as const, group: 'Team' as const })),
+            ...services.map((s) => ({ id: `svc-${s.id}`, label: s.title, sublabel: s.category, tab: 'services' as const, group: 'Services' as const })),
+            ...articles.map((a) => ({ id: `art-${a.id}`, label: a.title, sublabel: a.category, tab: 'news' as const, group: 'Articles' as const })),
+            ...inquiries.map((i) => ({ id: `inq-${i.id}`, label: i.fullName, sublabel: i.email, tab: 'inquiries' as const, group: 'Enquiries' as const })),
+          ]}
           onOpenCreateProjectModal={openCreateProjectModal}
           onOpenCreateServiceModal={openCreateServiceModal}
           onOpenCreateNewsModal={openCreateNewsModal}
@@ -1273,20 +1324,31 @@ export default function AdminPage() {
           revalidating={revalidating}
         />
 
-        {/* Floating Notification */}
-        {feedback && (
-          <div
-            className={`fixed top-24 right-8 z-50 flex items-center gap-2 px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-top-4 duration-200 ${
-              feedback.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-            }`}
-          >
-            {feedback.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-            <span>{feedback.msg}</span>
-          </div>
-        )}
+        {/* Bottom-right Toast Notification */}
+        <Toast toast={feedback} onDismiss={() => setFeedback(null)} />
+
+        {/* Confirmation Modal */}
+        <ConfirmDialog
+          isOpen={!!confirmState}
+          onClose={() => !confirmLoading && setConfirmState(null)}
+          onConfirm={async () => {
+            if (!confirmState) return;
+            setConfirmLoading(true);
+            try {
+              await confirmState.onConfirm();
+            } finally {
+              setConfirmLoading(false);
+              setConfirmState(null);
+            }
+          }}
+          title={confirmState?.title || 'Confirm Action'}
+          description={confirmState?.description || ''}
+          confirmLabel={confirmState?.confirmLabel || 'Delete'}
+          loading={confirmLoading}
+        />
 
         {/* Views */}
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           {dataLoadErrors.length > 0 && (
             <div role="alert" className="mb-5 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -1301,12 +1363,19 @@ export default function AdminPage() {
           {activeTab === 'dashboard' && (
             <DashboardView
               projects={projects}
+              services={services}
+              articles={articles}
+              teamMembers={teamMembers}
+              jobs={jobs}
+              applications={applications}
+              inquiries={inquiries}
               inquiriesCount={inquiries.length}
               servicesCount={services.length}
               articlesCount={articles.length}
               teamCount={teamMembers.length}
-              onNavigateToProjects={() => setActiveTab('projects')}
+              onNavigateToProjects={() => handleSetActiveTab('projects')}
               onNavigateToInquiries={() => handleSetActiveTab('inquiries')}
+              onNavigateTab={handleSetActiveTab}
               onOpenCreateModal={openCreateProjectModal}
             />
           )}
@@ -1395,6 +1464,26 @@ export default function AdminPage() {
               onOpenCreateDrawer={openCreateTeamDrawer}
               onOpenEditDrawer={openEditTeamDrawer}
               onDeleteMember={handleDeleteTeamMember}
+              onReorderMembers={async (reordered) => {
+                const updated = reordered.map((m, idx) => ({ ...m, sortOrder: idx + 1 }));
+                setTeamMembers(updated);
+                try {
+                  await Promise.all(
+                    updated
+                      .filter((m) => m.id)
+                      .map((m) =>
+                        fetch(`/api/team/admin/${m.id}`, {
+                          method: 'PATCH',
+                          headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                          body: JSON.stringify({ sortOrder: m.sortOrder }),
+                        })
+                      )
+                  );
+                  triggerFeedback('Team order saved.', 'success');
+                } catch {
+                  triggerFeedback('Could not save team order.', 'error');
+                }
+              }}
             />
           )}
 
@@ -1476,9 +1565,11 @@ export default function AdminPage() {
             <LeadsView
               inquiries={inquiries}
               loading={loading}
+              currentUserName={currentUser?.name || currentUser?.email}
               onUpdateStatus={handleUpdateInquiryStatus}
               onDeleteInquiry={handleDeleteInquiry}
               onRefresh={loadAllData}
+              onOpenMessages={() => setActiveTab('inbox')}
               triggerFeedback={triggerFeedback}
             />
           )}

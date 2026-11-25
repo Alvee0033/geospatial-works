@@ -373,7 +373,7 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 .wsp-software-tile:last-child{border-right:0}
 .wsp-software-tile button{height:100%;padding:10px 12px;background:transparent;border:0}
 .wsp-software-tile-content{height:100%;width:100%;display:flex;justify-content:center;align-items:center}
-.wsp-software-tile img{width:min(100%,360px);height:142px;padding:0;object-fit:contain;object-position:center;border-radius:0;background:transparent}
+.wsp-software-tile img{width:min(100%,360px);height:142px;padding:12px 18px;object-fit:contain;object-position:center;border-radius:10px;background:#ffffff}
 .gw-office-map-label{border:1px solid rgba(59,130,246,.32)!important;border-radius:3px!important;background:#0B1F44!important;color:#fff!important;box-shadow:0 5px 18px rgba(11,31,68,.25)!important;font:700 10px/1.1 var(--font-geist-mono),monospace!important;letter-spacing:.12em!important;padding:7px 9px!important;text-transform:uppercase}
 .gw-office-map-label:before{border-top-color:#0B1F44!important}
 .wsp-software-tile:hover{background:transparent}.wsp-software-tile:hover img{transform:scale(1.04)}

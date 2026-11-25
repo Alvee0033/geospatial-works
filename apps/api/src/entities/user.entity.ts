@@ -27,6 +27,9 @@ export class User {
   })
   role: UserRole;
 
+  @Column({ type: 'jsonb', nullable: true })
+  permissions?: Record<string, boolean>;
+
   @CreateDateColumn()
   createdAt: Date;
 

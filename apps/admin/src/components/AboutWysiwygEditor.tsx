@@ -205,10 +205,56 @@ const defaultStoryData = {
   ],
 
   storyHeadline: 'Built on Precision. Driven by Possibility.',
+  storyEnlistmentTitle: 'Statutory Enlistment',
+  storyEnlistmentText:
+    'Geospatial Works holds certified 1st Class Contractor and Supplier standing, operating under statutory compliance with SOB, LGED, and DNCC.',
   storyBody1:
     'Geospatial Works is an engineering, geospatial, and precision surveying consultancy delivering integrated technical solutions for infrastructure development, spatial planning, and sustainable resource management. Combining engineering expertise with advanced geospatial technologies, modern surveying instruments, and digital design capabilities, we support projects from field data acquisition and spatial analysis to engineering design and 3D visualization.',
   storyBody2:
     'Our multidisciplinary approach emphasizes technical precision, innovative solutions, efficient workflows, and timely delivery—helping clients make informed decisions and achieve reliable project outcomes. As a licensed 1st Class Contractor and Supplier, we bridge the gap between rigorous field measurement and constructible civil realization across Bangladesh.',
+  visionTitle: 'Our Vision',
+  visionText:
+    'To be marked as global excellency in engineering and geospatial consultancy services, recognized for technical brilliance, innovative solutions, and sustainable infrastructure development.',
+  missionTitle: 'Our Mission',
+  missionText:
+    'Helping our clients make informed decisions and achieve sustainable project outcomes by providing sustainable engineering solutions, precise, efficient, and research oriented geospatial, and surveying results.',
+  valuesKicker: 'OUR OPERATIONAL ETHOS',
+  valuesTitle: 'Our Five Core Values',
+  valuesSubtitle:
+    'The foundational principles guiding every ground survey traverse, architectural elevation, and structural computation we produce.',
+  coreValues: [
+    {
+      title: 'Precision & Technical Excellence',
+      badge: 'Geodetic Rigor',
+      desc: 'Sub-centimeter horizontal and vertical accuracy anchored to official Survey of Bangladesh (SOB) geodetic pillars and the BGD2000 datum.',
+    },
+    {
+      title: 'Multidisciplinary Integration',
+      badge: 'Full Lifecycle',
+      desc: 'Fusing field geodesy, UAV drone photogrammetry, civil and structural engineering, and architectural BIM modeling under a single unified roof.',
+    },
+    {
+      title: 'Innovative Technology Adoption',
+      badge: 'Advanced Hardware',
+      desc: 'Deploying multi-constellation 1,408-channel RTK GNSS receivers, DJI Enterprise multispectral drones, hydrographic sonars, and GPU workstation clusters.',
+    },
+    {
+      title: 'Rapid & Accountable Delivery',
+      badge: 'On-Time Execution',
+      desc: 'Meeting compressed schedules through automated digital workflows, strict three-tier QA checks, and stamped, legally defensible deliverables.',
+    },
+    {
+      title: 'Sustainable Delta Solutions',
+      badge: 'Eco-Resilience',
+      desc: 'Supporting climate-resilient infrastructure, coastal mangrove protection, and agricultural irrigation networks across the rivers and floodplains of Bangladesh.',
+    },
+  ],
+  divisionsKicker: 'THREE INTEGRATED DIVISIONS',
+  divisionsTitle: 'Our Integrated Engineering & Geospatial Ecosystem',
+  milestonesKicker: 'VERIFIED TRACK RECORD',
+  milestonesTitle: 'Our Milestone Projects (2022–2026)',
+  milestonesSubtitle:
+    'A verified chronicle of public and private sector projects executed across Bangladesh with major ministries, city corporations, and international consulting partners.',
 
   disciplines: [
     {
@@ -351,6 +397,11 @@ const defaultFutureReadyData = {
     { component: 'Centralized NAS', spec: '40TB RAID Support for UAV Point Clouds, Orthomosaics & GIS Databases' },
     { component: 'Software Engine', spec: 'Agisoft Metashape, DJI Terra, AutoCAD Civil 3D, ArcGIS Pro, MIDAS-Civil, ETABS' },
   ],
+  softwareKicker: '03 / SOFTWARE & DIGITAL TOOLS',
+  softwareTitle: 'Tools our team works with.',
+  softwareDesc: 'A selection of the software used for survey work, maps, design, and project planning.',
+  ctaBannerText: 'Have a project that needs a particular survey instrument or mapping setup?',
+  ctaBannerBtnLabel: 'Talk with our team',
 };
 
 const defaultSafetyData = {
@@ -413,6 +464,29 @@ const defaultSafetyData = {
       ],
     },
   ],
+  vaultKicker: 'NATIONAL SPATIAL DATA INTEGRITY',
+  vaultTitle: 'Protecting Bangladesh Sovereign Infrastructure Data',
+  vaultDesc:
+    'Geospatial information regarding railway alignments, high-voltage power transmission lines, municipal drainage trunk mains, and coastal defense dykes is strictly isolated and managed on dedicated on-premises storage.',
+  vaultCards: [
+    {
+      title: 'Air-Gapped 40TB NAS Vault',
+      desc: 'All survey projects are stored in local RAID-protected storage arrays with role-based access control.',
+    },
+    {
+      title: 'Strict Client NDA Execution',
+      desc: 'Zero unapproved data dissemination. All coordinates remain confidential to authorized agency stakeholders.',
+    },
+  ],
+  governanceTitle: 'GOVERNANCE SUMMARY',
+  governanceHeadline: 'Zero Compromise on Quality & Safety',
+  governanceBullets: [
+    'Every drone mission pre-cleared with CAAB and security forces',
+    '100% lifejacket enforcement during bathymetric soundings',
+    'Dedicated traffic control schemes for highway surveys',
+    'Calibrated instruments minimizing revisit and environmental impact',
+  ],
+  governanceCtaLabel: 'Inquire About Field Protocols',
 };
 
 const defaultStandardsData = {
@@ -682,52 +756,60 @@ export function AboutWysiwygEditor({
               ========================================================================= */}
           {activePage === 'our-story' && (
             <div>
-              {/* HERO */}
-              <section className="relative bg-[#141212] text-white pt-24 pb-16 px-6 md:px-12 overflow-hidden border-b border-neutral-800">
-                <div className="absolute inset-0 z-0 opacity-25">
-                  <img src={storyData.heroImage} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#141212] via-[#141212]/90 to-transparent" />
-                </div>
-
-                <div className="relative z-10 max-w-4xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-mono uppercase tracking-[0.2em] text-[#F4382D] font-bold block">
+              {/* HERO (Matches /about/our-story 1:1) */}
+              <section className="relative bg-gradient-to-br from-[#0A1931] via-[#0B1F3F] to-[#1A1328] text-white pt-14 pb-12 px-6 md:px-12 overflow-hidden border-b border-white/10">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <div className="lg:col-span-7 space-y-4">
+                    <span className="inline-flex items-center gap-2.5 text-[11px] font-mono uppercase tracking-[0.2em] text-[#60A5FA] font-bold">
+                      <span className="w-6 h-0.5 bg-gradient-to-r from-[#3B82F6] to-[#FB1D10]" />
                       <EditableText
                         value={storyData.heroKicker}
                         onChange={(v) => handleDataChange('our-story', 'heroKicker', v)}
                       />
                     </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onOpenMediaPicker((url) => handleDataChange('our-story', 'heroImage', url))
-                      }
-                      className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer"
-                    >
-                      <Camera size={13} /> Change Hero Photo
-                    </button>
+
+                    <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.08]">
+                      <EditableText
+                        value={storyData.heroTitle}
+                        onChange={(v) => handleDataChange('our-story', 'heroTitle', v)}
+                        multiline
+                        rows={2}
+                      />
+                    </h1>
+
+                    <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal max-w-2xl">
+                      <EditableText
+                        value={storyData.heroSubtitle}
+                        onChange={(v) => handleDataChange('our-story', 'heroSubtitle', v)}
+                        multiline
+                        rows={3}
+                      />
+                    </p>
                   </div>
 
-                  <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                    <EditableText
-                      value={storyData.heroTitle}
-                      onChange={(v) => handleDataChange('our-story', 'heroTitle', v)}
-                      multiline
-                      rows={2}
-                    />
-                  </h1>
+                  <div className="lg:col-span-5">
+                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/15 bg-slate-900 shadow-2xl">
+                      <img src={storyData.heroImage} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0A1931]/80 via-transparent to-transparent" />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenMediaPicker((url) => handleDataChange('our-story', 'heroImage', url))
+                        }
+                        className="absolute top-3 right-3 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-lg border border-white/20"
+                      >
+                        <Camera size={13} /> Change Hero Photo
+                      </button>
+                      <div className="absolute bottom-3 left-3 flex items-center gap-2 text-[10px] font-mono tracking-wider text-slate-200 uppercase">
+                        <span className="w-2 h-2 rounded-full bg-[#FB1D10]" />
+                        GEOSPATIAL WORKS / BANGLADESH
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                  <p className="text-base text-neutral-300 leading-relaxed font-normal">
-                    <EditableText
-                      value={storyData.heroSubtitle}
-                      onChange={(v) => handleDataChange('our-story', 'heroSubtitle', v)}
-                      multiline
-                      rows={3}
-                    />
-                  </p>
-
-                  {/* DYNAMIC STATS */}
-                  <div className="pt-6 border-t border-neutral-800/80 space-y-3">
+                {/* DYNAMIC STATS */}
+                <div className="relative z-10 mt-8 pt-6 border-t border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">Hero Metrics</span>
                       <button
@@ -780,17 +862,16 @@ export function AboutWysiwygEditor({
                       ))}
                     </div>
                   </div>
-                </div>
               </section>
 
-              {/* FOUNDATION STORY */}
-              <section className="py-16 px-6 md:px-12 bg-[#FAFAFA] border-b border-neutral-200">
+              {/* FOUNDATION STORY + STATUTORY ENLISTMENT + VISION & MISSION */}
+              <section className="py-14 px-6 md:px-12 bg-[#FAFAFA] border-b border-neutral-200">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                  <div className="lg:col-span-5 space-y-3">
-                    <span className="text-[12px] font-mono uppercase tracking-[0.2em] text-[#3B82F6] font-bold block">
-                      ORIGINS &amp; ETHOS
+                  <div className="lg:col-span-5 space-y-4">
+                    <span className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.2em] text-[#1D5EC8] font-bold">
+                      <span className="w-5 h-0.5 bg-[#FB1D10]" /> WHO WE ARE &amp; ABOUT US
                     </span>
-                    <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#141212]">
+                    <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0A1931]">
                       <EditableText
                         value={storyData.storyHeadline}
                         onChange={(v) => handleDataChange('our-story', 'storyHeadline', v)}
@@ -798,35 +879,193 @@ export function AboutWysiwygEditor({
                         rows={2}
                       />
                     </h2>
-                    <div className="w-16 h-1 bg-[#F4382D] rounded-full" />
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 border-l-4 border-l-[#FB1D10] shadow-2xs space-y-1.5">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-[#FB1D10]">
+                        <EditableText
+                          value={storyData.storyEnlistmentTitle ?? defaultStoryData.storyEnlistmentTitle}
+                          onChange={(v) => handleDataChange('our-story', 'storyEnlistmentTitle', v)}
+                        />
+                      </p>
+                      <div className="text-xs text-slate-600 leading-relaxed">
+                        <EditableText
+                          value={storyData.storyEnlistmentText ?? defaultStoryData.storyEnlistmentText}
+                          onChange={(v) => handleDataChange('our-story', 'storyEnlistmentText', v)}
+                          multiline
+                          rows={3}
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="lg:col-span-7 space-y-4 text-sm text-neutral-700 leading-relaxed">
-                    <EditableText
-                      value={storyData.storyBody1}
-                      onChange={(v) => handleDataChange('our-story', 'storyBody1', v)}
-                      multiline
-                      rows={4}
-                    />
-                    <EditableText
-                      value={storyData.storyBody2}
-                      onChange={(v) => handleDataChange('our-story', 'storyBody2', v)}
-                      multiline
-                      rows={4}
-                    />
+                  <div className="lg:col-span-7 space-y-5">
+                    <div className="space-y-3 text-sm text-neutral-700 leading-relaxed">
+                      <EditableText
+                        value={storyData.storyBody1}
+                        onChange={(v) => handleDataChange('our-story', 'storyBody1', v)}
+                        multiline
+                        rows={4}
+                      />
+                      <EditableText
+                        value={storyData.storyBody2}
+                        onChange={(v) => handleDataChange('our-story', 'storyBody2', v)}
+                        multiline
+                        rows={4}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-white p-4 rounded-xl border border-slate-200 border-t-2 border-t-[#1D5EC8] shadow-2xs space-y-1.5">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#0A1931]">
+                          <EditableText
+                            value={storyData.visionTitle ?? defaultStoryData.visionTitle}
+                            onChange={(v) => handleDataChange('our-story', 'visionTitle', v)}
+                          />
+                        </p>
+                        <div className="text-xs text-slate-600 leading-relaxed">
+                          <EditableText
+                            value={storyData.visionText ?? defaultStoryData.visionText}
+                            onChange={(v) => handleDataChange('our-story', 'visionText', v)}
+                            multiline
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                      <div className="bg-white p-4 rounded-xl border border-slate-200 border-t-2 border-t-[#FB1D10] shadow-2xs space-y-1.5">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#0A1931]">
+                          <EditableText
+                            value={storyData.missionTitle ?? defaultStoryData.missionTitle}
+                            onChange={(v) => handleDataChange('our-story', 'missionTitle', v)}
+                          />
+                        </p>
+                        <div className="text-xs text-slate-600 leading-relaxed">
+                          <EditableText
+                            value={storyData.missionText ?? defaultStoryData.missionText}
+                            onChange={(v) => handleDataChange('our-story', 'missionText', v)}
+                            multiline
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                </div>
+              </section>
+
+              {/* FIVE CORE VALUES (100% Editable, Addable, Removable) */}
+              <section className="py-14 px-6 md:px-12 bg-white border-b border-neutral-200 space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                  <div className="max-w-3xl space-y-2">
+                    <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#FB1D10] font-bold block">
+                      <EditableText
+                        value={storyData.valuesKicker ?? defaultStoryData.valuesKicker}
+                        onChange={(v) => handleDataChange('our-story', 'valuesKicker', v)}
+                      />
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0A1931]">
+                      <EditableText
+                        value={storyData.valuesTitle ?? defaultStoryData.valuesTitle}
+                        onChange={(v) => handleDataChange('our-story', 'valuesTitle', v)}
+                      />
+                    </h2>
+                    <p className="text-xs sm:text-sm text-neutral-600">
+                      <EditableText
+                        value={storyData.valuesSubtitle ?? defaultStoryData.valuesSubtitle}
+                        onChange={(v) => handleDataChange('our-story', 'valuesSubtitle', v)}
+                        multiline
+                        rows={2}
+                      />
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const current = storyData.coreValues ?? defaultStoryData.coreValues;
+                      handleDataChange('our-story', 'coreValues', [
+                        ...current,
+                        { title: 'New Core Value', badge: 'Standard', desc: 'Describe this operational principle...' },
+                      ]);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#F4382D] text-white text-xs font-bold font-mono flex items-center gap-1.5 transition shrink-0 shadow cursor-pointer"
+                  >
+                    <Plus size={14} /> Add Value
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {(storyData.coreValues ?? defaultStoryData.coreValues).map((val: any, idx: number) => (
+                    <div key={idx} className="relative group/val bg-[#FAFAFA] border border-neutral-200 rounded-xl p-5 space-y-2.5 flex flex-col justify-between">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = storyData.coreValues ?? defaultStoryData.coreValues;
+                          if (current.length <= 1) return;
+                          handleDataChange('our-story', 'coreValues', current.filter((_: any, i: number) => i !== idx));
+                        }}
+                        className="absolute top-2.5 right-2.5 opacity-0 group-hover/val:opacity-100 p-1 rounded text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                        title="Remove value"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2 pr-6">
+                          <span className="text-[11px] font-mono font-bold text-[#FB1D10]">0{idx + 1}</span>
+                          <span className="text-[10px] font-mono uppercase text-neutral-700 font-semibold">
+                            <EditableText
+                              value={val.badge}
+                              onChange={(v) => {
+                                const current = [...(storyData.coreValues ?? defaultStoryData.coreValues)];
+                                current[idx] = { ...current[idx], badge: v };
+                                handleDataChange('our-story', 'coreValues', current);
+                              }}
+                            />
+                          </span>
+                        </div>
+                        <h3 className="text-sm font-bold text-[#0A1931]">
+                          <EditableText
+                            value={val.title}
+                            onChange={(v) => {
+                              const current = [...(storyData.coreValues ?? defaultStoryData.coreValues)];
+                              current[idx] = { ...current[idx], title: v };
+                              handleDataChange('our-story', 'coreValues', current);
+                            }}
+                          />
+                        </h3>
+                        <p className="text-xs text-neutral-600 leading-relaxed">
+                          <EditableText
+                            value={val.desc}
+                            onChange={(v) => {
+                              const current = [...(storyData.coreValues ?? defaultStoryData.coreValues)];
+                              current[idx] = { ...current[idx], desc: v };
+                              handleDataChange('our-story', 'coreValues', current);
+                            }}
+                            multiline
+                            rows={3}
+                          />
+                        </p>
+                      </div>
+                      <div className="pt-2.5 border-t border-neutral-200/60 flex items-center gap-1.5 text-[11px] text-[#1D5EC8] font-semibold">
+                        <CheckCircle2 size={12} />
+                        <span>Verified Field Protocol</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </section>
 
               {/* DISCIPLINES */}
               <section className="py-16 px-6 md:px-12 bg-white border-b border-neutral-200 space-y-8">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                  <div className="max-w-3xl space-y-2">
+                  <div className="max-w-3xl space-y-2 flex-1">
                     <span className="text-[12px] font-mono uppercase tracking-[0.2em] text-[#F4382D] font-bold block">
-                      CORE DISCIPLINES
+                      <EditableText
+                        value={storyData.divisionsKicker ?? defaultStoryData.divisionsKicker}
+                        onChange={(v) => handleDataChange('our-story', 'divisionsKicker', v)}
+                      />
                     </span>
                     <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#141212]">
-                      An Integrated Engineering Ecosystem
+                      <EditableText
+                        value={storyData.divisionsTitle ?? defaultStoryData.divisionsTitle}
+                        onChange={(v) => handleDataChange('our-story', 'divisionsTitle', v)}
+                      />
                     </h2>
                   </div>
                   <button
@@ -867,7 +1106,7 @@ export function AboutWysiwygEditor({
                         <Trash2 size={13} />
                       </button>
 
-                      <div className="relative h-48 w-full bg-neutral-900 overflow-hidden">
+                      <div className="relative aspect-[16/10] w-full bg-neutral-900 overflow-hidden">
                         <EditablePhoto
                           src={d.image}
                           alt={d.title}
@@ -880,6 +1119,9 @@ export function AboutWysiwygEditor({
                           }
                           className="w-full h-full"
                         />
+                        <div className="absolute top-3 left-3 z-20 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded text-white font-mono text-[10px] font-bold pointer-events-none">
+                          DIVISION {d.number || `0${idx + 1}`}
+                        </div>
                       </div>
 
                       <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
@@ -935,15 +1177,29 @@ export function AboutWysiwygEditor({
               </section>
 
               {/* TIMELINE */}
-              <section className="py-16 px-6 md:px-12 bg-[#141212] text-white space-y-8">
+              <section className="py-16 px-6 md:px-12 bg-[#0A1931] text-white space-y-8">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                  <div className="max-w-3xl space-y-2">
+                  <div className="max-w-3xl space-y-2 flex-1">
                     <span className="text-[12px] font-mono uppercase tracking-[0.2em] text-[#3B82F6] font-bold block">
-                      NATIONAL TRACK RECORD
+                      <EditableText
+                        value={storyData.milestonesKicker ?? defaultStoryData.milestonesKicker}
+                        onChange={(v) => handleDataChange('our-story', 'milestonesKicker', v)}
+                      />
                     </span>
                     <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-                      Key Milestones &amp; Project Evolution
+                      <EditableText
+                        value={storyData.milestonesTitle ?? defaultStoryData.milestonesTitle}
+                        onChange={(v) => handleDataChange('our-story', 'milestonesTitle', v)}
+                      />
                     </h2>
+                    <div className="text-xs text-slate-300">
+                      <EditableText
+                        value={storyData.milestonesSubtitle ?? defaultStoryData.milestonesSubtitle}
+                        onChange={(v) => handleDataChange('our-story', 'milestonesSubtitle', v)}
+                        multiline
+                        rows={2}
+                      />
+                    </div>
                   </div>
                   <button
                     type="button"
@@ -1023,52 +1279,60 @@ export function AboutWysiwygEditor({
               ========================================================================= */}
           {activePage === 'future-ready' && (
             <div>
-              {/* HERO */}
-              <section className="relative bg-[#141212] text-white pt-24 pb-16 px-6 md:px-12 overflow-hidden border-b border-neutral-800">
-                <div className="absolute inset-0 z-0 opacity-25">
-                  <img src={futureReadyData.heroImage} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#141212] via-[#141212]/90 to-transparent" />
-                </div>
-
-                <div className="relative z-10 max-w-4xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-mono uppercase tracking-[0.2em] text-[#F4382D] font-bold block">
+              {/* HERO (Matches /about/future-ready 1:1 with prominent Hero Photo picker) */}
+              <section className="relative bg-gradient-to-br from-[#0A1931] via-[#0B1F3F] to-[#1A1328] text-white pt-14 pb-12 px-6 md:px-12 overflow-hidden border-b border-white/10">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <div className="lg:col-span-7 space-y-4">
+                    <span className="inline-flex items-center gap-2.5 text-[11px] font-mono uppercase tracking-[0.2em] text-[#60A5FA] font-bold">
+                      <span className="w-6 h-0.5 bg-gradient-to-r from-[#3B82F6] to-[#FB1D10]" />
                       <EditableText
                         value={futureReadyData.heroKicker}
                         onChange={(v) => handleDataChange('future-ready', 'heroKicker', v)}
                       />
                     </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onOpenMediaPicker((url) => handleDataChange('future-ready', 'heroImage', url))
-                      }
-                      className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer"
-                    >
-                      <Camera size={13} /> Change Hero Photo
-                    </button>
+
+                    <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.08]">
+                      <EditableText
+                        value={futureReadyData.heroTitle}
+                        onChange={(v) => handleDataChange('future-ready', 'heroTitle', v)}
+                        multiline
+                        rows={2}
+                      />
+                    </h1>
+
+                    <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal max-w-2xl">
+                      <EditableText
+                        value={futureReadyData.heroSubtitle}
+                        onChange={(v) => handleDataChange('future-ready', 'heroSubtitle', v)}
+                        multiline
+                        rows={3}
+                      />
+                    </p>
                   </div>
 
-                  <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                    <EditableText
-                      value={futureReadyData.heroTitle}
-                      onChange={(v) => handleDataChange('future-ready', 'heroTitle', v)}
-                      multiline
-                      rows={2}
-                    />
-                  </h1>
+                  <div className="lg:col-span-5">
+                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/15 bg-slate-900 shadow-2xl">
+                      <img src={futureReadyData.heroImage} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0A1931]/80 via-transparent to-transparent" />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenMediaPicker((url) => handleDataChange('future-ready', 'heroImage', url))
+                        }
+                        className="absolute top-3 right-3 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-lg border border-white/20"
+                      >
+                        <Camera size={13} /> Change Hero Photo
+                      </button>
+                      <div className="absolute bottom-3 left-3 flex items-center gap-2 text-[10px] font-mono tracking-wider text-slate-200 uppercase">
+                        <span className="w-2 h-2 rounded-full bg-[#FB1D10]" />
+                        INSTRUMENTS &amp; FACILITIES
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                  <p className="text-base text-neutral-300 leading-relaxed font-normal">
-                    <EditableText
-                      value={futureReadyData.heroSubtitle}
-                      onChange={(v) => handleDataChange('future-ready', 'heroSubtitle', v)}
-                      multiline
-                      rows={3}
-                    />
-                  </p>
-
-                  {/* DYNAMIC SENSOR METRICS */}
-                  <div className="pt-6 border-t border-neutral-800/80 space-y-3">
+                {/* DYNAMIC SENSOR METRICS */}
+                <div className="relative z-10 mt-8 pt-6 border-t border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">Sensor Metrics</span>
                       <button
@@ -1120,7 +1384,6 @@ export function AboutWysiwygEditor({
                         </div>
                       ))}
                     </div>
-                  </div>
                 </div>
               </section>
 
@@ -1156,9 +1419,9 @@ export function AboutWysiwygEditor({
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                   {futureReadyData.fleet.map((item: any, idx: number) => (
-                    <div key={idx} className="relative group/fleet bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+                    <div key={idx} className="relative group/fleet bg-white border border-slate-200 border-t-2 border-t-[#dce2dc] hover:border-t-[#FB1D10] overflow-hidden shadow-2xs flex flex-col transition-colors">
                       <button
                         type="button"
                         onClick={() => {
@@ -1166,13 +1429,13 @@ export function AboutWysiwygEditor({
                           const next = futureReadyData.fleet.filter((_: any, i: number) => i !== idx);
                           handleDataChange('future-ready', 'fleet', next);
                         }}
-                        className="absolute top-3 left-3 z-30 opacity-0 group-hover/fleet:opacity-100 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition"
+                        className="absolute top-3 right-12 z-30 opacity-0 group-hover/fleet:opacity-100 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
                         title="Delete equipment"
                       >
-                        <Trash2 size={13} />
+                        <Trash2 size={12} />
                       </button>
 
-                      <div className="relative h-56 w-full bg-neutral-900 overflow-hidden">
+                      <div className="relative aspect-[1.65] w-full bg-[#e8ece8] overflow-hidden">
                         <EditablePhoto
                           src={item.image}
                           alt={item.name}
@@ -1185,6 +1448,9 @@ export function AboutWysiwygEditor({
                           }
                           className="w-full h-full"
                         />
+                        <span className="absolute left-3 top-3 z-20 bg-[#f7f7f3] px-2 py-1 text-[10px] font-bold tracking-[.14em] text-[#1B4B9D] pointer-events-none">
+                          0{idx + 1}
+                        </span>
                       </div>
 
                       <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
@@ -1239,7 +1505,7 @@ export function AboutWysiwygEditor({
               </section>
 
               {/* COMPUTING LAB TABLE */}
-              <section className="py-16 px-6 md:px-12 bg-[#141212] text-white space-y-6">
+              <section className="py-16 px-6 md:px-12 bg-[#0A1931] text-white space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                   <div className="max-w-3xl space-y-2">
                     <span className="text-[12px] font-mono uppercase tracking-[0.2em] text-[#3B82F6] font-bold block">
@@ -1316,6 +1582,89 @@ export function AboutWysiwygEditor({
                   </table>
                 </div>
               </section>
+
+              {/* 03 / SOFTWARE & DIGITAL TOOLS + TALK WITH OUR TEAM (Editable) */}
+              <section className="py-14 px-6 md:px-12 bg-[#f7f7f3] border-b border-neutral-200 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-5">
+                  <div className="space-y-1.5 flex-1">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1B4B9D] block">
+                      <EditableText
+                        value={futureReadyData.softwareKicker ?? defaultFutureReadyData.softwareKicker}
+                        onChange={(v) => handleDataChange('future-ready', 'softwareKicker', v)}
+                      />
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0B1F44]">
+                      <EditableText
+                        value={futureReadyData.softwareTitle ?? defaultFutureReadyData.softwareTitle}
+                        onChange={(v) => handleDataChange('future-ready', 'softwareTitle', v)}
+                      />
+                    </h2>
+                  </div>
+                  <div className="text-xs text-slate-600 max-w-md flex-1">
+                    <EditableText
+                      value={futureReadyData.softwareDesc ?? defaultFutureReadyData.softwareDesc}
+                      onChange={(v) => handleDataChange('future-ready', 'softwareDesc', v)}
+                      multiline
+                      rows={2}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 border-l border-t border-slate-200 bg-white">
+                  {[
+                    { name: 'MIDAS Civil', category: 'Structural design', logo: '/software-logos/docx/image1.webp' },
+                    { name: 'Tekla Tedds', category: 'Structural calculations', logo: '/software-logos/docx/image2.webp' },
+                    { name: 'STAAD.Pro', category: 'Structural analysis', logo: '/software-logos/docx/image3.webp' },
+                    { name: 'CSI ETABS', category: 'Building design', logo: '/software-logos/docx/image4.webp' },
+                    { name: 'Trimble SketchUp', category: '3D modelling', logo: '/software-logos/docx/image5.webp' },
+                    { name: 'Microsoft Project', category: 'Project planning', logo: '/software-logos/docx/image6.webp' },
+                    { name: 'Oracle Primavera P6', category: 'Project planning', logo: '/software-logos/docx/image7.webp' },
+                    { name: 'Autodesk Revit', category: 'Building design', logo: '/software-logos/docx/image8.webp' },
+                    { name: 'Pix4D', category: 'Drone mapping', logo: '/software-logos/docx/image9.webp' },
+                    { name: 'DJI Terra', category: 'Drone mapping', logo: '/software-logos/docx/image10.webp' },
+                    { name: 'Google Earth Engine', category: 'Satellite data', logo: '/software-logos/docx/image11.webp' },
+                    { name: 'USGS EarthExplorer', category: 'Satellite data', logo: '/software-logos/docx/image12.webp' },
+                    { name: 'Copernicus Sentinel', category: 'Satellite data', logo: '/software-logos/docx/image13.webp' },
+                    { name: 'REMAP', category: 'Environmental mapping', logo: '/software-logos/docx/image14.webp' },
+                    { name: 'ENVI', category: 'Image analysis', logo: '/software-logos/docx/image15.webp' },
+                    { name: 'EnMAP-Box', category: 'Image analysis', logo: '/software-logos/docx/image16.webp' },
+                    { name: 'ERDAS IMAGINE', category: 'Image analysis', logo: '/software-logos/docx/image17.webp' },
+                    { name: 'ArcGIS Pro', category: 'Mapping & GIS', logo: '/software-logos/docx/image18.webp' },
+                    { name: 'Power BI & MS Office', category: 'Reporting', logo: '/software-logos/docx/image19.webp' },
+                    { name: 'Google Earth Pro', category: 'Mapping & GIS', logo: '/software-logos/docx/image20.webp' },
+                    { name: 'Agisoft Metashape', category: 'Drone mapping', logo: '/software-logos/docx/image21.webp' },
+                    { name: 'AutoCAD Civil 3D', category: 'Civil design', logo: '/software-logos/autocad-civil-3d.png' },
+                    { name: 'QGIS', category: 'OSGeo OpenSource', logo: '/software-logos/qgis.png' },
+                    { name: 'Leica Geo Office', category: 'Geodetic Baseline', logo: '/software-logos/leica-geo-office.png' },
+                    { name: 'ArcGIS Enterprise', category: 'Geospatial GIS', logo: '/software-logos/arcgis-pro.png' },
+                  ].map((tool) => (
+                    <div key={tool.name} className="p-4 border-r border-b border-slate-200 flex flex-col justify-between gap-2 min-h-[120px] hover:bg-slate-50 transition">
+                      <div className="h-12 flex items-center justify-start">
+                        <img src={tool.logo} alt={tool.name} className="max-h-11 max-w-[100px] object-contain" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-[#0B1F44] leading-snug">{tool.name}</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">{tool.category}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="bg-[#edf2fa] rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 text-xs text-slate-700 flex-1">
+                    <Cpu size={18} className="text-[#1B4B9D] shrink-0" />
+                    <EditableText
+                      value={futureReadyData.ctaBannerText ?? defaultFutureReadyData.ctaBannerText}
+                      onChange={(v) => handleDataChange('future-ready', 'ctaBannerText', v)}
+                    />
+                  </div>
+                  <span className="inline-flex items-center gap-2 bg-[#0B1F44] text-white px-4 py-2 text-xs font-bold shrink-0">
+                    <Send size={13} />
+                    <EditableText
+                      value={futureReadyData.ctaBannerBtnLabel ?? defaultFutureReadyData.ctaBannerBtnLabel}
+                      onChange={(v) => handleDataChange('future-ready', 'ctaBannerBtnLabel', v)}
+                    />
+                  </span>
+                </div>
+              </section>
             </div>
           )}
 
@@ -1324,52 +1673,60 @@ export function AboutWysiwygEditor({
               ========================================================================= */}
           {activePage === 'safety' && (
             <div>
-              {/* HERO */}
-              <section className="relative bg-[#141212] text-white pt-24 pb-16 px-6 md:px-12 overflow-hidden border-b border-neutral-800">
-                <div className="absolute inset-0 z-0 opacity-25">
-                  <img src={safetyData.heroImage} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#141212] via-[#141212]/90 to-transparent" />
-                </div>
-
-                <div className="relative z-10 max-w-4xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-mono uppercase tracking-[0.2em] text-[#F4382D] font-bold block">
+              {/* HERO (Matches /about/corporate-responsibility 1:1) */}
+              <section className="relative bg-gradient-to-br from-[#0A1931] via-[#0B1F3F] to-[#1A1328] text-white pt-14 pb-12 px-6 md:px-12 overflow-hidden border-b border-white/10">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <div className="lg:col-span-7 space-y-4">
+                    <span className="inline-flex items-center gap-2.5 text-[11px] font-mono uppercase tracking-[0.2em] text-[#60A5FA] font-bold">
+                      <span className="w-6 h-0.5 bg-gradient-to-r from-[#3B82F6] to-[#FB1D10]" />
                       <EditableText
                         value={safetyData.heroKicker}
                         onChange={(v) => handleDataChange('safety', 'heroKicker', v)}
                       />
                     </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onOpenMediaPicker((url) => handleDataChange('safety', 'heroImage', url))
-                      }
-                      className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer"
-                    >
-                      <Camera size={13} /> Change Hero Photo
-                    </button>
+
+                    <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.08]">
+                      <EditableText
+                        value={safetyData.heroTitle}
+                        onChange={(v) => handleDataChange('safety', 'heroTitle', v)}
+                        multiline
+                        rows={2}
+                      />
+                    </h1>
+
+                    <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal max-w-2xl">
+                      <EditableText
+                        value={safetyData.heroSubtitle}
+                        onChange={(v) => handleDataChange('safety', 'heroSubtitle', v)}
+                        multiline
+                        rows={3}
+                      />
+                    </p>
                   </div>
 
-                  <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                    <EditableText
-                      value={safetyData.heroTitle}
-                      onChange={(v) => handleDataChange('safety', 'heroTitle', v)}
-                      multiline
-                      rows={2}
-                    />
-                  </h1>
+                  <div className="lg:col-span-5">
+                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/15 bg-slate-900 shadow-2xl">
+                      <img src={safetyData.heroImage} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0A1931]/80 via-transparent to-transparent" />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenMediaPicker((url) => handleDataChange('safety', 'heroImage', url))
+                        }
+                        className="absolute top-3 right-3 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-lg border border-white/20"
+                      >
+                        <Camera size={13} /> Change Hero Photo
+                      </button>
+                      <div className="absolute bottom-3 left-3 flex items-center gap-2 text-[10px] font-mono tracking-wider text-slate-200 uppercase">
+                        <span className="w-2 h-2 rounded-full bg-[#FB1D10]" />
+                        GEOSPATIAL WORKS / BANGLADESH
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                  <p className="text-base text-neutral-300 leading-relaxed font-normal">
-                    <EditableText
-                      value={safetyData.heroSubtitle}
-                      onChange={(v) => handleDataChange('safety', 'heroSubtitle', v)}
-                      multiline
-                      rows={3}
-                    />
-                  </p>
-
-                  {/* DYNAMIC SAFETY METRICS */}
-                  <div className="pt-6 border-t border-neutral-800/80 space-y-3">
+                {/* DYNAMIC SAFETY METRICS */}
+                <div className="relative z-10 mt-8 pt-6 border-t border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">Safety Metrics</span>
                       <button
@@ -1422,7 +1779,6 @@ export function AboutWysiwygEditor({
                       ))}
                     </div>
                   </div>
-                </div>
               </section>
 
               {/* PILLARS */}
@@ -1521,6 +1877,119 @@ export function AboutWysiwygEditor({
                   ))}
                 </div>
               </section>
+
+              {/* DATA SECURITY & SOVEREIGNTY VAULT (100% Editable, Addable, Removable) */}
+              <section className="py-14 px-6 md:px-12 bg-[#0A1931] text-white">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  <div className="lg:col-span-7 space-y-4">
+                    <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#60A5FA] font-bold block">
+                      <EditableText
+                        value={safetyData.vaultKicker ?? defaultSafetyData.vaultKicker}
+                        onChange={(v) => handleDataChange('safety', 'vaultKicker', v)}
+                      />
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                      <EditableText
+                        value={safetyData.vaultTitle ?? defaultSafetyData.vaultTitle}
+                        onChange={(v) => handleDataChange('safety', 'vaultTitle', v)}
+                        multiline
+                        rows={2}
+                      />
+                    </h2>
+                    <div className="w-14 h-1 bg-[#FB1D10] rounded-full" />
+                    <div className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                      <EditableText
+                        value={safetyData.vaultDesc ?? defaultSafetyData.vaultDesc}
+                        onChange={(v) => handleDataChange('safety', 'vaultDesc', v)}
+                        multiline
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      {(safetyData.vaultCards ?? defaultSafetyData.vaultCards).map((card: any, cIdx: number) => (
+                        <div key={cIdx} className="relative group/vcard p-4 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const current = safetyData.vaultCards ?? defaultSafetyData.vaultCards;
+                              if (current.length <= 1) return;
+                              handleDataChange('safety', 'vaultCards', current.filter((_: any, i: number) => i !== cIdx));
+                            }}
+                            className="absolute top-2 right-2 opacity-0 group-hover/vcard:opacity-100 p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
+                            title="Remove card"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                          <div className="font-bold text-xs text-white flex items-center gap-2 pr-5">
+                            <Server size={14} className="text-[#FB1D10] shrink-0" />
+                            <EditableText
+                              value={card.title}
+                              onChange={(v) => {
+                                const current = [...(safetyData.vaultCards ?? defaultSafetyData.vaultCards)];
+                                current[cIdx] = { ...current[cIdx], title: v };
+                                handleDataChange('safety', 'vaultCards', current);
+                              }}
+                            />
+                          </div>
+                          <div className="text-[11px] text-slate-400">
+                            <EditableText
+                              value={card.desc}
+                              onChange={(v) => {
+                                const current = [...(safetyData.vaultCards ?? defaultSafetyData.vaultCards)];
+                                current[cIdx] = { ...current[cIdx], desc: v };
+                                handleDataChange('safety', 'vaultCards', current);
+                              }}
+                              multiline
+                              rows={2}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = safetyData.vaultCards ?? defaultSafetyData.vaultCards;
+                        handleDataChange('safety', 'vaultCards', [
+                          ...current,
+                          { title: 'New Security Control', desc: 'Describe protection measure...' },
+                        ]);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition cursor-pointer"
+                    >
+                      <Plus size={12} /> Add Vault Card
+                    </button>
+                  </div>
+
+                  <div className="lg:col-span-5 bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+                      <EditableText
+                        value={safetyData.governanceTitle ?? defaultSafetyData.governanceTitle}
+                        onChange={(v) => handleDataChange('safety', 'governanceTitle', v)}
+                      />
+                    </span>
+                    <h3 className="text-base font-bold text-white">
+                      <EditableText
+                        value={safetyData.governanceHeadline ?? defaultSafetyData.governanceHeadline}
+                        onChange={(v) => handleDataChange('safety', 'governanceHeadline', v)}
+                      />
+                    </h3>
+                    <EditableBulletList
+                      bullets={safetyData.governanceBullets ?? defaultSafetyData.governanceBullets}
+                      onChange={(items) => handleDataChange('safety', 'governanceBullets', items)}
+                      color="red"
+                    />
+                    <div className="pt-2 border-t border-white/10">
+                      <div className="w-full py-2 px-4 rounded-lg bg-[#FB1D10] text-white text-xs font-bold flex items-center justify-center gap-2">
+                        <EditableText
+                          value={safetyData.governanceCtaLabel ?? defaultSafetyData.governanceCtaLabel}
+                          onChange={(v) => handleDataChange('safety', 'governanceCtaLabel', v)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
           )}
 
@@ -1529,52 +1998,60 @@ export function AboutWysiwygEditor({
               ========================================================================= */}
           {activePage === 'standards' && (
             <div>
-              {/* HERO */}
-              <section className="relative bg-[#141212] text-white pt-24 pb-16 px-6 md:px-12 overflow-hidden border-b border-neutral-800">
-                <div className="absolute inset-0 z-0 opacity-25">
-                  <img src={standardsData.heroImage} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#141212] via-[#141212]/90 to-transparent" />
-                </div>
-
-                <div className="relative z-10 max-w-4xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-mono uppercase tracking-[0.2em] text-[#F4382D] font-bold block">
+              {/* HERO (Matches /about/standards 1:1) */}
+              <section className="relative bg-gradient-to-br from-[#0A1931] via-[#0B1F3F] to-[#1A1328] text-white pt-14 pb-12 px-6 md:px-12 overflow-hidden border-b border-white/10">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <div className="lg:col-span-7 space-y-4">
+                    <span className="inline-flex items-center gap-2.5 text-[11px] font-mono uppercase tracking-[0.2em] text-[#60A5FA] font-bold">
+                      <span className="w-6 h-0.5 bg-gradient-to-r from-[#3B82F6] to-[#FB1D10]" />
                       <EditableText
                         value={standardsData.heroKicker}
                         onChange={(v) => handleDataChange('standards', 'heroKicker', v)}
                       />
                     </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onOpenMediaPicker((url) => handleDataChange('standards', 'heroImage', url))
-                      }
-                      className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer"
-                    >
-                      <Camera size={13} /> Change Hero Photo
-                    </button>
+
+                    <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.08]">
+                      <EditableText
+                        value={standardsData.heroTitle}
+                        onChange={(v) => handleDataChange('standards', 'heroTitle', v)}
+                        multiline
+                        rows={2}
+                      />
+                    </h1>
+
+                    <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal max-w-2xl">
+                      <EditableText
+                        value={standardsData.heroSubtitle}
+                        onChange={(v) => handleDataChange('standards', 'heroSubtitle', v)}
+                        multiline
+                        rows={3}
+                      />
+                    </p>
                   </div>
 
-                  <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                    <EditableText
-                      value={standardsData.heroTitle}
-                      onChange={(v) => handleDataChange('standards', 'heroTitle', v)}
-                      multiline
-                      rows={2}
-                    />
-                  </h1>
+                  <div className="lg:col-span-5">
+                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/15 bg-slate-900 shadow-2xl">
+                      <img src={standardsData.heroImage} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0A1931]/80 via-transparent to-transparent" />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenMediaPicker((url) => handleDataChange('standards', 'heroImage', url))
+                        }
+                        className="absolute top-3 right-3 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-lg border border-white/20"
+                      >
+                        <Camera size={13} /> Change Hero Photo
+                      </button>
+                      <div className="absolute bottom-3 left-3 flex items-center gap-2 text-[10px] font-mono tracking-wider text-slate-200 uppercase">
+                        <span className="w-2 h-2 rounded-full bg-[#FB1D10]" />
+                        GEOSPATIAL WORKS / BANGLADESH
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                  <p className="text-base text-neutral-300 leading-relaxed font-normal">
-                    <EditableText
-                      value={standardsData.heroSubtitle}
-                      onChange={(v) => handleDataChange('standards', 'heroSubtitle', v)}
-                      multiline
-                      rows={3}
-                    />
-                  </p>
-
-                  {/* DYNAMIC STANDARDS METRICS */}
-                  <div className="pt-6 border-t border-neutral-800/80 space-y-3">
+                {/* DYNAMIC STANDARDS METRICS */}
+                <div className="relative z-10 mt-8 pt-6 border-t border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">Geodetic Standards Metrics</span>
                       <button
@@ -1627,7 +2104,6 @@ export function AboutWysiwygEditor({
                       ))}
                     </div>
                   </div>
-                </div>
               </section>
 
               {/* SOB DATUM TABLE */}
@@ -1658,7 +2134,7 @@ export function AboutWysiwygEditor({
 
                 <div className="bg-white border border-neutral-200 rounded-2xl shadow-sm overflow-hidden">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-neutral-100 text-neutral-700 font-mono text-[10px] uppercase tracking-wider border-b border-neutral-200">
+                    <thead className="bg-[#0A1931] text-white font-mono text-[10px] uppercase tracking-wider border-b border-neutral-200">
                       <tr>
                         <th className="py-3 px-5">Geodetic Parameter</th>
                         <th className="py-3 px-5">Survey of Bangladesh Reference Value</th>
@@ -1710,7 +2186,7 @@ export function AboutWysiwygEditor({
               </section>
 
               {/* QA GATES */}
-              <section className="py-16 px-6 md:px-12 bg-[#141212] text-white space-y-6">
+              <section className="py-16 px-6 md:px-12 bg-[#0A1931] text-white space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                   <div className="max-w-3xl space-y-2">
                     <span className="text-[12px] font-mono uppercase tracking-[0.2em] text-[#3B82F6] font-bold block">
@@ -1804,49 +2280,56 @@ export function AboutWysiwygEditor({
               ========================================================================= */}
           {activePage === 'impact' && (
             <div>
-              {/* HERO */}
-              <section className="relative bg-[#141212] text-white pt-24 pb-16 px-6 md:px-12 overflow-hidden border-b border-neutral-800">
-                <div className="absolute inset-0 z-0 opacity-25">
-                  <img src={impactData.heroImage} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#141212] via-[#141212]/90 to-transparent" />
-                </div>
-
-                <div className="relative z-10 max-w-4xl space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-mono uppercase tracking-[0.2em] text-[#F4382D] font-bold block">
+              {/* HERO (Matches /projects 1:1 with prominent Hero Photo picker) */}
+              <section className="relative bg-gradient-to-br from-[#0A1931] via-[#0B1F3F] to-[#1A1328] text-white pt-14 pb-12 px-6 md:px-12 overflow-hidden border-b border-white/10">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <div className="lg:col-span-7 space-y-4">
+                    <span className="inline-flex items-center gap-2.5 text-[11px] font-mono uppercase tracking-[0.2em] text-[#60A5FA] font-bold">
+                      <span className="w-6 h-0.5 bg-gradient-to-r from-[#3B82F6] to-[#FB1D10]" />
                       <EditableText
                         value={impactData.heroEyebrow}
                         onChange={(v) => handleDataChange('impact', 'heroEyebrow', v)}
                       />
                     </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onOpenMediaPicker((url) => handleDataChange('impact', 'heroImage', url))
-                      }
-                      className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer"
-                    >
-                      <Camera size={13} /> Change Hero Photo
-                    </button>
+
+                    <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.08]">
+                      <EditableText
+                        value={impactData.heroTitle}
+                        onChange={(v) => handleDataChange('impact', 'heroTitle', v)}
+                        multiline
+                        rows={2}
+                      />
+                    </h1>
+
+                    <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal max-w-2xl">
+                      <EditableText
+                        value={impactData.heroDescription}
+                        onChange={(v) => handleDataChange('impact', 'heroDescription', v)}
+                        multiline
+                        rows={3}
+                      />
+                    </p>
                   </div>
 
-                  <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                    <EditableText
-                      value={impactData.heroTitle}
-                      onChange={(v) => handleDataChange('impact', 'heroTitle', v)}
-                      multiline
-                      rows={2}
-                    />
-                  </h1>
-
-                  <p className="text-base text-neutral-300 leading-relaxed font-normal">
-                    <EditableText
-                      value={impactData.heroDescription}
-                      onChange={(v) => handleDataChange('impact', 'heroDescription', v)}
-                      multiline
-                      rows={3}
-                    />
-                  </p>
+                  <div className="lg:col-span-5">
+                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/15 bg-slate-900 shadow-2xl">
+                      <img src={impactData.heroImage} alt="" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0A1931]/80 via-transparent to-transparent" />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenMediaPicker((url) => handleDataChange('impact', 'heroImage', url))
+                        }
+                        className="absolute top-3 right-3 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-lg border border-white/20"
+                      >
+                        <Camera size={13} /> Change Hero Photo
+                      </button>
+                      <div className="absolute bottom-3 left-3 flex items-center gap-2 text-[10px] font-mono tracking-wider text-slate-200 uppercase">
+                        <span className="w-2 h-2 rounded-full bg-[#FB1D10]" />
+                        NATIONAL IMPACT / BANGLADESH
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </section>
 
@@ -1996,74 +2479,64 @@ export function AboutWysiwygEditor({
           )}
 
           {/* =========================================================================
-              WIRED KEEP IN TOUCH SECTION (LIVE WITH MAPBOX & INQUIRY FORM)
+              KEEP IN TOUCH SECTION (Matches public KeepInTouchSection 1:1)
               ========================================================================= */}
-          <section className="bg-white border-t-2 border-[#3B82F6] py-12 px-6 md:px-12 text-[#141212]">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-neutral-200">
-              <div className="space-y-1">
-                <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#3B82F6] font-bold block">
-                  START A CONVERSATION · DHAKA HQ
+          <section className="bg-[#111214] py-12 px-6 md:px-12 text-white border-t border-white/10">
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 pb-8 border-b border-white/10">
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#FB1D10] font-bold block">
+                  // CONTACT &amp; INQUIRIES
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#141212] tracking-tight">
-                  Keep in <span className="text-[#FB1D10]">touch</span>
+                <h3 className="text-2xl sm:text-4xl font-black tracking-tight text-white uppercase">
+                  Keep in Touch
                 </h3>
-                <p className="text-xs sm:text-sm text-neutral-600">
-                  Wired with Mapbox geodetic coordinates, direct inquiry desk, and 24/7 hotline dispatch across Bangladesh.
+                <p className="text-xs sm:text-sm text-slate-400 max-w-xl">
+                  From corridor surveying to UAV photogrammetry and spatial databases, reach our engineering team for technical consultation and deployment.
                 </p>
               </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <a
-                  href="/contactt"
-                  target="_blank"
-                  className="px-4 py-2 bg-[#FB1D10] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-[#d92a20] transition inline-flex items-center gap-1.5"
-                >
-                  <Send size={13} />
-                  <span>Open Contactt Page</span>
-                  <ArrowUpRight size={13} />
-                </a>
-                <a
-                  href="tel:+8801303772216"
-                  className="px-3.5 py-2 border border-neutral-300 text-neutral-800 text-xs font-bold rounded-lg hover:border-neutral-900 transition flex items-center gap-1.5"
-                >
-                  <Phone size={13} className="text-[#FB1D10]" />
-                  <span>Hotline: +88 01303 772216</span>
-                </a>
-              </div>
+              <a
+                href="http://localhost:3001/contact"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 border border-white/20 text-white text-xs font-bold rounded-lg hover:bg-white/10 transition inline-flex items-center gap-2 shrink-0"
+              >
+                <span>VISIT CONTACT PAGE</span>
+                <ArrowUpRight size={13} />
+              </a>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 text-xs">
-              <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1.5">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-blue-600 flex items-center gap-1">
-                  <MapPin size={13} className="text-[#FB1D10]" />
-                  <span>Dhaka Headquarters</span>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-8">
+              <div className="lg:col-span-7 bg-[#181A1D] border border-white/10 rounded-xl p-5 space-y-3">
+                <div className="grid grid-cols-2 gap-3 text-[11px] text-slate-400">
+                  <div className="bg-[#111214] border border-white/10 rounded-lg px-3 py-2">First Name *</div>
+                  <div className="bg-[#111214] border border-white/10 rounded-lg px-3 py-2">Last Name *</div>
+                  <div className="bg-[#111214] border border-white/10 rounded-lg px-3 py-2">Work Email *</div>
+                  <div className="bg-[#111214] border border-white/10 rounded-lg px-3 py-2">Phone Number</div>
                 </div>
-                <div className="font-semibold text-neutral-800 leading-relaxed text-xs">
-                  64/1 (D1), Lake Circus, Kalabagan, Dhaka 1205
+                <div className="bg-[#111214] border border-white/10 rounded-lg px-3 py-4 text-[11px] text-slate-500">
+                  Project Scope &amp; Location *
                 </div>
-                <div className="text-[10px] font-mono text-neutral-400">23.7505° N, 90.3807° E · Mapbox</div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FB1D10] text-white text-xs font-bold">
+                  <Send size={12} /> SUBMIT INQUIRY
+                </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1.5">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-blue-600 flex items-center gap-1">
-                  <Phone size={13} className="text-[#FB1D10]" />
-                  <span>Direct Hotline</span>
+              <div className="lg:col-span-5 bg-[#181A1D] border border-white/10 rounded-xl p-5 space-y-3 text-xs">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-slate-400">Corporate Office</p>
+                <p className="font-bold text-white">Geospatial Works</p>
+                <p className="text-slate-300 leading-relaxed">
+                  Plot 14, Road 02, Aram Housing, 40ft, Bosila, Mohammadpur, Dhaka, 1207, Bangladesh
+                </p>
+                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/10 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block">PHONE</span>
+                    <span className="font-mono text-white font-semibold">+880 1713 90 77 79</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">EMAIL</span>
+                    <span className="font-mono text-white font-semibold truncate block">md.geospatialworks@gmail.com</span>
+                  </div>
                 </div>
-                <div className="font-mono text-neutral-800 font-bold text-xs">
-                  +88 01303 772216 / +88 01713 907779
-                </div>
-                <div className="text-[10px] text-emerald-600 font-bold">24/7 Field Rapid Deployment</div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1.5">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-blue-600 flex items-center gap-1">
-                  <Mail size={13} className="text-[#FB1D10]" />
-                  <span>Inquiry &amp; Bids</span>
-                </div>
-                <div className="font-mono text-neutral-800 font-semibold text-xs truncate">
-                  info@geospatialworks.com.bd
-                </div>
-                <div className="text-[10px] text-neutral-500">SOB 1st Class Certified Contractor</div>
               </div>
             </div>
           </section>

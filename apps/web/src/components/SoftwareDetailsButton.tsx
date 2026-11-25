@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import { ArrowRight, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { SoftwareTool } from '@/lib/software-expertise';
@@ -35,7 +34,7 @@ export default function SoftwareDetailsButton({ tool, children }: { tool: Softwa
             <div className="gw-software-dialog-layout">
               <div className="gw-software-dialog-logo-wrap">
                 <div className="gw-software-dialog-logo">
-                  <Image src={tool.logo} alt={`${tool.name} logo`} width={200} height={120} sizes="200px" loading="eager" />
+                  <img src={tool.logo} alt={`${tool.name} logo`} loading="eager" />
                 </div>
                 <span className="gw-software-dialog-label">GEOSPATIAL WORKS · SOFTWARE</span>
               </div>

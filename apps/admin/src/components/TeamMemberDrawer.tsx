@@ -31,6 +31,7 @@ export interface ExperienceEntry {
 
 export interface StructuredCv {
   summary?: string;
+  cvUrl?: string;
   education?: EducationEntry[];
   registrations?: string[];
   software?: string[];
@@ -283,7 +284,7 @@ export function TeamMemberDrawer({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Engr. Mohammad Delwar Hossain, FIEB"
+                    placeholder="Enter full name"
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none transition"
@@ -299,7 +300,7 @@ export function TeamMemberDrawer({
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Chief Structural Engineer & Technical Advisor"
+                      placeholder="Enter job title or role"
                       value={formRole}
                       onChange={(e) => setFormRole(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-medium text-slate-800 focus:outline-none transition"
@@ -331,7 +332,7 @@ export function TeamMemberDrawer({
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. B.Sc in Civil Engineering (BUET, 1997) • Fellow IEB (F-8790) • RAJUK Enlisted"
+                    placeholder="e.g. B.Sc. in Civil Engineering, MIEB"
                     value={formCredentials}
                     onChange={(e) => setFormCredentials(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:outline-none transition"
@@ -348,7 +349,7 @@ export function TeamMemberDrawer({
                   </div>
                   <textarea
                     rows={4}
-                    placeholder="28+ years of veteran engineering excellence. Directed structural analysis, design, and construction documentation for MRT Line 1, MRT Line 5 North..."
+                    placeholder="Write a brief professional summary..."
                     value={formBio}
                     onChange={(e) => setFormBio(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl p-3.5 text-xs text-slate-800 focus:outline-none transition leading-relaxed"
@@ -412,7 +413,7 @@ export function TeamMemberDrawer({
                   </div>
                   <textarea
                     rows={4}
-                    placeholder="Comprehensive overview of credentials, core competencies, international appointments, and major megaproject achievements..."
+                    placeholder="Write a concise executive summary of qualifications and key experience..."
                     value={formCvSummary}
                     onChange={(e) => setFormCvSummary(e.target.value)}
                     className="w-full bg-white border border-slate-200 focus:border-indigo-500 rounded-lg p-3 text-xs text-slate-800 focus:outline-none transition leading-relaxed"
@@ -502,7 +503,7 @@ export function TeamMemberDrawer({
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="e.g. Fellow IEB (F-8790) or RAJUK Enlisted Professional"
+                      placeholder="e.g. FIEB, BIP, IAB"
                       value={newRegInput}
                       onChange={(e) => setNewRegInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -552,7 +553,7 @@ export function TeamMemberDrawer({
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="e.g. AutoCAD Civil 3D, ETABS, MIDAS Civil, ArcGIS Pro"
+                      placeholder="e.g. AutoCAD, ArcGIS Pro, Civil 3D"
                       value={newSoftInput}
                       onChange={(e) => setNewSoftInput(e.target.value)}
                       onKeyDown={(e) => {

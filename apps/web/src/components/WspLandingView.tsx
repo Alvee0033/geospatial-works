@@ -127,8 +127,11 @@ export default function WspLandingView({
     { ...softwareExpertise.find((tool) => tool.name === 'Civil 3D')!, name: 'AutoCAD Civil 3D', logo: '/software-logos/autocad-civil-3d-dark-tight.png' },
   ];
   const hasManagedSoftware = Array.isArray(equipSec.content?.softwareList);
+  const rawManagedSoftware = hasManagedSoftware ? equipSec.content.softwareList : [];
+  const explicitlyFeatured = rawManagedSoftware.filter((tool: { featuredOnHome?: boolean }) => tool.featuredOnHome === true);
+  const homeSoftwareSource = explicitlyFeatured.length > 0 ? explicitlyFeatured : rawManagedSoftware;
   const featuredSoftware: SoftwareTool[] = hasManagedSoftware
-    ? equipSec.content.softwareList
+    ? homeSoftwareSource
         .filter((tool: { name?: string }) => tool.name?.trim())
         .map((tool: { name: string; category?: string; description?: string; logo?: string }) => {
           const lowerName = tool.name.toLowerCase();

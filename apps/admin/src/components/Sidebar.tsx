@@ -15,6 +15,8 @@ import {
   LogOut,
   Mail,
   MessageSquareText,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
 export type AdminTab =
@@ -44,6 +46,13 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
+interface NavItem {
+  id: AdminTab;
+  label: string;
+  icon: React.ReactNode;
+  count?: number;
+}
+
 export function Sidebar({
   activeTab,
   setActiveTab,
@@ -57,258 +66,147 @@ export function Sidebar({
   currentUser,
   onLogout,
 }: SidebarProps) {
+  const groups: { label: string; items: NavItem[] }[] = [
+    {
+      label: 'Overview',
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+      ],
+    },
+    {
+      label: 'Website Content',
+      items: [
+        { id: 'landing', label: 'Homepage', icon: <MonitorPlay size={16} /> },
+        { id: 'projects', label: 'Projects', icon: <FolderKanban size={16} />, count: projectsCount },
+        { id: 'services', label: 'Services', icon: <Sliders size={16} />, count: servicesCount },
+        { id: 'news', label: 'News & Articles', icon: <Newspaper size={16} />, count: articlesCount },
+        { id: 'about', label: 'About Us', icon: <Building2 size={16} /> },
+      ],
+    },
+    {
+      label: 'Team & Enquiries',
+      items: [
+        { id: 'team', label: 'Team & CVs', icon: <Users size={16} />, count: teamCount },
+        { id: 'careers', label: 'Careers', icon: <Briefcase size={16} />, count: jobsCount + applicationsCount },
+        { id: 'inquiries', label: 'Enquiries', icon: <Mail size={16} />, count: inquiriesCount },
+        { id: 'inbox', label: 'Messages', icon: <MessageSquareText size={16} /> },
+      ],
+    },
+    {
+      label: 'System',
+      items: [
+        { id: 'settings', label: 'Settings', icon: <ShieldCheck size={16} /> },
+      ],
+    },
+  ];
+
+  const [collapsed, setCollapsed] = React.useState(false);
+
   return (
-    <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200/80 flex flex-col justify-between select-none shadow-[2px_0_12px_rgba(0,0,0,0.02)] z-20">
-      <div className="p-5">
-        {/* Logo & Brand Header */}
-        <div className="flex items-center gap-3 mb-8 px-2">
-          <Image
-            src="/gw-logo-pure-original.png"
-            alt="Geospatial Works"
-            width={44}
-            height={44}
-            priority
-            className="h-10 w-10 shrink-0 object-contain"
-          />
-          <div>
-            <h2 className="text-sm font-bold text-slate-900 leading-tight">Geospatial Works</h2>
-            <p className="text-[11px] text-slate-400 font-medium">Admin Portal</p>
+    <aside className={`${collapsed ? 'w-[68px]' : 'w-60'} shrink-0 bg-slate-950 text-slate-300 flex flex-col border-r border-slate-800/80 select-none transition-all duration-200`}>
+      {/* Brand + Collapse Toggle */}
+      <div className={`h-16 ${collapsed ? 'px-2 justify-center' : 'px-4 justify-between'} flex items-center gap-2 border-b border-slate-800/80 shrink-0`}>
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-white p-1 flex items-center justify-center shrink-0">
+            <Image src="/logo.png" alt="Geospatial Works" width={24} height={24} className="object-contain" />
           </div>
-        </div>
-
-        {/* Clean Navigation Links */}
-        <nav className="space-y-1">
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Main Menu</div>
-
-          {/* Dashboard Item */}
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'dashboard'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <LayoutDashboard size={15} />
-              <span>Overview</span>
-            </div>
-          </button>
-
-          {/* Landing Page Item */}
-          <button
-            onClick={() => setActiveTab('landing')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'landing'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <MonitorPlay size={15} />
-              <span>Homepage</span>
-            </div>
-          </button>
-
-          {/* Team & Leadership Item */}
-          <button
-            onClick={() => setActiveTab('team')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'team'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Users size={15} />
-              <span>Team &amp; Personnel</span>
-            </div>
-            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'team' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
-              {teamCount}
-            </span>
-          </button>
-
-          {/* Projects Item */}
-          <button
-            onClick={() => setActiveTab('projects')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'projects'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <FolderKanban size={15} />
-              <span>Projects</span>
-            </div>
-            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'projects' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
-              {projectsCount}
-            </span>
-          </button>
-
-          {/* Services Item */}
-          <button
-            onClick={() => setActiveTab('services')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'services'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Sliders size={15} />
-              <span>Services</span>
-            </div>
-            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'services' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
-              {servicesCount}
-            </span>
-          </button>
-
-          {/* News & Articles Item */}
-          <button
-            onClick={() => setActiveTab('news')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'news'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Newspaper size={15} />
-              <span>Articles &amp; News</span>
-            </div>
-            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'news' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
-              {articlesCount}
-            </span>
-          </button>
-
-          {/* About / Pages Item */}
-          <button
-            onClick={() => setActiveTab('about')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'about'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Building2 size={15} />
-              <span>About Pages</span>
-            </div>
-            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'about' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
-              5
-            </span>
-          </button>
-
-          {/* Careers & Applications Item */}
-          <button
-            onClick={() => setActiveTab('careers')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'careers'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Briefcase size={15} />
-              <span>Careers &amp; Jobs</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'careers' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                {jobsCount}
-              </span>
-              {applicationsCount > 0 && (
-                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'careers' ? 'bg-white/30 text-white' : 'bg-blue-100 text-blue-700 font-semibold'}`} title="Applications received">
-                  {applicationsCount}
-                </span>
-              )}
-            </div>
-          </button>
-
-          {/* Client Inquiries & Contact Leads Item */}
-          <button
-            onClick={() => setActiveTab('inquiries')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'inquiries'
-                ? 'bg-slate-900 text-white shadow-2xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Mail size={15} />
-              <span>Enquiries</span>
-            </div>
-            {inquiriesCount > 0 && (
-              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${activeTab === 'inquiries' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 font-semibold'}`}>
-                {inquiriesCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('inbox')}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-              activeTab === 'inbox' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-2.5"><MessageSquareText size={15} /><span>Messages Inbox</span></div>
-          </button>
-
-          <div className="pt-3">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">System</div>
-            {/* Settings & User Management Item */}
-            <button
-              onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                activeTab === 'settings'
-                  ? 'bg-slate-900 text-white shadow-2xs'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck size={15} />
-                <span>Settings &amp; Access</span>
-              </div>
-            </button>
-          </div>
-        </nav>
-      </div>
-
-      {/* Sidebar Footer with Active User Session & Logout */}
-      <div className="p-3 border-t border-slate-100">
-        <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200/70">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-md bg-slate-900 text-white flex items-center justify-center font-bold text-[11px] flex-shrink-0">
-              {currentUser?.name
-                ? currentUser.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .slice(0, 2)
-                    .join('')
-                    .toUpperCase()
-                : 'GW'}
-            </div>
+          {!collapsed && (
             <div className="min-w-0">
-              <h4 className="text-xs font-semibold text-slate-900 truncate">
-                {currentUser?.name || 'Administrator'}
-              </h4>
-              <p className="text-[10px] text-slate-500 truncate">
-                {currentUser?.email || 'admin@geospatialworks.com.bd'}
-              </p>
+              <p className="text-xs font-bold text-white tracking-tight truncate">Geospatial Works</p>
+              <p className="text-[10px] text-slate-400 font-medium">Admin Console</p>
             </div>
-          </div>
-          {onLogout && (
-            <button
-              type="button"
-              onClick={onLogout}
-              className="p-1 rounded text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 transition cursor-pointer"
-              title="Sign Out"
-            >
-              <LogOut size={14} />
-            </button>
           )}
         </div>
+        {!collapsed && (
+          <button
+            type="button"
+            onClick={() => setCollapsed(true)}
+            title="Collapse sidebar"
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer shrink-0"
+          >
+            <PanelLeftClose size={15} />
+          </button>
+        )}
       </div>
+      {collapsed && (
+        <div className="px-2 pt-2 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setCollapsed(false)}
+            title="Expand sidebar"
+            className="w-full py-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition cursor-pointer flex justify-center"
+          >
+            <PanelLeftOpen size={15} />
+          </button>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className={`flex-1 overflow-y-auto ${collapsed ? 'px-2' : 'px-3'} py-4 space-y-5`}>
+        {groups.map((group) => (
+          <div key={group.label}>
+            {!collapsed && (
+              <p className="px-2.5 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    title={collapsed ? item.label : undefined}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`w-full flex items-center ${collapsed ? 'justify-center px-2' : 'justify-between px-2.5'} gap-2 py-2 rounded-lg text-xs font-medium transition cursor-pointer ${
+                      isActive
+                        ? 'bg-indigo-600 text-white font-semibold shadow-xs'
+                        : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5 min-w-0">
+                      <span className={isActive ? 'text-white' : 'text-slate-400'}>{item.icon}</span>
+                      {!collapsed && <span className="truncate">{item.label}</span>}
+                    </span>
+                    {!collapsed && typeof item.count === 'number' && item.count > 0 && (
+                      <span
+                        className={`px-1.5 py-0.5 rounded-md text-[10px] font-semibold tabular-nums ${
+                          isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'
+                        }`}
+                      >
+                        {item.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      {/* User Footer */}
+      {currentUser && (
+        <div className="p-3 border-t border-slate-800/80 bg-slate-900/50">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-white truncate">{currentUser.name || 'Admin'}</p>
+              <p className="text-[10px] text-slate-400 truncate">{currentUser.email}</p>
+            </div>
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition cursor-pointer shrink-0"
+                title="Sign out"
+              >
+                <LogOut size={15} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

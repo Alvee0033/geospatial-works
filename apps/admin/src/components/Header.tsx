@@ -1,13 +1,24 @@
 'use client';
 
-import React from 'react';
-import { ArrowUpRight, Globe, Plus, RefreshCw, Search } from 'lucide-react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
+import { ArrowUpRight, Plus, RefreshCw, Search, Globe, X } from 'lucide-react';
 import { AdminTab } from './Sidebar';
+import { Button } from './ui';
+
+export interface QuickSearchSuggestion {
+  id: string;
+  label: string;
+  sublabel?: string;
+  tab: AdminTab;
+  group: 'Pages' | 'Projects' | 'Team' | 'Services' | 'Articles' | 'Enquiries';
+}
 
 interface HeaderProps {
   activeTab: AdminTab;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  searchSuggestions?: QuickSearchSuggestion[];
+  onSelectTab?: (tab: AdminTab) => void;
   onOpenCreateProjectModal: () => void;
   onOpenCreateServiceModal: () => void;
   onOpenCreateNewsModal: () => void;
@@ -19,53 +30,200 @@ interface HeaderProps {
   revalidating: boolean;
 }
 
-const pageInfo: Record<AdminTab, { title: string; description: string; url: string }> = {
-  dashboard: { title: 'Overview', description: 'A quick look at your website content.', url: '/' },
-  landing: { title: 'Homepage', description: 'Update the sections visitors see first.', url: '/' },
-  team: { title: 'Team', description: 'Manage people and their profiles.', url: '/team' },
-  projects: { title: 'Projects', description: 'Manage the projects shown on the website.', url: '/projects' },
-  services: { title: 'Services', description: 'Manage the services your team provides.', url: '/services' },
-  news: { title: 'News and articles', description: 'Publish updates and project stories.', url: '/insights' },
-  about: { title: 'About', description: 'Update information about the company.', url: '/about' },
-  careers: { title: 'Jobs and applications', description: 'Manage open roles and applications.', url: '/career' },
-  inquiries: { title: 'Enquiries', description: 'Read and respond to messages sent through the website.', url: '/contact' },
-  inbox: { title: 'Messages inbox', description: 'Reply to messages from your WhatsApp Business and Facebook Page.', url: '/contact' },
-  settings: { title: 'Settings', description: 'Manage access to the admin panel.', url: '/' },
+const pageInfo: Record<AdminTab, { title: string; url: string }> = {
+  dashboard: { title: 'Dashboard', url: '/' },
+  landing: { title: 'Homepage', url: '/' },
+  team: { title: 'Team & CVs', url: '/team' },
+  projects: { title: 'Projects', url: '/projects' },
+  services: { title: 'Services', url: '/services' },
+  news: { title: 'News & Articles', url: '/insights' },
+  about: { title: 'About Us', url: '/about' },
+  careers: { title: 'Careers', url: '/career' },
+  inquiries: { title: 'Enquiries', url: '/contact' },
+  inbox: { title: 'Messages', url: '/contact' },
+  settings: { title: 'Settings', url: '/' },
 };
 
-export function Header({ activeTab, searchQuery, setSearchQuery, onOpenCreateProjectModal, onOpenCreateServiceModal, onOpenCreateNewsModal, onOpenCreateTeamModal, onOpenCreateJobModal, onRefreshData, loading = false, onPurgeCache, revalidating }: HeaderProps) {
+const PAGE_SUGGESTIONS: QuickSearchSuggestion[] = (Object.keys(pageInfo) as AdminTab[]).map((tab) => ({
+  id: `page-${tab}`,
+  label: pageInfo[tab].title,
+  sublabel: `Go to ${pageInfo[tab].title}`,
+  tab,
+  group: 'Pages',
+}));
+
+export function Header({
+  activeTab,
+  searchQuery,
+  setSearchQuery,
+  searchSuggestions = [],
+  onSelectTab,
+  onOpenCreateProjectModal,
+  onOpenCreateServiceModal,
+  onOpenCreateNewsModal,
+  onOpenCreateTeamModal,
+  onOpenCreateJobModal,
+  onRefreshData,
+  loading = false,
+  onPurgeCache,
+  revalidating,
+}: HeaderProps) {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, []);
+
+  const matches = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const pool = [...PAGE_SUGGESTIONS, ...searchSuggestions];
+    if (!q) return PAGE_SUGGESTIONS.slice(0, 6);
+    return pool
+      .filter(
+        (item) =>
+          item.label.toLowerCase().includes(q) ||
+          (item.sublabel || '').toLowerCase().includes(q) ||
+          item.group.toLowerCase().includes(q)
+      )
+      .slice(0, 10);
+  }, [searchQuery, searchSuggestions]);
+
   const info = pageInfo[activeTab];
   const createAction = {
-    projects: { label: 'Add project', onClick: onOpenCreateProjectModal },
-    services: { label: 'Add service', onClick: onOpenCreateServiceModal },
-    news: { label: 'Add article', onClick: onOpenCreateNewsModal },
-    team: { label: 'Add person', onClick: onOpenCreateTeamModal },
-    careers: { label: 'Add job', onClick: onOpenCreateJobModal },
-  }[activeTab];
+    projects: { label: 'Add Project', onClick: onOpenCreateProjectModal },
+    services: { label: 'Add Service', onClick: onOpenCreateServiceModal },
+    news: { label: 'Add Article', onClick: onOpenCreateNewsModal },
+    team: { label: 'Add Member', onClick: onOpenCreateTeamModal },
+    careers: { label: 'Add Job', onClick: onOpenCreateJobModal },
+  }[activeTab as string];
+
+  const publicBaseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001';
 
   return (
-    <header className="flex min-h-[76px] shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-6 lg:px-8">
-      <div className="min-w-0">
-        <h1 className="truncate text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">{info.title}</h1>
-        <p className="mt-0.5 hidden text-sm text-slate-500 sm:block">{info.description}</p>
+    <header className="h-16 shrink-0 flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-8 relative z-30">
+      <div className="min-w-0 flex items-center gap-3">
+        <h1 className="truncate text-base font-bold tracking-tight text-slate-900 sm:text-lg">
+          {info.title}
+        </h1>
       </div>
-      <div className="flex items-center gap-2 sm:gap-3">
-        <label className="relative hidden md:block">
-          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input type="search" aria-label="Search this section" placeholder="Search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="w-44 rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 lg:w-56" />
-        </label>
-        <button type="button" onClick={onRefreshData} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-60" title="Reload admin data from API">
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /><span className="hidden lg:inline">{loading ? 'Reloading…' : 'Reload data'}</span>
-        </button>
-        <button type="button" onClick={onPurgeCache} disabled={revalidating} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-60" title="Purge public cache">
-          <Globe size={14} className={revalidating ? 'animate-spin' : ''} /><span className="hidden lg:inline">{revalidating ? 'Purging…' : 'Purge cache'}</span>
-        </button>
-        <a href={`${process.env.NEXT_PUBLIC_SITE_PREVIEW_URL || 'https://geospatialworks.com.bd'}${info.url}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-          <ArrowUpRight size={14} /><span className="hidden sm:inline">View live</span>
+
+      <div className="flex items-center gap-2">
+        {/* Optimistic Quick Search with Suggested Results */}
+        <div ref={containerRef} className="relative hidden md:block">
+          <div className="relative">
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              aria-label="Quick search"
+              placeholder="Quick search..."
+              value={searchQuery}
+              onFocus={() => setDropdownOpen(true)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setDropdownOpen(true);
+              }}
+              className="w-52 lg:w-64 h-8 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-7 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/15"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                aria-label="Clear search"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-1.5 w-80 rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden z-50">
+              <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span>{searchQuery.trim() ? 'Suggested Results' : 'Quick Jump'}</span>
+                <span>{matches.length} found</span>
+              </div>
+              <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                {matches.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-xs text-slate-400">No matching items found.</div>
+                ) : (
+                  matches.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        onSelectTab?.(item.tab);
+                        if (item.group === 'Pages') {
+                          setSearchQuery('');
+                        } else {
+                          setSearchQuery(item.label);
+                        }
+                        setDropdownOpen(false);
+                      }}
+                      className="w-full px-3.5 py-2.5 text-left hover:bg-indigo-50/70 transition flex items-center justify-between gap-2 cursor-pointer"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-slate-900 truncate">{item.label}</p>
+                        {item.sublabel && (
+                          <p className="text-[11px] text-slate-500 truncate">{item.sublabel}</p>
+                        )}
+                      </div>
+                      <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-semibold shrink-0">
+                        {item.group}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {onRefreshData && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={onRefreshData}
+            loading={loading}
+            icon={<RefreshCw size={13} />}
+            title="Reload data from server"
+          >
+            <span className="hidden lg:inline">Refresh</span>
+          </Button>
+        )}
+
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={onPurgeCache}
+          loading={revalidating}
+          icon={<Globe size={13} />}
+          title="Publish & refresh public website cache"
+        >
+          <span className="hidden lg:inline">Sync Site</span>
+        </Button>
+
+        <a
+          href={`${publicBaseUrl}${info.url}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center h-8 px-3 text-xs gap-1.5 rounded-lg font-semibold bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-2xs transition"
+        >
+          <span className="hidden sm:inline">View Site</span>
+          <ArrowUpRight size={13} />
         </a>
-        {createAction && <button type="button" onClick={createAction.onClick} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-black cursor-pointer shadow-2xs">
-          <Plus size={14} /><span>{createAction.label}</span>
-        </button>}
+
+        {createAction?.onClick && (
+          <Button size="sm" onClick={createAction.onClick} icon={<Plus size={14} />}>
+            {createAction.label}
+          </Button>
+        )}
       </div>
     </header>
   );

@@ -119,7 +119,7 @@ export function AboutView({
       {/* =========================================================================
           COMPACT SUB-NAVIGATION TABS (SLIM & PROPER)
           ========================================================================= */}
-      <div className="bg-white rounded-xl border border-slate-200/80 p-1 shadow-2xs flex items-center justify-between gap-2">
+      <div className="bg-white rounded-xl border border-slate-200 p-1.5 shadow-2xs flex items-center justify-between gap-2">
         <div className="flex items-center gap-1 overflow-x-auto scrollbar-none flex-1">
           {subMenus.map((item) => {
             const Icon = item.icon;
@@ -128,21 +128,25 @@ export function AboutView({
               <button
                 key={item.id}
                 onClick={() => setSubTab(item.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex-shrink-0 ${
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap shrink-0 cursor-pointer ${
                   isActive
-                    ? 'bg-slate-900 text-white shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <Icon size={14} className={isActive ? 'text-[#3B82F6]' : 'text-slate-400'} />
+                <Icon size={14} className={isActive ? 'text-white' : 'text-slate-400'} />
                 <span>{item.label}</span>
               </button>
             );
           })}
         </div>
 
-        <button type="button" onClick={() => setPreviewOpen(true)} className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800">
-          Preview actual page <ArrowUpRight size={14} />
+        <button
+          type="button"
+          onClick={() => setPreviewOpen(true)}
+          className="inline-flex shrink-0 items-center gap-1.5 h-8 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 cursor-pointer"
+        >
+          Preview Live Page <ArrowUpRight size={14} />
         </button>
       </div>
 

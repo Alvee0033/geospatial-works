@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsObject, IsOptional, IsString, MinLength } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '../../../entities/user.entity';
 
@@ -24,4 +24,9 @@ export class UpdateUserDto {
   @IsEnum(UserRole, { message: 'Role must be ADMIN, EDITOR, or VIEWER' })
   @IsOptional()
   role?: UserRole;
+
+  @ApiPropertyOptional({ description: 'Per-module permission overrides' })
+  @IsObject()
+  @IsOptional()
+  permissions?: Record<string, boolean>;
 }

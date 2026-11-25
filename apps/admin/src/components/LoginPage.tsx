@@ -32,7 +32,13 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || data.error || 'Invalid email or password.');
+        const msg =
+          typeof data?.message === 'string'
+            ? data.message
+            : data?.message?.message ||
+              (typeof data?.error === 'string' ? data.error : data?.error?.message) ||
+              'Invalid email or password.';
+        throw new Error(msg);
       }
 
       if (data.accessToken && data.user) {

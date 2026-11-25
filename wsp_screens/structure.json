@@ -1,0 +1,3969 @@
+{
+  "buttons": [
+    {
+      "classes": "didomi-notice-view-partners-link",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(255, 55, 47)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(255, 55, 47)",
+        "display": "block",
+        "fontFamily": "Arial",
+        "fontSize": "15px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "24px",
+        "margin": "20px 0px 0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "View our partners"
+    },
+    {
+      "classes": "hb__btn",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline-block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "0px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "0px",
+        "margin": "0px",
+        "padding": "20px 0px 21px"
+      },
+      "tag": "BUTTON",
+      "text": "Toggle navigation \n                \n                \n                    .a-close0-icon{fill:none;stroke:#1e252b;stroke-width:2px;}\n                    .a-close1-icon{fill:none;stroke:#1e252b;stroke-width:2px;}\n                    .a-close0-icon:hover,.a-close1-icon:hover{stroke:#ff373f;}"
+    },
+    {
+      "classes": "ms__btn",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline-block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "0px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "0px",
+        "margin": "0px",
+        "padding": "21px 0px 0px"
+      },
+      "tag": "BUTTON",
+      "text": ".a-search2-icon{fill:none;stroke:#141212;stroke-miterlimit:10;stroke-width:2px;}\n                .a-search2-mob-icon{fill:none;stroke:#141212;stroke-miterlimit:10;stroke-width:2px;}\n                .a-search2-icon:hover{stroke:#ff372f;}\n                .a-search2-mob-icon:hover{stroke:#ff373f !important;}\n            \n            \n                        \n            Click to open search \n        \n        \n            \n                Click to close search\n            \n                            \n                .a-close-mob-nw-icon{fill:none;stroke:#141212;stroke-width:2px;}\n                .a-close-mob-nw-icon:hover{stroke:#ff373f;}"
+    },
+    {
+      "classes": "mn__link level-0 targetIsHidden ",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(255, 255, 255)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "0px",
+        "padding": "30.5px 16px"
+      },
+      "tag": "A",
+      "text": "Who we are"
+    },
+    {
+      "classes": "top-menu-close-btn",
+      "styles": {
+        "bg": "rgb(255, 255, 255)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "14px",
+        "margin": "35px 0px 0px",
+        "padding": "0px"
+      },
+      "tag": "BUTTON",
+      "text": "Close"
+    },
+    {
+      "classes": "box-link",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "Unlocking potential everywhere\n\nAs Visioneers we see the potential everywhere, harnessing it to embrace the complex challenges of today\u2019s world. Blazing the trails of purposeful innovation across new frontiers and designing a world where communities can thrive. \n\nDiscover our latest projects highlighting our commitment to innovation, sustainability and engineering excellence. See how we\u2019re shaping the future of communities around the globe."
+    },
+    {
+      "classes": "mn__link level-0 targetIsHidden ",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(255, 255, 255)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "0px",
+        "padding": "30.5px 16px"
+      },
+      "tag": "A",
+      "text": "What we do"
+    },
+    {
+      "classes": "top-menu-close-btn",
+      "styles": {
+        "bg": "rgb(255, 255, 255)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "14px",
+        "margin": "35px 0px 0px",
+        "padding": "0px"
+      },
+      "tag": "BUTTON",
+      "text": "Close"
+    },
+    {
+      "classes": "box-link",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "Supercharge tomorrow\n\nAs global power demand rises, we\u2019re helping clients across all sectors accelerate the transition to a secure, resilient, and low-carbon energy future. WSP is shaping smarter energy systems, built to meet today\u2019s challenges and tomorrow\u2019s opportunities."
+    },
+    {
+      "classes": "mn__link level-0 targetIsHidden ",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(255, 255, 255)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "0px",
+        "padding": "30.5px 16px"
+      },
+      "tag": "A",
+      "text": "Insights"
+    },
+    {
+      "classes": "btn btn-text",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline-block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "25px 0px 0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "View all"
+    },
+    {
+      "classes": "top-menu-close-btn",
+      "styles": {
+        "bg": "rgb(255, 255, 255)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "14px",
+        "margin": "35px 0px 0px",
+        "padding": "0px"
+      },
+      "tag": "BUTTON",
+      "text": "Close"
+    },
+    {
+      "classes": "box-link",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "Visioneer Voices\n\nWhere thought leadership meets real-world impact."
+    },
+    {
+      "classes": "mn__link level-0 targetIsHidden ",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(255, 255, 255)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "0px",
+        "padding": "30.5px 16px"
+      },
+      "tag": "A",
+      "text": "Careers"
+    },
+    {
+      "classes": "btn btn-text",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline-block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "25px 0px 0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "Find out more"
+    },
+    {
+      "classes": "top-menu-close-btn",
+      "styles": {
+        "bg": "rgb(255, 255, 255)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "14px",
+        "margin": "35px 0px 0px",
+        "padding": "0px"
+      },
+      "tag": "BUTTON",
+      "text": "Close"
+    },
+    {
+      "classes": "box-link",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "Why join us?\n\nAt WSP, you will find the space you need to think bigger and build a career that\u2019s right for you."
+    },
+    {
+      "classes": " mn__link  level-0",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(255, 255, 255)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "0px",
+        "padding": "30.5px 16px"
+      },
+      "tag": "A",
+      "text": "Who we are"
+    },
+    {
+      "classes": " mn__link  level-0",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(255, 255, 255)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "0px",
+        "padding": "30.5px 16px"
+      },
+      "tag": "A",
+      "text": "What we do"
+    },
+    {
+      "classes": " mn__link  level-0",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(255, 255, 255)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "0px",
+        "padding": "30.5px 16px"
+      },
+      "tag": "A",
+      "text": "Insights"
+    },
+    {
+      "classes": " mn__link  level-0",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(255, 255, 255)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "0px",
+        "padding": "30.5px 16px"
+      },
+      "tag": "A",
+      "text": "Careers"
+    },
+    {
+      "classes": "ln_sub-link",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(255, 255, 255)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(255, 255, 255)",
+        "display": "inline-block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "35px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "FR"
+    },
+    {
+      "classes": "cls__btn ",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline-block",
+        "fontFamily": "PPNeueMontreal-Regular, sans-serif",
+        "fontSize": "11px",
+        "fontWeight": "700",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "33px",
+        "margin": "0px",
+        "padding": "29px 0px 19px 10px"
+      },
+      "tag": "BUTTON",
+      "text": ""
+    },
+    {
+      "classes": "sn__sub-link",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Regular, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "22.8571px",
+        "margin": "0px",
+        "padding": "32px 0px 0px 25px"
+      },
+      "tag": "A",
+      "text": "Select your language and location"
+    },
+    {
+      "classes": "top-menu-close-btn",
+      "styles": {
+        "bg": "rgb(255, 255, 255)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Regular, sans-serif",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "14px",
+        "margin": "-6px 0px 0px",
+        "padding": "0px"
+      },
+      "tag": "BUTTON",
+      "text": "Close"
+    },
+    {
+      "classes": "country tcl__link active",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "Fran\u00e7ais"
+    },
+    {
+      "classes": "country tcl__link ",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "Fran\u00e7ais"
+    },
+    {
+      "classes": "country tcl__link ",
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "A",
+      "text": "Espa\u00f1ol"
+    }
+  ],
+  "headings": [
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 15px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "We are the home of ambitious, passionate, and innovative engineering experts, scientists and advisors."
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Who we are"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Corporate responsibility"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "20px 0px 15px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Unlocking potential everywhere"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 15px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "We work together with clients to plan, design, create and deliver innovative projects that shape the world."
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "16.8px",
+        "margin": "0px 0px 15px",
+        "padding": "0px"
+      },
+      "tag": "P",
+      "text": "VIEW ALL"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "What we do"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Property and Buildings"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Transport and Infrastructure"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Earth and Environment"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Mining and Metals"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Power and Energy"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Industry"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Water"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Advisory"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Services"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "20px 0px 15px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Supercharge tomorrow"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 15px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Our global experts offer compelling insights that provide new perspectives."
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Insights"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "20px 0px 15px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Visioneer Voices"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 15px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "What if you could do the kind of work the world needs?"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "0px 0px 32px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Careers"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "block",
+        "fontFamily": "PPNeueMontreal-Bold, sans-serif",
+        "fontSize": "20px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "26px",
+        "margin": "20px 0px 15px",
+        "padding": "0px"
+      },
+      "tag": "DIV",
+      "text": "Why join us?"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "SPAN",
+      "text": "Accountable for Tomorrow"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "SPAN",
+      "text": "Expertise at your service"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "SPAN",
+      "text": "Expertise at your service"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "SPAN",
+      "text": "Expertise at your service"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "SPAN",
+      "text": "Expertise at your service"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "SPAN",
+      "text": "Expertise at your service"
+    },
+    {
+      "styles": {
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "0px none rgb(20, 18, 18)",
+        "borderRadius": "0px",
+        "boxShadow": "none",
+        "color": "rgb(20, 18, 18)",
+        "display": "inline",
+        "fontFamily": "PPNeueMontreal-Medium, sans-serif",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "gridTemplateColumns": "none",
+        "letterSpacing": "normal",
+        "lineHeight": "20px",
+        "margin": "0px",
+        "padding": "0px"
+      },
+      "tag": "SPAN",
+      "text": "Expertise at your service"
+    }
+  ],
+  "navLinks": [
+    {
+      "classes": " logo",
+      "href": "https://www.wsp.com/en-gl/",
+      "text": "WSP"
+    },
+    {
+      "classes": " logo",
+      "href": "https://www.wsp.com/en-gl/",
+      "text": ""
+    },
+    {
+      "classes": "mn__link level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/who-we-are",
+      "text": "Who we are"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/who-we-are",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/who-we-are/our-history",
+      "text": "Our history"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/future-ready",
+      "text": "Future Ready"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility",
+      "text": "Corporate responsibility"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/who-we-are/global-leadership",
+      "text": "Global leadership"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/who-we-are/global-strategic-plan",
+      "text": "Global Strategic Plan"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/our-impact",
+      "text": "Our impact"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/communities",
+      "text": "Communities"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity",
+      "text": "Ethics and integrity"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/health-safety",
+      "text": "Health and safety"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/inclusion-and-belonging",
+      "text": "Inclusion and belonging"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/indigenous-relations",
+      "text": "Indigenous relations"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "classes": "box-link",
+      "href": "https://www.wsp.com/en-gl/our-impact",
+      "text": "Unlocking potential everywhere\n\nAs Visioneers we see the potential everywhere, harnessing it to embrace the complex challenges of today\u2019s world. Blazing the trails of purposeful innovation across new frontiers and designing a world where communities can thrive. \n\nDiscover our latest projects highlighting our commitment to innovation, sustainability and engineering excellence. See how we\u2019re shaping the future of communities around the globe."
+    },
+    {
+      "classes": "mn__link level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/what-we-do",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/sectors",
+      "text": "Sectors"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/services",
+      "text": "Services"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/projects",
+      "text": "Projects"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/what-we-do",
+      "text": "Overview"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/property-and-buildings",
+      "text": "Property and Buildings"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/transportation-and-infrastructure",
+      "text": "Transport and Infrastructure"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/sectors/earth-and-environment",
+      "text": "Earth and Environment"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/sectors/mining-and-metals",
+      "text": "Mining and Metals"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/sectors/power-and-energy",
+      "text": "Power and Energy"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/industry",
+      "text": "Industry"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/water-solutions",
+      "text": "Water"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Advisory"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/hubs/services",
+      "text": "Services"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/property-and-buildings",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/commercial-and-mixed-use",
+      "text": "Commercial and Mixed Use"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/cultural",
+      "text": "Cultural"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/data-centers",
+      "text": "Data Centers"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/education",
+      "text": "Education"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/existing-buildings",
+      "text": "Existing Buildings"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/government-and-public-buildings",
+      "text": "Government"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/healthcare",
+      "text": "Healthcare"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/heritage-solutions",
+      "text": "Heritage"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/high-rise",
+      "text": "High-Rise"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/hospitality",
+      "text": "Hospitality"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/residential",
+      "text": "Residential"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/retail",
+      "text": "Retail"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/science",
+      "text": "Science"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/sports-and-events",
+      "text": "Sports and Events"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/telecommunications",
+      "text": "Telecommunication"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/timber",
+      "text": "Timber"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/workplace",
+      "text": "Workplace"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/transportation-and-infrastructure",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/asset-management-consulting-and-advisory",
+      "text": "Asset Management"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/aviation",
+      "text": "Aviation"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/building-information-modelling-bim",
+      "text": "BIM"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/bridges-and-civil-structures",
+      "text": "Bridges and Civil Structures"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/cities-and-communities",
+      "text": "Cities and Communities"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/design-build",
+      "text": "Design Build"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/intelligent-mobility",
+      "text": "Intelligent Mobility"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/maritime",
+      "text": "Maritime"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/public-private-partnerships-ppp",
+      "text": "PPP"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/rail-and-transit",
+      "text": "Rail and Transit"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/roads-and-highways",
+      "text": "Roads and Highways"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/transport-planning",
+      "text": "Transport Planning"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/tunnel-structures-and-systems",
+      "text": "Tunnel Structures and Systems"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/earth-and-environment",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/sustainability-and-climate-solutions",
+      "text": "Sustainability and Climate Solutions"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/air-quality",
+      "text": "Air Quality"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/biodiversity-and-natural-capital",
+      "text": "Biodiversity & Natural Capital"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/contaminated-land-and-soil-remediation",
+      "text": "Contaminated Land and Soil Remediation"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/environment-health-and-safety-management",
+      "text": "Environment, Health and Safety"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/environmental-and-social-impact-assessment-and-planning",
+      "text": "Environmental and Social Impact"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/compliance-due-diligence",
+      "text": "Environmental Compliance"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/environmental-due-diligence",
+      "text": "Environmental Due Diligence"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/geotechnical-and-ground-engineering",
+      "text": "Geotechnical & Ground Engineering"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/surveying-mapping-and-gis",
+      "text": "GIS, Mapping and Surveying"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/licensing-and-permitting",
+      "text": "Licensing and Permitting"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/materials-engineering-and-quality-management",
+      "text": "Materials Engineering and QM"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/pfas-management-investigation-and-treatment",
+      "text": "PFAS Management, Investigation and Treatment"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/strategic-environmental-assessment",
+      "text": "Strategic Environmental Assessment"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/waste-management-and-landfill",
+      "text": "Waste Management"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/mining-and-metals",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/geology",
+      "text": "Geology"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/geotechnical-and-ground-engineering",
+      "text": "Geotechnical and ground engineering"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/mine-closure-and-rehabilitation",
+      "text": "Mine closure and rehabilitation"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/mine-engineering",
+      "text": "Mine engineering"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/mine-infrastructure",
+      "text": "Mine infrastructure"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/mine-water-management",
+      "text": "Mine water management"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/mineral-processing",
+      "text": "Mineral processing"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/tailings-and-mine-waste-management",
+      "text": "Tailings mine waste management"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/power-and-energy",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/geothermal-energy",
+      "text": "Geothermal energy"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/hydrogen",
+      "text": "Hydrogen"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/hydropower",
+      "text": "Hydropower"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/nuclear-energy",
+      "text": "Nuclear energy"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/oil-and-gas",
+      "text": "Oil and gas"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/services/power-transmission-and-distribution",
+      "text": "Power transmission and distribution"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/solar-energy",
+      "text": "Solar energy"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/thermal-energy-and-bioenergy",
+      "text": "Thermal energy and bioenergy"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/wind-energy",
+      "text": "Wind energy"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/industry",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/aerospace",
+      "text": "Aerospace"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/automotive-industry",
+      "text": "Automotive and Battery Plants"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/chemical-industry",
+      "text": "Chemical Industry"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/construction-products",
+      "text": "Construction Products"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/consumer-products",
+      "text": "Consumer Products"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/food-and-beverages",
+      "text": "Food and Beverages"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/metal-industry",
+      "text": "Metal Industry"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/pharmaceutical-and-life-sciences",
+      "text": "Pharmaceutical and Life Sciences"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/process-energy",
+      "text": "Process Energy"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/pulp-and-paper",
+      "text": "Pulp and Paper"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/water-solutions",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/drinking-water-supply",
+      "text": "Drinking Water Supply"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/industrial-water-and-wastewater-management",
+      "text": "Industrial Water & Wastewater Management"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/water",
+      "text": "Water and Wastewater Treatment"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/water-resources",
+      "text": "Water Resources"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/water-transmission-and-wastewater-conveyance",
+      "text": "Water Transmission and Wastewater Conveyance"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/digital-solutions",
+      "text": "Digital Solutions"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/services",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Advisory"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/design",
+      "text": "Design Services"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/digital-solutions",
+      "text": "Digital Solutions"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/net-zero",
+      "text": "Net Zero"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/planning",
+      "text": "Planning Services"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/project-delivery",
+      "text": "Project Delivery"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/safety-and-security",
+      "text": "Safety and Security"
+    },
+    {
+      "classes": "box-link",
+      "href": "https://www.wsp.com/en-gl/campaigns/supercharge-tomorrow",
+      "text": "Supercharge tomorrow\n\nAs global power demand rises, we\u2019re helping clients across all sectors accelerate the transition to a secure, resilient, and low-carbon energy future. WSP is shaping smarter energy systems, built to meet today\u2019s challenges and tomorrow\u2019s opportunities."
+    },
+    {
+      "classes": "mn__link level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/insights",
+      "text": "Insights"
+    },
+    {
+      "classes": "btn btn-text",
+      "href": "https://www.wsp.com/en-gl/insights",
+      "text": "View all"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/insights",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/climate",
+      "text": "Climate"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/mobility",
+      "text": "Mobility"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/places",
+      "text": "Places"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/resources",
+      "text": "Resources"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/society",
+      "text": "Society"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/insights/technology",
+      "text": "Technology"
+    },
+    {
+      "classes": "box-link",
+      "href": "https://www.wsp.com/en-gl/insights/visioneer-voices",
+      "text": "Visioneer Voices\n\nWhere thought leadership meets real-world impact."
+    },
+    {
+      "classes": "mn__link level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/careers",
+      "text": "Careers"
+    },
+    {
+      "classes": "btn btn-text",
+      "href": "https://www.wsp.com/en-gl/careers",
+      "text": "Find out more"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/careers",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/careers/job-opportunities",
+      "text": "Job opportunities"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/careers/early-career",
+      "text": "Early career"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/careers/experienced-professionals",
+      "text": "Experienced professionals"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/careers/why-join-us",
+      "text": "Why join us?"
+    },
+    {
+      "classes": "box-link",
+      "href": "https://www.wsp.com/en-gl/careers/why-join-us",
+      "text": "Why join us?\n\nAt WSP, you will find the space you need to think bigger and build a career that\u2019s right for you."
+    },
+    {
+      "classes": " mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "Who we are"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/who-we-are",
+      "text": "Overview"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/our-history",
+      "text": "Our history"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/future-ready",
+      "text": "Future Ready"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility",
+      "text": "Corporate responsibility"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Who we are"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/communities",
+      "text": "Communities"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity",
+      "text": "Ethics and integrity"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/health-safety",
+      "text": "Health and safety"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/inclusion-and-belonging",
+      "text": "Inclusion and belonging"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/indigenous-relations",
+      "text": "Indigenous relations"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/global-leadership",
+      "text": "Global leadership"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/global-strategic-plan",
+      "text": "Global Strategic Plan"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/our-impact",
+      "text": "Our impact"
+    },
+    {
+      "classes": " mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/what-we-do",
+      "text": "Overview"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/property-and-buildings",
+      "text": "Property and Buildings"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/property-and-buildings",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/commercial-and-mixed-use",
+      "text": "Commercial and Mixed Use"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/cultural",
+      "text": "Cultural"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/data-centers",
+      "text": "Data Centers"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/education",
+      "text": "Education"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/existing-buildings",
+      "text": "Existing Buildings"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/government-and-public-buildings",
+      "text": "Government"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/healthcare",
+      "text": "Healthcare"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/heritage-solutions",
+      "text": "Heritage"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/high-rise",
+      "text": "High-Rise"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/hospitality",
+      "text": "Hospitality"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/residential",
+      "text": "Residential"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/retail",
+      "text": "Retail"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/science",
+      "text": "Science"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/sports-and-events",
+      "text": "Sports and Events"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/telecommunications",
+      "text": "Telecommunication"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/timber",
+      "text": "Timber"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/workplace",
+      "text": "Workplace"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/transportation-and-infrastructure",
+      "text": "Transport and Infrastructure"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/transportation-and-infrastructure",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/asset-management-consulting-and-advisory",
+      "text": "Asset Management"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/aviation",
+      "text": "Aviation"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/building-information-modelling-bim",
+      "text": "BIM"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/bridges-and-civil-structures",
+      "text": "Bridges and Civil Structures"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/cities-and-communities",
+      "text": "Cities and Communities"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/design-build",
+      "text": "Design Build"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/intelligent-mobility",
+      "text": "Intelligent Mobility"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/maritime",
+      "text": "Maritime"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/public-private-partnerships-ppp",
+      "text": "PPP"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/rail-and-transit",
+      "text": "Rail and Transit"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/roads-and-highways",
+      "text": "Roads and Highways"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/transport-planning",
+      "text": "Transport Planning"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/tunnel-structures-and-systems",
+      "text": "Tunnel Structures and Systems"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/earth-and-environment",
+      "text": "Earth and Environment"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/earth-and-environment",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/sustainability-and-climate-solutions",
+      "text": "Sustainability and Climate Solutions"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/air-quality",
+      "text": "Air Quality"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/biodiversity-and-natural-capital",
+      "text": "Biodiversity & Natural Capital"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/contaminated-land-and-soil-remediation",
+      "text": "Contaminated Land and Soil Remediation"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/environment-health-and-safety-management",
+      "text": "Environment, Health and Safety"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/environmental-and-social-impact-assessment-and-planning",
+      "text": "Environmental and Social Impact"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/compliance-due-diligence",
+      "text": "Environmental Compliance"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/environmental-due-diligence",
+      "text": "Environmental Due Diligence"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/geotechnical-and-ground-engineering",
+      "text": "Geotechnical & Ground Engineering"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/surveying-mapping-and-gis",
+      "text": "GIS, Mapping and Surveying"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/licensing-and-permitting",
+      "text": "Licensing and Permitting"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/materials-engineering-and-quality-management",
+      "text": "Materials Engineering and QM"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/pfas-management-investigation-and-treatment",
+      "text": "PFAS Management, Investigation and Treatment"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/strategic-environmental-assessment",
+      "text": "Strategic Environmental Assessment"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/waste-management-and-landfill",
+      "text": "Waste Management"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/mining-and-metals",
+      "text": "Mining and Metals"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/mining-and-metals",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/geology",
+      "text": "Geology"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/geotechnical-and-ground-engineering",
+      "text": "Geotechnical and ground engineering"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/mine-closure-and-rehabilitation",
+      "text": "Mine closure and rehabilitation"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/mine-engineering",
+      "text": "Mine engineering"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/mine-infrastructure",
+      "text": "Mine infrastructure"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/mine-water-management",
+      "text": "Mine water management"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/mineral-processing",
+      "text": "Mineral processing"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/tailings-and-mine-waste-management",
+      "text": "Tailings mine waste management"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/sectors/power-and-energy",
+      "text": "Power and Energy"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/power-and-energy",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/geothermal-energy",
+      "text": "Geothermal energy"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/hydrogen",
+      "text": "Hydrogen"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/hydropower",
+      "text": "Hydropower"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/nuclear-energy",
+      "text": "Nuclear energy"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/oil-and-gas",
+      "text": "Oil and gas"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/services/power-transmission-and-distribution",
+      "text": "Power transmission and distribution"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/solar-energy",
+      "text": "Solar energy"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/thermal-energy-and-bioenergy",
+      "text": "Thermal energy and bioenergy"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/wind-energy",
+      "text": "Wind energy"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/industry",
+      "text": "Industry"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/industry",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/aerospace",
+      "text": "Aerospace"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/automotive-industry",
+      "text": "Automotive and Battery Plants"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/chemical-industry",
+      "text": "Chemical Industry"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/construction-products",
+      "text": "Construction Products"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/consumer-products",
+      "text": "Consumer Products"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/food-and-beverages",
+      "text": "Food and Beverages"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/metal-industry",
+      "text": "Metal Industry"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/pharmaceutical-and-life-sciences",
+      "text": "Pharmaceutical and Life Sciences"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/process-energy",
+      "text": "Process Energy"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/pulp-and-paper",
+      "text": "Pulp and Paper"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/water-solutions",
+      "text": "Water"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/water-solutions",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/drinking-water-supply",
+      "text": "Drinking Water Supply"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/industrial-water-and-wastewater-management",
+      "text": "Industrial Water & Wastewater Management"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/water",
+      "text": "Water and Wastewater Treatment"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/water-resources",
+      "text": "Water Resources"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/sectors/water-transmission-and-wastewater-conveyance",
+      "text": "Water Transmission and Wastewater Conveyance"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Advisory"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/digital-solutions",
+      "text": "Digital Solutions"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/hubs/services",
+      "text": "Services"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "What we do"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/services",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/advisory-services",
+      "text": "Advisory"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/design",
+      "text": "Design Services"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/digital-solutions",
+      "text": "Digital Solutions"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/net-zero",
+      "text": "Net Zero"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/planning",
+      "text": "Planning Services"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/project-delivery",
+      "text": "Project Delivery"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/hubs/safety-and-security",
+      "text": "Safety and Security"
+    },
+    {
+      "classes": " mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "Insights"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/insights",
+      "text": "Overview"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/climate",
+      "text": "Climate"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/mobility",
+      "text": "Mobility"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/places",
+      "text": "Places"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/resources",
+      "text": "Resources"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/society",
+      "text": "Society"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/insights/technology",
+      "text": "Technology"
+    },
+    {
+      "classes": " mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "Careers"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/careers",
+      "text": "Overview"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/careers/job-opportunities",
+      "text": "Job opportunities"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/careers/early-career",
+      "text": "Early career"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/careers/experienced-professionals",
+      "text": "Experienced professionals"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/careers/why-join-us",
+      "text": "Why join us?"
+    },
+    {
+      "classes": "ln_sub-link",
+      "href": "https://www.wsp.com/fr-gl/",
+      "text": "FR"
+    },
+    {
+      "classes": "sn__sub-link",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Select your language and location"
+    },
+    {
+      "classes": "country tcl__link active",
+      "href": "https://www.wsp.com/en-gl/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/fr-gl/",
+      "text": "Fran\u00e7ais"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-ca/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/fr-ca/",
+      "text": "Fran\u00e7ais"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/es-la/",
+      "text": "Espa\u00f1ol"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/pt-br/",
+      "text": "Portugu\u00eas"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-us/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-za/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/zh-cn/",
+      "text": "\u4e2d\u6587(\u7b80\u4f53)"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-cn/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-hk/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-gl/sites/india",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-id/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-my/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-ph/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-sg/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/ko-kr/",
+      "text": "\ud55c\uad6d\uc5b4(\ub300\ud55c\ubbfc\uad6d)"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-kr/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-th/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/da-dk/",
+      "text": "Dansk"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/fi-fi/",
+      "text": "Suomi"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/fr-fr/",
+      "text": "Fran\u00e7ais"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/de-de/",
+      "text": "Deutsch"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-gl/sites/hungary",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/it-it/",
+      "text": "Italiano"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/nl-nl/",
+      "text": "Nederlands"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/nb-no/",
+      "text": "Norsk"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/pl-pl/",
+      "text": "Polski"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-gl/sites/romania",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/es-es/",
+      "text": "Espa\u00f1ol"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/sv-se/",
+      "text": "Svenska"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/de-ch/",
+      "text": "Deutsch"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/fr-ch/",
+      "text": "Fran\u00e7ais"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-gl/sites/turkey",
+      "text": "Turkish"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-gb/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-me/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-au/",
+      "text": "English"
+    },
+    {
+      "classes": "country tcl__link ",
+      "href": "https://www.wsp.com/en-nz/",
+      "text": "English"
+    },
+    {
+      "classes": "btn btn-secondary",
+      "href": "https://www.wsp.com/en-gl/contact-us/offices",
+      "text": "Worldwide offices"
+    },
+    {
+      "classes": "mn__link  level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Investors"
+    },
+    {
+      "classes": "btn btn-text",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Find out more"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Overview"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Reports and filings"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Stock information"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Shareholder information"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Presentations and events"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/audit-committee",
+      "text": "Audit committee"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/board-of-directors",
+      "text": "Board of directors"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity#business-conduct-hotline",
+      "text": "Business Conduct Hotline"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/constating-documents",
+      "text": "Constating documents"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-documents",
+      "text": "Governance documents"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-ethics-and-compensation-committee",
+      "text": "Governance ethics and compensation committee"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/mandates",
+      "text": "Mandates"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#AIF",
+      "text": "AIF"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Annual",
+      "text": "Annual"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Information-Circular",
+      "text": "Information circular"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Quarterly",
+      "text": "Quarterly"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sedar-Filings",
+      "text": "SEDAR+ filings"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information/analyst-coverage",
+      "text": "Analyst coverage"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/acquisitions",
+      "text": "Acquisitions"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/dividends",
+      "text": "Dividends"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/faq",
+      "text": "FAQ"
+    },
+    {
+      "classes": "box-link",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events/wsp-q3-2026-results",
+      "text": "WSP's Q3 2026 Results\n\nWe released our 2026 third quarter results on November 4, 2026, after market close."
+    },
+    {
+      "classes": "mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "Investors"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Overview"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/audit-committee",
+      "text": "Audit committee"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/board-of-directors",
+      "text": "Board of directors"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity#business-conduct-hotline",
+      "text": "Business Conduct Hotline"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/constating-documents",
+      "text": "Constating documents"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-documents",
+      "text": "Governance documents"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-ethics-and-compensation-committee",
+      "text": "Governance ethics and compensation committee"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/mandates",
+      "text": "Mandates"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Reports and filings"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#AIF",
+      "text": "AIF"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Annual",
+      "text": "Annual"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Information-Circular",
+      "text": "Information circular"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Quarterly",
+      "text": "Quarterly"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sedar-Filings",
+      "text": "SEDAR+ filings"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Stock information"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information/analyst-coverage",
+      "text": "Analyst coverage"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Shareholder information"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/acquisitions",
+      "text": "Acquisitions"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/dividends",
+      "text": "Dividends"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/faq",
+      "text": "FAQ"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Presentations and events"
+    },
+    {
+      "classes": "mn__link  level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/news",
+      "text": "News"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/news",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/news",
+      "text": "Latest news"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Events for investors"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/events",
+      "text": "Events and webinars"
+    },
+    {
+      "classes": "box-link",
+      "href": "https://www.wsp.com/en-gl/campaigns/climate-change-webinars",
+      "text": "Climate Change Webinars\n\nDiscover case studies addressing climate change adaptation and mitigation projects. WSP experts will discuss frameworks and methodologies to tackle the impacts of climate change."
+    },
+    {
+      "classes": "mn__link  level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/contact-us",
+      "text": "Contact us"
+    },
+    {
+      "classes": "mn__link  level-0 targetIsHidden ",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Investors"
+    },
+    {
+      "classes": "btn btn-text",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Find out more"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Overview"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Reports and filings"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Stock information"
+    },
+    {
+      "classes": " hasSubitems level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Shareholder information"
+    },
+    {
+      "classes": "level-1 ",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Presentations and events"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/audit-committee",
+      "text": "Audit committee"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/board-of-directors",
+      "text": "Board of directors"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity#business-conduct-hotline",
+      "text": "Business Conduct Hotline"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/constating-documents",
+      "text": "Constating documents"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-documents",
+      "text": "Governance documents"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-ethics-and-compensation-committee",
+      "text": "Governance ethics and compensation committee"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/mandates",
+      "text": "Mandates"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#AIF",
+      "text": "AIF"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Annual",
+      "text": "Annual"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Information-Circular",
+      "text": "Information circular"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Quarterly",
+      "text": "Quarterly"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sedar-Filings",
+      "text": "SEDAR+ filings"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information/analyst-coverage",
+      "text": "Analyst coverage"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Overview"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/acquisitions",
+      "text": "Acquisitions"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/dividends",
+      "text": "Dividends"
+    },
+    {
+      "classes": "level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/faq",
+      "text": "FAQ"
+    },
+    {
+      "classes": "box-link",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events/wsp-q3-2026-results",
+      "text": "WSP's Q3 2026 Results\n            We released our 2026 third quarter results on November 4, 2026, after market close."
+    },
+    {
+      "classes": "mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "Investors"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/investors",
+      "text": "Overview"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Corporate governance"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/audit-committee",
+      "text": "Audit committee"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/board-of-directors",
+      "text": "Board of directors"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/who-we-are/corporate-responsibility/ethics-integrity#business-conduct-hotline",
+      "text": "Business Conduct Hotline"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/constating-documents",
+      "text": "Constating documents"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-documents",
+      "text": "Governance documents"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/governance-ethics-and-compensation-committee",
+      "text": "Governance ethics and compensation committee"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/corporate-governance/mandates",
+      "text": "Mandates"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Reports and filings"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#AIF",
+      "text": "AIF"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Annual",
+      "text": "Annual"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Information-Circular",
+      "text": "Information circular"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Quarterly",
+      "text": "Quarterly"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sedar-Filings",
+      "text": "SEDAR+ filings"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/reports-and-filings#Sustainability",
+      "text": "Sustainability"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Stock information"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/stock-information/analyst-coverage",
+      "text": "Analyst coverage"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Shareholder information"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": "Investors"
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": " level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information",
+      "text": "Overview"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/#",
+      "text": ""
+    },
+    {
+      "classes": "",
+      "href": "",
+      "text": ""
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/acquisitions",
+      "text": "Acquisitions"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/dividends",
+      "text": "Dividends"
+    },
+    {
+      "classes": "  level-3",
+      "href": "https://www.wsp.com/en-gl/investors/shareholder-information/faq",
+      "text": "FAQ"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Presentations and events"
+    },
+    {
+      "classes": "mn__link  level-0",
+      "href": "javascript:void(0);",
+      "text": "News"
+    },
+    {
+      "classes": "",
+      "href": "https://www.wsp.com/en-gl/news",
+      "text": "Overview"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/news",
+      "text": "Latest news"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/press-releases",
+      "text": "Press releases"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/investors/presentations-and-events",
+      "text": "Events for investors"
+    },
+    {
+      "classes": "  level-1",
+      "href": "https://www.wsp.com/en-gl/events",
+      "text": "Events and webinars"
+    },
+    {
+      "classes": "mn__link  level-0",
+      "href": "https://www.wsp.com/en-gl/contact-us",
+      "text": "Contact us"
+    },
+    {
+      "classes": "CoveoSearchButton coveo-accessible-button",
+      "href": "",
+      "text": "SearchLoading"
+    },
+    {
+      "classes": "transparent-layer overlay-black opacity-45",
+      "href": "https://www.wsp.com/en-gl/insights/anatomy-of-a-powerful-vision",
+      "text": ""
+    },
+    {
+      "classes": "btn btn-primary",
+      "href": "https://www.wsp.com/en-gl/insights/anatomy-of-a-powerful-vision",
+      "text": "Watch now"
+    },
+    {
+      "classes": "transparent-layer overlay-black opacity-45",
+      "href": "https://www.wsp.com/en-gl/insights/anatomy-of-a-powerful-vision",
+      "text": ""
+    },
+    {
+      "classes": "btn btn-primary",
+      "href": "https://www.wsp.com/en-gl/insights/anatomy-of-a-powerful-vision",
+      "text": "Watch now"
+    }
+  ],
+  "title": "WSP | Global engineering and professional services firm | WSP"
+}

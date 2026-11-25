@@ -37,9 +37,11 @@ export interface InquiryItem {
 interface LeadsViewProps {
   inquiries: InquiryItem[];
   loading?: boolean;
+  currentUserName?: string;
   onUpdateStatus: (id: string, status: InquiryStatus, internalNotes?: string) => Promise<void>;
   onDeleteInquiry: (id: string) => Promise<void>;
   onRefresh: () => void;
+  onOpenMessages?: () => void;
   triggerFeedback?: (msg: string, type?: 'success' | 'error') => void;
 }
 
@@ -49,6 +51,8 @@ const statusColumns: {
   badge: string;
   dot: string;
   borderTop: string;
+  colBg: string;
+  countBg: string;
 }[] = [
   {
     id: 'NEW',
@@ -56,6 +60,8 @@ const statusColumns: {
     badge: 'bg-rose-50 text-rose-700 border-rose-200',
     dot: 'bg-rose-500',
     borderTop: 'border-t-rose-500',
+    colBg: 'bg-rose-50/40 border-rose-200/70',
+    countBg: 'bg-rose-100 text-rose-800',
   },
   {
     id: 'CONTACTED',
@@ -63,13 +69,17 @@ const statusColumns: {
     badge: 'bg-amber-50 text-amber-700 border-amber-200',
     dot: 'bg-amber-500',
     borderTop: 'border-t-amber-500',
+    colBg: 'bg-amber-50/40 border-amber-200/70',
+    countBg: 'bg-amber-100 text-amber-800',
   },
   {
     id: 'IN_PROGRESS',
     label: 'In Discussion',
-    badge: 'bg-sky-50 text-sky-700 border-sky-200',
-    dot: 'bg-sky-500',
-    borderTop: 'border-t-sky-500',
+    badge: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    dot: 'bg-indigo-500',
+    borderTop: 'border-t-indigo-500',
+    colBg: 'bg-indigo-50/40 border-indigo-200/70',
+    countBg: 'bg-indigo-100 text-indigo-800',
   },
   {
     id: 'RESOLVED',
@@ -77,6 +87,8 @@ const statusColumns: {
     badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     dot: 'bg-emerald-500',
     borderTop: 'border-t-emerald-500',
+    colBg: 'bg-emerald-50/40 border-emerald-200/70',
+    countBg: 'bg-emerald-100 text-emerald-800',
   },
 ];
 
@@ -118,12 +130,33 @@ function formatRelative(value: string) {
   return new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short' }).format(date);
 }
 
+function parseNotesAndAudit(raw = '') {
+  const match = raw.match(/\[Updated by ([^\]]+)\]\s*$/);
+  return {
+    audit: match ? match[1].trim() : '',
+    cleanNotes: match ? raw.replace(match[0], '').trim() : raw,
+  };
+}
+
+function buildAuditedNotes(cleanNotes: string, userName?: string) {
+  const stamp = `[Updated by ${userName || 'Admin'} · ${new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date())}]`;
+  const trimmed = cleanNotes.trim();
+  return trimmed ? `${trimmed}\n${stamp}` : stamp;
+}
+
 export function LeadsView({
   inquiries,
   loading = false,
+  currentUserName,
   onUpdateStatus,
   onDeleteInquiry,
   onRefresh,
+  onOpenMessages,
   triggerFeedback,
 }: LeadsViewProps) {
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
@@ -164,16 +197,17 @@ export function LeadsView({
   const details = active ? organizationAndMessage(active.message) : null;
 
   React.useEffect(() => {
-    setNotes(active?.internalNotes || '');
+    setNotes(parseNotesAndAudit(active?.internalNotes || '').cleanNotes);
   }, [active?.id, active?.internalNotes]);
 
   const handleStatusChange = async (targetId: string, status: InquiryStatus, currentNotes?: string) => {
     setSaving(true);
     try {
-      await onUpdateStatus(targetId, status, currentNotes);
-      triggerFeedback?.('Lead stage moved.');
+      const clean = parseNotesAndAudit(currentNotes || '').cleanNotes;
+      await onUpdateStatus(targetId, status, buildAuditedNotes(clean, currentUserName));
+      triggerFeedback?.('Lead status updated.');
     } catch {
-      triggerFeedback?.('Could not move lead stage.', 'error');
+      triggerFeedback?.('Could not update lead status.', 'error');
     } finally {
       setSaving(false);
     }
@@ -183,8 +217,8 @@ export function LeadsView({
     if (!active) return;
     setSaving(true);
     try {
-      await onUpdateStatus(active.id, active.status, notes);
-      triggerFeedback?.('Internal notes saved.');
+      await onUpdateStatus(active.id, active.status, buildAuditedNotes(notes, currentUserName));
+      triggerFeedback?.('Lead notes saved.');
     } catch {
       triggerFeedback?.('Could not save notes.', 'error');
     } finally {
@@ -316,15 +350,15 @@ export function LeadsView({
                     setDraggedId(null);
                   }
                 }}
-                className={`bg-slate-100/70 border border-slate-200/90 border-t-3 ${col.borderTop} rounded-xl p-3 flex flex-col min-h-[500px] transition-colors`}
+                className={`${col.colBg} border border-t-3 ${col.borderTop} rounded-xl p-3 flex flex-col min-h-[500px] transition-colors`}
               >
                 {/* Column Header */}
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200/80">
+                <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200/70">
                   <div className="flex items-center gap-1.5">
                     <span className={`w-2 h-2 rounded-full ${col.dot}`} />
-                    <span className="text-xs font-bold text-slate-800">{col.label}</span>
+                    <span className="text-xs font-bold text-slate-900">{col.label}</span>
                   </div>
-                  <span className="text-[11px] font-mono font-semibold px-1.5 py-0.2 rounded bg-slate-200/80 text-slate-700">
+                  <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-md ${col.countBg}`}>
                     {columnItems.length}
                   </span>
                 </div>
@@ -382,11 +416,58 @@ export function LeadsView({
                               {item.serviceType || 'General'}
                             </span>
 
-                            {item.internalNotes ? (
-                              <span className="font-mono text-[9px] bg-amber-50 text-amber-700 border border-amber-200/60 px-1 py-0.2 rounded">
-                                Notes
+                            {parseNotesAndAudit(item.internalNotes || '').cleanNotes ? (
+                              <span className="font-semibold text-[10px] bg-amber-50 text-amber-700 border border-amber-200/70 px-1.5 py-0.5 rounded">
+                                Has Note
                               </span>
                             ) : null}
+                          </div>
+
+                          {parseNotesAndAudit(item.internalNotes || '').audit && (
+                            <div className="mt-1.5 text-[10px] text-slate-400 truncate">
+                              {parseNotesAndAudit(item.internalNotes || '').audit}
+                            </div>
+                          )}
+
+                          {/* Contact & Note Quick Actions */}
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center gap-1"
+                          >
+                            {item.phone && (
+                              <a
+                                href={`tel:${item.phone}`}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-semibold transition"
+                                title={`Call ${item.phone}`}
+                              >
+                                <Phone size={10} /> Call
+                              </a>
+                            )}
+                            <a
+                              href={`mailto:${item.email}`}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-semibold transition"
+                              title={`Email ${item.email}`}
+                            >
+                              <Mail size={10} /> Email
+                            </a>
+                            {onOpenMessages && (
+                              <button
+                                type="button"
+                                onClick={onOpenMessages}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-semibold transition cursor-pointer"
+                                title="Open Messages Inbox"
+                              >
+                                <MessageSquare size={10} /> Message
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setSelectedId(item.id)}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold transition cursor-pointer ml-auto"
+                              title="Add or view notes"
+                            >
+                              + Note
+                            </button>
                           </div>
 
                           {/* Quick stage mover strip */}
@@ -504,120 +585,179 @@ export function LeadsView({
 
       {/* Slide-over Lead Detail Drawer */}
       {active && details && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/30 backdrop-blur-2xs transition-opacity animate-in fade-in">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between border-l border-slate-200">
+        <div
+          onClick={() => setSelectedId(null)}
+          className="fixed inset-0 z-50 flex justify-end bg-slate-950/50 backdrop-blur-xs transition-opacity"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-xl bg-white h-full shadow-2xl flex flex-col border-l border-slate-200"
+          >
             {/* Drawer Header */}
-            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-bold text-slate-900">{active.fullName}</h3>
-                  <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                      statusMetaMap[active.status].badge
-                    }`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${statusMetaMap[active.status].dot}`} />
-                    <span>{statusMetaMap[active.status].label}</span>
-                  </span>
+            <div className="px-6 py-5 border-b border-slate-200 bg-slate-50/70 flex items-start justify-between gap-4 shrink-0">
+              <div className="flex items-start gap-3.5 min-w-0">
+                <div className="w-11 h-11 rounded-xl bg-indigo-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs">
+                  {active.fullName
+                    .split(' ')
+                    .filter(Boolean)
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join('')
+                    .toUpperCase()}
                 </div>
-                <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500 font-mono">
-                  <Calendar size={12} className="text-slate-400" />
-                  <span>{formatDate(active.createdAt)}</span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base font-bold text-slate-900 truncate">{active.fullName}</h3>
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${
+                        statusMetaMap[active.status].badge
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${statusMetaMap[active.status].dot}`} />
+                      {statusMetaMap[active.status].label}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2.5 text-xs text-slate-500">
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar size={12} className="text-slate-400" />
+                      {formatDate(active.createdAt)}
+                    </span>
+                    {details.organization && (
+                      <span className="inline-flex items-center gap-1 text-slate-700 font-medium">
+                        <Building2 size={12} className="text-slate-400" />
+                        {details.organization}
+                      </span>
+                    )}
+                  </div>
+                  {parseNotesAndAudit(active.internalNotes || '').audit && (
+                    <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-indigo-700 bg-indigo-50 border border-indigo-200/70 px-2 py-0.5 rounded-md">
+                      {parseNotesAndAudit(active.internalNotes || '').audit}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => deleteInquiryRecord(active.id, active.fullName)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                  title="Delete record"
-                >
-                  <Trash2 size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedId(null)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
-                  title="Close drawer"
-                >
-                  <X size={16} />
-                </button>
+              <button
+                type="button"
+                onClick={() => setSelectedId(null)}
+                className="p-2 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 transition cursor-pointer shrink-0"
+                aria-label="Close drawer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Stage Pipeline Switcher */}
+            <div className="px-6 py-3 border-b border-slate-200 bg-white shrink-0">
+              <div className="grid grid-cols-4 gap-1.5">
+                {statusColumns.map((col) => {
+                  const isActive = active.status === col.id;
+                  return (
+                    <button
+                      key={col.id}
+                      type="button"
+                      disabled={saving}
+                      onClick={() => handleStatusChange(active.id, col.id, notes)}
+                      className={`py-2 px-2 rounded-lg text-[11px] font-semibold border transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                        isActive
+                          ? `${col.badge} shadow-2xs ring-1 ring-inset ring-current/20`
+                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${col.dot}`} />
+                      <span className="truncate">{col.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Drawer Body Content */}
-            <div className="p-5 overflow-y-auto space-y-4 flex-1">
-              {/* Contact Information */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 font-mono tracking-wider">
-                    Direct Contact
+            {/* Drawer Body */}
+            <div className="p-6 overflow-y-auto space-y-5 flex-1">
+              {/* Contact Actions & Details */}
+              <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3.5 shadow-2xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    Contact &amp; Actions
                   </span>
-                  <a
-                    href={`mailto:${active.email}`}
-                    className="flex items-center gap-2 text-slate-900 hover:underline font-mono truncate"
-                  >
-                    <Mail size={13} className="text-slate-400 shrink-0" />
-                    <span className="truncate">{active.email}</span>
-                  </a>
-                  {active.phone ? (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {active.phone && (
+                      <a
+                        href={`tel:${active.phone}`}
+                        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition"
+                      >
+                        <Phone size={13} /> Call
+                      </a>
+                    )}
                     <a
-                      href={`tel:${active.phone}`}
-                      className="flex items-center gap-2 text-slate-900 hover:underline font-mono"
+                      href={`mailto:${active.email}`}
+                      className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition"
                     >
-                      <Phone size={13} className="text-slate-400 shrink-0" />
-                      <span>{active.phone}</span>
+                      <Mail size={13} /> Email
                     </a>
-                  ) : (
-                    <span className="text-[11px] text-slate-400 italic">No phone provided</span>
-                  )}
+                    {onOpenMessages && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedId(null);
+                          onOpenMessages();
+                        }}
+                        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition cursor-pointer"
+                      >
+                        <MessageSquare size={13} /> Message
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 font-mono tracking-wider">
-                    Category &amp; Org
-                  </span>
-                  <div className="flex items-center gap-1.5 text-slate-900 font-semibold truncate">
-                    <Tag size={13} className="text-slate-400 shrink-0" />
-                    <span className="truncate">{active.serviceType || 'General Consultation'}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 text-xs">
+                  <div>
+                    <span className="text-[11px] text-slate-400 block">Email Address</span>
+                    <a href={`mailto:${active.email}`} className="font-semibold text-slate-900 hover:text-indigo-600 truncate block mt-0.5">
+                      {active.email}
+                    </a>
                   </div>
-                  {details.organization ? (
-                    <div className="flex items-center gap-1.5 text-slate-700 truncate">
-                      <Building2 size={13} className="text-slate-400 shrink-0" />
-                      <span className="truncate">{details.organization}</span>
-                    </div>
-                  ) : (
-                    <span className="text-[11px] text-slate-400 italic">Private Inquiry</span>
-                  )}
+                  <div>
+                    <span className="text-[11px] text-slate-400 block">Phone Number</span>
+                    <span className="font-semibold text-slate-900 block mt-0.5">
+                      {active.phone || 'Not provided'}
+                    </span>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <span className="text-[11px] text-slate-400 block">Requested Service</span>
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900 mt-0.5">
+                      <Tag size={12} className="text-indigo-600" />
+                      {active.serviceType || 'General Consultation'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Inbound Message */}
-              <div className="p-4 bg-white rounded-lg border border-slate-200 space-y-2">
-                <span className="text-[10px] uppercase font-bold text-slate-400 font-mono tracking-wider flex items-center gap-1.5">
-                  <MessageSquare size={12} /> Message Body
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <MessageSquare size={12} className="text-indigo-600" /> Enquiry Message
                 </span>
-                <p className="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap font-normal">
+                <p className="text-xs text-slate-800 leading-relaxed whitespace-pre-wrap">
                   {details.message || 'No additional message was provided.'}
                 </p>
               </div>
 
-              {/* Internal Follow-up Notes */}
-              <div className="p-4 bg-white rounded-lg border border-slate-200 space-y-2.5">
+              {/* Internal Notes */}
+              <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 font-mono tracking-wider">
-                    Internal CRM Notes
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    Internal Notes
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">Confidential</span>
+                  <span className="text-[11px] text-slate-400">Team only</span>
                 </div>
 
                 <textarea
                   rows={4}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Record client responses, quotation status, site inspection dates..."
-                  className="w-full rounded-lg border border-slate-200 p-2.5 text-xs text-slate-800 outline-none focus:border-slate-800 font-mono"
+                  placeholder="Add follow-up notes, call summary, or quotation status..."
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50/60 p-3 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 leading-relaxed"
                 />
 
                 <div className="flex items-center justify-end">
@@ -625,37 +765,31 @@ export function LeadsView({
                     type="button"
                     onClick={saveActiveNotes}
                     disabled={saving}
-                    className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-black text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    className="h-8 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
-                    <Check size={12} />
+                    <Check size={13} />
                     <span>{saving ? 'Saving...' : 'Save Notes'}</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Drawer Footer Stage Actions */}
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
-              <span className="text-xs font-semibold text-slate-600">Stage:</span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {statusColumns.map((col) => {
-                  const isActive = active.status === col.id;
-                  return (
-                    <button
-                      key={col.id}
-                      type="button"
-                      onClick={() => handleStatusChange(active.id, col.id, notes)}
-                      className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition cursor-pointer ${
-                        isActive
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {col.label}
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Drawer Footer */}
+            <div className="px-6 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => deleteInquiryRecord(active.id, active.fullName)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-semibold transition cursor-pointer"
+              >
+                <Trash2 size={14} /> Delete Enquiry
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedId(null)}
+                className="h-8 px-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

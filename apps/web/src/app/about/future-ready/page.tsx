@@ -78,12 +78,17 @@ export default async function FutureReadyPage() {
   const displayedWorkstations = Array.isArray(wysiwyg?.workstationSpecs) && wysiwyg.workstationSpecs.length
     ? wysiwyg.workstationSpecs.map((item: any, index: number) => ({ name: item.component || `Workstation ${index + 1}`, spec: item.spec || '' }))
     : workstations.map(([name, cpu, ram, gpu]) => ({ name, spec: `${cpu} · ${ram} · ${gpu}` }));
-  const displayedSoftware = Array.isArray(equipmentContent.softwareList)
-    ? equipmentContent.softwareList.filter((tool: any) => tool.name?.trim() && tool.logo).map((tool: any) => ({
-        name: tool.name, category: tool.category || 'Software',
-        description: tool.description || `${tool.name} is part of the digital tools used by our team.`, logo: tool.logo,
-      }))
-    : softwareExpertise;
+  const configuredSoftware = Array.isArray(equipmentContent.softwareList)
+    ? equipmentContent.softwareList
+        .filter((tool: any) => tool.name?.trim() && tool.logo)
+        .map((tool: any) => ({
+          name: tool.name,
+          category: tool.category || 'Software',
+          description: tool.description || `${tool.name} is part of the digital tools used by our team.`,
+          logo: tool.logo,
+        }))
+    : [];
+  const displayedSoftware = configuredSoftware.length > 0 ? configuredSoftware : softwareExpertise;
 
   return (
     <CorporateShell>

@@ -32,7 +32,10 @@ import {
   Navigation,
   Crosshair,
   Key,
+  Plus,
 } from 'lucide-react';
+import { Button, PageHeader } from './ui';
+import { InteractiveMapPicker } from './ui/InteractiveMapPicker';
 
 export type UserRoleType = 'ADMIN' | 'EDITOR' | 'VIEWER';
 
@@ -41,8 +44,35 @@ export interface AdminUserItem {
   email: string;
   name: string;
   role: UserRoleType;
+  permissions?: Record<string, boolean>;
   createdAt: string;
   updatedAt: string;
+}
+
+const PERMISSION_MODULES = [
+  { key: 'dashboard', label: 'Dashboard', description: 'View overview metrics and recent items' },
+  { key: 'landing', label: 'Homepage', description: 'Edit hero slides, manifesto, and partners' },
+  { key: 'projects', label: 'Projects', description: 'Create, edit, and delete portfolio projects' },
+  { key: 'services', label: 'Services', description: 'Manage service offerings and capabilities' },
+  { key: 'news', label: 'News & Articles', description: 'Publish and edit news and case studies' },
+  { key: 'about', label: 'About Us', description: 'Edit company story, safety, and standards' },
+  { key: 'team', label: 'Team & CVs', description: 'Manage team profiles and CV documents' },
+  { key: 'careers', label: 'Careers', description: 'Manage job openings and applications' },
+  { key: 'inquiries', label: 'Enquiries', description: 'View and update client enquiries' },
+  { key: 'inbox', label: 'Messages', description: 'Read and reply in unified inbox' },
+  { key: 'settings', label: 'Settings & Users', description: 'Manage contact info, users, and permissions' },
+] as const;
+
+function defaultPermissionsForRole(role: UserRoleType): Record<string, boolean> {
+  if (role === 'ADMIN') {
+    return Object.fromEntries(PERMISSION_MODULES.map((m) => [m.key, true]));
+  }
+  if (role === 'EDITOR') {
+    return Object.fromEntries(PERMISSION_MODULES.map((m) => [m.key, m.key !== 'settings']));
+  }
+  return Object.fromEntries(
+    PERMISSION_MODULES.map((m) => [m.key, m.key === 'dashboard' || m.key === 'inquiries'])
+  );
 }
 
 export interface ContactInfoSettings {
@@ -128,6 +158,10 @@ export function SettingsView({
   onLogout,
 }: SettingsViewProps) {
   const [subTab, setSubTab] = useState<'contact' | 'users' | 'rbac' | 'security'>('contact');
+  const [selectedPermUserId, setSelectedPermUserId] = useState<string>('');
+  const [permRole, setPermRole] = useState<UserRoleType>('EDITOR');
+  const [permDraft, setPermDraft] = useState<Record<string, boolean>>(() => defaultPermissionsForRole('EDITOR'));
+  const [savingPerms, setSavingPerms] = useState(false);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -425,79 +459,46 @@ export function SettingsView({
   return (
     <div className="space-y-6">
       {/* Top Navigation Tabs for Settings */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-2.5 rounded-2xl border border-slate-200/90 shadow-xs">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {/* Subtab: Company & Contact Settings */}
-          <button
-            onClick={() => setSubTab('contact')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
-              subTab === 'contact'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <MapPin size={15} />
-            <span>Corporate Info &amp; Geodetics</span>
-          </button>
-
-          {/* Subtab: User Accounts */}
-          <button
-            onClick={() => setSubTab('users')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
-              subTab === 'users'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <Users size={15} />
-            <span>User Accounts</span>
-            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${subTab === 'users' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
-              {users.length}
-            </span>
-          </button>
-
-          {/* Subtab: RBAC Matrix */}
-          <button
-            onClick={() => setSubTab('rbac')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
-              subTab === 'rbac'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <Shield size={15} />
-            <span>Access Control (RBAC)</span>
-          </button>
-
-          {/* Subtab: Security */}
-          <button
-            onClick={() => setSubTab('security')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
-              subTab === 'security'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            <Lock size={15} />
-            <span>Security &amp; Architecture</span>
-          </button>
+      <div className="bg-white rounded-xl border border-slate-200 p-2 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {[
+            { id: 'contact' as const, label: 'Contact & Office', icon: <MapPin size={14} /> },
+            { id: 'users' as const, label: `Users (${users.length})`, icon: <Users size={14} /> },
+            { id: 'rbac' as const, label: 'Permissions', icon: <Shield size={14} /> },
+            { id: 'security' as const, label: 'Security', icon: <Lock size={14} /> },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setSubTab(tab.id)}
+              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                subTab === tab.id
+                  ? 'bg-indigo-600 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
         </div>
 
         <div className="flex items-center gap-2 pr-1">
           {subTab === 'contact' && (
             <a
-              href="https://geospatialworks.com.bd/contact"
+              href="http://localhost:3001/contact"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
             >
-              <span>View Live Contact Page</span>
+              <span>View /contact</span>
               <ExternalLink size={12} className="text-slate-400" />
             </a>
           )}
 
           {subTab === 'users' && currentUser?.role === 'ADMIN' && (
-            <button
+            <Button
+              size="sm"
               onClick={() => {
                 setNewEmail('');
                 setNewName('');
@@ -505,11 +506,10 @@ export function SettingsView({
                 setNewRole('EDITOR');
                 setCreateModalOpen(true);
               }}
-              className="px-3.5 py-1.5 rounded-lg bg-[#F4382D] hover:bg-red-700 text-white text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+              icon={<UserPlus size={14} />}
             >
-              <UserPlus size={14} />
-              <span>Provision User</span>
-            </button>
+              Add User
+            </Button>
           )}
         </div>
       </div>
@@ -519,30 +519,15 @@ export function SettingsView({
           ========================================================================= */}
       {subTab === 'contact' && (
         <form onSubmit={handleSaveContactSettings} className="space-y-6">
-          {/* Top Banner with Action Button */}
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border border-indigo-900/50">
-            <div className="space-y-1.5 max-w-2xl">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-widest text-indigo-400 bg-indigo-950/80 px-2.5 py-1 rounded-full border border-indigo-800/80">
-                <Compass size={12} />
-                Global Corporate Geodetics &amp; Communications
-              </span>
-              <h2 className="text-xl font-black tracking-tight text-white">
-                Edit Headquarters Contact Details &amp; Map Coordinates
-              </h2>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Update the official address, telephone hotlines, email routing, geodetic datum coordinates, and map pin magnet parameters displayed across the public site.
-              </p>
-            </div>
-
-            <button
-              type="submit"
-              disabled={savingContact}
-              className="px-6 py-3 rounded-2xl bg-[#F4382D] hover:bg-[#d6281e] text-white font-black text-xs transition shadow-lg shadow-red-950/40 flex items-center gap-2 cursor-pointer disabled:opacity-60 flex-shrink-0 active:scale-[0.98]"
-            >
-              <Save size={16} />
-              <span>{savingContact ? 'Saving to Database...' : 'Save All Changes'}</span>
-            </button>
-          </div>
+          <PageHeader
+            title="Contact & Office Details"
+            description="Update your company address, phone numbers, email, and map embed shown on the website"
+            actions={
+              <Button type="submit" loading={savingContact} icon={<Save size={15} />}>
+                Save Changes
+              </Button>
+            }
+          />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Left 7 Columns: Form Input Cards */}
@@ -849,181 +834,194 @@ export function SettingsView({
               </div>
             </div>
 
-            {/* Right 5 Columns: Geodetics, Map Pin Magnet & Live Preview */}
-            <div className="lg:col-span-5 space-y-6">
-              {/* Geodetic Coordinates & Map Pin Magnet Card */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                    <Crosshair size={16} />
+            {/* Right 5 Columns: Map Pin Selector, Map Links & Social Media */}
+            <div className="lg:col-span-5 space-y-5">
+              {/* Map Pin Location & Links */}
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-4">
+                <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <MapPin size={16} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900">Office Map &amp; Pin Location</h3>
+                      <p className="text-xs text-slate-500">Tap on the map to set pin location</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-extrabold text-slate-900">Geodetic Coordinates &amp; Map Pin Magnet</h3>
-                    <p className="text-xs text-slate-500">Sub-meter surveyor coordinates and magnetic pin parameters</p>
-                  </div>
+                  <a
+                    href={
+                      contactInfo.latitude && contactInfo.longitude
+                        ? `https://www.google.com/maps?q=${contactInfo.latitude},${contactInfo.longitude}`
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            `${contactInfo.address}, ${contactInfo.city}`
+                          )}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition shrink-0"
+                  >
+                    Open Google Maps <ExternalLink size={11} />
+                  </a>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-xs">
+                <InteractiveMapPicker
+                  latitude={contactInfo.latitude}
+                  longitude={contactInfo.longitude}
+                  onChange={(lat, lng) =>
+                    setContactInfo({
+                      ...contactInfo,
+                      latitude: lat,
+                      longitude: lng,
+                      mapEmbedUrl: `https://www.google.com/maps?q=${lat},${lng}&z=16&output=embed`,
+                    })
+                  }
+                />
+
+                <div className="grid grid-cols-2 gap-3 text-xs pt-1">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Latitude (°N)</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Latitude</label>
                     <input
                       type="text"
-                      required
                       value={contactInfo.latitude}
                       onChange={(e) => setContactInfo({ ...contactInfo, latitude: e.target.value })}
-                      placeholder="23.750942"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
                     />
                   </div>
-
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Longitude (°E)</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Longitude</label>
                     <input
                       type="text"
-                      required
                       value={contactInfo.longitude}
                       onChange={(e) => setContactInfo({ ...contactInfo, longitude: e.target.value })}
-                      placeholder="90.384351"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-slate-900 font-mono text-xs focus:outline-none focus:border-indigo-500"
                     />
                   </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Elevation AMSL</label>
-                    <input
-                      type="text"
-                      value={contactInfo.elevation}
-                      onChange={(e) => setContactInfo({ ...contactInfo, elevation: e.target.value })}
-                      placeholder="7.2m AMSL"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Datum Reference</label>
-                    <input
-                      type="text"
-                      value={contactInfo.datum}
-                      onChange={(e) => setContactInfo({ ...contactInfo, datum: e.target.value })}
-                      placeholder="WGS 84 / BTM"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 text-[11px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-
                   <div className="col-span-2">
-                    <label className="block font-bold text-slate-700 mb-1">Google Maps Embed URL</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Google Maps Link</label>
                     <input
                       type="text"
                       value={contactInfo.mapEmbedUrl}
                       onChange={(e) => setContactInfo({ ...contactInfo, mapEmbedUrl: e.target.value })}
-                      placeholder="https://www.google.com/maps?q=...&output=embed"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-900 font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                {/* =========================================================================
-                    ENTERPRISE GEODETIC MAP - ACTUAL INTERACTIVE MAP EMBED
-                    Renders the actual live geographic location with surveyor coordinates
-                    ========================================================================= */}
-                <div className="pt-2 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                      <Compass size={14} className="text-blue-600" />
-                      Actual Enterprise Map Location
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      {contactInfo.latitude && contactInfo.longitude
-                        ? `${contactInfo.latitude}°N, ${contactInfo.longitude}°E`
-                        : 'Dhaka HQ'}
-                    </span>
-                  </div>
-
-                  <div className="relative h-64 w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 shadow-inner group">
-                    <iframe
-                      title="Geospatial Works HQ Location"
-                      src={
-                        contactInfo.mapEmbedUrl ||
-                        `https://www.google.com/maps?q=${encodeURIComponent(
-                          contactInfo.address + ', ' + contactInfo.city
-                        )}&output=embed`
-                      }
-                      className="w-full h-full border-0"
-                      loading="lazy"
-                      allowFullScreen
-                      referrerPolicy="no-referrer-when-downgrade"
-                    />
-
-                    {/* Telemetry Overlay Pill */}
-                    <div className="absolute top-2.5 left-2.5 bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-white text-[10px] font-mono shadow-md flex items-center gap-2 pointer-events-none">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span>{contactInfo.companyName} HQ</span>
-                    </div>
-
-                    <div className="absolute bottom-2.5 right-2.5 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-md border border-white/10 text-cyan-300 text-[9px] font-mono shadow-md pointer-events-none">
-                      DATUM: {contactInfo.datum || 'WGS 84'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 5: Social Channels */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
-                  <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
-                    <Share2 size={16} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-extrabold text-slate-900">Social Media &amp; Portals</h3>
-                    <p className="text-xs text-slate-500">Corporate social identity links and channels</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3 text-xs">
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">LinkedIn Corporate Page</label>
-                    <input
-                      type="url"
-                      value={contactInfo.linkedinUrl}
-                      onChange={(e) => setContactInfo({ ...contactInfo, linkedinUrl: e.target.value })}
-                      placeholder="https://linkedin.com/company/geospatial-works"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Facebook Official Page</label>
-                    <input
-                      type="url"
-                      value={contactInfo.facebookUrl}
-                      onChange={(e) => setContactInfo({ ...contactInfo, facebookUrl: e.target.value })}
-                      placeholder="https://facebook.com/geospatialworks"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">YouTube Video Channel</label>
-                    <input
-                      type="url"
-                      value={contactInfo.youtubeUrl}
-                      onChange={(e) => setContactInfo({ ...contactInfo, youtubeUrl: e.target.value })}
-                      placeholder="https://youtube.com/@geospatialworks"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono text-[11px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      placeholder="https://www.google.com/maps?q=..."
+                      className="w-full h-9 px-3 rounded-lg border border-slate-200 text-slate-900 font-mono text-[11px] focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Sticky Save Button Bar */}
-              <button
+              {/* Social Media Links with Add / Remove */}
+              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-4">
+                <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <Share2 size={16} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900">Social Media Links</h3>
+                      <p className="text-xs text-slate-500">Add or remove company social channels</p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    type="button"
+                    onClick={() => {
+                      const current = (contactInfo as any).socialLinks || [
+                        ...(contactInfo.linkedinUrl ? [{ platform: 'LinkedIn', url: contactInfo.linkedinUrl }] : []),
+                        ...(contactInfo.facebookUrl ? [{ platform: 'Facebook', url: contactInfo.facebookUrl }] : []),
+                        ...(contactInfo.youtubeUrl ? [{ platform: 'YouTube', url: contactInfo.youtubeUrl }] : []),
+                      ];
+                      setContactInfo({
+                        ...contactInfo,
+                        socialLinks: [...current, { platform: 'LinkedIn', url: '' }],
+                      } as any);
+                    }}
+                    icon={<Plus size={13} />}
+                  >
+                    Add
+                  </Button>
+                </div>
+
+                {(() => {
+                  const list: { platform: string; url: string }[] = (contactInfo as any).socialLinks || [
+                    { platform: 'LinkedIn', url: contactInfo.linkedinUrl || '' },
+                    { platform: 'Facebook', url: contactInfo.facebookUrl || '' },
+                    { platform: 'YouTube', url: contactInfo.youtubeUrl || '' },
+                  ];
+
+                  const updateList = (next: { platform: string; url: string }[]) => {
+                    const linkedin = next.find((x) => x.platform.toLowerCase().includes('linkedin'))?.url || '';
+                    const facebook = next.find((x) => x.platform.toLowerCase().includes('facebook'))?.url || '';
+                    const youtube = next.find((x) => x.platform.toLowerCase().includes('youtube'))?.url || '';
+                    setContactInfo({
+                      ...contactInfo,
+                      linkedinUrl: linkedin,
+                      facebookUrl: facebook,
+                      youtubeUrl: youtube,
+                      socialLinks: next,
+                    } as any);
+                  };
+
+                  return (
+                    <div className="space-y-2.5">
+                      {list.length === 0 ? (
+                        <p className="text-xs text-slate-400 text-center py-4">No social links added. Click Add to create one.</p>
+                      ) : (
+                        list.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <select
+                              value={item.platform}
+                              onChange={(e) => {
+                                const next = [...list];
+                                next[idx] = { ...next[idx], platform: e.target.value };
+                                updateList(next);
+                              }}
+                              className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500 shrink-0"
+                            >
+                              <option value="LinkedIn">LinkedIn</option>
+                              <option value="Facebook">Facebook</option>
+                              <option value="YouTube">YouTube</option>
+                              <option value="Instagram">Instagram</option>
+                              <option value="X / Twitter">X / Twitter</option>
+                              <option value="WhatsApp">WhatsApp</option>
+                              <option value="Website">Website</option>
+                            </select>
+                            <input
+                              type="url"
+                              value={item.url}
+                              onChange={(e) => {
+                                const next = [...list];
+                                next[idx] = { ...next[idx], url: e.target.value };
+                                updateList(next);
+                              }}
+                              placeholder="https://..."
+                              className="flex-1 min-w-0 h-9 px-3 rounded-lg border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => updateList(list.filter((_, i) => i !== idx))}
+                              className="h-9 w-9 rounded-lg border border-slate-200 text-rose-600 hover:bg-rose-50 flex items-center justify-center transition cursor-pointer shrink-0"
+                              title="Remove social link"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <Button
                 type="submit"
-                disabled={savingContact}
-                className="w-full py-3.5 px-6 rounded-2xl bg-[#F4382D] hover:bg-[#d6281e] text-white font-extrabold text-sm transition shadow-lg shadow-red-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 active:scale-[0.98]"
+                loading={savingContact}
+                className="w-full"
+                size="lg"
+                icon={<Save size={16} />}
               >
-                <Save size={18} />
-                <span>{savingContact ? 'Saving Changes...' : 'Save & Publish Contact Settings'}</span>
-              </button>
+                Save Contact Settings
+              </Button>
             </div>
           </div>
         </form>
@@ -1034,47 +1032,73 @@ export function SettingsView({
           ========================================================================= */}
       {subTab === 'users' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Provisioned Workstation Accounts</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Manage team credentials, cryptographic access privileges, and authorized personnel
-                </p>
+          <PageHeader
+            title="Team Users"
+            description="Manage admin panel accounts, roles, and access"
+            actions={
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" size="sm" onClick={loadUsers} loading={loading} icon={<RefreshCw size={13} />}>
+                  Refresh
+                </Button>
+                {currentUser?.role === 'ADMIN' && (
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setNewEmail('');
+                      setNewName('');
+                      setNewPassword('');
+                      setNewRole('EDITOR');
+                      setCreateModalOpen(true);
+                    }}
+                    icon={<UserPlus size={14} />}
+                  >
+                    Add User
+                  </Button>
+                )}
               </div>
-              <button
-                onClick={loadUsers}
-                className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition cursor-pointer"
-                title="Refresh list"
-              >
-                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-              </button>
-            </div>
+            }
+          />
 
+          {/* Role Summary Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: 'Total Users', count: users.length, tone: 'text-slate-900' },
+              { label: 'Administrators', count: users.filter((u) => u.role === 'ADMIN').length, tone: 'text-indigo-700' },
+              { label: 'Editors', count: users.filter((u) => u.role === 'EDITOR').length, tone: 'text-emerald-700' },
+              { label: 'Viewers', count: users.filter((u) => u.role === 'VIEWER').length, tone: 'text-slate-600' },
+            ].map((s) => (
+              <div key={s.label} className="bg-white rounded-xl border border-slate-200 px-4 py-3 shadow-2xs">
+                <p className="text-[11px] font-semibold text-slate-500">{s.label}</p>
+                <p className={`text-xl font-bold tabular-nums mt-0.5 ${s.tone}`}>{s.count}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
             {loading ? (
               <div className="p-12 text-center text-xs text-slate-400">Loading user accounts...</div>
             ) : users.length === 0 ? (
-              <div className="p-12 text-center text-xs text-slate-400">No users found or unauthorized.</div>
+              <div className="p-12 text-center text-xs text-slate-400">No users found.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50/80 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200/60 font-bold">
+                  <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200 font-bold">
                     <tr>
-                      <th className="py-3.5 px-6">User / Staff Member</th>
-                      <th className="py-3.5 px-6">Corporate Email</th>
-                      <th className="py-3.5 px-6">Access Role</th>
-                      <th className="py-3.5 px-6">Provisioned Date</th>
-                      <th className="py-3.5 px-6 text-right">Actions</th>
+                      <th className="py-3 px-5">User</th>
+                      <th className="py-3 px-5">Email</th>
+                      <th className="py-3 px-5">Role</th>
+                      <th className="py-3 px-5">Added</th>
+                      <th className="py-3 px-5 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {users.map((u) => {
                       const isMe = u.id === currentUser?.id;
                       return (
-                        <tr key={u.id} className="hover:bg-slate-50/60 transition">
-                          <td className="py-4 px-6">
+                        <tr key={u.id} className="hover:bg-slate-50/70 transition">
+                          <td className="py-3.5 px-5">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-blue-500 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                              <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200/70 text-indigo-700 flex items-center justify-center font-bold text-xs shrink-0">
                                 {u.name
                                   .split(' ')
                                   .filter(Boolean)
@@ -1083,41 +1107,42 @@ export function SettingsView({
                                   .join('')
                                   .toUpperCase()}
                               </div>
-                              <div>
-                                <div className="font-bold text-slate-900 flex items-center gap-2">
-                                  <span>{u.name}</span>
-                                  {isMe && (
-                                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-extrabold uppercase">
-                                      You
-                                    </span>
-                                  )}
-                                </div>
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="font-semibold text-slate-900 truncate">{u.name}</span>
+                                {isMe && (
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-semibold">
+                                    You
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </td>
-                          <td className="py-4 px-6 font-mono text-slate-600 text-[11px]">{u.email}</td>
-                          <td className="py-4 px-6">{getRoleBadge(u.role)}</td>
-                          <td className="py-4 px-6 text-slate-400 font-mono text-[11px]">
+                          <td className="py-3.5 px-5 text-slate-600">{u.email}</td>
+                          <td className="py-3.5 px-5">{getRoleBadge(u.role)}</td>
+                          <td className="py-3.5 px-5 text-slate-500 tabular-nums">
                             {new Date(u.createdAt).toLocaleDateString()}
                           </td>
-                          <td className="py-4 px-6 text-right">
+                          <td className="py-3.5 px-5 text-right">
                             {currentUser?.role === 'ADMIN' && (
                               <div className="flex items-center justify-end gap-1.5">
-                                <button
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
                                   onClick={() => openEditModal(u)}
-                                  className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition cursor-pointer"
-                                  title="Edit permissions"
+                                  icon={<Edit2 size={12} />}
                                 >
-                                  <Edit2 size={15} />
-                                </button>
+                                  Edit
+                                </Button>
                                 {!isMe && (
-                                  <button
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                                     onClick={() => handleDeleteUser(u)}
-                                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                                    title="Revoke access"
+                                    icon={<Trash2 size={13} />}
                                   >
-                                    <Trash2 size={15} />
-                                  </button>
+                                    Remove
+                                  </Button>
                                 )}
                               </div>
                             )}
@@ -1202,7 +1227,7 @@ export function SettingsView({
                 <button
                   type="submit"
                   disabled={changingPassword}
-                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-bold transition shadow-xs flex items-center gap-2 disabled:opacity-60 cursor-pointer"
+                  className="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition shadow-2xs flex items-center gap-2 disabled:opacity-60 cursor-pointer"
                 >
                   <Key size={14} />
                   <span>{changingPassword ? 'Updating Password...' : 'Save New Password'}</span>
@@ -1216,119 +1241,226 @@ export function SettingsView({
       {/* =========================================================================
           SUBTAB: ROLE-BASED ACCESS CONTROL (RBAC) MATRIX
           ========================================================================= */}
-      {subTab === 'rbac' && (
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">Role-Based Access Control (RBAC) Privilege Matrix</h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Strict granular capabilities assigned per user privilege tier across the Geospatial Works platform
-            </p>
-          </div>
+      {subTab === 'rbac' && (() => {
+        const activePermUser = users.find((u) => u.id === selectedPermUserId) || users[0] || null;
+        const effectivePerms =
+          selectedPermUserId && activePermUser?.id === selectedPermUserId
+            ? permDraft
+            : activePermUser?.permissions || defaultPermissionsForRole(activePermUser?.role || 'EDITOR');
+        const effectiveRole =
+          selectedPermUserId && activePermUser?.id === selectedPermUserId
+            ? permRole
+            : activePermUser?.role || 'EDITOR';
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200 font-bold">
-                <tr>
-                  <th className="py-3 px-4">System Capability / Module</th>
-                  <th className="py-3 px-4 text-center">ADMINISTRATOR</th>
-                  <th className="py-3 px-4 text-center">EDITOR</th>
-                  <th className="py-3 px-4 text-center">VIEWER</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {[
-                  { name: 'View Operational Dashboard & Live Status', admin: true, editor: true, viewer: true },
-                  { name: 'Edit Headquarters Contact Info & Geodetic Coordinates', admin: true, editor: true, viewer: false },
-                  { name: 'Edit Landing Page CMS & Hero Carousel Slides', admin: true, editor: true, viewer: false },
-                  { name: 'Manage Survey Projects & Landmark Case Studies', admin: true, editor: true, viewer: false },
-                  { name: 'Manage Engineering Disciplines & Capabilities', admin: true, editor: true, viewer: false },
-                  { name: 'Publish Research Articles & Press Releases', admin: true, editor: true, viewer: false },
-                  { name: 'Add/Edit Team Member Profiles & Certified CVs', admin: true, editor: true, viewer: false },
-                  { name: 'Manage Job Openings & Review Applicant Resumes', admin: true, editor: true, viewer: false },
-                  { name: 'Triage & Respond to Client Contact Inquiries', admin: true, editor: true, viewer: false },
-                  { name: 'Provision & Delete Workstation User Accounts', admin: true, editor: false, viewer: false },
-                  { name: 'Modify RBAC Privileges & System Encryption Keys', admin: true, editor: false, viewer: false },
-                  { name: 'Execute Cloud CDN Cache Invalidation / Purge', admin: true, editor: true, viewer: false },
-                ].map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/60">
-                    <td className="py-3 px-4 font-medium text-slate-800">{row.name}</td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-800">
-                        <Check size={14} />
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      {row.editor ? (
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-800">
-                          <Check size={14} />
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-400">
-                          <X size={14} />
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      {row.viewer ? (
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-800">
-                          <Check size={14} />
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-400">
-                          <X size={14} />
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        const selectUserForPerms = (userId: string) => {
+          const u = users.find((x) => x.id === userId);
+          setSelectedPermUserId(userId);
+          if (u) {
+            setPermRole(u.role);
+            setPermDraft(u.permissions || defaultPermissionsForRole(u.role));
+          }
+        };
+
+        const applyRolePreset = (role: UserRoleType) => {
+          if (activePermUser && selectedPermUserId !== activePermUser.id) {
+            setSelectedPermUserId(activePermUser.id);
+          }
+          setPermRole(role);
+          setPermDraft(defaultPermissionsForRole(role));
+        };
+
+        const togglePerm = (key: string) => {
+          const base = activePermUser && selectedPermUserId !== activePermUser.id
+            ? activePermUser.permissions || defaultPermissionsForRole(activePermUser.role)
+            : permDraft;
+          if (activePermUser && selectedPermUserId !== activePermUser.id) {
+            setSelectedPermUserId(activePermUser.id);
+            setPermRole(activePermUser.role);
+          }
+          setPermDraft({ ...base, [key]: !base[key] });
+        };
+
+        const saveUserPermissions = async () => {
+          if (!activePermUser) return;
+          setSavingPerms(true);
+          try {
+            const res = await fetch(`/api/users/${activePermUser.id}`, {
+              method: 'PATCH',
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ role: effectiveRole, permissions: effectivePerms }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.message || 'Failed to update permissions');
+            triggerFeedback(`Saved permissions for ${activePermUser.name}.`);
+            await loadUsers();
+          } catch (err: any) {
+            triggerFeedback(err?.message || 'Could not save permissions.', 'error');
+          } finally {
+            setSavingPerms(false);
+          }
+        };
+
+        return (
+          <div className="space-y-5">
+            <PageHeader
+              title="User Permissions"
+              description="Select a user to configure their role and module access"
+              actions={
+                <Button
+                  onClick={saveUserPermissions}
+                  loading={savingPerms}
+                  disabled={!activePermUser || currentUser?.role !== 'ADMIN'}
+                  icon={<Save size={14} />}
+                >
+                  Save Permissions
+                </Button>
+              }
+            />
+
+            {users.length === 0 ? (
+              <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-xs text-slate-500">
+                No users available.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                {/* Left: User Picker */}
+                <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+                  <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/70">
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Select User</h4>
+                  </div>
+                  <div className="divide-y divide-slate-100 max-h-[480px] overflow-y-auto">
+                    {users.map((u) => {
+                      const isSelected = activePermUser?.id === u.id;
+                      return (
+                        <button
+                          key={u.id}
+                          type="button"
+                          onClick={() => selectUserForPerms(u.id)}
+                          className={`w-full px-4 py-3 text-left flex items-center justify-between gap-3 transition cursor-pointer ${
+                            isSelected ? 'bg-indigo-50/80 border-l-2 border-l-indigo-600' : 'hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-900 truncate">{u.name}</p>
+                            <p className="text-[11px] text-slate-500 truncate">{u.email}</p>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
+                            {u.role}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Right: Selected User Role & Module Toggles */}
+                <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200 shadow-2xs p-5 space-y-5">
+                  {activePermUser && (
+                    <>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-900">{activePermUser.name}</h3>
+                          <p className="text-xs text-slate-500">{activePermUser.email}</p>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg">
+                          {(['ADMIN', 'EDITOR', 'VIEWER'] as UserRoleType[]).map((role) => (
+                            <button
+                              key={role}
+                              type="button"
+                              onClick={() => applyRolePreset(role)}
+                              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+                                effectiveRole === role
+                                  ? 'bg-indigo-600 text-white shadow-2xs'
+                                  : 'text-slate-600 hover:text-slate-900'
+                              }`}
+                            >
+                              {role === 'ADMIN' ? 'Admin' : role === 'EDITOR' ? 'Editor' : 'Viewer'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {PERMISSION_MODULES.map((mod) => {
+                          const enabled = Boolean(effectivePerms[mod.key]);
+                          return (
+                            <button
+                              key={mod.key}
+                              type="button"
+                              onClick={() => togglePerm(mod.key)}
+                              className={`p-3.5 rounded-xl border text-left flex items-center justify-between gap-3 transition cursor-pointer ${
+                                enabled
+                                  ? 'bg-indigo-50/40 border-indigo-200 hover:border-indigo-300'
+                                  : 'bg-slate-50/60 border-slate-200 hover:border-slate-300'
+                              }`}
+                            >
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-slate-900">{mod.label}</p>
+                                <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{mod.description}</p>
+                              </div>
+                              <span
+                                className={`w-9 h-5 rounded-full p-0.5 transition-colors shrink-0 flex items-center ${
+                                  enabled ? 'bg-indigo-600 justify-end' : 'bg-slate-300 justify-start'
+                                }`}
+                              >
+                                <span className="w-4 h-4 rounded-full bg-white shadow-2xs" />
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* =========================================================================
           SUBTAB: SECURITY & CRYPTOGRAPHY
           ========================================================================= */}
       {subTab === 'security' && (
-        <div className="bg-slate-900 rounded-3xl p-8 text-white space-y-6 shadow-xl border border-slate-800">
-          <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
+        <div className="bg-white rounded-xl p-6 text-slate-900 space-y-5 shadow-2xs border border-slate-200">
+          <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/70 flex items-center justify-center">
               <ShieldCheck size={20} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Security &amp; Cryptographic Architecture</h3>
-              <p className="text-xs text-slate-300">Enterprise specs active on this workstation</p>
+              <h3 className="text-sm font-bold text-slate-900">Security &amp; Authentication</h3>
+              <p className="text-xs text-slate-500">Active session and database protection settings</p>
             </div>
           </div>
 
-          <div className="space-y-3 text-xs">
-            <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3">
-              <Lock size={16} className="text-indigo-400 flex-shrink-0 mt-0.5" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
+              <Lock size={16} className="text-indigo-600 flex-shrink-0 mt-0.5" />
               <div>
-                <div className="font-bold text-white">BCrypt 12-Round Salt Hashing</div>
-                <div className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
-                  Passwords are never stored in plaintext. They undergo 12 rounds of adaptive cost-factor salting resistant to GPU brute-force attacks.
+                <div className="font-bold text-slate-900">Password Hashing</div>
+                <div className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                  Passwords are stored using BCrypt adaptive hashing (12 rounds).
                 </div>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3">
-              <FileCheck2 size={16} className="text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
+              <FileCheck2 size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
               <div>
-                <div className="font-bold text-white">JWT Bearer HMAC-SHA256 Tokens</div>
-                <div className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
-                  Stateless cryptographic session tokens signed with server-side secrets, validated against NestJS Passport JwtStrategy on every request.
+                <div className="font-bold text-slate-900">Signed Session Tokens</div>
+                <div className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                  Admin API requests are authenticated with signed JWT bearer tokens.
                 </div>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3">
-              <Database size={16} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start gap-3">
+              <Database size={16} className="text-emerald-600 flex-shrink-0 mt-0.5" />
               <div>
-                <div className="font-bold text-white">PostgreSQL ACID Transaction Safety</div>
-                <div className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
-                  Database tables use strict foreign key constraints, TypeORM parameterized queries preventing SQL injection, and automated schema synchronization.
+                <div className="font-bold text-slate-900">PostgreSQL Storage</div>
+                <div className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                  Parameterized queries and relational constraints protect all CMS data.
                 </div>
               </div>
             </div>

@@ -1,8 +1,18 @@
 'use client';
 
-import React from 'react';
-import { X, Camera, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  X,
+  Check,
+  Sliders,
+  FileText,
+  Image as ImageIcon,
+  Wrench,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
 import { MediaAssetField } from './MediaAssetField';
+import { Button, Input, Textarea, FormField, Badge, Card, LineListInput } from './ui';
 
 export interface ServiceItem {
   id: string;
@@ -82,170 +92,269 @@ export function ServiceModal({
   setFormIsActive,
   onOpenMediaPicker,
 }: ServiceModalProps) {
+  const [activeTab, setActiveTab] = useState<'basic' | 'details'>('basic');
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
+        className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity"
       />
 
-      {/* Slide-over Right Drawer */}
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-        <div className="w-screen max-w-2xl lg:max-w-3xl bg-white shadow-2xl flex flex-col h-full border-l border-slate-200 animate-in slide-in-from-right duration-300">
-          {/* Sticky Header */}
-          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white/95 backdrop-blur-md sticky top-0 z-10">
-            <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-100">
-                  {isEditing ? 'Discipline Editor' : 'New Discipline'}
-                </span>
-                {formIsActive ? (
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Live on Website
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-600">
-                    Inactive
-                  </span>
-                )}
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
+        <div className="w-screen max-w-3xl bg-slate-50 shadow-2xl flex flex-col h-full border-l border-slate-200">
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-4 bg-white shrink-0">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="brand">{isEditing ? 'Edit Service' : 'New Service'}</Badge>
+                <Badge variant={formIsActive ? 'success' : 'neutral'}>
+                  {formIsActive ? 'Active' : 'Hidden'}
+                </Badge>
               </div>
-              <h3 className="text-base font-extrabold text-slate-900">
-                {isEditing ? 'Edit Service Discipline' : 'Add New Service Discipline'}
+              <h3 className="text-base font-bold text-slate-900 truncate">
+                {formTitle || (isEditing ? 'Edit Service' : 'Add New Service')}
               </h3>
             </div>
             <button
+              type="button"
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition"
-              title="Close drawer (Esc)"
+              className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              aria-label="Close drawer"
             >
               <X size={18} />
             </button>
           </div>
 
-          {/* Form Content Body (Scrollable) */}
-          <form id="service-form" onSubmit={onSubmit} className="p-6 md:p-8 overflow-y-auto space-y-6 flex-1">
-            {/* Title */}
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
-                Service Discipline Title *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Airborne UAV (Drone) Survey & LiDAR"
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none transition"
-              />
-            </div>
+          {/* Section Tabs */}
+          <div className="flex items-center border-b border-slate-200 px-6 bg-white gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setActiveTab('basic')}
+              className={`flex items-center gap-2 py-3 px-3.5 text-xs font-semibold border-b-2 transition cursor-pointer ${
+                activeTab === 'basic'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Sliders size={14} />
+              <span>1. Basic Information &amp; Media</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('details')}
+              className={`flex items-center gap-2 py-3 px-3.5 text-xs font-semibold border-b-2 transition cursor-pointer ${
+                activeTab === 'details'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <FileText size={14} />
+              <span>2. Specifications &amp; Details Page</span>
+            </button>
+          </div>
 
-            {/* Category Group & Slug in 2-column grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
-                  Category Group *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. SURVEY & GEODATA or SPATIAL INTELLIGENCE"
-                  value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none transition"
-                />
-              </div>
+          {/* Scrollable Form Cards */}
+          <form id="service-form" onSubmit={onSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+            {activeTab === 'basic' ? (
+              <>
+                <Card padding="md" className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                    <span className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <Sliders size={14} />
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">Service Identity</h4>
+                      <p className="text-[11px] text-slate-500">Title, category grouping, display order, and slug</p>
+                    </div>
+                  </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
-                  Unique Slug (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="auto-generated from title"
-                  value={formSlug}
-                  onChange={(e) => setFormSlug(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-mono text-slate-700 focus:outline-none transition"
-                />
-              </div>
-            </div>
+                  <FormField label="Service Title" required>
+                    <Input
+                      required
+                      placeholder="Enter service title"
+                      value={formTitle}
+                      onChange={(e) => setFormTitle(e.target.value)}
+                    />
+                  </FormField>
 
-            {/* Big Service Narrative */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Service Narrative & Detailed Scope
-                </label>
-                <span className="text-[11px] text-slate-400">Public Overview Statement</span>
-              </div>
-              <textarea
-                rows={7}
-                placeholder="High-level engineering overview of surveying methodologies, equipment capabilities, SOB/BIWTA geodetic accuracy tolerances, quality assurance protocols, and primary industry applications across Bangladesh..."
-                value={formDescription}
-                onChange={(e) => setFormDescription(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl p-4 text-xs text-slate-800 focus:outline-none transition leading-relaxed min-h-[160px]"
-              />
-            </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <FormField label="Category" required>
+                      <Input
+                        required
+                        placeholder="e.g. Geospatial & GIS"
+                        value={formCategory}
+                        onChange={(e) => setFormCategory(e.target.value)}
+                      />
+                    </FormField>
 
-            {/* Big Capabilities / Features */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Key Capabilities / Deliverables (One per line)
-                </label>
-                <span className="text-[11px] text-slate-400">Bulleted specifications</span>
-              </div>
-              <textarea
-                rows={6}
-                placeholder="High-Resolution Orthomosaics&#10;Digital Surface Models (DSM) & Digital Terrain Models (DTM)&#10;Point Cloud Classification (ASPRS Standard)&#10;Sub-Centimeter RTK GNSS Ground Control"
-                value={formFeatures}
-                onChange={(e) => setFormFeatures(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl p-4 text-xs font-mono text-slate-800 focus:outline-none transition leading-relaxed min-h-[140px]"
-              />
-            </div>
+                    <FormField label="URL Slug" hint="Auto-generated if empty">
+                      <Input
+                        placeholder="service-url-slug"
+                        value={formSlug}
+                        onChange={(e) => setFormSlug(e.target.value)}
+                        className="font-mono text-xs"
+                      />
+                    </FormField>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              {([
-                ['Short introduction', formLead, setFormLead],
-                ['Equipment (one per line)', formEquipment, setFormEquipment],
-                ['Standards (one per line)', formStandards, setFormStandards],
-                ['Benefits (one per line)', formBenefits, setFormBenefits],
-              ] as const).map(([label, value, onChange]) => <label key={label} className="text-xs font-bold text-slate-700">{label}<textarea value={value} onChange={(event) => onChange(event.target.value)} rows={3} className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-normal text-slate-800" /></label>)}
-            </div>
+                    <FormField label="Display Order">
+                      <Input
+                        type="number"
+                        value={formSortOrder}
+                        onChange={(e) => setFormSortOrder(Number(e.target.value) || 0)}
+                      />
+                    </FormField>
+                  </div>
+                </Card>
 
-            <MediaAssetField label="Service image" value={formImageUrl} onChoose={onOpenMediaPicker} onRemove={() => setFormImageUrl('')} />
+                <Card padding="md" className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                    <span className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <Sparkles size={14} />
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">Overview &amp; Deliverables</h4>
+                      <p className="text-[11px] text-slate-500">Summary paragraph and key service features</p>
+                    </div>
+                  </div>
+
+                  <FormField label="Service Overview">
+                    <Textarea
+                      rows={4}
+                      placeholder="Write a concise overview of this service..."
+                      value={formDescription}
+                      onChange={(e) => setFormDescription(e.target.value)}
+                    />
+                  </FormField>
+
+                  <FormField label="Key Capabilities &amp; Features">
+                    <LineListInput
+                      value={formFeatures}
+                      onChange={setFormFeatures}
+                      placeholder="Add a capability or deliverable..."
+                      addLabel="Add Feature"
+                    />
+                  </FormField>
+                </Card>
+
+                <Card padding="md" className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                    <span className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                      <ImageIcon size={14} />
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">Cover Media</h4>
+                      <p className="text-[11px] text-slate-500">Primary visual shown on cards and the service page</p>
+                    </div>
+                  </div>
+
+                  <MediaAssetField
+                    label="Service Cover Photo"
+                    value={formImageUrl}
+                    onChoose={onOpenMediaPicker}
+                    onRemove={() => setFormImageUrl('')}
+                  />
+                </Card>
+              </>
+            ) : (
+              <>
+                <Card padding="md" className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                    <span className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <FileText size={14} />
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">Details Page Introduction</h4>
+                      <p className="text-[11px] text-slate-500">Opening lead statement on `/services/[slug]`</p>
+                    </div>
+                  </div>
+
+                  <FormField label="Introduction Statement">
+                    <Textarea
+                      rows={4}
+                      placeholder="Write an introduction for the service details page..."
+                      value={formLead}
+                      onChange={(e) => setFormLead(e.target.value)}
+                    />
+                  </FormField>
+                </Card>
+
+                <Card padding="md" className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                    <span className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <Wrench size={14} />
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">Equipment &amp; Standards</h4>
+                      <p className="text-[11px] text-slate-500">Hardware deployed and regulatory standards followed</p>
+                    </div>
+                  </div>
+
+                  <FormField label="Equipment &amp; Instruments">
+                    <LineListInput
+                      value={formEquipment}
+                      onChange={setFormEquipment}
+                      pillMode
+                      placeholder="Add an instrument or system..."
+                      addLabel="Add Item"
+                    />
+                  </FormField>
+
+                  <FormField label="Standards &amp; Compliance">
+                    <LineListInput
+                      value={formStandards}
+                      onChange={setFormStandards}
+                      placeholder="Add a standard or guideline..."
+                      addLabel="Add Standard"
+                    />
+                  </FormField>
+                </Card>
+
+                <Card padding="md" className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                    <span className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <ShieldCheck size={14} />
+                    </span>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900">Client Outcomes &amp; Benefits</h4>
+                      <p className="text-[11px] text-slate-500">Key value delivered to project stakeholders</p>
+                    </div>
+                  </div>
+
+                  <FormField label="Client Benefits">
+                    <LineListInput
+                      value={formBenefits}
+                      onChange={setFormBenefits}
+                      placeholder="Add a client benefit..."
+                      addLabel="Add Benefit"
+                    />
+                  </FormField>
+                </Card>
+              </>
+            )}
           </form>
 
-          {/* Sticky Bottom Action Footer */}
-          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/90 backdrop-blur-md flex items-center justify-between sticky bottom-0 z-10">
-            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-700 select-none">
+          {/* Footer */}
+          <div className="px-6 py-3.5 border-t border-slate-200 bg-white flex flex-wrap items-center justify-between gap-3 shrink-0">
+            <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
               <input
                 type="checkbox"
                 checked={formIsActive}
                 onChange={(e) => setFormIsActive(e.target.checked)}
-                className="rounded text-indigo-600 focus:ring-0 w-4 h-4 cursor-pointer"
+                className="rounded text-indigo-600 w-4 h-4 cursor-pointer"
               />
-              <span>Active Discipline (Visible in public navigation)</span>
+              Visible on website
             </label>
 
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-200/60 transition"
-              >
+            <div className="flex items-center gap-2">
+              <Button variant="secondary" onClick={onClose}>
                 Cancel
-              </button>
-              <button
-                type="submit"
-                form="service-form"
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-sm shadow-indigo-200 flex items-center gap-1.5"
-              >
-                <Check size={14} />
-                <span>{isEditing ? 'Save Changes' : 'Create Discipline'}</span>
-              </button>
+              </Button>
+              <Button type="submit" form="service-form" icon={<Check size={14} />}>
+                {isEditing ? 'Save Changes' : 'Create Service'}
+              </Button>
             </div>
           </div>
         </div>

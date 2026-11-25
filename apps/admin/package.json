@@ -8,6 +8,8 @@
     "start": "next start -p 3002"
   },
   "dependencies": {
+    "@types/leaflet": "^1.9.23",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.475.0",
     "next": "16.4.2",
     "react": "19.0.0",

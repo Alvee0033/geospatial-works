@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MediaAssetField } from './MediaAssetField';
+import { Button, PageHeader, Modal, Input, Textarea, FormField } from './ui';
 import {
   Video,
   Image as ImageIcon,
@@ -34,6 +35,7 @@ import {
   PanelRightClose,
   Search,
   X,
+  Pencil,
 } from 'lucide-react';
 
 export interface HeroSlideItem {
@@ -113,6 +115,7 @@ export interface SoftwareTool {
   badge: string;
   description: string;
   logo: string;
+  featuredOnHome?: boolean;
 }
 
 export interface PartnerLogoItem {
@@ -331,6 +334,15 @@ export function LandingPageView({
     'hero' | 'manifesto' | 'services' | 'projects' | 'equipment' | 'team' | 'news' | 'leadgrow'
   >('hero');
   const [livePreviewOpen, setLivePreviewOpen] = useState(false);
+  const [figuresModalOpen, setFiguresModalOpen] = useState(false);
+  const [partnersModalOpen, setPartnersModalOpen] = useState(false);
+  const [editingPartnerIdx, setEditingPartnerIdx] = useState<number | null>(null);
+  const [editingWorkstationIdx, setEditingWorkstationIdx] = useState<number | null>(null);
+  const [softwareModalOpen, setSoftwareModalOpen] = useState(false);
+  const [editingSoftwareIdx, setEditingSoftwareIdx] = useState<number | null>(null);
+  const [softwareLogoPickerIdx, setSoftwareLogoPickerIdx] = useState<number | null>(null);
+  const [softwareSearchQuery, setSoftwareSearchQuery] = useState('');
+  const [softwareFilterMode, setSoftwareFilterMode] = useState<'all' | 'featured'>('all');
   const [previewVersion, setPreviewVersion] = useState(0);
   const [panels, setPanels] = useState({ editor: true, preview: true });
 
@@ -416,6 +428,7 @@ export function LandingPageView({
   );
 
   const handleAddPartner = () => {
+    const newIdx = partnersList.length;
     setPartnersList((prev) => [
       ...prev,
       {
@@ -425,6 +438,7 @@ export function LandingPageView({
         logo: '',
       },
     ]);
+    setEditingPartnerIdx(newIdx);
   };
 
   const handleUpdatePartner = (idx: number, field: keyof PartnerLogoItem, val: string) => {
@@ -437,6 +451,7 @@ export function LandingPageView({
 
   const handleRemovePartner = (idx: number) => {
     setPartnersList((prev) => prev.filter((_, i) => i !== idx));
+    setEditingPartnerIdx((curr) => (curr === null ? null : curr === idx ? null : curr > idx ? curr - 1 : curr));
   };
 
   // ==========================================
@@ -521,10 +536,12 @@ export function LandingPageView({
   const handleAddWorkstation = () => {
     const nextIdx = workstations.length + 1;
     const padded = nextIdx < 10 ? `0${nextIdx}` : `${nextIdx}`;
+    const newIdx = workstations.length;
     setWorkstations([
       ...workstations,
       { id: `NODE ${padded}`, cpu: 'Intel Core i9', ram: '64GB DDR5', gpu: 'RTX 4060 Ti', isAccent: false },
     ]);
+    setEditingWorkstationIdx(newIdx);
   };
 
   const handleUpdateWorkstation = (idx: number, field: keyof WorkstationNode, val: any) => {
@@ -537,17 +554,21 @@ export function LandingPageView({
 
   const handleRemoveWorkstation = (idx: number) => {
     setWorkstations((prev) => prev.filter((_, i) => i !== idx));
+    setEditingWorkstationIdx((curr) => (curr === null ? null : curr === idx ? null : curr > idx ? curr - 1 : curr));
   };
 
   // Software Actions
   const handleAddSoftware = () => {
+    const newIdx = softwareList.length;
     setSoftwareList([
       ...softwareList,
       { name: '', category: '', badge: '', description: '', logo: '' },
     ]);
+    setEditingSoftwareIdx(newIdx);
+    setSoftwareLogoPickerIdx(null);
   };
 
-  const handleUpdateSoftware = (idx: number, field: keyof SoftwareTool, val: string) => {
+  const handleUpdateSoftware = (idx: number, field: keyof SoftwareTool, val: any) => {
     setSoftwareList((prev) => {
       const copy = [...prev];
       copy[idx] = { ...copy[idx], [field]: val };
@@ -557,6 +578,7 @@ export function LandingPageView({
 
   const handleRemoveSoftware = (idx: number) => {
     setSoftwareList((prev) => prev.filter((_, i) => i !== idx));
+    setEditingSoftwareIdx((curr) => (curr === null ? null : curr === idx ? null : curr > idx ? curr - 1 : curr));
   };
 
   // Equipment Toggle
@@ -982,23 +1004,40 @@ export function LandingPageView({
         onClose={() => setSelectionDialogType(null)}
         maxSelected={activeSelection.maxSelected}
       />}
-      {/* =========================================================================
-          TOP NAVIGATION TABS (8 SECTIONS CORRESPONDING TO HOMEPAGE FLOW)
-          ========================================================================= */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-        <div className="min-w-0"><p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">Editing homepage <span className="mx-1 text-slate-300">/</span> <span className="font-semibold text-blue-800">{sectionNames[activeSubSection]}</span></p><p className="mt-0.5 text-xs text-slate-500">Save changes in the section form below.</p></div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => setPanels((current) => current.editor && !current.preview ? current : { ...current, editor: !current.editor })} aria-expanded={panels.editor} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
-            <PanelLeftClose size={14} />{panels.editor ? 'Hide editor' : 'Show editor'}
-          </button>
-          <button type="button" onClick={() => setPanels((current) => current.preview && !current.editor ? current : { ...current, preview: !current.preview })} aria-expanded={panels.preview} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">
-            {panels.preview ? <EyeOff size={14} /> : <Eye size={14} />}{panels.preview ? 'Hide preview' : 'Show preview'}
-          </button>
-          <button type="button" onClick={() => setLivePreviewOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-[#F4382D] px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-red-700">View full homepage <ArrowRight size={14} /></button>
-        </div>
-      </div>
+      {/* Unified Top Header & Controls */}
+      <PageHeader
+        title="Homepage Editor"
+        description={`Editing: ${sectionNames[activeSubSection]}`}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setPanels((current) => (current.editor && !current.preview ? current : { ...current, editor: !current.editor }))}
+              icon={<PanelLeftClose size={14} />}
+            >
+              {panels.editor ? 'Hide Editor' : 'Show Editor'}
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => setPanels((current) => (current.preview && !current.editor ? current : { ...current, preview: !current.preview }))}
+              icon={panels.preview ? <EyeOff size={14} /> : <Eye size={14} />}
+            >
+              {panels.preview ? 'Hide Preview' : 'Show Preview'}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setLivePreviewOpen(true)}
+              icon={<ArrowRight size={14} />}
+            >
+              Preview Live Homepage
+            </Button>
+          </div>
+        }
+      />
 
-      <nav aria-label="Homepage sections" role="tablist" className="gw-home-tabs flex items-center gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm">
+      <nav aria-label="Homepage sections" role="tablist" className="gw-home-tabs flex items-center gap-1.5 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-2xs">
         {[
           { key: 'hero', label: 'Hero', icon: Video },
           { key: 'manifesto', label: 'About', icon: Building2 },
@@ -1034,24 +1073,27 @@ export function LandingPageView({
                   tabs[nextIndex]?.click();
                 }
               }}
-              className={`flex min-h-[42px] shrink-0 items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold transition sm:flex-1 ${
+              className={`flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg px-3.5 text-xs font-semibold transition cursor-pointer sm:flex-1 ${
                 isSelected
-                  ? 'bg-[#102A43] text-white shadow-sm'
+                  ? 'bg-indigo-600 text-white shadow-2xs'
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
               }`}
             >
-              <Icon size={14} className={isSelected ? 'text-[#7FB3FF]' : 'text-slate-400'} />
+              <Icon size={14} className={isSelected ? 'text-white' : 'text-slate-400'} />
               <span>{tab.label}</span>
             </button>
           );
         })}
       </nav>
 
-      {livePreviewOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 p-3 sm:p-6">
-        <div className="flex h-[min(92vh,1000px)] w-full max-w-[1500px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      {livePreviewOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-3 sm:p-6">
+        <div className="flex h-[min(92vh,1000px)] w-full max-w-[1500px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5">
-            <div><h2 className="text-sm font-semibold text-slate-900">Homepage preview</h2><p className="text-xs text-slate-500">This is the actual public page. Save your edits, then refresh to see them here.</p></div>
-            <div className="flex gap-2"><button type="button" onClick={() => setPreviewVersion((value) => value + 1)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Refresh preview</button><button type="button" onClick={() => setLivePreviewOpen(false)} className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800">Close</button></div>
+            <div><h2 className="text-sm font-bold text-slate-900">Live Homepage Preview</h2><p className="text-xs text-slate-500">Save your edits, then refresh to see the published homepage.</p></div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="secondary" onClick={() => setPreviewVersion((value) => value + 1)}>Refresh Preview</Button>
+              <Button size="sm" onClick={() => setLivePreviewOpen(false)}>Close</Button>
+            </div>
           </div>
           <iframe key={previewVersion} title="Actual public homepage preview" src={`${process.env.NEXT_PUBLIC_SITE_PREVIEW_URL || 'http://localhost:3001'}/#${({ hero: 'homepage-hero', manifesto: 'homepage-about', services: 'homepage-services', projects: 'homepage-projects', equipment: 'homepage-equipment', team: 'homepage-team', news: 'homepage-news', leadgrow: 'homepage-careers' } as Record<string, string>)[activeSubSection]}`} className="min-h-0 flex-1 border-0 bg-white" />
         </div>
@@ -1069,14 +1111,9 @@ export function LandingPageView({
                 <h3 className="text-sm font-bold text-slate-900">Hero slides</h3>
                 <p className="text-[11px] text-slate-500">Edit the main image, heading, and buttons.</p>
               </div>
-              <button
-                onClick={handleSaveActiveSlide}
-                disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
-              >
-                <Save size={13} />
-                <span>{savingSection ? 'Saving...' : 'Save Slide'}</span>
-              </button>
+              <Button size="sm" onClick={handleSaveActiveSlide} loading={savingSection} icon={<Save size={13} />}>
+                Save Slide
+              </Button>
             </div>
 
             {/* Slide Selector Pills */}
@@ -1340,14 +1377,9 @@ export function LandingPageView({
                 <h3 className="text-base font-semibold text-slate-950">About and partners</h3>
                 <p className="text-xs text-slate-500">Edit the introduction, key numbers, and partner logos.</p>
               </div>
-              <button
-                onClick={handleSaveManifesto}
-                disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
-              >
-                <Save size={13} />
-                <span>{savingSection ? 'Saving...' : 'Save Section'}</span>
-              </button>
+              <Button size="sm" onClick={handleSaveManifesto} loading={savingSection} icon={<Save size={13} />}>
+                Save Section
+              </Button>
             </div>
 
             <div className="space-y-3">
@@ -1408,154 +1440,312 @@ export function LandingPageView({
                 </div>
               </div>
 
-              {/* Metric 1 & Metric 2 Inputs */}
-              <details className="gw-edit-group">
-                <summary><span>Homepage figures</span><span className="gw-edit-group-hint">Area surveyed · projects completed</span></summary>
-                <div className="mt-3 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                <div className="rounded-lg border border-slate-200 bg-white p-3">
-                  <h4 className="mb-2 text-xs font-semibold text-slate-900">Area surveyed</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Value</label>
-                    <input
-                      type="text"
-                      value={manMetric1Val}
-                      onChange={(e) => setManMetric1Val(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-bold text-slate-950"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Unit</label>
-                    <input
-                      type="text"
-                      value={manMetric1Unit}
-                      onChange={(e) => setManMetric1Unit(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-medium text-slate-950"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Heading</label>
-                    <input
-                      type="text"
-                      value={manMetric1Label}
-                      onChange={(e) => setManMetric1Label(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Supporting line</label>
-                    <input type="text" value={manMetric1Sub} onChange={(e) => setManMetric1Sub(e.target.value)} className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950" />
-                  </div>
-                  </div>
+              {/* Homepage Figures Modal Trigger Card */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-slate-900">Homepage Figures</p>
+                  <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                    {manMetric1Val} {manMetric1Unit} · {manMetric2Val} Projects completed
+                  </p>
                 </div>
+                <Button size="sm" variant="secondary" onClick={() => setFiguresModalOpen(true)}>
+                  Edit Figures
+                </Button>
+              </div>
 
-                <div className="rounded-lg border border-slate-200 bg-white p-3">
-                  <h4 className="mb-2 text-xs font-semibold text-slate-900">Projects completed</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Value</label>
-                    <input
-                      type="text"
-                      value={manMetric2Val}
-                      onChange={(e) => setManMetric2Val(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-bold text-slate-950"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Heading</label>
-                    <input
-                      type="text"
-                      value={manMetric2Label}
-                      onChange={(e) => setManMetric2Label(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Supporting line</label>
-                    <input type="text" value={manMetric2Sub} onChange={(e) => setManMetric2Sub(e.target.value)} className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950" />
-                  </div>
-                  </div>
-                </div>
-                </div>
-              </details>
-
-              {/* Trusted Institutional Partners Manager */}
-              <details className="gw-edit-group">
-                <summary><span>Partner logos</span><span className="gw-edit-group-hint">{partnersList.length} partners</span></summary>
-                <div className="mt-3 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              {/* Partner Logos Modal Trigger Card */}
+              <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs text-slate-500">Names, short labels, and logos shown on the homepage.</p>
-                  <button
-                    type="button"
-                    onClick={handleAddPartner}
-                    className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[11px] font-bold transition cursor-pointer"
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-900">Partner Logos ({partnersList.length})</p>
+                    <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                      Institutional partners displayed on the homepage
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    icon={<Pencil size={13} />}
+                    onClick={() => {
+                      setEditingPartnerIdx(null);
+                      setPartnersModalOpen(true);
+                    }}
                   >
-                    <Plus size={12} />
-                    <span>Add Partner</span>
-                  </button>
+                    Manage
+                  </Button>
                 </div>
+                {partnersList.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {partnersList.map((p, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          setEditingPartnerIdx(i);
+                          setPartnersModalOpen(true);
+                        }}
+                        className="h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50/70 hover:border-indigo-300 hover:bg-indigo-50/40 flex items-center gap-1.5 text-[11px] font-medium text-slate-700 transition cursor-pointer"
+                      >
+                        {p.logo && <img src={p.logo} alt={p.short || p.name} className="h-4 w-4 object-contain" />}
+                        <span className="truncate max-w-[90px]">{p.short || p.name || `Partner ${i + 1}`}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                  {partnersList.map((partner, idx) => (
-                    <details key={idx} className="gw-edit-group p-2.5">
-                      <summary><span className="truncate">{partner.name || `New partner ${idx + 1}`}</span><span className="gw-edit-group-hint">{partner.logo ? 'Logo added' : 'Logo needed'}</span></summary>
-                      <div className="mt-3 space-y-2">
-                      <div className="flex items-center justify-end">
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePartner(idx)}
-                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-red-50 hover:text-red-700"
-                        >
-                          <Trash2 size={13} /> Remove partner
-                        </button>
+              {/* Proper Spacious Modal: Homepage Figures */}
+              <Modal
+                isOpen={figuresModalOpen}
+                onClose={() => setFiguresModalOpen(false)}
+                title="Homepage Figures"
+                subtitle="Key metrics displayed in the About section on the homepage"
+                maxWidth="2xl"
+                footer={
+                  <Button onClick={() => setFiguresModalOpen(false)}>Done</Button>
+                }
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-700">Metric 1 · Area Surveyed</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Value</label>
+                        <input
+                          type="text"
+                          value={manMetric1Val}
+                          onChange={(e) => setManMetric1Val(e.target.value)}
+                          className="w-full h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-500"
+                        />
                       </div>
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        <label className="block text-xs font-semibold text-slate-700">Organization name
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Unit</label>
                         <input
                           type="text"
-                          value={partner.name}
-                          onChange={(e) => handleUpdatePartner(idx, 'name', e.target.value)}
-                          placeholder="For example: Dhaka North City Corporation"
-                          className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-950"
+                          value={manMetric1Unit}
+                          onChange={(e) => setManMetric1Unit(e.target.value)}
+                          className="w-full h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                         />
-                        </label>
-                        <label className="block text-xs font-semibold text-slate-700">Short name
-                        <input
-                          type="text"
-                          value={partner.short}
-                          onChange={(e) => handleUpdatePartner(idx, 'short', e.target.value)}
-                          placeholder="For example: DNCC"
-                          className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm font-medium text-slate-950"
-                        />
-                        </label>
                       </div>
-                      <label className="block text-xs font-semibold text-slate-700">Small line under the name
+                      <div className="col-span-2">
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Heading</label>
                         <input
                           type="text"
-                          value={partner.subtext}
-                          onChange={(e) => handleUpdatePartner(idx, 'subtext', e.target.value)}
-                          placeholder="For example: City Corporation"
-                          className="mt-1 w-full rounded-lg border border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-950"
+                          value={manMetric1Label}
+                          onChange={(e) => setManMetric1Label(e.target.value)}
+                          className="w-full h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                         />
-                      </label>
-                      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                        <div className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-300 bg-white p-2">
-                          {partner.logo ? <img src={partner.logo} alt={`${partner.name || 'Partner'} logo preview`} className="h-full w-full object-contain" /> : <span className="text-center text-[10px] font-medium text-slate-500">No logo selected</span>}
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Supporting line</label>
+                        <input
+                          type="text"
+                          value={manMetric1Sub}
+                          onChange={(e) => setManMetric1Sub(e.target.value)}
+                          className="w-full h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-700">Metric 2 · Projects Completed</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Value</label>
+                        <input
+                          type="text"
+                          value={manMetric2Val}
+                          onChange={(e) => setManMetric2Val(e.target.value)}
+                          className="w-full h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Heading</label>
+                        <input
+                          type="text"
+                          value={manMetric2Label}
+                          onChange={(e) => setManMetric2Label(e.target.value)}
+                          className="w-full h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Supporting line</label>
+                        <input
+                          type="text"
+                          value={manMetric2Sub}
+                          onChange={(e) => setManMetric2Sub(e.target.value)}
+                          className="w-full h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Modal>
+
+              {/* Minimal Partner Manager Modal: Compact list -> click Edit to edit one at a time */}
+              <Modal
+                isOpen={partnersModalOpen}
+                onClose={() => {
+                  setPartnersModalOpen(false);
+                  setEditingPartnerIdx(null);
+                }}
+                title={`Partner Logos (${partnersList.length})`}
+                subtitle={
+                  editingPartnerIdx !== null
+                    ? `Editing partner #${editingPartnerIdx + 1}`
+                    : 'Click Edit on a partner to update its logo and details'
+                }
+                maxWidth="2xl"
+                headerActions={
+                  editingPartnerIdx === null ? (
+                    <Button size="sm" onClick={handleAddPartner} icon={<Plus size={14} />}>
+                      Add Partner
+                    </Button>
+                  ) : undefined
+                }
+                footer={
+                  editingPartnerIdx !== null ? (
+                    <Button onClick={() => setEditingPartnerIdx(null)}>Done Editing</Button>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        setPartnersModalOpen(false);
+                        setEditingPartnerIdx(null);
+                      }}
+                    >
+                      Done
+                    </Button>
+                  )
+                }
+              >
+                {editingPartnerIdx !== null && partnersList[editingPartnerIdx] ? (
+                  (() => {
+                    const idx = editingPartnerIdx;
+                    const partner = partnersList[idx];
+                    return (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            icon={<ChevronLeft size={14} />}
+                            onClick={() => setEditingPartnerIdx(null)}
+                          >
+                            All Partners
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                            onClick={() => handleRemovePartner(idx)}
+                            icon={<Trash2 size={13} />}
+                          >
+                            Remove
+                          </Button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => onOpenMediaPicker((url) => handleUpdatePartner(idx, 'logo', url))}
-                          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 hover:border-blue-400 hover:text-blue-800"
+
+                        <div className="flex items-center gap-3.5 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
+                          <div className="h-14 w-20 shrink-0 rounded-lg border border-slate-200 bg-white p-2 flex items-center justify-center overflow-hidden">
+                            {partner.logo ? (
+                              <img
+                                src={partner.logo}
+                                alt={`${partner.name || 'Partner'} logo`}
+                                className="h-full w-full object-contain"
+                              />
+                            ) : (
+                              <span className="text-[10px] text-slate-400 text-center">No logo</span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => onOpenMediaPicker((url) => handleUpdatePartner(idx, 'logo', url))}
+                            >
+                              {partner.logo ? 'Change Logo' : 'Select Logo'}
+                            </Button>
+                            {partner.logo && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleUpdatePartner(idx, 'logo', '')}
+                              >
+                                Clear
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <FormField label="Organization name">
+                            <Input
+                              value={partner.name}
+                              onChange={(e) => handleUpdatePartner(idx, 'name', e.target.value)}
+                              placeholder="Organization name"
+                            />
+                          </FormField>
+                          <FormField label="Short label">
+                            <Input
+                              value={partner.short}
+                              onChange={(e) => handleUpdatePartner(idx, 'short', e.target.value)}
+                              placeholder="Short label"
+                            />
+                          </FormField>
+                          <div className="sm:col-span-2">
+                            <FormField label="Subtitle / category">
+                              <Input
+                                value={partner.subtext}
+                                onChange={(e) => handleUpdatePartner(idx, 'subtext', e.target.value)}
+                                placeholder="Organization type or sector"
+                              />
+                            </FormField>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()
+                ) : partnersList.length === 0 ? (
+                  <div className="py-12 text-center text-xs text-slate-500">
+                    No partners added yet. Click &ldquo;Add Partner&rdquo; above to add one.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {partnersList.map((partner, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 hover:border-slate-300 transition"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-10 w-10 shrink-0 rounded-lg border border-slate-200 bg-white p-1.5 flex items-center justify-center overflow-hidden">
+                            {partner.logo ? (
+                              <img src={partner.logo} alt={partner.short || partner.name} className="h-full w-full object-contain" />
+                            ) : (
+                              <span className="text-[9px] text-slate-400">Logo</span>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-slate-900 truncate">
+                              {partner.short || partner.name || `Partner ${idx + 1}`}
+                            </p>
+                            <p className="text-[11px] text-slate-500 truncate">
+                              {partner.subtext || partner.name || 'No subtitle'}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          icon={<Pencil size={12} />}
+                          onClick={() => setEditingPartnerIdx(idx)}
                         >
-                          {partner.logo ? 'Change logo' : 'Choose from library'}
-                        </button>
+                          Edit
+                        </Button>
                       </div>
-                      </div>
-                    </details>
-                  ))}
-                </div>
-                </div>
-              </details>
+                    ))}
+                  </div>
+                )}
+              </Modal>
             </div>
           </div>
 
@@ -1627,7 +1817,13 @@ export function LandingPageView({
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 items-center justify-items-center opacity-90">
                   {partnersList.map((auth, idx) => (
                     <div key={idx} className="flex flex-col items-center justify-center p-2 text-center">
-                      <img src={auth.logo} alt={auth.short || auth.name} className="h-9 max-w-[55px] object-contain filter brightness-95" />
+                      {auth.logo ? (
+                        <img src={auth.logo} alt={auth.short || auth.name} className="h-9 max-w-[55px] object-contain filter brightness-95" />
+                      ) : (
+                        <div className="h-9 w-12 rounded border border-white/15 bg-white/5 flex items-center justify-center text-[9px] font-bold text-slate-400">
+                          LOGO
+                        </div>
+                      )}
                       <span className="text-[9px] font-mono font-bold text-neutral-300 mt-1">{auth.short || auth.name}</span>
                       <span className="text-[8px] font-mono text-neutral-500">{auth.subtext}</span>
                     </div>
@@ -1645,89 +1841,71 @@ export function LandingPageView({
       {activeSubSection === 'services' && (
         <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Services Track Narrative</h3>
-                <p className="text-[11px] text-slate-400">Configure horizontal service cards, header, and active items.</p>
+                <h3 className="text-sm font-bold text-slate-900">Services Section</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Headings, quote, and call-to-action</p>
               </div>
-              <button
-                onClick={handleSaveShaping}
-                disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
-              >
-                <Save size={13} />
-                <span>{savingSection ? 'Saving...' : 'Save Track'}</span>
-              </button>
+              <Button size="sm" onClick={handleSaveShaping} loading={savingSection} icon={<Save size={13} />}>
+                Save Section
+              </Button>
             </div>
 
-            <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-red-600 mb-1">Subtitle Tag</label>
-                  <input
-                    type="text"
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField label="Subtitle Tag">
+                  <Input
                     value={shapingSubtitle}
                     onChange={(e) => setShapingSubtitle(e.target.value)}
                     placeholder="WHAT WE DO"
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-red-600"
                   />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Eyebrow Kicker</label>
-                  <input
-                    type="text"
+                </FormField>
+                <FormField label="Eyebrow Label">
+                  <Input
                     value={shapingKicker}
                     onChange={(e) => setShapingKicker(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
+                    placeholder="Section label"
                   />
-                </div>
+                </FormField>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Main Heading</label>
-                <input
-                  type="text"
+              <FormField label="Main Heading">
+                <Input
                   value={shapingTitle}
                   onChange={(e) => setShapingTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
+                  placeholder="Enter main heading"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Description Paragraph</label>
-                <textarea
-                  rows={2}
+              <FormField label="Description">
+                <Textarea
+                  rows={3}
                   value={shapingDesc}
                   onChange={(e) => setShapingDesc(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed"
+                  placeholder="Write section description..."
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Bottom Manifesto Quote</label>
-                <textarea
+              <FormField label="Bottom Quote">
+                <Textarea
                   rows={2}
                   value={shapingManifesto}
                   onChange={(e) => setShapingManifesto(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed"
+                  placeholder="Supporting statement below cards..."
                 />
-              </div>
+              </FormField>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Button Text</label>
-                  <input
-                    type="text"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField label="Button Label">
+                  <Input
                     value={shapingBtnText}
                     onChange={(e) => setShapingBtnText(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                   />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Button Link (Select Page)</label>
+                </FormField>
+                <FormField label="Button Destination">
                   <PageSelect value={shapingBtnHref} onChange={setShapingBtnHref} />
-                </div>
+                </FormField>
               </div>
             </div>
 
@@ -1821,79 +1999,59 @@ export function LandingPageView({
       {activeSubSection === 'projects' && (
         <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Landmarks Showcase Setup</h3>
-                <p className="text-[11px] text-slate-400">Featured carousel with luminous corner glow blooms.</p>
+                <h3 className="text-sm font-bold text-slate-900">Projects Showcase</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Featured projects carousel and headings</p>
               </div>
-              <button
-                onClick={handleSaveProjects}
-                disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
-              >
-                <Save size={13} />
-                <span>{savingSection ? 'Saving...' : 'Save Showcase'}</span>
-              </button>
+              <Button size="sm" onClick={handleSaveProjects} loading={savingSection} icon={<Save size={13} />}>
+                Save Section
+              </Button>
             </div>
 
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-red-600 mb-1">Subtitle Tag</label>
-                  <input
-                    type="text"
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField label="Subtitle Tag">
+                  <Input
                     value={projSubtitle}
                     onChange={(e) => setProjSubtitle(e.target.value)}
                     placeholder="REAL-WORLD IMPACT"
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-red-600"
                   />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Eyebrow Kicker</label>
-                  <input
-                    type="text"
+                </FormField>
+                <FormField label="Eyebrow Label">
+                  <Input
                     value={projKicker}
                     onChange={(e) => setProjKicker(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700"
                   />
-                </div>
+                </FormField>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Main Heading</label>
-                <input
-                  type="text"
+              <FormField label="Main Heading">
+                <Input
                   value={projTitle}
                   onChange={(e) => setProjTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Description Paragraph</label>
-                <textarea
-                  rows={2}
+              <FormField label="Description">
+                <Textarea
+                  rows={3}
                   value={projDesc}
                   onChange={(e) => setProjDesc(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed"
                 />
-              </div>
+              </FormField>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Button Text</label>
-                  <input
-                    type="text"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField label="Button Label">
+                  <Input
                     value={projBtnText}
                     onChange={(e) => setProjBtnText(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                   />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Button Link (Select Page)</label>
+                </FormField>
+                <FormField label="Button Destination">
                   <PageSelect value={projBtnHref} onChange={setProjBtnHref} />
-                </div>
+                </FormField>
               </div>
             </div>
 
@@ -2000,170 +2158,171 @@ export function LandingPageView({
       {activeSubSection === 'equipment' && (
         <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4 max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 sticky top-0 bg-white z-10">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-5 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-slate-100 sticky top-0 bg-white z-10">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Hardware Fleet, Nodes &amp; Software</h3>
-                <p className="text-[11px] text-slate-400">Edit physical sensors, computational nodes &amp; software suite.</p>
+                <h3 className="text-sm font-bold text-slate-900">Equipment &amp; Facilities</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Hardware fleet, workstation nodes, and software</p>
               </div>
-              <button
-                onClick={handleSaveEquipment}
-                disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
-              >
-                <Save size={13} />
-                <span>{savingSection ? 'Saving...' : 'Save All'}</span>
-              </button>
+              <Button size="sm" onClick={handleSaveEquipment} loading={savingSection} icon={<Save size={13} />}>
+                Save Section
+              </Button>
             </div>
 
             {/* General Section Narrative */}
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-red-600 mb-1">Subtitle Tag</label>
-                  <input
-                    type="text"
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField label="Subtitle Tag">
+                  <Input
                     value={equipSubtitle}
                     onChange={(e) => setEquipSubtitle(e.target.value)}
                     placeholder="PHYSICAL & TECHNICAL RESOURCES"
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-red-600"
                   />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Compute Lab Title</label>
-                  <input
-                    type="text"
+                </FormField>
+                <FormField label="Compute Lab Title">
+                  <Input
                     value={equipLabTitle}
                     onChange={(e) => setEquipLabTitle(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                   />
-                </div>
+                </FormField>
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Main Heading</label>
-                <input
-                  type="text"
+              <FormField label="Main Heading">
+                <Input
                   value={equipTitle}
                   onChange={(e) => setEquipTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Description Paragraph</label>
-                <textarea
+              <FormField label="Description">
+                <Textarea
                   rows={2}
                   value={equipDesc}
                   onChange={(e) => setEquipDesc(e.target.value)}
-                  className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Centralized NAS Storage Detail</label>
-                <input
-                  type="text"
+              <FormField label="Central Storage Summary">
+                <Input
                   value={equipNasText}
                   onChange={(e) => setEquipNasText(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800"
                 />
-              </div>
+              </FormField>
             </div>
 
-            {/* 1. WORKSTATION NODES: ADD / REMOVE / EDIT */}
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-              <div className="flex items-center justify-between">
+            {/* 1. WORKSTATION NODES: COMPACT MINIMAL LIST + CLICK TO EDIT ONE */}
+            <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
                 <div>
                   <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Cpu size={14} className="text-[#1D5EC8]" />
-                    <span>Processing Workstation Nodes ({workstations.length})</span>
+                    <Cpu size={14} className="text-indigo-600" />
+                    <span>Workstation Nodes ({workstations.length})</span>
                   </span>
-                  <span className="text-[10px] text-slate-400">Add, edit specs, or remove nodes live</span>
+                  <span className="text-[11px] text-slate-500">Click Edit on a node to update specs</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleAddWorkstation}
-                  className="flex items-center gap-1 px-2.5 py-1 bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-[11px] font-bold rounded-lg transition cursor-pointer"
-                >
-                  <Plus size={12} />
-                  <span>Add Node</span>
-                </button>
+                <Button size="sm" variant="secondary" onClick={handleAddWorkstation} icon={<Plus size={13} />}>
+                  Add Node
+                </Button>
               </div>
 
-              <div className="space-y-2">
-                {workstations.map((ws, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-2.5 rounded-xl border bg-white space-y-2 transition ${
-                      ws.isAccent ? 'border-red-300 ring-1 ring-red-100' : 'border-slate-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <input
-                        type="text"
-                        value={ws.id}
-                        onChange={(e) => handleUpdateWorkstation(idx, 'id', e.target.value)}
-                        placeholder="NODE 01"
-                        className="w-24 px-2 py-0.5 bg-slate-100 rounded text-[11px] font-mono font-bold text-slate-800"
-                      />
-                      <div className="flex items-center gap-2">
-                        <label className="flex items-center gap-1 text-[10px] font-bold text-slate-600 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={ws.isAccent || false}
-                            onChange={(e) => handleUpdateWorkstation(idx, 'isAccent', e.target.checked)}
-                            className="rounded text-red-600"
+              <div className="space-y-1.5">
+                {workstations.map((ws, idx) => {
+                  const isEditing = editingWorkstationIdx === idx;
+                  return (
+                    <div
+                      key={idx}
+                      className={`rounded-xl border transition ${
+                        isEditing
+                          ? 'border-indigo-300 bg-slate-50/60 p-3 space-y-3'
+                          : 'border-slate-200 bg-white px-3 py-2 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className={`h-2 w-2 rounded-full shrink-0 ${
+                              ws.isAccent ? 'bg-rose-500' : 'bg-indigo-500'
+                            }`}
                           />
-                          <span>Highlight Red</span>
-                        </label>
-                        {workstations.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveWorkstation(idx)}
-                            className="text-slate-400 hover:text-red-600 transition p-1"
-                            title="Remove workstation"
+                          <span className="text-[11px] font-mono font-bold text-slate-900 shrink-0">{ws.id || `NODE 0${idx + 1}`}</span>
+                          <span className="text-[11px] text-slate-500 truncate">
+                            {[ws.cpu, ws.ram, ws.gpu].filter(Boolean).join(' · ')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Button
+                            size="sm"
+                            variant={isEditing ? 'secondary' : 'ghost'}
+                            onClick={() => setEditingWorkstationIdx(isEditing ? null : idx)}
+                            icon={isEditing ? <Check size={12} /> : <Pencil size={12} />}
                           >
-                            <Trash2 size={13} />
-                          </button>
-                        )}
+                            {isEditing ? 'Done' : 'Edit'}
+                          </Button>
+                          {workstations.length > 1 && isEditing && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                              onClick={() => handleRemoveWorkstation(idx)}
+                              icon={<Trash2 size={12} />}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="grid grid-cols-3 gap-1.5">
-                      <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">CPU Processor</label>
-                        <input
-                          type="text"
-                          value={ws.cpu}
-                          onChange={(e) => handleUpdateWorkstation(idx, 'cpu', e.target.value)}
-                          placeholder="Intel Core i9"
-                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-800 font-semibold"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">RAM Memory</label>
-                        <input
-                          type="text"
-                          value={ws.ram}
-                          onChange={(e) => handleUpdateWorkstation(idx, 'ram', e.target.value)}
-                          placeholder="64GB DDR5"
-                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-800 font-mono"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-bold text-slate-400 mb-0.5">GPU Graphics</label>
-                        <input
-                          type="text"
-                          value={ws.gpu}
-                          onChange={(e) => handleUpdateWorkstation(idx, 'gpu', e.target.value)}
-                          placeholder="RTX 4060 Ti"
-                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-800 font-semibold"
-                        />
-                      </div>
+                      {isEditing && (
+                        <div className="space-y-2.5 border-t border-slate-200 pt-2.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="w-32">
+                              <FormField label="Node ID">
+                                <Input
+                                  value={ws.id}
+                                  onChange={(e) => handleUpdateWorkstation(idx, 'id', e.target.value)}
+                                  placeholder="NODE 01"
+                                />
+                              </FormField>
+                            </div>
+                            <label className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-700 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={ws.isAccent || false}
+                                onChange={(e) => handleUpdateWorkstation(idx, 'isAccent', e.target.checked)}
+                                className="h-3.5 w-3.5 rounded accent-rose-600"
+                              />
+                              <span>Highlight Red</span>
+                            </label>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2">
+                            <FormField label="CPU">
+                              <Input
+                                value={ws.cpu}
+                                onChange={(e) => handleUpdateWorkstation(idx, 'cpu', e.target.value)}
+                                placeholder="Intel Core i9"
+                              />
+                            </FormField>
+                            <FormField label="RAM">
+                              <Input
+                                value={ws.ram}
+                                onChange={(e) => handleUpdateWorkstation(idx, 'ram', e.target.value)}
+                                placeholder="64GB DDR5"
+                              />
+                            </FormField>
+                            <FormField label="GPU">
+                              <Input
+                                value={ws.gpu}
+                                onChange={(e) => handleUpdateWorkstation(idx, 'gpu', e.target.value)}
+                                placeholder="RTX 4060 Ti"
+                              />
+                            </FormField>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -2177,96 +2336,429 @@ export function LandingPageView({
               />
             </div>
 
-            {/* 3. SOFTWARE LOGOS & SUITE: ADD / REMOVE / EDIT */}
-            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Layers size={14} className="text-[#1D5EC8]" />
-                    <span>Software logos &amp; details ({softwareList.length})</span>
-                  </span>
-                  <span className="text-[11px] text-slate-600">Manage the tools shown on the homepage and equipment page.</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleAddSoftware}
-                  className="flex items-center gap-1 px-2.5 py-1 bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-[11px] font-bold rounded-lg transition cursor-pointer"
-                >
-                  <Plus size={12} />
-                  <span>Add Software</span>
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                {softwareList.map((sw, idx) => (
-                  <div key={idx} className="p-2.5 rounded-xl border border-slate-200 bg-white space-y-1.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <input
-                        type="text"
-                        value={sw.name}
-                        onChange={(e) => handleUpdateSoftware(idx, 'name', e.target.value)}
-                        placeholder="Software name"
-                        aria-label="Software name"
-                        className="flex-1 px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm font-semibold text-slate-950"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSoftware(idx)}
-                        className="text-slate-400 hover:text-red-600 transition p-1"
-                        title="Remove software"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+            {/* 3. SOFTWARE LOGOS & SUITE: MINIMAL TRIGGER CARD + COMPACT SELECT & SINGLE-ITEM EDIT MODAL */}
+            {(() => {
+              const featuredCount = softwareList.filter((s: any) => s.featuredOnHome).length;
+              const previewHomeTools = (featuredCount > 0 ? softwareList.filter((s: any) => s.featuredOnHome) : softwareList).slice(0, 4);
+              return (
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-900">
+                        Software &amp; Digital Tools ({softwareList.length})
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                        {featuredCount > 0 ? `${Math.min(featuredCount, 4)} / 4 on Homepage` : 'First 4 on Homepage'} · {softwareList.length} total
+                      </p>
                     </div>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Category</label>
-                        <input
-                          type="text"
-                          value={sw.category}
-                          onChange={(e) => handleUpdateSoftware(idx, 'category', e.target.value)}
-                          placeholder="For example: Mapping"
-                          className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Publisher or edition</label>
-                        <input
-                          type="text"
-                          value={sw.badge}
-                          onChange={(e) => handleUpdateSoftware(idx, 'badge', e.target.value)}
-                          placeholder="For example: Esri"
-                          className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">What the team uses it for</label>
-                      <textarea
-                        rows={2}
-                        value={sw.description || ''}
-                        onChange={(e) => handleUpdateSoftware(idx, 'description', e.target.value)}
-                        placeholder="Explain in plain language how this tool is used."
-                        className="w-full resize-y px-3 py-2 bg-slate-100 border border-slate-300 rounded-lg text-sm text-slate-950"
-                      />
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                      <div className="flex h-14 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-300 bg-white p-2">
-                        {sw.logo ? <img src={sw.logo} alt={`${sw.name || 'Software'} logo preview`} className="h-full w-full object-contain" /> : <span className="text-center text-[10px] font-medium text-slate-500">No logo selected</span>}
-                      </div>
-                      <div className="min-w-0 flex-1"><span className="block text-xs font-semibold text-slate-800">Software logo</span><span className="mt-0.5 block text-xs text-slate-600">Choose a logo from the media library. The preview appears here.</span></div>
-                      <button
-                        type="button"
-                        onClick={() => onOpenMediaPicker((url) => handleUpdateSoftware(idx, 'logo', url))}
-                        className="shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 hover:border-blue-400 hover:text-blue-800"
-                      >
-                        {sw.logo ? 'Change logo' : 'Choose from library'}
-                      </button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      icon={<Pencil size={13} />}
+                      onClick={() => {
+                        setEditingSoftwareIdx(null);
+                        setSoftwareLogoPickerIdx(null);
+                        setSoftwareSearchQuery('');
+                        setSoftwareFilterMode('all');
+                        setSoftwareModalOpen(true);
+                      }}
+                    >
+                      Select &amp; Edit
+                    </Button>
                   </div>
-                ))}
-              </div>
-            </div>
+                  {previewHomeTools.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      {previewHomeTools.map((sw, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            const realIdx = softwareList.indexOf(sw);
+                            setEditingSoftwareIdx(realIdx >= 0 ? realIdx : null);
+                            setSoftwareLogoPickerIdx(null);
+                            setSoftwareModalOpen(true);
+                          }}
+                          className="h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50/70 hover:border-indigo-300 hover:bg-indigo-50/40 flex items-center gap-1.5 text-[11px] font-medium text-slate-700 transition cursor-pointer"
+                        >
+                          {sw.logo && <img src={sw.logo} alt={sw.name} className="h-4 w-4 object-contain" />}
+                          <span className="truncate max-w-[110px]">{sw.name || `Software ${i + 1}`}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            <Modal
+              isOpen={softwareModalOpen}
+              onClose={() => {
+                setSoftwareModalOpen(false);
+                setSoftwareLogoPickerIdx(null);
+                setEditingSoftwareIdx(null);
+              }}
+              title={
+                softwareLogoPickerIdx !== null
+                  ? `Choose Logo · #${softwareLogoPickerIdx + 1}`
+                  : editingSoftwareIdx !== null && softwareList[editingSoftwareIdx]
+                    ? `Edit Software · ${softwareList[editingSoftwareIdx].name || `#${editingSoftwareIdx + 1}`}`
+                    : `Software & Digital Tools (${softwareList.length})`
+              }
+              subtitle={
+                softwareLogoPickerIdx !== null
+                  ? 'Pick a built-in logo or upload from the media library'
+                  : editingSoftwareIdx !== null
+                    ? 'Update logo, name, category, and homepage visibility for this item'
+                    : 'Tick up to 4 for the Homepage, or click Edit on any item'
+              }
+              maxWidth="4xl"
+              headerActions={
+                softwareLogoPickerIdx === null && editingSoftwareIdx === null ? (
+                  <Button size="sm" onClick={handleAddSoftware} icon={<Plus size={14} />}>
+                    Add Software
+                  </Button>
+                ) : undefined
+              }
+              footer={
+                softwareLogoPickerIdx !== null ? (
+                  <Button size="sm" variant="secondary" onClick={() => setSoftwareLogoPickerIdx(null)}>
+                    Back to Editor
+                  </Button>
+                ) : editingSoftwareIdx !== null ? (
+                  <Button onClick={() => setEditingSoftwareIdx(null)}>
+                    Save &amp; Back to List
+                  </Button>
+                ) : (
+                  <div className="flex w-full items-center justify-between gap-3">
+                    <span className="text-xs text-slate-500">
+                      {softwareList.filter((s: any) => s.featuredOnHome).length} / 4 selected for Homepage
+                    </span>
+                    <Button
+                      onClick={() => {
+                        setSoftwareModalOpen(false);
+                        setSoftwareLogoPickerIdx(null);
+                        setEditingSoftwareIdx(null);
+                      }}
+                    >
+                      Done
+                    </Button>
+                  </div>
+                )
+              }
+            >
+              {softwareLogoPickerIdx !== null ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-200">
+                    <Button size="sm" variant="ghost" icon={<ChevronLeft size={14} />} onClick={() => setSoftwareLogoPickerIdx(null)}>
+                      Back
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        const targetIdx = softwareLogoPickerIdx;
+                        onOpenMediaPicker((url) => {
+                          handleUpdateSoftware(targetIdx, 'logo', url);
+                          setSoftwareLogoPickerIdx(null);
+                        });
+                      }}
+                    >
+                      Open Media Library
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
+                    {[
+                      { name: 'ArcGIS Pro', category: 'Geospatial GIS', badge: 'ESRI', logo: '/software-logos/arcgis-pro.png' },
+                      { name: 'QGIS', category: 'OSGeo OpenSource', badge: 'QGIS', logo: '/software-logos/qgis.png' },
+                      { name: 'AutoCAD Civil 3D', category: 'Infrastructure BIM', badge: 'Autodesk', logo: '/software-logos/autocad-civil-3d.png' },
+                      { name: 'Agisoft Metashape', category: 'UAV Photogrammetry', badge: 'Agisoft', logo: '/software-logos/agisoft-metashape.png' },
+                      { name: 'Leica Geo Office', category: 'Geodetic Baseline', badge: 'Leica', logo: '/software-logos/leica-geo-office.png' },
+                      { name: 'MIDAS Civil', category: 'Structural Design', badge: 'MIDAS', logo: '/software-logos/docx/image1.webp' },
+                      { name: 'Tekla Tedds', category: 'Structural Calculations', badge: 'Trimble', logo: '/software-logos/docx/image2.webp' },
+                      { name: 'STAAD.Pro', category: 'Structural Analysis', badge: 'Bentley', logo: '/software-logos/docx/image3.webp' },
+                      { name: 'CSI ETABS', category: 'Building Design', badge: 'CSI', logo: '/software-logos/docx/image4.webp' },
+                      { name: 'Trimble SketchUp', category: '3D Modelling', badge: 'Trimble', logo: '/software-logos/docx/image5.webp' },
+                      { name: 'Microsoft Project', category: 'Project Planning', badge: 'Microsoft', logo: '/software-logos/docx/image6.webp' },
+                      { name: 'Oracle Primavera P6', category: 'Project Planning', badge: 'Oracle', logo: '/software-logos/docx/image7.webp' },
+                      { name: 'Autodesk Revit', category: 'Building Design', badge: 'Autodesk', logo: '/software-logos/docx/image8.webp' },
+                      { name: 'Pix4D', category: 'Drone Mapping', badge: 'Pix4D', logo: '/software-logos/docx/image9.webp' },
+                      { name: 'DJI Terra', category: 'Drone Mapping', badge: 'DJI', logo: '/software-logos/docx/image10.webp' },
+                      { name: 'Google Earth Engine', category: 'Satellite Data', badge: 'Google', logo: '/software-logos/docx/image11.webp' },
+                      { name: 'USGS EarthExplorer', category: 'Satellite Data', badge: 'USGS', logo: '/software-logos/docx/image12.webp' },
+                      { name: 'Copernicus Sentinel', category: 'Satellite Data', badge: 'ESA', logo: '/software-logos/docx/image13.webp' },
+                      { name: 'REMAP', category: 'Environmental Mapping', badge: 'REMAP', logo: '/software-logos/docx/image14.webp' },
+                      { name: 'ENVI', category: 'Image Analysis', badge: 'NV5', logo: '/software-logos/docx/image15.webp' },
+                      { name: 'EnMAP-Box', category: 'Image Analysis', badge: 'QGIS', logo: '/software-logos/docx/image16.webp' },
+                      { name: 'ERDAS IMAGINE', category: 'Image Analysis', badge: 'Hexagon', logo: '/software-logos/docx/image17.webp' },
+                      { name: 'ArcGIS Desktop', category: 'Mapping & GIS', badge: 'Esri', logo: '/software-logos/docx/image18.webp' },
+                      { name: 'MS Office & Power BI', category: 'Reporting', badge: 'Microsoft', logo: '/software-logos/docx/image19.webp' },
+                      { name: 'Google Earth Pro', category: 'Mapping & GIS', badge: 'Google', logo: '/software-logos/docx/image20.webp' },
+                      { name: 'Agisoft Suite', category: 'Drone Mapping', badge: 'Agisoft', logo: '/software-logos/docx/image21.webp' },
+                    ].map((preset) => (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => {
+                          const targetIdx = softwareLogoPickerIdx;
+                          const next = [...softwareList];
+                          const curr = next[targetIdx];
+                          next[targetIdx] = {
+                            ...curr,
+                            logo: preset.logo,
+                            name: curr.name?.trim() && curr.name !== 'New Software' ? curr.name : preset.name,
+                            category: curr.category?.trim() ? curr.category : preset.category,
+                            badge: curr.badge?.trim() ? curr.badge : preset.badge,
+                          };
+                          setSoftwareList(next);
+                          setSoftwareLogoPickerIdx(null);
+                        }}
+                        className="p-2.5 rounded-xl border border-slate-200 bg-white hover:border-indigo-400 hover:bg-indigo-50/30 transition flex flex-col items-center text-center gap-2 cursor-pointer"
+                      >
+                        <div className="h-11 w-full flex items-center justify-center p-1 bg-white rounded-lg">
+                          <img src={preset.logo} alt={preset.name} className="max-h-10 max-w-full object-contain" />
+                        </div>
+                        <div className="min-w-0 w-full">
+                          <p className="text-[11px] font-semibold text-slate-900 truncate">{preset.name}</p>
+                          <p className="text-[10px] text-slate-500 truncate">{preset.category}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : editingSoftwareIdx !== null && softwareList[editingSoftwareIdx] ? (
+                (() => {
+                  const idx = editingSoftwareIdx;
+                  const sw: any = softwareList[idx];
+                  const isFeatured = Boolean(sw.featuredOnHome);
+                  const featuredCount = softwareList.filter((s: any) => s.featuredOnHome).length;
+                  const toggleHome = () => {
+                    if (!isFeatured && featuredCount >= 4) return;
+                    const next = [...softwareList];
+                    next[idx] = { ...next[idx], featuredOnHome: !isFeatured };
+                    setSoftwareList(next);
+                  };
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-200">
+                        <Button size="sm" variant="ghost" icon={<ChevronLeft size={14} />} onClick={() => setEditingSoftwareIdx(null)}>
+                          All Software
+                        </Button>
+                        <div className="flex items-center gap-2">
+                          <label
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition select-none ${
+                              !isFeatured && featuredCount >= 4
+                                ? 'opacity-45 cursor-not-allowed bg-slate-100 text-slate-500 border-slate-200'
+                                : isFeatured
+                                  ? 'bg-indigo-50 text-indigo-700 border-indigo-300 cursor-pointer'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300 cursor-pointer'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isFeatured}
+                              disabled={!isFeatured && featuredCount >= 4}
+                              onChange={toggleHome}
+                              className="h-3.5 w-3.5 rounded accent-indigo-600"
+                            />
+                            <span>Show on Homepage ({featuredCount}/4)</span>
+                          </label>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                            onClick={() => handleRemoveSoftware(idx)}
+                            icon={<Trash2 size={13} />}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
+                        <div className="h-16 w-24 shrink-0 rounded-lg border border-slate-200 bg-white p-2 flex items-center justify-center overflow-hidden">
+                          {sw.logo ? (
+                            <img src={sw.logo} alt={`${sw.name || 'Software'} logo`} className="h-full w-full object-contain" />
+                          ) : (
+                            <span className="text-[10px] text-slate-400">No logo</span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button size="sm" variant="secondary" onClick={() => setSoftwareLogoPickerIdx(idx)}>
+                            {sw.logo ? 'Change Logo' : 'Choose Logo'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onOpenMediaPicker((url) => handleUpdateSoftware(idx, 'logo', url))}
+                          >
+                            Upload / Media
+                          </Button>
+                          {sw.logo && (
+                            <Button size="sm" variant="ghost" onClick={() => handleUpdateSoftware(idx, 'logo', '')}>
+                              Clear
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div className="sm:col-span-2">
+                          <FormField label="Software name">
+                            <Input
+                              value={sw.name}
+                              onChange={(e) => handleUpdateSoftware(idx, 'name', e.target.value)}
+                              placeholder="Software name"
+                            />
+                          </FormField>
+                        </div>
+                        <FormField label="Category">
+                          <Input
+                            value={sw.category}
+                            onChange={(e) => handleUpdateSoftware(idx, 'category', e.target.value)}
+                            placeholder="e.g. Geospatial GIS"
+                          />
+                        </FormField>
+                        <FormField label="Publisher">
+                          <Input
+                            value={sw.badge}
+                            onChange={(e) => handleUpdateSoftware(idx, 'badge', e.target.value)}
+                            placeholder="e.g. Esri"
+                          />
+                        </FormField>
+                        <div className="sm:col-span-2">
+                          <FormField label="Description">
+                            <Textarea
+                              rows={3}
+                              value={sw.description || ''}
+                              onChange={(e) => handleUpdateSoftware(idx, 'description', e.target.value)}
+                              placeholder="Describe how this software is used..."
+                            />
+                          </FormField>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : softwareList.length === 0 ? (
+                <div className="py-12 text-center text-xs text-slate-500">
+                  No software added yet. Click &ldquo;Add Software&rdquo; above to add one.
+                </div>
+              ) : (
+                (() => {
+                  const featuredCount = softwareList.filter((s: any) => s.featuredOnHome).length;
+                  const q = softwareSearchQuery.trim().toLowerCase();
+                  const filteredItems = softwareList
+                    .map((sw, idx) => ({ sw, idx }))
+                    .filter(({ sw }) => {
+                      if (softwareFilterMode === 'featured' && !(sw as any).featuredOnHome) return false;
+                      if (!q) return true;
+                      return `${sw.name} ${sw.category} ${sw.badge}`.toLowerCase().includes(q);
+                    });
+
+                  return (
+                    <div className="space-y-3.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2.5">
+                        <div className="relative min-w-[220px] flex-1">
+                          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                          <input
+                            type="text"
+                            value={softwareSearchQuery}
+                            onChange={(e) => setSoftwareSearchQuery(e.target.value)}
+                            placeholder="Search software by name or category..."
+                            className="w-full h-9 rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-indigo-400"
+                          />
+                        </div>
+                        <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => setSoftwareFilterMode('all')}
+                            className={`px-2.5 py-1 rounded-md font-medium transition cursor-pointer ${
+                              softwareFilterMode === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                            }`}
+                          >
+                            All ({softwareList.length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSoftwareFilterMode('featured')}
+                            className={`px-2.5 py-1 rounded-md font-medium transition cursor-pointer ${
+                              softwareFilterMode === 'featured' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                            }`}
+                          >
+                            Homepage ({featuredCount}/4)
+                          </button>
+                        </div>
+                      </div>
+
+                      {filteredItems.length === 0 ? (
+                        <div className="py-10 text-center text-xs text-slate-500 rounded-xl border border-dashed border-slate-200">
+                          No matching software found.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {filteredItems.map(({ sw, idx }: { sw: any; idx: number }) => {
+                            const isFeatured = Boolean(sw.featuredOnHome);
+                            const disabled = !isFeatured && featuredCount >= 4;
+                            const toggleHome = () => {
+                              if (disabled) return;
+                              const next = [...softwareList];
+                              next[idx] = { ...next[idx], featuredOnHome: !isFeatured };
+                              setSoftwareList(next);
+                            };
+                            return (
+                              <div
+                                key={idx}
+                                className={`flex items-center justify-between gap-2.5 rounded-xl border px-3 py-2 transition ${
+                                  isFeatured
+                                    ? 'border-indigo-300 bg-indigo-50/35'
+                                    : 'border-slate-200 bg-white hover:border-slate-300'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <input
+                                    type="checkbox"
+                                    checked={isFeatured}
+                                    disabled={disabled}
+                                    onChange={toggleHome}
+                                    title={isFeatured ? 'Shown on Homepage' : disabled ? 'Max 4 selected for Homepage' : 'Show on Homepage'}
+                                    className="h-4 w-4 shrink-0 rounded accent-indigo-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                                  />
+                                  <div className="h-9 w-9 shrink-0 rounded-lg border border-slate-200 bg-white p-1 flex items-center justify-center overflow-hidden">
+                                    {sw.logo ? (
+                                      <img src={sw.logo} alt={sw.name || 'Logo'} className="h-full w-full object-contain" />
+                                    ) : (
+                                      <span className="text-[9px] text-slate-400">Logo</span>
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-slate-900 truncate">
+                                      {sw.name || `Software ${idx + 1}`}
+                                    </p>
+                                    <p className="text-[11px] text-slate-500 truncate">
+                                      {[sw.category, sw.badge].filter(Boolean).join(' · ') || 'No category'}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  icon={<Pencil size={12} />}
+                                  onClick={() => setEditingSoftwareIdx(idx)}
+                                >
+                                  Edit
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()
+              )}
+            </Modal>
           </div>
 
           {/* RIGHT 7 COLS: LIVE EQUIPMENT, NODES & SOFTWARE PREVIEW */}
@@ -2353,6 +2845,44 @@ export function LandingPageView({
                   <span className="text-[#3B82F6] font-bold">24/7 REDUNDANT</span>
                 </div>
               </div>
+
+              {/* Homepage 4 Featured Software Preview — matches public Homepage SOFTWARE & DIGITAL TOOLS */}
+              <div className="space-y-3 pt-3 border-t border-white/10">
+                <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.16em] text-[#60A5FA] font-bold">
+                  <span>SOFTWARE & DIGITAL TOOLS</span>
+                  <span className="text-neutral-400">4 Featured Slots</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {(softwareList.some((s) => s.featuredOnHome)
+                    ? softwareList.filter((s) => s.featuredOnHome)
+                    : softwareList
+                  )
+                    .slice(0, 4)
+                    .map((sw, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-xl bg-white border border-slate-200/90 p-3.5 flex flex-col items-center justify-between gap-2.5 shadow-sm"
+                      >
+                        <div className="h-12 w-full flex items-center justify-center bg-white">
+                          {sw.logo ? (
+                            <img src={sw.logo} alt={sw.name} className="max-h-11 max-w-full object-contain" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-slate-400">LOGO</span>
+                          )}
+                        </div>
+                        <div className="w-full text-center min-w-0 border-t border-slate-100 pt-1.5">
+                          <p className="text-[11px] font-bold text-slate-900 truncate">{sw.name}</p>
+                          <p className="text-[9px] text-slate-500 truncate">{sw.category}</p>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+                <div className="flex justify-center pt-1">
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-[11px] font-semibold text-white">
+                    View all software →
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2360,19 +2890,26 @@ export function LandingPageView({
 
       {activeSubSection === 'team' && (
         <div id="homepage-section-editor" className="gw-section-grid grid gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,1.1fr)]">
-          <section className="gw-editor-panel rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+          <section className="gw-editor-panel rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Homepage team section</p>
-                <h2 className="mt-1 text-lg font-semibold text-slate-950">Choose the people visitors see</h2>
-                <p className="mt-1 text-sm text-slate-500">Profiles and photos are managed in Team.</p>
+                <h3 className="text-sm font-bold text-slate-900">Team Section</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Headings and featured professionals</p>
               </div>
-              <button type="button" onClick={handleSaveTeam} disabled={savingSection} className="shrink-0 rounded-lg bg-[#F4382D] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-60">{savingSection ? 'Saving…' : 'Save section'}</button>
+              <Button size="sm" onClick={handleSaveTeam} loading={savingSection} icon={<Save size={13} />}>
+                Save Section
+              </Button>
             </div>
-            <div className="mt-5 space-y-4">
-              <label className="block text-sm font-medium text-slate-700">Small heading<input value={teamEyebrow} onChange={(event) => setTeamEyebrow(event.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></label>
-              <label className="block text-sm font-medium text-slate-700">Main heading<input value={teamTitle} onChange={(event) => setTeamTitle(event.target.value)} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></label>
-              <label className="block text-sm font-medium text-slate-700">Short description<textarea rows={3} value={teamDescription} onChange={(event) => setTeamDescription(event.target.value)} className="mt-1.5 w-full resize-y rounded-lg border border-slate-200 px-3 py-2.5 text-sm leading-6 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></label>
+            <div className="space-y-4">
+              <FormField label="Eyebrow Label">
+                <Input value={teamEyebrow} onChange={(e) => setTeamEyebrow(e.target.value)} />
+              </FormField>
+              <FormField label="Main Heading">
+                <Input value={teamTitle} onChange={(e) => setTeamTitle(e.target.value)} />
+              </FormField>
+              <FormField label="Description">
+                <Textarea rows={3} value={teamDescription} onChange={(e) => setTeamDescription(e.target.value)} />
+              </FormField>
               <div>
                 <SelectionLauncher
                   label="Featured team members (up to 4)"
@@ -2403,81 +2940,66 @@ export function LandingPageView({
       {activeSubSection === 'news' && (
         <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">News &amp; Bulletins Setup</h3>
-                <p className="text-[11px] text-slate-400">Configure visual article cards and interactive news list.</p>
+                <h3 className="text-sm font-bold text-slate-900">News &amp; Insights Section</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Headings and article feed mode</p>
               </div>
-              <button
-                onClick={handleSaveNews}
-                disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
-              >
-                <Save size={13} />
-                <span>{savingSection ? 'Saving...' : 'Save News'}</span>
-              </button>
+              <Button size="sm" onClick={handleSaveNews} loading={savingSection} icon={<Save size={13} />}>
+                Save Section
+              </Button>
             </div>
 
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-blue-600 mb-1">Subtitle Tag</label>
-                <input
-                  type="text"
+            <div className="space-y-4">
+              <FormField label="Subtitle Tag">
+                <Input
                   value={newsSubtitle}
                   onChange={(e) => setNewsSubtitle(e.target.value)}
                   placeholder="RESEARCH & APPLIED GEODESY"
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-blue-600"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Top Heading (Articles)</label>
-                <input
-                  type="text"
+              <FormField label="Articles Heading">
+                <Input
                   value={newsTitle}
                   onChange={(e) => setNewsTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Bottom Heading (Newsroom)</label>
-                <input
-                  type="text"
+              <FormField label="Newsroom Heading">
+                <Input
                   value={newsroomTitle}
                   onChange={(e) => setNewsroomTitle(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Feed Mode</label>
-                <div className="flex gap-2">
+              <FormField label="Feed Mode">
+                <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-slate-100">
                   <button
                     type="button"
                     onClick={() => setNewsMode('latest')}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    className={`h-8 rounded-md text-xs font-semibold transition cursor-pointer ${
                       newsMode === 'latest'
-                        ? 'bg-[#1D5EC8] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'bg-indigo-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    ⚡ Auto Latest
+                    Auto Latest
                   </button>
                   <button
                     type="button"
                     onClick={() => setNewsMode('manual')}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    className={`h-8 rounded-md text-xs font-semibold transition cursor-pointer ${
                       newsMode === 'manual'
-                        ? 'bg-[#1D5EC8] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        ? 'bg-indigo-600 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    📌 Manual Pick
+                    Manual Pick
                   </button>
                 </div>
-              </div>
+              </FormField>
             </div>
 
             {/* Manual Article Selector */}
@@ -2570,87 +3092,64 @@ export function LandingPageView({
       {activeSubSection === 'leadgrow' && (
         <div id="homepage-section-editor" className="gw-section-grid grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT 5 COLS: DATA FORM */}
-          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="gw-editor-panel lg:col-span-5 bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
               <div>
-                <h3 className="text-sm font-bold text-slate-900">Lead &amp; Grow (Careers) Setup</h3>
-                <p className="text-[11px] text-slate-400">Configure portrait, culture narrative, and career action buttons.</p>
+                <h3 className="text-sm font-bold text-slate-900">Careers Section</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Culture narrative, image, and action buttons</p>
               </div>
-              <button
-                onClick={handleSaveCulture}
-                disabled={savingSection}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1D5EC8] hover:bg-[#164EA8] text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50"
-              >
-                <Save size={13} />
-                <span>{savingSection ? 'Saving...' : 'Save Culture'}</span>
-              </button>
+              <Button size="sm" onClick={handleSaveCulture} loading={savingSection} icon={<Save size={13} />}>
+                Save Section
+              </Button>
             </div>
 
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-blue-600 mb-1">Subtitle Tag</label>
-                <input
-                  type="text"
+            <div className="space-y-4">
+              <FormField label="Subtitle Tag">
+                <Input
                   value={cultureSubtitle}
                   onChange={(e) => setCultureSubtitle(e.target.value)}
-                  placeholder="NATIONAL TALENT & ENGINEERING CAREERS"
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-blue-600"
+                  placeholder="CAREERS AT GEOSPATIAL WORKS"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Main Heading</label>
-                <input
-                  type="text"
+              <FormField label="Main Heading">
+                <Input
                   value={cultureTitle}
                   onChange={(e) => setCultureTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Description Paragraph</label>
-                <textarea
+              <FormField label="Description">
+                <Textarea
                   rows={3}
                   value={cultureDesc}
                   onChange={(e) => setCultureDesc(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed"
                 />
-              </div>
+              </FormField>
 
-              <MediaAssetField label="Careers section image" value={cultureImageUrl} onChoose={() => onOpenMediaPicker(setCultureImageUrl)} onRemove={() => setCultureImageUrl('')} />
+              <MediaAssetField
+                label="Careers Section Image"
+                value={cultureImageUrl}
+                onChoose={() => onOpenMediaPicker(setCultureImageUrl)}
+                onRemove={() => setCultureImageUrl('')}
+              />
 
-              {/* Button 1 & 2 */}
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Primary CTA Button</label>
-                  <input
-                    type="text"
-                    value={cultureBtn1Text}
-                    onChange={(e) => setCultureBtn1Text(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Primary Link (Select Page)</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField label="Primary Button Label">
+                  <Input value={cultureBtn1Text} onChange={(e) => setCultureBtn1Text(e.target.value)} />
+                </FormField>
+                <FormField label="Primary Destination">
                   <PageSelect value={cultureBtn1Href} onChange={setCultureBtn1Href} />
-                </div>
+                </FormField>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Secondary Button</label>
-                  <input
-                    type="text"
-                    value={cultureBtn2Text}
-                    onChange={(e) => setCultureBtn2Text(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Secondary Link (Select Page)</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField label="Secondary Button Label">
+                  <Input value={cultureBtn2Text} onChange={(e) => setCultureBtn2Text(e.target.value)} />
+                </FormField>
+                <FormField label="Secondary Destination">
                   <PageSelect value={cultureBtn2Href} onChange={setCultureBtn2Href} />
-                </div>
+                </FormField>
               </div>
             </div>
           </div>
@@ -2665,7 +3164,7 @@ export function LandingPageView({
               <span className="text-[11px] text-slate-400">Desktop preview</span>
             </div>
 
-            <div className="bg-[#141212] text-white rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-2xl space-y-6">
+            <div className="bg-[#0A1931] text-white rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-2xl space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                 {/* Left: Professional Portrait with Dual Blue/Red Glow */}
                 <div className="md:col-span-5 relative">

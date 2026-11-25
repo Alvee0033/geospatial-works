@@ -83,6 +83,10 @@ export class UsersService {
       user.name = dto.name.trim();
     }
 
+    if (dto.permissions !== undefined) {
+      user.permissions = dto.permissions;
+    }
+
     // Role change protection: ensure at least one active ADMIN remains
     if (dto.role && dto.role !== user.role) {
       if (user.role === UserRole.ADMIN && dto.role !== UserRole.ADMIN) {

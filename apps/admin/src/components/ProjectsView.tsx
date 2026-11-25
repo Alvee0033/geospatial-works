@@ -1,19 +1,9 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
-import {
-  Trash2,
-  Edit2,
-  MapPin,
-  Award,
-  LayoutGrid,
-  List,
-  FolderKanban,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Trash2, Edit2, MapPin, Award, LayoutGrid, List, FolderKanban, RefreshCw, Plus } from 'lucide-react';
 import { ServiceItem } from './ServiceModal';
+import { Button, Badge, Card, PageHeader, SearchFilterBar, EmptyState } from './ui';
 
 export interface ProjectItem {
   id: string;
@@ -44,65 +34,8 @@ interface ProjectsViewProps {
   onToggleMilestone: (p: ProjectItem) => void;
 }
 
-// Semantic matching function to link project categories to service titles
-export function matchesServiceOrCategory(projectCategory: string, filterName: string): boolean {
-  if (filterName === 'All') return true;
-  const pCat = (projectCategory || '').trim().toLowerCase();
-  const fName = (filterName || '').trim().toLowerCase();
-
-  if (pCat === fName) return true;
-  if (pCat.includes(fName) || fName.includes(pCat)) return true;
-
-  if (fName.includes('uav') || fName.includes('drone')) {
-    return pCat.includes('uav') || pCat.includes('drone') || pCat.includes('photogrammetry');
-  }
-  if (fName.includes('hydrographic') || fName.includes('bathymetric') || fName.includes('water')) {
-    return (
-      pCat.includes('hydrographic') ||
-      pCat.includes('water') ||
-      pCat.includes('bathymetric') ||
-      pCat.includes('river') ||
-      pCat.includes('marine') ||
-      pCat.includes('port')
-    );
-  }
-  if (fName.includes('topographic') || fName.includes('land')) {
-    return (
-      pCat.includes('topographic') ||
-      pCat.includes('land') ||
-      pCat.includes('geodesy') ||
-      pCat.includes('survey') ||
-      pCat.includes('road')
-    );
-  }
-  if (fName.includes('civil') || fName.includes('design') || fName.includes('feasibility')) {
-    return (
-      pCat.includes('civil') ||
-      pCat.includes('design') ||
-      pCat.includes('transit') ||
-      pCat.includes('infrastructure') ||
-      pCat.includes('bridge') ||
-      pCat.includes('building') ||
-      pCat.includes('architectural')
-    );
-  }
-  if (fName.includes('gis')) {
-    return pCat.includes('gis') || pCat.includes('spatial') || pCat.includes('network');
-  }
-  if (fName.includes('environmental') || fName.includes('coastal')) {
-    return (
-      pCat.includes('environmental') ||
-      pCat.includes('coastal') ||
-      pCat.includes('structural') ||
-      pCat.includes('landfill')
-    );
-  }
-  return false;
-}
-
 export function ProjectsView({
   projects,
-  services,
   loading,
   searchQuery,
   onOpenCreateModal,
@@ -110,329 +43,201 @@ export function ProjectsView({
   onDeleteProject,
   onToggleMilestone,
 }: ProjectsViewProps) {
-  const [selectedFilter, setSelectedFilter] = useState('All');
-  const [onlyMilestones, setOnlyMilestones] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [localSearch, setLocalSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  // Dynamic filter list based on live services and existing project categories
-  const filterOptions = useMemo(() => {
-    const list = ['All'];
-    services.forEach((s) => {
-      if (s.title && !list.includes(s.title)) list.push(s.title);
-    });
-    projects.forEach((p) => {
-      if (p.category) {
-        const alreadyCovered = list.some((item) => item !== 'All' && matchesServiceOrCategory(p.category, item));
-        if (!alreadyCovered && !list.includes(p.category)) {
-          list.push(p.category);
-        }
-      }
-    });
-    return list;
-  }, [services, projects]);
+  const query = (localSearch || searchQuery).trim().toLowerCase();
 
-  const filteredProjects = useMemo(() => {
-    return projects.filter((p) => {
-      const matchesSearch =
-        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.location && p.location.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase());
+  const categories = useMemo(() => {
+    const set = new Set(projects.map((p) => p.category).filter(Boolean));
+    return ['All', ...Array.from(set)];
+  }, [projects]);
 
-      const matchesCategory = matchesServiceOrCategory(p.category, selectedFilter);
-      const matchesMilestone = !onlyMilestones || p.isMilestone;
-
-      return matchesSearch && matchesCategory && matchesMilestone;
-    });
-  }, [projects, searchQuery, selectedFilter, onlyMilestones]);
-
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -200, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 200, behavior: 'smooth' });
-    }
-  };
+  const filtered = useMemo(() => {
+    return projects
+      .filter((p) => {
+        const matchesCat = selectedCategory === 'All' || p.category === selectedCategory;
+        const matchesQuery =
+          !query ||
+          p.title.toLowerCase().includes(query) ||
+          p.client.toLowerCase().includes(query) ||
+          (p.location || '').toLowerCase().includes(query) ||
+          p.category.toLowerCase().includes(query);
+        return matchesCat && matchesQuery;
+      })
+      .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
+  }, [projects, selectedCategory, query]);
 
   return (
     <div className="space-y-6">
-      {/* Side-Scrollable Clean Filter Toolbar */}
-      <div className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between gap-2.5">
-        {/* Left Scroll Arrow */}
-        <button
-          onClick={scrollLeft}
-          className="p-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/60 text-slate-500 hover:text-slate-800 transition flex-shrink-0 flex items-center justify-center shadow-2xs"
-          title="Scroll left"
-          aria-label="Scroll left"
-        >
-          <ChevronLeft size={16} />
-        </button>
+      <PageHeader
+        title="Projects & Portfolio"
+        description={`${projects.length} total engineering & geospatial projects`}
+        actions={
+          <Button onClick={onOpenCreateModal} icon={<Plus size={15} />}>
+            Add Project
+          </Button>
+        }
+      />
 
-        {/* Scrollable Pills Container */}
-        <div
-          ref={scrollContainerRef}
-          onWheel={(e) => {
-            if (scrollContainerRef.current && e.deltaY !== 0) {
-              scrollContainerRef.current.scrollLeft += e.deltaY;
-            }
-          }}
-          className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-1 scroll-smooth flex-1 min-w-0"
-        >
-          {filterOptions.map((opt) => {
-            const isSelected = selectedFilter === opt;
-            const count =
-              opt === 'All'
-                ? projects.length
-                : projects.filter((p) => matchesServiceOrCategory(p.category, opt)).length;
-
-            return (
-              <button
-                key={opt}
-                onClick={() => setSelectedFilter(opt)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap flex items-center gap-1.5 flex-shrink-0 cursor-pointer ${
-                  isSelected
-                    ? 'bg-slate-900 text-white shadow-2xs'
-                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200/60'
-                }`}
-              >
-                <span>{opt}</span>
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
-                  }`}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Right Scroll Arrow */}
-        <button
-          onClick={scrollRight}
-          className="p-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/60 text-slate-500 hover:text-slate-800 transition flex-shrink-0 flex items-center justify-center shadow-2xs"
-          title="Scroll right"
-          aria-label="Scroll right"
-        >
-          <ChevronRight size={16} />
-        </button>
-
-        {/* Right Controls: Landmarks Toggle & View Mode */}
-        <div className="flex items-center gap-3 pl-3 border-l border-slate-200/80 flex-shrink-0">
-          <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-600 select-none whitespace-nowrap">
-            <input
-              type="checkbox"
-              checked={onlyMilestones}
-              onChange={(e) => setOnlyMilestones(e.target.checked)}
-              className="rounded text-indigo-600 focus:ring-0"
-            />
-            <span>Landmarks</span>
-          </label>
-
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/60">
+      <SearchFilterBar
+        search={localSearch}
+        onSearchChange={setLocalSearch}
+        searchPlaceholder="Search projects by title, client, location, or category..."
+        filters={categories.map((c) => ({
+          label: c,
+          value: c,
+          count: c === 'All' ? projects.length : projects.filter((p) => p.category === c).length,
+        }))}
+        activeFilter={selectedCategory}
+        onFilterChange={setSelectedCategory}
+        rightSlot={
+          <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
             <button
+              type="button"
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg text-xs transition ${
-                viewMode === 'grid' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-400 hover:text-slate-700'
+              className={`p-1.5 rounded-md transition cursor-pointer ${
+                viewMode === 'grid' ? 'bg-white text-indigo-600 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
               }`}
-              title="Grid View"
+              title="Grid view"
             >
-              <LayoutGrid size={15} />
+              <LayoutGrid size={14} />
             </button>
             <button
-              onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-lg text-xs transition ${
-                viewMode === 'table' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-400 hover:text-slate-700'
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-md transition cursor-pointer ${
+                viewMode === 'list' ? 'bg-white text-indigo-600 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
               }`}
-              title="Table View"
+              title="List view"
             >
-              <List size={15} />
+              <List size={14} />
             </button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Projects Grid / Table */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
-          <RefreshCw size={24} className="animate-spin text-indigo-600" />
-          <span className="text-xs font-semibold">Loading projects from PostgreSQL...</span>
+        <div className="flex items-center justify-center py-20 text-slate-400">
+          <RefreshCw size={24} className="animate-spin mr-2" />
+          <span className="text-sm font-medium">Loading projects...</span>
         </div>
-      ) : filteredProjects.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center text-slate-400 space-y-3">
-          <FolderKanban size={36} className="mx-auto text-slate-300" />
-          <h3 className="text-sm font-bold text-slate-700">No projects found in this category</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Try selecting "All" or click "+ New Project" to add one under this discipline.
-          </p>
-          <button
-            onClick={onOpenCreateModal}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm"
-          >
-            + Add Project
-          </button>
-        </div>
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          icon={<FolderKanban size={22} />}
+          title="No projects found"
+          description="Adjust your search filter or add a new project."
+          action={
+            <Button onClick={onOpenCreateModal} icon={<Plus size={15} />}>
+              Add Project
+            </Button>
+          }
+        />
       ) : viewMode === 'grid' ? (
-        /* GRID VIEW */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((p) => (
-            <div
-              key={p.id}
-              className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs hover:shadow-md transition flex flex-col justify-between group"
-            >
-              <div>
-                <div className="relative aspect-[16/10] bg-slate-100 overflow-hidden">
-                  <img
-                    src={p.imageUrl || '/inner/bridge-aerial.webp'}
-                    alt={p.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/inner/bridge-aerial.webp';
-                    }}
-                  />
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-white/95 text-slate-800 shadow-sm backdrop-blur-xs">
-                      {p.category.split('&')[0].trim()}
-                    </span>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {filtered.map((project) => (
+            <Card key={project.id} padding="none" className="flex flex-col overflow-hidden hover:border-indigo-300 transition">
+              {project.imageUrl ? (
+                <div className="aspect-video bg-slate-100 overflow-hidden border-b border-slate-100">
+                  <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="aspect-video bg-slate-50 border-b border-slate-100 flex items-center justify-center text-slate-300">
+                  <FolderKanban size={28} />
+                </div>
+              )}
 
+              <div className="p-5 flex-1 flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-2">
+                  <Badge variant="brand">{project.category}</Badge>
                   <button
-                    onClick={() => onToggleMilestone(p)}
-                    className={`absolute top-3 right-3 p-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm backdrop-blur-xs ${
-                      p.isMilestone
-                        ? 'bg-amber-400 text-amber-950 hover:bg-amber-300'
-                        : 'bg-white/90 text-slate-400 hover:text-amber-500 hover:bg-white'
-                    }`}
-                    title={p.isMilestone ? 'National Landmark (Click to toggle)' : 'Mark as National Landmark'}
+                    type="button"
+                    onClick={() => onToggleMilestone(project)}
+                    className="cursor-pointer"
+                    title="Toggle milestone status"
                   >
-                    <Award size={14} className={p.isMilestone ? 'fill-current' : ''} />
+                    <Badge variant={project.isMilestone ? 'warning' : 'neutral'}>
+                      <Award size={11} />
+                      {project.isMilestone ? 'Milestone' : 'Standard'}
+                    </Badge>
                   </button>
                 </div>
 
-                <div className="p-5 space-y-3">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-600">
-                    <MapPin size={13} />
-                    <span>{p.location || 'Bangladesh'}</span>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 line-clamp-2">{project.title}</h3>
+                  <p className="text-xs font-medium text-indigo-600 mt-0.5 line-clamp-1">{project.client}</p>
+                  <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">{project.description}</p>
+                </div>
+
+                {project.location && (
+                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                    <MapPin size={12} className="shrink-0 text-slate-400" />
+                    <span className="truncate">{project.location}</span>
                   </div>
+                )}
 
-                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition line-clamp-2 leading-snug">
-                    {p.title}
-                  </h3>
-
-                  <div className="text-xs font-medium text-slate-500">
-                    <span className="font-semibold text-slate-700">Client:</span> {p.client}
-                  </div>
-
-                  <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
-                    {p.description}
-                  </p>
-
-                  {p.deliverables && (
-                    <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-400">
-                      <span className="font-bold text-slate-600 block mb-0.5">Deliverables:</span>
-                      <span className="line-clamp-2">{p.deliverables}</span>
-                    </div>
-                  )}
+                <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-end gap-1.5">
+                  <Button size="sm" variant="secondary" onClick={() => onOpenEditModal(project)} icon={<Edit2 size={13} />}>
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                    onClick={() => onDeleteProject(project.id, project.title)}
+                    icon={<Trash2 size={13} />}
+                  >
+                    Delete
+                  </Button>
                 </div>
               </div>
-
-              <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-[11px] font-mono text-slate-400 truncate">/{p.slug}</span>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => onOpenEditModal(p)}
-                    className="px-3 py-1.5 bg-white hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 border border-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-2xs"
-                  >
-                    <Edit2 size={12} /> Edit
-                  </button>
-
-                  <button
-                    onClick={() => onDeleteProject(p.id, p.title)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
-                    title="Delete Project"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              </div>
-            </div>
+            </Card>
           ))}
         </div>
       ) : (
-        /* TABLE VIEW */
-        <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-400 text-[10px] uppercase font-bold tracking-wider">
-                <tr>
-                  <th className="py-3 px-5">Project Landmark</th>
-                  <th className="py-3 px-4">Client Authority</th>
-                  <th className="py-3 px-4">Service Category</th>
-                  <th className="py-3 px-4">Location</th>
-                  <th className="py-3 px-4 text-center">Landmark</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {filteredProjects.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3.5 px-5">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={p.imageUrl || '/inner/bridge-aerial.webp'}
-                          alt=""
-                          className="w-12 h-10 object-cover rounded-lg flex-shrink-0 bg-slate-100 border border-slate-200"
-                        />
-                        <div className="min-w-0">
-                          <h4 className="font-bold text-slate-900 truncate max-w-xs">{p.title}</h4>
-                          <span className="font-mono text-[10px] text-slate-400">/{p.slug}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-700 max-w-xs truncate">{p.client}</td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-700">
-                        {p.category}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-600">{p.location || 'National'}</td>
-                    <td className="py-3.5 px-4 text-center">
-                      <button
-                        onClick={() => onToggleMilestone(p)}
-                        className={`p-1.5 rounded-lg transition ${
-                          p.isMilestone ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-slate-500'
-                        }`}
-                      >
-                        <Award size={16} className={p.isMilestone ? 'fill-current' : ''} />
-                      </button>
-                    </td>
-                    <td className="py-3.5 px-5 text-right space-x-2">
-                      <button
-                        onClick={() => onOpenEditModal(p)}
-                        className="px-2.5 py-1 bg-white hover:bg-slate-50 text-indigo-600 font-bold rounded-lg border border-slate-200 text-xs shadow-2xs"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => onDeleteProject(p.id, p.title)}
-                        className="p-1 text-slate-400 hover:text-rose-600"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <Card padding="none" className="overflow-hidden">
+          <div className="divide-y divide-slate-100">
+            {filtered.map((project) => (
+              <div key={project.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="w-16 h-12 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-200 flex items-center justify-center">
+                    {project.imageUrl ? (
+                      <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <FolderKanban size={18} className="text-slate-400" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-sm font-bold text-slate-900 truncate">{project.title}</h3>
+                      <Badge variant="brand">{project.category}</Badge>
+                      {project.isMilestone && <Badge variant="warning">Milestone</Badge>}
+                    </div>
+                    <p className="text-xs text-slate-500 truncate mt-0.5">
+                      {project.client}
+                      {project.location ? ` · ${project.location}` : ''}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button size="sm" variant="secondary" onClick={() => onOpenEditModal(project)} icon={<Edit2 size={13} />}>
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                    onClick={() => onDeleteProject(project.id, project.title)}
+                    icon={<Trash2 size={13} />}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );
