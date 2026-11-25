@@ -78,8 +78,12 @@ export default async function FutureReadyPage() {
   const displayedWorkstations = Array.isArray(wysiwyg?.workstationSpecs) && wysiwyg.workstationSpecs.length
     ? wysiwyg.workstationSpecs.map((item: any, index: number) => ({ name: item.component || `Workstation ${index + 1}`, spec: item.spec || '' }))
     : workstations.map(([name, cpu, ram, gpu]) => ({ name, spec: `${cpu} · ${ram} · ${gpu}` }));
-  const configuredSoftware = Array.isArray(equipmentContent.softwareList)
-    ? equipmentContent.softwareList
+  const rawSoftwareSource =
+    Array.isArray(wysiwyg?.softwareTools) && wysiwyg.softwareTools.length > 0
+      ? wysiwyg.softwareTools
+      : equipmentContent.softwareList;
+  const configuredSoftware = Array.isArray(rawSoftwareSource)
+    ? rawSoftwareSource
         .filter((tool: any) => tool.name?.trim() && tool.logo)
         .map((tool: any) => ({
           name: tool.name,
