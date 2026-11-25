@@ -623,6 +623,40 @@ export function AboutWysiwygEditor({
 
   const [storyData, setStoryData] = useState<any>(defaultStoryData);
   const [futureReadyData, setFutureReadyData] = useState<any>(defaultFutureReadyData);
+  const [editingSoftwareIdx, setEditingSoftwareIdx] = useState<number | null>(null);
+
+  const DEFAULT_FUTURE_SOFTWARE = [
+    { name: 'MIDAS Civil', category: 'Structural design', logo: '/software-logos/docx/image1.webp', description: '' },
+    { name: 'Tekla Tedds', category: 'Structural calculations', logo: '/software-logos/docx/image2.webp', description: '' },
+    { name: 'STAAD.Pro', category: 'Structural analysis', logo: '/software-logos/docx/image3.webp', description: '' },
+    { name: 'CSI ETABS', category: 'Building design', logo: '/software-logos/docx/image4.webp', description: '' },
+    { name: 'Trimble SketchUp', category: '3D modelling', logo: '/software-logos/docx/image5.webp', description: '' },
+    { name: 'Microsoft Project', category: 'Project planning', logo: '/software-logos/docx/image6.webp', description: '' },
+    { name: 'Oracle Primavera P6', category: 'Project planning', logo: '/software-logos/docx/image7.webp', description: '' },
+    { name: 'Autodesk Revit', category: 'Building design', logo: '/software-logos/docx/image8.webp', description: '' },
+    { name: 'Pix4D', category: 'Drone mapping', logo: '/software-logos/docx/image9.webp', description: '' },
+    { name: 'DJI Terra', category: 'Drone mapping', logo: '/software-logos/docx/image10.webp', description: '' },
+    { name: 'Google Earth Engine', category: 'Satellite data', logo: '/software-logos/docx/image11.webp', description: '' },
+    { name: 'USGS EarthExplorer', category: 'Satellite data', logo: '/software-logos/docx/image12.webp', description: '' },
+    { name: 'Copernicus Sentinel', category: 'Satellite data', logo: '/software-logos/docx/image13.webp', description: '' },
+    { name: 'REMAP', category: 'Environmental mapping', logo: '/software-logos/docx/image14.webp', description: '' },
+    { name: 'ENVI', category: 'Image analysis', logo: '/software-logos/docx/image15.webp', description: '' },
+    { name: 'EnMAP-Box', category: 'Image analysis', logo: '/software-logos/docx/image16.webp', description: '' },
+    { name: 'ERDAS IMAGINE', category: 'Image analysis', logo: '/software-logos/docx/image17.webp', description: '' },
+    { name: 'ArcGIS Pro', category: 'Mapping & GIS', logo: '/software-logos/docx/image18.webp', description: '' },
+    { name: 'Power BI & MS Office', category: 'Reporting', logo: '/software-logos/docx/image19.webp', description: '' },
+    { name: 'Google Earth Pro', category: 'Mapping & GIS', logo: '/software-logos/docx/image20.webp', description: '' },
+    { name: 'Agisoft Metashape', category: 'Drone mapping', logo: '/software-logos/docx/image21.webp', description: '' },
+    { name: 'AutoCAD Civil 3D', category: 'Civil design', logo: '/software-logos/autocad-civil-3d.png', description: '' },
+    { name: 'QGIS', category: 'OSGeo OpenSource', logo: '/software-logos/qgis.png', description: '' },
+    { name: 'Leica Geo Office', category: 'Geodetic Baseline', logo: '/software-logos/leica-geo-office.png', description: '' },
+    { name: 'ArcGIS Enterprise', category: 'Geospatial GIS', logo: '/software-logos/arcgis-pro.png', description: '' },
+  ];
+
+  const futureSoftwareTools: { name: string; category: string; logo: string; description?: string }[] =
+    Array.isArray(futureReadyData.softwareTools) && futureReadyData.softwareTools.length > 0
+      ? futureReadyData.softwareTools
+      : DEFAULT_FUTURE_SOFTWARE;
   const [safetyData, setSafetyData] = useState<any>(defaultSafetyData);
   const [standardsData, setStandardsData] = useState<any>(defaultStandardsData);
   const [impactData, setImpactData] = useState<any>(defaultImpactData);
@@ -1609,45 +1643,158 @@ export function AboutWysiwygEditor({
                     />
                   </div>
                 </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-medium text-slate-500">Click any software card to edit icon &amp; details</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = [...futureSoftwareTools, { name: 'New Software', category: 'Category', logo: '', description: '' }];
+                      handleDataChange('future-ready', 'softwareTools', next);
+                      setEditingSoftwareIdx(next.length - 1);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-indigo-600 text-white text-xs font-semibold transition cursor-pointer"
+                  >
+                    + Add Software
+                  </button>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 border-l border-t border-slate-200 bg-white">
-                  {[
-                    { name: 'MIDAS Civil', category: 'Structural design', logo: '/software-logos/docx/image1.webp' },
-                    { name: 'Tekla Tedds', category: 'Structural calculations', logo: '/software-logos/docx/image2.webp' },
-                    { name: 'STAAD.Pro', category: 'Structural analysis', logo: '/software-logos/docx/image3.webp' },
-                    { name: 'CSI ETABS', category: 'Building design', logo: '/software-logos/docx/image4.webp' },
-                    { name: 'Trimble SketchUp', category: '3D modelling', logo: '/software-logos/docx/image5.webp' },
-                    { name: 'Microsoft Project', category: 'Project planning', logo: '/software-logos/docx/image6.webp' },
-                    { name: 'Oracle Primavera P6', category: 'Project planning', logo: '/software-logos/docx/image7.webp' },
-                    { name: 'Autodesk Revit', category: 'Building design', logo: '/software-logos/docx/image8.webp' },
-                    { name: 'Pix4D', category: 'Drone mapping', logo: '/software-logos/docx/image9.webp' },
-                    { name: 'DJI Terra', category: 'Drone mapping', logo: '/software-logos/docx/image10.webp' },
-                    { name: 'Google Earth Engine', category: 'Satellite data', logo: '/software-logos/docx/image11.webp' },
-                    { name: 'USGS EarthExplorer', category: 'Satellite data', logo: '/software-logos/docx/image12.webp' },
-                    { name: 'Copernicus Sentinel', category: 'Satellite data', logo: '/software-logos/docx/image13.webp' },
-                    { name: 'REMAP', category: 'Environmental mapping', logo: '/software-logos/docx/image14.webp' },
-                    { name: 'ENVI', category: 'Image analysis', logo: '/software-logos/docx/image15.webp' },
-                    { name: 'EnMAP-Box', category: 'Image analysis', logo: '/software-logos/docx/image16.webp' },
-                    { name: 'ERDAS IMAGINE', category: 'Image analysis', logo: '/software-logos/docx/image17.webp' },
-                    { name: 'ArcGIS Pro', category: 'Mapping & GIS', logo: '/software-logos/docx/image18.webp' },
-                    { name: 'Power BI & MS Office', category: 'Reporting', logo: '/software-logos/docx/image19.webp' },
-                    { name: 'Google Earth Pro', category: 'Mapping & GIS', logo: '/software-logos/docx/image20.webp' },
-                    { name: 'Agisoft Metashape', category: 'Drone mapping', logo: '/software-logos/docx/image21.webp' },
-                    { name: 'AutoCAD Civil 3D', category: 'Civil design', logo: '/software-logos/autocad-civil-3d.png' },
-                    { name: 'QGIS', category: 'OSGeo OpenSource', logo: '/software-logos/qgis.png' },
-                    { name: 'Leica Geo Office', category: 'Geodetic Baseline', logo: '/software-logos/leica-geo-office.png' },
-                    { name: 'ArcGIS Enterprise', category: 'Geospatial GIS', logo: '/software-logos/arcgis-pro.png' },
-                  ].map((tool) => (
-                    <div key={tool.name} className="p-4 border-r border-b border-slate-200 flex flex-col justify-between gap-2 min-h-[120px] hover:bg-slate-50 transition">
-                      <div className="h-12 flex items-center justify-start">
-                        <img src={tool.logo} alt={tool.name} className="max-h-11 max-w-[100px] object-contain" />
+                  {futureSoftwareTools.map((tool, tIdx) => (
+                    <button
+                      key={`${tool.name}-${tIdx}`}
+                      type="button"
+                      onClick={() => setEditingSoftwareIdx(tIdx)}
+                      className="p-4 border-r border-b border-slate-200 flex flex-col justify-between gap-2 min-h-[120px] hover:bg-indigo-50/40 hover:border-indigo-300 transition text-left cursor-pointer group"
+                    >
+                      <div className="h-12 flex items-center justify-between w-full">
+                        {tool.logo ? (
+                          <img src={tool.logo} alt={tool.name} className="max-h-11 max-w-[100px] object-contain" />
+                        ) : (
+                          <span className="text-[10px] text-slate-400 border border-dashed border-slate-300 rounded px-2 py-1">No Icon</span>
+                        )}
+                        <span className="opacity-0 group-hover:opacity-100 text-[10px] font-semibold text-indigo-600 transition">Edit</span>
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-[#0B1F44] leading-snug">{tool.name}</p>
                         <p className="text-[10px] text-slate-500 mt-0.5">{tool.category}</p>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
+                {editingSoftwareIdx !== null && futureSoftwareTools[editingSoftwareIdx] && (
+                  <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+                    onMouseDown={(e) => {
+                      if (e.target === e.currentTarget) setEditingSoftwareIdx(null);
+                    }}
+                  >
+                    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
+                      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+                        <h3 className="text-sm font-bold text-slate-900">Edit Software Tool</h3>
+                        <button type="button" onClick={() => setEditingSoftwareIdx(null)} className="text-xs text-slate-500 hover:text-slate-900">
+                          Close
+                        </button>
+                      </div>
+                      <div className="p-5 space-y-3.5 text-xs">
+                        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                          <div className="h-14 w-20 rounded-lg border border-slate-200 bg-white p-1.5 flex items-center justify-center shrink-0">
+                            {futureSoftwareTools[editingSoftwareIdx].logo ? (
+                              <img src={futureSoftwareTools[editingSoftwareIdx].logo} alt="" className="h-full w-full object-contain" />
+                            ) : (
+                              <span className="text-[10px] text-slate-400">No icon</span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onOpenMediaPicker?.((url: string) => {
+                                  const next = [...futureSoftwareTools];
+                                  next[editingSoftwareIdx] = { ...next[editingSoftwareIdx], logo: url };
+                                  handleDataChange('future-ready', 'softwareTools', next);
+                                })
+                              }
+                              className="px-3 py-1.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-indigo-600 cursor-pointer"
+                            >
+                              Upload / Choose Icon
+                            </button>
+                            {futureSoftwareTools[editingSoftwareIdx].logo && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const next = [...futureSoftwareTools];
+                                  next[editingSoftwareIdx] = { ...next[editingSoftwareIdx], logo: '' };
+                                  handleDataChange('future-ready', 'softwareTools', next);
+                                }}
+                                className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 cursor-pointer"
+                              >
+                                Clear
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Software Name</label>
+                          <input
+                            type="text"
+                            value={futureSoftwareTools[editingSoftwareIdx].name}
+                            onChange={(e) => {
+                              const next = [...futureSoftwareTools];
+                              next[editingSoftwareIdx] = { ...next[editingSoftwareIdx], name: e.target.value };
+                              handleDataChange('future-ready', 'softwareTools', next);
+                            }}
+                            className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-900"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Category</label>
+                          <input
+                            type="text"
+                            value={futureSoftwareTools[editingSoftwareIdx].category}
+                            onChange={(e) => {
+                              const next = [...futureSoftwareTools];
+                              next[editingSoftwareIdx] = { ...next[editingSoftwareIdx], category: e.target.value };
+                              handleDataChange('future-ready', 'softwareTools', next);
+                            }}
+                            className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-900"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-slate-600 mb-1">Description</label>
+                          <textarea
+                            rows={2}
+                            value={futureSoftwareTools[editingSoftwareIdx].description || ''}
+                            onChange={(e) => {
+                              const next = [...futureSoftwareTools];
+                              next[editingSoftwareIdx] = { ...next[editingSoftwareIdx], description: e.target.value };
+                              handleDataChange('future-ready', 'softwareTools', next);
+                            }}
+                            className="w-full p-2.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-900"
+                          />
+                        </div>
+                      </div>
+                      <div className="border-t border-slate-200 px-5 py-3 bg-slate-50 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = futureSoftwareTools.filter((_, i) => i !== editingSoftwareIdx);
+                            handleDataChange('future-ready', 'softwareTools', next);
+                            setEditingSoftwareIdx(null);
+                          }}
+                          className="px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-semibold cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingSoftwareIdx(null)}
+                          className="px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 cursor-pointer"
+                        >
+                          Done
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="bg-[#edf2fa] rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-3 text-xs text-slate-700 flex-1">
                     <Cpu size={18} className="text-[#1B4B9D] shrink-0" />
