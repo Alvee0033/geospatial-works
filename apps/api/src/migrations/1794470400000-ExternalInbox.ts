@@ -3,8 +3,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class ExternalInbox1794470400000 implements MigrationInterface {
   name = 'ExternalInbox1794470400000';
   async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`CREATE TYPE "inbox_conversations_channel_enum" AS ENUM ('WHATSAPP', 'MESSENGER')`);
-    await queryRunner.query(`CREATE TABLE "inbox_conversations" (
+    await queryRunner.query(`DO $$ BEGIN CREATE TYPE "inbox_conversations_channel_enum" AS ENUM ('WHATSAPP', 'MESSENGER'); EXCEPTION WHEN duplicate_object THEN null; END $$;`);
+    await queryRunner.query(`CREATE TABLE IF NOT EXISTS "inbox_conversations" (
       "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       "channel" "inbox_conversations_channel_enum" NOT NULL,
       "businessAssetId" varchar(160) NOT NULL,
