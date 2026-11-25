@@ -108,7 +108,7 @@ export function Sidebar({
       <div className={`h-16 ${collapsed ? 'px-2 justify-center' : 'px-4 justify-between'} flex items-center gap-2 border-b border-slate-800/80 shrink-0`}>
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-white p-1 flex items-center justify-center shrink-0">
-            <Image src="/logo.png" alt="Geospatial Works" width={24} height={24} className="object-contain" />
+            <img src="/logo.png" alt="Geospatial Works" className="h-6 w-6 object-contain" />
           </div>
           {!collapsed && (
             <div className="min-w-0">
