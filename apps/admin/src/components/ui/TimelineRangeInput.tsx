@@ -34,7 +34,7 @@ function parseToMonthInput(part: string): string {
 
 export function TimelineRangeInput({ value, onChange }: TimelineRangeInputProps) {
   const { startYm, endYm, isOngoing } = useMemo(() => {
-    const parts = (value || '').split(/\s*[–—\-to]+\s*/i).filter(Boolean);
+    const parts = (value || '').split(/\s*(?:–|—|-|\bto\b)\s*/i).filter(Boolean);
     const s = parts[0] ? parseToMonthInput(parts[0]) : '';
     const last = parts[1] || '';
     const ongoing = /ongoing|present|current/i.test(last);
