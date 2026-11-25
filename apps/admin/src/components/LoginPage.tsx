@@ -65,12 +65,9 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
       <div className="w-full max-w-[420px]">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <Image
-            src="/gw-logo-pure-original.png"
+          <img
+            src="/logo.png"
             alt="Geospatial Works"
-            width={54}
-            height={54}
-            priority
             className="mx-auto mb-3 h-12 w-12 object-contain"
           />
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">

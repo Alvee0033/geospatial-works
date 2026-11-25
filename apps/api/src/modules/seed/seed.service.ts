@@ -55,8 +55,8 @@ export class SeedService implements OnApplicationBootstrap {
   private async seedAdminUser() {
     const email = process.env.BOOTSTRAP_ADMIN_EMAIL!;
     const existing = await this.userRepository.findOne({ where: { email } });
+    const passwordHash = await bcrypt.hash(process.env.BOOTSTRAP_ADMIN_PASSWORD!, 12);
     if (!existing) {
-      const passwordHash = await bcrypt.hash(process.env.BOOTSTRAP_ADMIN_PASSWORD!, 12);
       await this.userRepository.save({
         email,
         name: 'GW System Administrator',
@@ -64,6 +64,10 @@ export class SeedService implements OnApplicationBootstrap {
         role: UserRole.ADMIN,
       });
       this.logger.log('Bootstrap administrator created.');
+    } else if (process.env.BOOTSTRAP_ADMIN_PASSWORD) {
+      existing.passwordHash = passwordHash;
+      await this.userRepository.save(existing);
+      this.logger.log('Bootstrap administrator password synced.');
     }
   }
 
