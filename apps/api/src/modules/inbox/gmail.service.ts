@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { GmailInboxConnection } from '../../entities/gmail-connection.entity';
 import { InboxChannel, InboxConversation } from '../../entities/inbox-conversation.entity';
 import { InboxMessage } from '../../entities/inbox-message.entity';
+import { InboxSettingsService } from './inbox-settings.service';
 
 const text = (value: unknown) => typeof value === 'string' ? value : '';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -23,10 +24,17 @@ export class GmailInboxService implements OnApplicationBootstrap, OnModuleDestro
     @InjectRepository(InboxConversation) private readonly conversations: Repository<InboxConversation>,
     @InjectRepository(InboxMessage) private readonly messages: Repository<InboxMessage>,
     private readonly config: ConfigService,
+    private readonly settings: InboxSettingsService,
   ) {}
 
   private configured() {
-    return Boolean(this.config.get('GOOGLE_CLIENT_ID') && this.config.get('GOOGLE_CLIENT_SECRET') && this.config.get('GOOGLE_REDIRECT_URI') && this.config.get('GOOGLE_OAUTH_STATE_SECRET') && this.encryptionKey());
+    return Boolean(
+      this.settings.get('googleClientId', 'GOOGLE_CLIENT_ID') &&
+      this.settings.get('googleClientSecret', 'GOOGLE_CLIENT_SECRET') &&
+      this.settings.get('googleRedirectUri', 'GOOGLE_REDIRECT_URI') &&
+      this.settings.get('googleOauthStateSecret', 'GOOGLE_OAUTH_STATE_SECRET') &&
+      this.encryptionKey(),
+    );
   }
 
   async status() {
@@ -41,9 +49,9 @@ export class GmailInboxService implements OnApplicationBootstrap, OnModuleDestro
 
   startAuthorization(adminId: string) {
     if (!this.configured()) throw new ServiceUnavailableException('Gmail OAuth is not configured on the API server');
-    const clientId = this.config.get<string>('GOOGLE_CLIENT_ID')!;
-    const redirectUri = this.config.get<string>('GOOGLE_REDIRECT_URI')!;
-    const secret = this.config.get<string>('GOOGLE_OAUTH_STATE_SECRET')!;
+    const clientId = this.settings.get('googleClientId', 'GOOGLE_CLIENT_ID');
+    const redirectUri = this.settings.get('googleRedirectUri', 'GOOGLE_REDIRECT_URI');
+    const secret = this.settings.get('googleOauthStateSecret', 'GOOGLE_OAUTH_STATE_SECRET');
     const payload = Buffer.from(JSON.stringify({ adminId, issuedAt: Date.now(), nonce: randomBytes(18).toString('base64url') })).toString('base64url');
     const signature = createHmac('sha256', secret).update(payload).digest('base64url');
     const state = `${payload}.${signature}`;
@@ -61,7 +69,7 @@ export class GmailInboxService implements OnApplicationBootstrap, OnModuleDestro
 
   private validateState(state: string) {
     const [payload, signature] = state.split('.');
-    const secret = this.config.get<string>('GOOGLE_OAUTH_STATE_SECRET');
+    const secret = this.settings.get('googleOauthStateSecret', 'GOOGLE_OAUTH_STATE_SECRET');
     if (!payload || !signature || !secret) throw new UnauthorizedException('Invalid Google authorization state');
     const expected = createHmac('sha256', secret).update(payload).digest('base64url');
     const a = Buffer.from(expected); const b = Buffer.from(signature);
@@ -89,7 +97,7 @@ export class GmailInboxService implements OnApplicationBootstrap, OnModuleDestro
   }
 
   private encryptionKey(): Buffer | null {
-    const value = this.config.get<string>('GMAIL_TOKEN_ENCRYPTION_KEY') || '';
+    const value = this.settings.get('tokenEncryptionKey', 'GMAIL_TOKEN_ENCRYPTION_KEY');
     if (!/^[a-fA-F0-9]{64}$/.test(value)) return null;
     return Buffer.from(value, 'hex');
   }
@@ -112,7 +120,13 @@ export class GmailInboxService implements OnApplicationBootstrap, OnModuleDestro
   }
 
   private async exchangeCode(code: string) {
-    const body = new URLSearchParams({ code, client_id: this.config.get<string>('GOOGLE_CLIENT_ID')!, client_secret: this.config.get<string>('GOOGLE_CLIENT_SECRET')!, redirect_uri: this.config.get<string>('GOOGLE_REDIRECT_URI')!, grant_type: 'authorization_code' });
+    const body = new URLSearchParams({
+      code,
+      client_id: this.settings.get('googleClientId', 'GOOGLE_CLIENT_ID'),
+      client_secret: this.settings.get('googleClientSecret', 'GOOGLE_CLIENT_SECRET'),
+      redirect_uri: this.settings.get('googleRedirectUri', 'GOOGLE_REDIRECT_URI'),
+      grant_type: 'authorization_code',
+    });
     const response = await fetch(GOOGLE_TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body, signal: AbortSignal.timeout(15000) });
     const result: any = await response.json().catch(() => ({}));
     if (!response.ok || !result.access_token) throw new ServiceUnavailableException('Google authorization could not be completed. Check the OAuth client and callback URL.');
@@ -121,7 +135,12 @@ export class GmailInboxService implements OnApplicationBootstrap, OnModuleDestro
 
   private async accessToken(connection: GmailInboxConnection) {
     const refreshToken = this.decrypt(connection);
-    const body = new URLSearchParams({ client_id: this.config.get<string>('GOOGLE_CLIENT_ID') || '', client_secret: this.config.get<string>('GOOGLE_CLIENT_SECRET') || '', refresh_token: refreshToken, grant_type: 'refresh_token' });
+    const body = new URLSearchParams({
+      client_id: this.settings.get('googleClientId', 'GOOGLE_CLIENT_ID'),
+      client_secret: this.settings.get('googleClientSecret', 'GOOGLE_CLIENT_SECRET'),
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token',
+    });
     const response = await fetch(GOOGLE_TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body, signal: AbortSignal.timeout(15000) });
     const data: any = await response.json().catch(() => ({}));
     if (!response.ok || !data.access_token) throw new ServiceUnavailableException('Google access expired or was revoked. Reconnect Gmail in the inbox settings.');

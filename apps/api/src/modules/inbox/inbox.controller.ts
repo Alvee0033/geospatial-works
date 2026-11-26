@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Headers, HttpCode, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Headers, HttpCode, Param, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -36,6 +36,14 @@ export class InboxController {
   @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   getConfiguration() { return this.inbox.getConfiguration(); }
+
+  @Put('admin/setup')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  saveSetup(@Body() body: Record<string, string>) {
+    return this.inbox.saveSetup(body);
+  }
 
   @Post('admin/gmail/connect')
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -8,10 +8,12 @@ import { InboxService } from './inbox.service';
 import { GmailInboxService } from './gmail.service';
 import { MetaInboxConnection } from '../../entities/meta-inbox-connection.entity';
 import { MetaConnectionService } from './meta-connection.service';
+import { PageSection } from '../../entities/page-section.entity';
+import { InboxSettingsService } from './inbox-settings.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([InboxConversation, InboxMessage, GmailInboxConnection, MetaInboxConnection])],
+  imports: [TypeOrmModule.forFeature([InboxConversation, InboxMessage, GmailInboxConnection, MetaInboxConnection, PageSection])],
   controllers: [InboxController],
-  providers: [InboxService, GmailInboxService, MetaConnectionService],
+  providers: [InboxService, GmailInboxService, MetaConnectionService, InboxSettingsService],
 })
 export class InboxModule {}

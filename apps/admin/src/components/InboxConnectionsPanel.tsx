@@ -51,8 +51,8 @@ function ChannelCard({ icon, name, tone, connected, detail, configured, onConnec
     {children}
     {canManageConnections && <div className="mt-4 flex items-center gap-2">
       {connected ? <button type="button" onClick={onDisconnect} disabled={busy} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-50">Disconnect</button>
-        : <button type="button" onClick={onConnect} disabled={!configured || busy} className="inline-flex items-center gap-1.5 rounded-lg bg-[#143c78] px-3.5 py-2 text-xs font-bold text-white transition hover:bg-[#0a2d5d] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500">
-          {busy ? 'Connecting…' : 'Connect account'} <ArrowUpRight size={13} />
+        : <button type="button" onClick={onConnect} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg bg-[#143c78] px-3.5 py-2 text-xs font-bold text-white transition hover:bg-[#0a2d5d] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 cursor-pointer">
+          {busy ? 'Connecting…' : configured ? 'Connect account' : 'Setup & Connect'} <ArrowUpRight size={13} />
         </button>}
     </div>}
   </article>;
@@ -64,6 +64,17 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [pin, setPin] = useState('');
+  const [setupChannel, setSetupChannel] = useState<'whatsapp' | 'messenger' | 'gmail' | null>(null);
+  const [waPhoneId, setWaPhoneId] = useState('');
+  const [waToken, setWaToken] = useState('');
+  const [fbPageId, setFbPageId] = useState('');
+  const [fbToken, setFbToken] = useState('');
+  const [metaAppSecret, setMetaAppSecret] = useState('');
+  const [metaVerifyToken, setMetaVerifyToken] = useState('');
+  const [googleClientId, setGoogleClientId] = useState('');
+  const [googleClientSecret, setGoogleClientSecret] = useState('');
+  const [googleRedirectUri, setGoogleRedirectUri] = useState('https://api.geospatialworks.com.bd/api/v1/inbox/google/callback');
+  const [savingSetup, setSavingSetup] = useState(false);
   const [pageChoice, setPageChoice] = useState<{ pages: { id: string; name: string }[]; selectionToken: string } | null>(null);
   const whatsappSession = useRef<{ wabaId: string; phoneNumberId?: string; isOnBizApp: boolean } | null>(null);
   const whatsappCode = useRef('');
@@ -187,27 +198,152 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
     finally { setBusy(null); }
   }
 
+  async function saveChannelSetup(channel: 'whatsapp' | 'messenger' | 'gmail') {
+    setSavingSetup(true);
+    setError('');
+    setNotice('');
+    try {
+      const payload: Record<string, string> = {};
+      if (channel === 'whatsapp') {
+        if (!waPhoneId.trim() || !waToken.trim()) throw new Error('Enter Phone Number ID and Access Token.');
+        payload.whatsappPhoneNumberId = waPhoneId.trim();
+        payload.whatsappAccessToken = waToken.trim();
+        if (metaAppSecret.trim()) payload.metaAppSecret = metaAppSecret.trim();
+        if (metaVerifyToken.trim()) payload.metaWebhookVerifyToken = metaVerifyToken.trim();
+      } else if (channel === 'messenger') {
+        if (!fbPageId.trim() || !fbToken.trim()) throw new Error('Enter Facebook Page ID and Page Access Token.');
+        payload.messengerPageId = fbPageId.trim();
+        payload.messengerPageAccessToken = fbToken.trim();
+        if (metaAppSecret.trim()) payload.metaAppSecret = metaAppSecret.trim();
+        if (metaVerifyToken.trim()) payload.metaWebhookVerifyToken = metaVerifyToken.trim();
+      } else if (channel === 'gmail') {
+        if (!googleClientId.trim() || !googleClientSecret.trim()) throw new Error('Enter Google Client ID and Client Secret.');
+        payload.googleClientId = googleClientId.trim();
+        payload.googleClientSecret = googleClientSecret.trim();
+        payload.googleRedirectUri = googleRedirectUri.trim() || 'https://api.geospatialworks.com.bd/api/v1/inbox/google/callback';
+      }
+
+      await request(`${API}/setup`, getAuthHeaders(), payload, 'PUT');
+      setSetupChannel(null);
+      await onRefresh();
+      if (channel === 'gmail') {
+        await connectGmail();
+      } else {
+        setNotice(`${channel === 'whatsapp' ? 'WhatsApp' : 'Facebook Messenger'} connected and ready.`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save channel credentials.');
+    } finally {
+      setSavingSetup(false);
+    }
+  }
+
   const meta = config?.meta;
   return <section aria-label="Message channel settings" className="shrink-0 overflow-hidden rounded-2xl border border-[#d9e2ee] bg-[#f7f9fc] shadow-[0_12px_38px_-34px_#123567]">
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 bg-white px-4 py-4 sm:px-5">
-      <div><p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#e62934]">Message settings</p><h2 className="mt-1 text-lg font-extrabold tracking-tight text-[#102d55]">Connect your accounts</h2><p className="mt-1 text-xs text-slate-500">Sign in with each provider. Access codes and tokens stay on the server.</p></div>
+      <div><p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#e62934]">Message settings</p><h2 className="mt-1 text-lg font-extrabold tracking-tight text-[#102d55]">Connect your accounts</h2><p className="mt-1 text-xs text-slate-500">Click Setup &amp; Connect on any channel to enter credentials or sign in directly.</p></div>
       <button type="button" onClick={onClose} aria-label="Close message settings" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"><X size={18} /></button>
     </div>
     <div className="grid gap-3 p-3 sm:p-4 lg:grid-cols-3">
-      <ChannelCard icon={<MessageCircle size={21} />} name="WhatsApp Business" tone="bg-emerald-50 text-emerald-700" connected={Boolean(meta?.whatsapp.connected)} configured={Boolean(meta?.whatsappConfigId && sdkReady)} busy={busy === 'whatsapp'} canManageConnections={canManageConnections}
-        detail={meta?.whatsapp.displayName || (config?.whatsapp ? 'Connected by server settings. Manage this account in server settings.' : meta?.whatsappConfigId ? 'Connect through Meta Business. Meta may show a QR step for eligible Business app numbers.' : 'Meta app setup is needed before connection.')}
-        onConnect={() => connectMeta('whatsapp')} onDisconnect={() => void disconnect('whatsapp')}>
+      <ChannelCard icon={<MessageCircle size={21} />} name="WhatsApp Business" tone="bg-emerald-50 text-emerald-700" connected={Boolean(meta?.whatsapp.connected || config?.whatsapp)} configured={Boolean(meta?.whatsappConfigId && sdkReady)} busy={busy === 'whatsapp'} canManageConnections={canManageConnections}
+        detail={meta?.whatsapp.displayName || (config?.whatsapp ? 'WhatsApp connected and active.' : 'Click Setup & Connect to enter your WhatsApp Phone ID & Token.')}
+        onConnect={() => meta?.whatsappConfigId && sdkReady ? connectMeta('whatsapp') : setSetupChannel('whatsapp')} onDisconnect={() => void disconnect('whatsapp')}>
         {canManageConnections && !meta?.whatsapp.connected && meta?.whatsappConfigId && <label className="mt-3 block text-[11px] font-semibold text-slate-600">Two-step PIN for a new API number (optional)
           <input type="text" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, ''))} placeholder="6-digit PIN" className="mt-1.5 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#326df1]" />
         </label>}
       </ChannelCard>
-      <ChannelCard icon={<Facebook size={21} />} name="Facebook Messenger" tone="bg-blue-50 text-blue-700" connected={Boolean(meta?.messenger.connected)} configured={Boolean(meta?.messengerConfigId && sdkReady)} busy={busy === 'messenger'} canManageConnections={canManageConnections}
-        detail={meta?.messenger.displayName || (config?.messenger ? 'Connected by server settings. Manage this Page in server settings.' : meta?.messengerConfigId ? 'Sign in with Meta and choose the Page you manage.' : 'Meta app setup is needed before connection.')}
-        onConnect={() => connectMeta('messenger')} onDisconnect={() => void disconnect('messenger')} />
+      <ChannelCard icon={<Facebook size={21} />} name="Facebook Messenger" tone="bg-blue-50 text-blue-700" connected={Boolean(meta?.messenger.connected || config?.messenger)} configured={Boolean(meta?.messengerConfigId && sdkReady)} busy={busy === 'messenger'} canManageConnections={canManageConnections}
+        detail={meta?.messenger.displayName || (config?.messenger ? 'Facebook Messenger connected and active.' : 'Click Setup & Connect to enter your Page ID & Access Token.')}
+        onConnect={() => meta?.messengerConfigId && sdkReady ? connectMeta('messenger') : setSetupChannel('messenger')} onDisconnect={() => void disconnect('messenger')} />
       <ChannelCard icon={<Mail size={21} />} name="Gmail" tone="bg-rose-50 text-rose-700" connected={Boolean(config?.gmail.connected)} configured={Boolean(config?.gmail.configured)} busy={busy === 'gmail'} canManageConnections={canManageConnections}
-        detail={config?.gmail.email || (config?.gmail.configured ? 'Choose your Google account and approve inbox access.' : 'Google OAuth setup is needed before connection.')}
-        onConnect={() => void connectGmail()} onDisconnect={() => void disconnect('gmail')} />
+        detail={config?.gmail.email || (config?.gmail.configured ? 'Choose your Google account and approve inbox access.' : 'Click Setup & Connect to enter your Google OAuth Client ID & Secret.')}
+        onConnect={() => config?.gmail.configured ? void connectGmail() : setSetupChannel('gmail')} onDisconnect={() => void disconnect('gmail')} />
     </div>
+    {setupChannel && (
+      <div className="mx-3 mb-3 rounded-xl border border-indigo-200 bg-white p-4 sm:mx-4 space-y-3 text-xs">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <h3 className="text-sm font-bold text-slate-900">
+            {setupChannel === 'whatsapp' ? 'Connect WhatsApp Business' : setupChannel === 'messenger' ? 'Connect Facebook Messenger' : 'Connect Gmail OAuth'}
+          </h3>
+          <button type="button" onClick={() => setSetupChannel(null)} className="text-slate-400 hover:text-slate-700">
+            <X size={16} />
+          </button>
+        </div>
+
+        {setupChannel === 'whatsapp' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Phone Number ID *</label>
+              <input value={waPhoneId} onChange={(e) => setWaPhoneId(e.target.value)} placeholder="e.g. 123456789012345" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Cloud API Access Token *</label>
+              <input type="password" value={waToken} onChange={(e) => setWaToken(e.target.value)} placeholder="EAA..." className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Meta App Secret (for incoming webhooks)</label>
+              <input type="password" value={metaAppSecret} onChange={(e) => setMetaAppSecret(e.target.value)} placeholder="Optional" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Webhook Verify Token</label>
+              <input value={metaVerifyToken} onChange={(e) => setMetaVerifyToken(e.target.value)} placeholder="Auto-generated if blank" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+            </div>
+          </div>
+        )}
+
+        {setupChannel === 'messenger' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Facebook Page ID *</label>
+              <input value={fbPageId} onChange={(e) => setFbPageId(e.target.value)} placeholder="e.g. 109876543210" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Page Access Token *</label>
+              <input type="password" value={fbToken} onChange={(e) => setFbToken(e.target.value)} placeholder="EAA..." className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Meta App Secret (for incoming webhooks)</label>
+              <input type="password" value={metaAppSecret} onChange={(e) => setMetaAppSecret(e.target.value)} placeholder="Optional" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Webhook Verify Token</label>
+              <input value={metaVerifyToken} onChange={(e) => setMetaVerifyToken(e.target.value)} placeholder="Auto-generated if blank" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+            </div>
+          </div>
+        )}
+
+        {setupChannel === 'gmail' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Google Client ID *</label>
+              <input value={googleClientId} onChange={(e) => setGoogleClientId(e.target.value)} placeholder="...apps.googleusercontent.com" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Google Client Secret *</label>
+              <input type="password" value={googleClientSecret} onChange={(e) => setGoogleClientSecret(e.target.value)} placeholder="GOCSPX-..." className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Authorized Redirect URI</label>
+              <input value={googleRedirectUri} onChange={(e) => setGoogleRedirectUri(e.target.value)} className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono" />
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2 pt-1">
+          <button type="button" onClick={() => setSetupChannel(null)} className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold hover:bg-slate-50 cursor-pointer">
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={savingSetup}
+            onClick={() => void saveChannelSetup(setupChannel)}
+            className="px-4 py-1.5 rounded-lg bg-[#143c78] hover:bg-[#0a2d5d] text-white font-semibold cursor-pointer disabled:opacity-50"
+          >
+            {savingSetup ? 'Saving…' : setupChannel === 'gmail' ? 'Save & Sign in with Google' : 'Save & Connect'}
+          </button>
+        </div>
+      </div>
+    )}
     {canManageConnections && pageChoice && <div className="mx-3 mb-3 rounded-xl border border-blue-200 bg-white p-4 sm:mx-4"><h3 className="text-sm font-bold text-[#102d55]">Choose the Facebook Page</h3><p className="mt-1 text-xs text-slate-500">Messages from the selected Page will appear in this inbox.</p><div className="mt-3 flex flex-wrap gap-2">{pageChoice.pages.map((page) => <button type="button" key={page.id} disabled={busy === 'messenger'} onClick={() => void selectPage(page.id)} className="inline-flex items-center gap-2 rounded-lg border border-blue-200 px-3 py-2 text-xs font-semibold text-blue-800 hover:bg-blue-50 disabled:opacity-50"><Facebook size={14} />{page.name}<ArrowUpRight size={12} /></button>)}</div></div>}
     {(error || notice) && <p role={error ? 'alert' : 'status'} className={`mx-3 mb-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs sm:mx-4 ${error ? 'bg-rose-50 text-rose-800' : 'bg-emerald-50 text-emerald-800'}`}>{error ? <CircleAlert size={15} /> : <Check size={15} />}{error || notice}</p>}
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-slate-200 bg-white px-4 py-3 text-[11px] text-slate-500 sm:px-5"><span className="inline-flex items-center gap-1.5 text-[#143c78]"><ShieldCheck size={14} /> Provider sign-in only</span><span>Admins can connect or disconnect accounts.</span>{!meta?.webhookReady && <span>Meta webhook setup is required for incoming messages.</span>}</div>
