@@ -1469,38 +1469,6 @@ export function AboutWysiwygEditor({
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                   {futureReadyData.fleet.map((item: any, idx: number) => (
                     <div key={idx} className="relative group/fleet bg-white border border-slate-200 border-t-2 border-t-[#dce2dc] hover:border-t-[#FB1D10] overflow-hidden shadow-2xs flex flex-col transition-colors">
-                      <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFleetModal({
-                              mode: 'edit',
-                              index: idx,
-                              name: item.name || '',
-                              discipline: item.discipline || '',
-                              specs: item.specs || '',
-                              bulletsText: Array.isArray(item.bullets) ? item.bullets.join('\n') : '',
-                              image: item.image || '',
-                            })
-                          }
-                          className="bg-slate-900/90 hover:bg-indigo-600 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
-                          title="Edit equipment"
-                        >
-                          <Pencil size={12} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const next = futureReadyData.fleet.filter((_: any, i: number) => i !== idx);
-                            handleDataChange('future-ready', 'fleet', next);
-                          }}
-                          className="bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
-                          title="Delete equipment"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-
                       <div className="relative aspect-[1.65] w-full bg-[#e8ece8] overflow-hidden">
                         <EditablePhoto
                           src={item.image}
@@ -1564,6 +1532,38 @@ export function AboutWysiwygEditor({
                           }}
                           color="red"
                         />
+
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFleetModal({
+                                mode: 'edit',
+                                index: idx,
+                                name: item.name || '',
+                                discipline: item.discipline || '',
+                                specs: item.specs || '',
+                                bulletsText: Array.isArray(item.bullets) ? item.bullets.join('\n') : '',
+                                image: item.image || '',
+                              })
+                            }
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 text-slate-700 hover:text-white text-[11px] font-semibold transition cursor-pointer"
+                            title="Edit equipment"
+                          >
+                            <Pencil size={12} /> Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = futureReadyData.fleet.filter((_: any, i: number) => i !== idx);
+                              handleDataChange('future-ready', 'fleet', next);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold shadow-2xs transition cursor-pointer"
+                            title="Delete equipment"
+                          >
+                            <Trash2 size={12} /> Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
