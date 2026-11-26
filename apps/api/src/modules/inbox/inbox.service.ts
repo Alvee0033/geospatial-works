@@ -26,9 +26,64 @@ export class InboxService {
     private readonly settings: InboxSettingsService,
   ) {}
 
+  private lastMessengerSync = 0;
+
   async saveSetup(body: Partial<InboxChannelSettings>) {
     await this.settings.save(body);
+    if (body.messengerPageId || body.messengerPageAccessToken) {
+      await this.syncMessengerHistory(true).catch(() => undefined);
+    }
     return this.getConfiguration();
+  }
+
+  async syncMessengerHistory(force = false): Promise<void> {
+    if (!force && Date.now() - this.lastMessengerSync < 15_000) return;
+    this.lastMessengerSync = Date.now();
+    const conn = await this.meta.connection('MESSENGER').catch(() => null);
+    const pageId = conn?.assetId || this.settings.get('messengerPageId', 'MESSENGER_PAGE_ID');
+    const token = conn?.accessToken || this.settings.get('messengerPageAccessToken', 'MESSENGER_PAGE_ACCESS_TOKEN');
+    if (!pageId || !token) return;
+
+    const url = `https://graph.facebook.com/v21.0/${encodeURIComponent(pageId)}/conversations?fields=participants,updated_time,messages.limit(20){id,message,from,created_time}&limit=25`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(15000),
+    }).catch(() => null);
+    if (!res?.ok) return;
+    const json: any = await res.json().catch(() => null);
+    const threads = Array.isArray(json?.data) ? json.data : [];
+
+    for (const thread of threads) {
+      const participants = Array.isArray(thread?.participants?.data) ? thread.participants.data : [];
+      const customer = participants.find((p: any) => p?.id && p.id !== pageId);
+      const participantId = asString(customer?.id);
+      if (!participantId) continue;
+      const participantName = asString(customer?.name) || null;
+      const msgs = Array.isArray(thread?.messages?.data) ? [...thread.messages.data].reverse() : [];
+      for (const m of msgs) {
+        const mid = asString(m?.id);
+        const txt = asString(m?.message).trim() || '[Attachment]';
+        if (!mid) continue;
+        const sentAt = m?.created_time ? new Date(m.created_time) : new Date();
+        const fromBiz = asString(m?.from?.id) === pageId;
+        if (await this.messages.exist({ where: { providerMessageId: mid } })) continue;
+        await this.conversations.manager.transaction(async (manager) => {
+          const convRepo = manager.getRepository(InboxConversation);
+          const msgRepo = manager.getRepository(InboxMessage);
+          if (await msgRepo.exist({ where: { providerMessageId: mid } })) return;
+          let conv = await convRepo.findOne({ where: { channel: InboxChannel.MESSENGER, businessAssetId: pageId, participantId } });
+          if (!conv) {
+            conv = convRepo.create({ channel: InboxChannel.MESSENGER, businessAssetId: pageId, participantId, participantName, unreadCount: 0, active: true });
+          }
+          if (participantName) conv.participantName = participantName;
+          conv.lastMessagePreview = txt.slice(0, 500);
+          conv.lastMessageAt = sentAt;
+          if (!fromBiz) conv.lastInboundAt = sentAt;
+          conv = await convRepo.save(conv);
+          await msgRepo.insert({ conversationId: conv.id, channel: InboxChannel.MESSENGER, providerMessageId: mid, text: txt, fromBusiness: fromBiz, sentAt });
+        }).catch(() => undefined);
+      }
+    }
   }
 
   async getConfiguration() {
@@ -148,6 +203,7 @@ export class InboxService {
   }
 
   async listConversations() {
+    await this.syncMessengerHistory().catch(() => undefined);
     return this.conversations.find({ where: { active: true }, order: { lastMessageAt: 'DESC', updatedAt: 'DESC' }, take: 200 });
   }
 
