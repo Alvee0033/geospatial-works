@@ -1292,7 +1292,7 @@ export default function WspLandingView({
               <div className="absolute -right-6 -bottom-6 w-36 h-36 bg-[#FB1D10]/20 rounded-full blur-2xl" />
               <div className="relative aspect-[4/3] rounded-none overflow-hidden bg-neutral-900 border-l-4 border-[#3B82F6] shadow-2xl">
                 <Image
-                  src="/real-media/career-engineering-team.jpg"
+                  src={cultureSec.content?.imageUrl || '/real-media/career-engineering-team.jpg'}
                   alt="Geospatial Works Professional Surveyor"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
