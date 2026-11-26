@@ -18,6 +18,8 @@ export interface InboxChannelSettings {
   googleRedirectUri?: string;
   googleOauthStateSecret?: string;
   tokenEncryptionKey?: string;
+  autoReplyEnabled?: boolean;
+  autoReplyMessage?: string;
 }
 
 @Injectable()
@@ -49,13 +51,19 @@ export class InboxSettingsService implements OnModuleInit {
     return fallback;
   }
 
+  getBool(key: keyof InboxChannelSettings): boolean {
+    return Boolean(this.cache[key]);
+  }
+
   async save(patch: Partial<InboxChannelSettings>): Promise<InboxChannelSettings> {
     const existing = await this.sections.findOne({ where: { pageKey: 'inbox_config', sectionKey: 'channels' } });
     const current = ((existing?.content as InboxChannelSettings) || {});
     const merged: InboxChannelSettings = { ...current };
     for (const [k, v] of Object.entries(patch)) {
       if (typeof v === 'string') {
-        merged[k as keyof InboxChannelSettings] = v.trim();
+        (merged as Record<string, unknown>)[k] = v.trim();
+      } else if (typeof v === 'boolean') {
+        (merged as Record<string, unknown>)[k] = v;
       }
     }
     if (!merged.tokenEncryptionKey && !this.config.get<string>('GMAIL_TOKEN_ENCRYPTION_KEY')) {

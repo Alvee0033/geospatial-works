@@ -41,7 +41,7 @@ export class InboxController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
-  saveSetup(@Body() body: Record<string, string>) {
+  saveSetup(@Body() body: Record<string, any>) {
     return this.inbox.saveSetup(body);
   }
 

@@ -10,6 +10,8 @@ export type InboxConfiguration = {
   gmail: { configured: boolean; connected: boolean; email: string | null };
   meta: { appId: string | null; whatsappConfigId: string | null; messengerConfigId: string | null; webhookReady: boolean; whatsapp: Status; messenger: Status };
   verifyToken?: string;
+  autoReplyEnabled?: boolean;
+  autoReplyMessage?: string;
 };
 
 type Props = {

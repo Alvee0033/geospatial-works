@@ -10,6 +10,7 @@ import {
   Smartphone,
   Mail,
   Settings2,
+  ArrowUpRight,
 } from 'lucide-react';
 import { Button, Badge, PageHeader } from './ui';
 import { InboxConnectionsPanel, InboxConfiguration } from './InboxConnectionsPanel';
@@ -100,6 +101,9 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [channelsOpen, setChannelsOpen] = useState(false);
+  const [autoReplyModalOpen, setAutoReplyModalOpen] = useState(false);
+  const [autoReplyDraft, setAutoReplyDraft] = useState('');
+  const [savingAutoReply, setSavingAutoReply] = useState(false);
 
   const requestOptions = useCallback(
     () => ({ headers: getAuthHeaders(), cache: 'no-store' as RequestCache }),
@@ -240,9 +244,54 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
             </span>
           ))}
         </div>
-        <button type="button" onClick={() => setChannelsOpen((open) => !open)} className="text-[11px] font-bold text-[#143c78] hover:text-[#e62934]">
-          {channelsOpen ? 'Hide settings' : 'Manage connections'}
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          {canManageConnections && (
+            <div className="flex items-center gap-2 border-r border-slate-200 pr-3">
+              <button
+                type="button"
+                disabled={savingAutoReply}
+                onClick={async () => {
+                  setSavingAutoReply(true);
+                  try {
+                    const nextVal = !config?.autoReplyEnabled;
+                    const updated = await jsonRequest<Config>(`${API}/setup`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                      body: JSON.stringify({ autoReplyEnabled: nextVal }),
+                    });
+                    setConfig(updated);
+                    triggerFeedback?.(`Auto-reply ${nextVal ? 'enabled' : 'disabled'}.`, 'success');
+                  } catch (err) {
+                    triggerFeedback?.(err instanceof Error ? err.message : 'Could not update auto-reply.', 'error');
+                  } finally {
+                    setSavingAutoReply(false);
+                  }
+                }}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition cursor-pointer ${
+                  config?.autoReplyEnabled
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${config?.autoReplyEnabled ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                <span>Auto-Reply: {config?.autoReplyEnabled ? 'ON' : 'OFF'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAutoReplyDraft(config?.autoReplyMessage || 'Thank you for contacting Geospatial Works. Our team has received your message and will reply shortly.');
+                  setAutoReplyModalOpen(true);
+                }}
+                className="text-[11px] font-semibold text-slate-600 hover:text-indigo-700 cursor-pointer"
+              >
+                Configure
+              </button>
+            </div>
+          )}
+          <button type="button" onClick={() => setChannelsOpen((open) => !open)} className="text-[11px] font-bold text-[#143c78] hover:text-[#e62934] cursor-pointer">
+            {channelsOpen ? 'Hide settings' : 'Manage connections'}
+          </button>
+        </div>
       </div>
 
       {channelsOpen && (
@@ -407,7 +456,42 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
                             : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm'
                         }`}
                       >
-                        <p className="whitespace-pre-wrap break-words text-xs leading-relaxed">{message.text}</p>
+                        <div className="space-y-1.5 text-xs leading-relaxed">
+                          {message.text.split('\n').map((line, li) => {
+                            const imgMatch = line.match(/^\[\[IMG:(.+?)\]\]$/);
+                            if (imgMatch) {
+                              return (
+                                <a key={li} href={imgMatch[1]} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl border border-black/10">
+                                  <img src={imgMatch[1]} alt="Attachment" className="max-h-60 w-auto rounded-xl object-cover" />
+                                </a>
+                              );
+                            }
+                            const fileMatch = line.match(/^\[\[FILE:(.+?)\|(.+?)\]\]$/);
+                            if (fileMatch) {
+                              return (
+                                <a
+                                  key={li}
+                                  href={fileMatch[2]}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold border ${
+                                    message.fromBusiness
+                                      ? 'border-white/25 bg-white/15 text-white hover:bg-white/25'
+                                      : 'border-slate-200 bg-slate-50 text-indigo-700 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  <span>📎 {fileMatch[1]}</span>
+                                  <ArrowUpRight size={12} />
+                                </a>
+                              );
+                            }
+                            return (
+                              <p key={li} className="whitespace-pre-wrap break-words">
+                                {line}
+                              </p>
+                            );
+                          })}
+                        </div>
                         <time
                           className={`mt-1 block text-right text-[10px] ${
                             message.fromBusiness ? 'text-white/75' : 'text-slate-400'
@@ -461,6 +545,65 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
           )}
         </section>
       </div>
+      {autoReplyModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setAutoReplyModalOpen(false);
+          }}
+        >
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden text-xs">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Configure Auto-Reply</h3>
+                <p className="text-[11px] text-slate-500">Sent automatically when a new message arrives</p>
+              </div>
+              <button type="button" onClick={() => setAutoReplyModalOpen(false)} className="text-slate-400 hover:text-slate-700">
+                ✕
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <label className="block text-[11px] font-semibold text-slate-600">Auto-Reply Message</label>
+              <textarea
+                rows={4}
+                value={autoReplyDraft}
+                onChange={(e) => setAutoReplyDraft(e.target.value)}
+                placeholder="Thank you for messaging us..."
+                className="w-full p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs text-slate-900 focus:bg-white focus:border-indigo-500 outline-none"
+              />
+            </div>
+            <div className="border-t border-slate-200 px-4 py-2.5 bg-slate-50 flex justify-end gap-2">
+              <button type="button" onClick={() => setAutoReplyModalOpen(false)} className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold cursor-pointer">
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={savingAutoReply || !autoReplyDraft.trim()}
+                onClick={async () => {
+                  setSavingAutoReply(true);
+                  try {
+                    const updated = await jsonRequest<Config>(`${API}/setup`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                      body: JSON.stringify({ autoReplyEnabled: true, autoReplyMessage: autoReplyDraft.trim() }),
+                    });
+                    setConfig(updated);
+                    setAutoReplyModalOpen(false);
+                    triggerFeedback?.('Auto-reply message saved & enabled.', 'success');
+                  } catch (err) {
+                    triggerFeedback?.(err instanceof Error ? err.message : 'Could not save auto-reply.', 'error');
+                  } finally {
+                    setSavingAutoReply(false);
+                  }
+                }}
+                className="px-4 py-1.5 rounded-lg bg-[#143c78] hover:bg-[#0a2d5d] text-white font-semibold cursor-pointer disabled:opacity-50"
+              >
+                {savingAutoReply ? 'Saving…' : 'Save & Enable'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

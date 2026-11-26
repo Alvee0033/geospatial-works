@@ -44,7 +44,7 @@ export class InboxService {
     const token = conn?.accessToken || this.settings.get('messengerPageAccessToken', 'MESSENGER_PAGE_ACCESS_TOKEN');
     if (!pageId || !token) return;
 
-    const url = `https://graph.facebook.com/v21.0/${encodeURIComponent(pageId)}/conversations?fields=participants,updated_time,messages.limit(20){id,message,from,created_time}&limit=25`;
+    const url = `https://graph.facebook.com/v21.0/${encodeURIComponent(pageId)}/conversations?fields=participants,updated_time,messages.limit(20){id,message,from,created_time,attachments{mime_type,name,file_url,image_data}}&limit=25`;
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
       signal: AbortSignal.timeout(15000),
@@ -62,7 +62,19 @@ export class InboxService {
       const msgs = Array.isArray(thread?.messages?.data) ? [...thread.messages.data].reverse() : [];
       for (const m of msgs) {
         const mid = asString(m?.id);
-        const txt = asString(m?.message).trim() || '[Attachment]';
+        const attList = Array.isArray(m?.attachments?.data) ? m.attachments.data : [];
+        const attTokens = attList
+          .map((a: any) => {
+            const imgUrl = asString(a?.image_data?.url);
+            const fileUrl = asString(a?.file_url);
+            const name = asString(a?.name) || 'Attachment';
+            if (imgUrl) return `[[IMG:${imgUrl}]]`;
+            if (fileUrl) return `[[FILE:${name}|${fileUrl}]]`;
+            return '';
+          })
+          .filter(Boolean)
+          .join('\n');
+        const txt = [asString(m?.message).trim(), attTokens].filter(Boolean).join('\n') || '[Attachment]';
         if (!mid) continue;
         const sentAt = m?.created_time ? new Date(m.created_time) : new Date();
         const fromBiz = asString(m?.from?.id) === pageId;
@@ -97,6 +109,8 @@ export class InboxService {
       gmail,
       callbackPath: '/api/v1/inbox/webhook',
       verifyToken: this.settings.get('metaWebhookVerifyToken', 'META_WEBHOOK_VERIFY_TOKEN'),
+      autoReplyEnabled: this.settings.getBool('autoReplyEnabled'),
+      autoReplyMessage: this.settings.get('autoReplyMessage', undefined, 'Thank you for contacting Geospatial Works. Our team has received your message and will reply shortly.'),
     };
   }
 
@@ -168,7 +182,16 @@ export class InboxService {
   }
 
   private messageText(message: any): string {
-    if (typeof message?.text === 'string' && message.text.trim()) return message.text.trim().slice(0, 4000);
+    const parts: string[] = [];
+    if (typeof message?.text === 'string' && message.text.trim()) parts.push(message.text.trim().slice(0, 3500));
+    if (Array.isArray(message?.attachments)) {
+      for (const att of message.attachments) {
+        const url = asString(att?.payload?.url);
+        if (att?.type === 'image' && url) parts.push(`[[IMG:${url}]]`);
+        else if (url) parts.push(`[[FILE:${att?.type || 'File'}|${url}]]`);
+      }
+    }
+    if (parts.length) return parts.join('\n').slice(0, 4000);
     if (message?.interactive?.button_reply?.title) return `[Button] ${String(message.interactive.button_reply.title).slice(0, 3900)}`;
     if (message?.interactive?.list_reply?.title) return `[Selection] ${String(message.interactive.list_reply.title).slice(0, 3900)}`;
     if (message?.type) return `[${String(message.type).replace(/[^a-z_]/gi, '').slice(0, 40)} message]`;
@@ -177,6 +200,7 @@ export class InboxService {
   }
 
   private async storeInbound(channel: InboxChannel, assetId: string, participantId: string, name: string | null, providerMessageId: string, text: string, sentAt: Date) {
+    let savedConversationId: string | null = null;
     try {
       await this.conversations.manager.transaction(async (manager) => {
         const conversationRepo = manager.getRepository(InboxConversation);
@@ -193,12 +217,17 @@ export class InboxService {
         conversation.unreadCount = (conversation.unreadCount || 0) + 1;
         conversation = await conversationRepo.save(conversation);
         await messageRepo.insert({ conversationId: conversation.id, channel, providerMessageId, text, fromBusiness: false, sentAt });
+        savedConversationId = conversation.id;
       });
     } catch (error: any) {
-      // Concurrent webhook retries can race on either unique key. The transaction
-      // rolls back the unread counter together with a duplicate message insert.
       if (error?.code === '23505') return;
       throw error;
+    }
+    if (savedConversationId && this.settings.getBool('autoReplyEnabled')) {
+      const replyText = this.settings.get('autoReplyMessage');
+      if (replyText) {
+        void this.sendReply(savedConversationId, replyText).catch(() => undefined);
+      }
     }
   }
 
