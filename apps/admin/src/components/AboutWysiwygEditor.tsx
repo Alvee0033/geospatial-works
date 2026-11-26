@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { getPublicSiteUrl } from '../lib/publicSiteUrl';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -2642,7 +2643,7 @@ export function AboutWysiwygEditor({
                 </p>
               </div>
               <a
-                href={`${process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === 'production' ? 'https://geospatialworks.com.bd' : 'http://localhost:3001')}/contact`}
+                href={`${getPublicSiteUrl()}/contact`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 border border-white/20 text-white text-xs font-bold rounded-lg hover:bg-white/10 transition inline-flex items-center gap-2 shrink-0"

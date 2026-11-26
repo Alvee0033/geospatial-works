@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { getPublicSiteUrl } from '../lib/publicSiteUrl';
 import { ArrowUpRight, X } from 'lucide-react';
 import {
   Compass,
@@ -156,7 +157,7 @@ export function AboutView({
             <div><h2 id="about-preview-title" className="text-sm font-semibold text-slate-950">Actual page preview</h2><p className="mt-0.5 text-xs text-slate-500">Save your edits, then refresh to see the published page.</p></div>
             <div className="flex items-center gap-2"><button type="button" onClick={() => setPreviewVersion((version) => version + 1)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50">Refresh preview</button><button type="button" onClick={() => setPreviewOpen(false)} aria-label="Close preview" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X size={17} /></button></div>
           </header>
-          <iframe key={previewVersion} title="Actual public About page" src={`${process.env.NEXT_PUBLIC_SITE_PREVIEW_URL || process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === 'production' ? 'https://geospatialworks.com.bd' : 'http://localhost:3001')}${subMenus.find((item) => item.id === subTab)?.route || '/about/our-story'}`} className="min-h-0 flex-1 border-0 bg-white" />
+          <iframe key={previewVersion} title="Actual public About page" src={`${getPublicSiteUrl()}${subMenus.find((item) => item.id === subTab)?.route || '/about/our-story'}`} className="min-h-0 flex-1 border-0 bg-white" />
         </section>
       </div>}
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { getPublicSiteUrl } from '../lib/publicSiteUrl';
 import {
   Shield,
   UserPlus,
@@ -486,7 +487,7 @@ export function SettingsView({
         <div className="flex items-center gap-2 pr-1">
           {subTab === 'contact' && (
             <a
-              href={`${process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === 'production' ? 'https://geospatialworks.com.bd' : 'http://localhost:3001')}/contact`}
+              href={`${getPublicSiteUrl()}/contact`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
