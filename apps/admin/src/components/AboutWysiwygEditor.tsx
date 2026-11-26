@@ -1851,25 +1851,42 @@ export function AboutWysiwygEditor({
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 border-l border-t border-slate-200 bg-white">
                   {futureSoftwareTools.map((tool, tIdx) => (
-                    <button
+                    <div
                       key={`${tool.name}-${tIdx}`}
-                      type="button"
-                      onClick={() => setEditingSoftwareIdx(tIdx)}
-                      className="p-4 border-r border-b border-slate-200 flex flex-col justify-between gap-2 min-h-[120px] hover:bg-indigo-50/40 hover:border-indigo-300 transition text-left cursor-pointer group"
+                      className="p-4 border-r border-b border-slate-200 flex flex-col justify-between gap-2 min-h-[120px] hover:bg-indigo-50/40 hover:border-indigo-300 transition text-left relative group/sw"
                     >
-                      <div className="h-12 flex items-center justify-between w-full">
-                        {tool.logo ? (
-                          <img src={tool.logo} alt={tool.name} className="max-h-11 max-w-[100px] object-contain" />
-                        ) : (
-                          <span className="text-[10px] text-slate-400 border border-dashed border-slate-300 rounded px-2 py-1">No Icon</span>
-                        )}
-                        <span className="opacity-0 group-hover:opacity-100 text-[10px] font-semibold text-indigo-600 transition">Edit</span>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-[#0B1F44] leading-snug">{tool.name}</p>
-                        <p className="text-[10px] text-slate-500 mt-0.5">{tool.category}</p>
-                      </div>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const next = futureSoftwareTools.filter((_, i) => i !== tIdx);
+                          handleDataChange('future-ready', 'softwareTools', next);
+                          if (editingSoftwareIdx === tIdx) setEditingSoftwareIdx(null);
+                        }}
+                        className="absolute top-1.5 right-1.5 z-10 bg-rose-600 hover:bg-rose-700 text-white p-1 rounded-full shadow transition cursor-pointer"
+                        title="Delete software"
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingSoftwareIdx(tIdx)}
+                        className="flex flex-col justify-between gap-2 flex-1 cursor-pointer text-left w-full"
+                      >
+                        <div className="h-12 flex items-center justify-between w-full pr-5">
+                          {tool.logo ? (
+                            <img src={tool.logo} alt={tool.name} className="max-h-11 max-w-[100px] object-contain" />
+                          ) : (
+                            <span className="text-[10px] text-slate-400 border border-dashed border-slate-300 rounded px-2 py-1">No Icon</span>
+                          )}
+                          <span className="text-[10px] font-semibold text-indigo-600">Edit</span>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-[#0B1F44] leading-snug">{tool.name}</p>
+                          <p className="text-[10px] text-slate-500 mt-0.5">{tool.category}</p>
+                        </div>
+                      </button>
+                    </div>
                   ))}
                 </div>
                 {editingSoftwareIdx !== null && futureSoftwareTools[editingSoftwareIdx] && (
@@ -2719,7 +2736,7 @@ export function AboutWysiwygEditor({
                           const next = impactData.projects.filter((_: any, i: number) => i !== idx);
                           handleDataChange('impact', 'projects', next);
                         }}
-                        className="absolute top-12 right-3 z-30 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
+                        className="absolute top-3 right-3 z-30 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
                         title="Delete project card"
                       >
                         <Trash2 size={13} />
