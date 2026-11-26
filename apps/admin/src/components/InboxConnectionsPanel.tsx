@@ -280,49 +280,90 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
           </div>
 
           <div className="p-4 space-y-3">
-            {/* Compact Step-by-Step Instructions */}
-            <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 px-3 py-2 text-[11px] text-slate-700 leading-relaxed space-y-1">
+            {/* Clean Numbered Steps & Clickable Portal Links */}
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3 text-[11px] text-slate-700 space-y-2">
               {setupChannel === 'whatsapp' && (
                 <>
-                  <p className="font-semibold text-indigo-950">
-                    Open{' '}
-                    <a href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer" className="underline text-indigo-700 hover:text-indigo-900">
-                      developers.facebook.com/apps
-                    </a>{' '}
-                    → your Business App:
-                  </p>
-                  <p>1. Go to <strong>WhatsApp → API Setup</strong> → copy <strong>Phone Number ID</strong> &amp; <strong>Access Token</strong>.</p>
-                  <p>2. Webhook URL: <code className="bg-white px-1 rounded border border-indigo-100">https://api.geospatialworks.com.bd/api/v1/inbox/webhook</code></p>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-indigo-950">Quick Setup Steps</span>
+                    <a
+                      href="https://developers.facebook.com/apps/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-indigo-700 font-semibold hover:bg-indigo-100/60 transition"
+                    >
+                      <span>Open Meta Console</span>
+                      <ArrowUpRight size={11} />
+                    </a>
+                  </div>
+                  <ol className="space-y-1.5 list-decimal list-inside text-slate-700">
+                    <li>Open your Business App → <strong>WhatsApp → API Setup</strong>.</li>
+                    <li>Copy <strong>Phone Number ID</strong> &amp; <strong>Access Token</strong> below.</li>
+                    <li>
+                      Set Webhook URL:{' '}
+                      <code className="bg-white px-1.5 py-0.5 rounded border border-indigo-100 text-[10px] select-all">
+                        https://api.geospatialworks.com.bd/api/v1/inbox/webhook
+                      </code>
+                    </li>
+                  </ol>
                 </>
               )}
               {setupChannel === 'messenger' && (
                 <>
-                  <p className="font-semibold text-indigo-950">
-                    Open{' '}
-                    <a href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer" className="underline text-indigo-700 hover:text-indigo-900">
-                      developers.facebook.com/apps
-                    </a>{' '}
-                    → your Business App:
-                  </p>
-                  <p>1. Go to <strong>Messenger → Settings</strong> → select your Page → copy <strong>Page ID</strong> &amp; generate <strong>Page Token</strong>.</p>
-                  <p>2. Webhook URL: <code className="bg-white px-1 rounded border border-indigo-100">https://api.geospatialworks.com.bd/api/v1/inbox/webhook</code></p>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-indigo-950">Quick Setup Steps</span>
+                    <a
+                      href="https://developers.facebook.com/apps/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-indigo-700 font-semibold hover:bg-indigo-100/60 transition"
+                    >
+                      <span>Open Meta Console</span>
+                      <ArrowUpRight size={11} />
+                    </a>
+                  </div>
+                  <ol className="space-y-1.5 list-decimal list-inside text-slate-700">
+                    <li>Open your Business App → <strong>Messenger → Settings</strong>.</li>
+                    <li>Select your Page, copy <strong>Page ID</strong> &amp; generate <strong>Page Token</strong>.</li>
+                    <li>
+                      Set Webhook URL:{' '}
+                      <code className="bg-white px-1.5 py-0.5 rounded border border-indigo-100 text-[10px] select-all">
+                        https://api.geospatialworks.com.bd/api/v1/inbox/webhook
+                      </code>
+                    </li>
+                  </ol>
                 </>
               )}
               {setupChannel === 'gmail' && (
                 <>
-                  <p className="font-semibold text-indigo-950">
-                    Open{' '}
-                    <a href="https://console.cloud.google.com/apis/library/gmail.googleapis.com" target="_blank" rel="noreferrer" className="underline text-indigo-700 hover:text-indigo-900">
-                      Enable Gmail API
-                    </a>{' '}
-                    &amp;{' '}
-                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer" className="underline text-indigo-700 hover:text-indigo-900">
-                      Google OAuth Credentials
-                    </a>
-                    :
-                  </p>
-                  <p>1. Create an <strong>OAuth Client ID</strong> (Web application) and add the Redirect URI below.</p>
-                  <p>2. Paste your <strong>Client ID</strong> &amp; <strong>Client Secret</strong>, then click <strong>Save &amp; Sign in</strong>.</p>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-bold text-indigo-950">Quick Setup Steps</span>
+                    <div className="flex items-center gap-1.5">
+                      <a
+                        href="https://console.cloud.google.com/apis/library/gmail.googleapis.com"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-indigo-700 font-semibold hover:bg-indigo-100/60 transition"
+                      >
+                        <span>1. Enable Gmail API</span>
+                        <ArrowUpRight size={11} />
+                      </a>
+                      <a
+                        href="https://console.cloud.google.com/apis/credentials"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-indigo-200 text-indigo-700 font-semibold hover:bg-indigo-100/60 transition"
+                      >
+                        <span>2. Credentials</span>
+                        <ArrowUpRight size={11} />
+                      </a>
+                    </div>
+                  </div>
+                  <ol className="space-y-1.5 list-decimal list-inside text-slate-700">
+                    <li>Enable <strong>Gmail API</strong> in Google Cloud Console.</li>
+                    <li>Create an <strong>OAuth Client ID</strong> (Web app) with the Redirect URI below.</li>
+                    <li>Paste <strong>Client ID</strong> &amp; <strong>Client Secret</strong> and click <strong>Save &amp; Sign in</strong>.</li>
+                  </ol>
                 </>
               )}
             </div>
