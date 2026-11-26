@@ -75,7 +75,7 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [googleClientId, setGoogleClientId] = useState('');
   const [googleClientSecret, setGoogleClientSecret] = useState('');
-  const [googleRedirectUri, setGoogleRedirectUri] = useState('https://api.geospatialworks.com.bd/api/v1/inbox/google/callback');
+  const [googleRedirectUri, setGoogleRedirectUri] = useState('https://admin.geospatialworks.com.bd/api/inbox/google/callback');
   const [savingSetup, setSavingSetup] = useState(false);
   const [pageChoice, setPageChoice] = useState<{ pages: { id: string; name: string }[]; selectionToken: string } | null>(null);
   const whatsappSession = useRef<{ wabaId: string; phoneNumberId?: string; isOnBizApp: boolean } | null>(null);
@@ -331,7 +331,7 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
                     <li>
                       Set Webhook URL:{' '}
                       <code className="bg-white px-1.5 py-0.5 rounded border border-indigo-100 text-[10px] select-all">
-                        https://api.geospatialworks.com.bd/api/v1/inbox/webhook
+                        https://admin.geospatialworks.com.bd/api/inbox/webhook
                       </code>
                     </li>
                   </ol>
@@ -357,7 +357,7 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
                     <li>
                       Set Webhook URL:{' '}
                       <code className="bg-white px-1.5 py-0.5 rounded border border-indigo-100 text-[10px] select-all">
-                        https://api.geospatialworks.com.bd/api/v1/inbox/webhook
+                        https://admin.geospatialworks.com.bd/api/inbox/webhook
                       </code>
                     </li>
                   </ol>
