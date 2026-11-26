@@ -1095,7 +1095,7 @@ export function LandingPageView({
               <Button size="sm" onClick={() => setLivePreviewOpen(false)}>Close</Button>
             </div>
           </div>
-          <iframe key={previewVersion} title="Actual public homepage preview" src={`${process.env.NEXT_PUBLIC_SITE_PREVIEW_URL || 'http://localhost:3001'}/#${({ hero: 'homepage-hero', manifesto: 'homepage-about', services: 'homepage-services', projects: 'homepage-projects', equipment: 'homepage-equipment', team: 'homepage-team', news: 'homepage-news', leadgrow: 'homepage-careers' } as Record<string, string>)[activeSubSection]}`} className="min-h-0 flex-1 border-0 bg-white" />
+          <iframe key={previewVersion} title="Actual public homepage preview" src={`${process.env.NEXT_PUBLIC_SITE_PREVIEW_URL || process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === 'production' ? 'https://geospatialworks.com.bd' : 'http://localhost:3001')}/#${({ hero: 'homepage-hero', manifesto: 'homepage-about', services: 'homepage-services', projects: 'homepage-projects', equipment: 'homepage-equipment', team: 'homepage-team', news: 'homepage-news', leadgrow: 'homepage-careers' } as Record<string, string>)[activeSubSection]}`} className="min-h-0 flex-1 border-0 bg-white" />
         </div>
       </div>}
 

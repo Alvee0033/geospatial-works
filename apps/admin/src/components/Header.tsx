@@ -104,7 +104,7 @@ export function Header({
     careers: { label: 'Add Job', onClick: onOpenCreateJobModal },
   }[activeTab as string];
 
-  const publicBaseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001';
+  const publicBaseUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === 'production' ? 'https://geospatialworks.com.bd' : 'http://localhost:3001');
 
   return (
     <header className="h-16 shrink-0 flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-8 relative z-30">

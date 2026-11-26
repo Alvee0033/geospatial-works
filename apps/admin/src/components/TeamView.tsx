@@ -312,7 +312,7 @@ export function TeamView({
         actions={
           <>
             <a
-              href="http://localhost:3001/team"
+              href={`${process.env.NEXT_PUBLIC_SITE_URL || (process.env.NODE_ENV === 'production' ? 'https://geospatialworks.com.bd' : 'http://localhost:3001')}/team`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center h-9 px-4 text-xs gap-2 rounded-lg font-semibold bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-2xs transition"
