@@ -280,8 +280,7 @@ export class InboxService {
     }
     const result: any = await response.json().catch(() => ({}));
     if (!response.ok) {
-      // Do not return upstream response bodies: provider errors can contain sensitive request details.
-      throw new BadRequestException('Meta could not send this message. Check channel permissions and reply-window rules.');
+      throw new BadRequestException(result?.error?.message || 'Meta could not send this message. Check channel permissions and reply-window rules.');
     }
     const providerMessageId = asString(result?.messages?.[0]?.id || result?.message_id) || `local-${conversation.channel.toLowerCase()}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const sentAt = new Date();
