@@ -98,6 +98,8 @@ export interface ContactInfoSettings {
   email: string;
   emailInquiries: string;
   emailCareers: string;
+  cvRequestEmail: string;
+  senderEmail: string;
   website: string;
   whatsAppNumber: string;
   hoursWeekday: string;
@@ -133,6 +135,8 @@ const defaultContactInfo: ContactInfoSettings = {
   email: 'md.geospatialworks@gmail.com',
   emailInquiries: 'md.geospatialworks@gmail.com',
   emailCareers: 'md.geospatialworks@gmail.com',
+  cvRequestEmail: 'md.geospatialworks@gmail.com',
+  senderEmail: 'noreply@geospatialworks.com.bd',
   website: 'https://www.geospatialworks.com.bd',
   whatsAppNumber: '8801713907779',
   hoursWeekday: 'Sunday – Thursday: 9:00 AM – 6:00 PM (BST / GMT+6)',
@@ -761,6 +765,28 @@ export function SettingsView({
                       placeholder="md.geospatialworks@gmail.com"
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">CV Request Receiver Email</label>
+                    <input
+                      type="email"
+                      value={contactInfo.cvRequestEmail || ''}
+                      onChange={(e) => setContactInfo({ ...contactInfo, cvRequestEmail: e.target.value })}
+                      placeholder="md.geospatialworks@gmail.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500">Receives CV &amp; resume requests submitted from the public site.</p>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Notification Sender Email</label>
+                    <input
+                      type="email"
+                      value={contactInfo.senderEmail || ''}
+                      onChange={(e) => setContactInfo({ ...contactInfo, senderEmail: e.target.value })}
+                      placeholder="noreply@geospatialworks.com.bd"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <p className="mt-1 text-[11px] text-slate-500">Must use the verified @geospatialworks.com.bd domain.</p>
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block font-bold text-slate-700 mb-1">Website</label>

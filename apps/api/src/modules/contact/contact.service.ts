@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ContactInquiry, InquiryStatus } from '../../entities/contact-inquiry.entity';
+import { PageSection } from '../../entities/page-section.entity';
 import { CreateInquiryDto } from './dto/contact.dto';
 
 @Injectable()
@@ -9,6 +10,8 @@ export class ContactService {
   constructor(
     @InjectRepository(ContactInquiry)
     private readonly inquiryRepository: Repository<ContactInquiry>,
+    @InjectRepository(PageSection)
+    private readonly pageSectionRepository: Repository<PageSection>,
   ) {}
 
   async createInquiry(dto: CreateInquiryDto): Promise<ContactInquiry> {
@@ -20,9 +23,30 @@ export class ContactService {
 
   private async sendInquiryEmails(inquiry: ContactInquiry): Promise<void> {
     const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.RESEND_FROM || process.env.EMAIL_FROM || 'Geospatial Works <noreply@geospatialworks.com.bd>';
-    const notifyTo = process.env.ADMIN_NOTIFY_EMAIL || 'admin@geospatialworks.com.bd';
     if (!apiKey) return;
+
+    const officeSection = await this.pageSectionRepository
+      .findOne({ where: { pageKey: 'contact', sectionKey: 'office' } })
+      .catch(() => null);
+    const content = (officeSection?.content || {}) as Record<string, any>;
+
+    const rawSender = String(content.senderEmail || '').trim();
+    const from = rawSender
+      ? rawSender.includes('<')
+        ? rawSender
+        : `Geospatial Works <${rawSender}>`
+      : process.env.RESEND_FROM || process.env.EMAIL_FROM || 'Geospatial Works <noreply@geospatialworks.com.bd>';
+
+    const isCvRequest = /cv|resume/i.test(inquiry.serviceType || '');
+    const notifyTo = String(
+      (isCvRequest
+        ? content.cvRequestEmail || content.emailCareers
+        : content.emailInquiries || content.email) ||
+        content.cvRequestEmail ||
+        content.email ||
+        process.env.ADMIN_NOTIFY_EMAIL ||
+        'admin@geospatialworks.com.bd',
+    ).trim();
 
     const send = (to: string, subject: string, html: string) =>
       fetch('https://api.resend.com/emails', {

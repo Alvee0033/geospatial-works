@@ -11,6 +11,8 @@ import {
   CheckCircle2,
   Plus,
   Trash2,
+  Pencil,
+  X,
   ArrowUpRight,
   Compass,
   Layers,
@@ -625,6 +627,15 @@ export function AboutWysiwygEditor({
   const [storyData, setStoryData] = useState<any>(defaultStoryData);
   const [futureReadyData, setFutureReadyData] = useState<any>(defaultFutureReadyData);
   const [editingSoftwareIdx, setEditingSoftwareIdx] = useState<number | null>(null);
+  const [fleetModal, setFleetModal] = useState<{
+    mode: 'add' | 'edit';
+    index: number | null;
+    name: string;
+    discipline: string;
+    specs: string;
+    bulletsText: string;
+    image: string;
+  } | null>(null);
 
   const DEFAULT_FUTURE_SOFTWARE = [
     { name: 'MIDAS Civil', category: 'Structural design', logo: '/software-logos/docx/image1.webp', description: '' },
@@ -1435,20 +1446,18 @@ export function AboutWysiwygEditor({
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      const next = [
-                        ...futureReadyData.fleet,
-                        {
-                          name: 'New Survey Sensor System',
-                          discipline: 'Geospatial Equipment Subsystem',
-                          specs: 'Sensor technical specifications, pulse frequencies, accuracy thresholds, and operational limits.',
-                          bullets: ['Statutory calibration and verification', 'Direct coordinate integration'],
-                          image: '/real-media/equipment-rtk-gnss-station.jpg',
-                        },
-                      ];
-                      handleDataChange('future-ready', 'fleet', next);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#F4382D] text-white text-xs font-bold font-mono flex items-center gap-1.5 transition shrink-0 shadow"
+                    onClick={() =>
+                      setFleetModal({
+                        mode: 'add',
+                        index: null,
+                        name: '',
+                        discipline: '',
+                        specs: '',
+                        bulletsText: '',
+                        image: '',
+                      })
+                    }
+                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#F4382D] text-white text-xs font-bold font-mono flex items-center gap-1.5 transition shrink-0 shadow cursor-pointer"
                   >
                     <Plus size={14} /> Add Equipment Card
                   </button>
@@ -1457,18 +1466,37 @@ export function AboutWysiwygEditor({
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                   {futureReadyData.fleet.map((item: any, idx: number) => (
                     <div key={idx} className="relative group/fleet bg-white border border-slate-200 border-t-2 border-t-[#dce2dc] hover:border-t-[#FB1D10] overflow-hidden shadow-2xs flex flex-col transition-colors">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (futureReadyData.fleet.length <= 1) return;
-                          const next = futureReadyData.fleet.filter((_: any, i: number) => i !== idx);
-                          handleDataChange('future-ready', 'fleet', next);
-                        }}
-                        className="absolute top-3 right-12 z-30 opacity-0 group-hover/fleet:opacity-100 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
-                        title="Delete equipment"
-                      >
-                        <Trash2 size={12} />
-                      </button>
+                      <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFleetModal({
+                              mode: 'edit',
+                              index: idx,
+                              name: item.name || '',
+                              discipline: item.discipline || '',
+                              specs: item.specs || '',
+                              bulletsText: Array.isArray(item.bullets) ? item.bullets.join('\n') : '',
+                              image: item.image || '',
+                            })
+                          }
+                          className="bg-slate-900/90 hover:bg-indigo-600 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
+                          title="Edit equipment"
+                        >
+                          <Pencil size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = futureReadyData.fleet.filter((_: any, i: number) => i !== idx);
+                            handleDataChange('future-ready', 'fleet', next);
+                          }}
+                          className="bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
+                          title="Delete equipment"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
 
                       <div className="relative aspect-[1.65] w-full bg-[#e8ece8] overflow-hidden">
                         <EditablePhoto
@@ -1537,6 +1565,169 @@ export function AboutWysiwygEditor({
                     </div>
                   ))}
                 </div>
+
+                {fleetModal && (
+                  <div className="fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden">
+                      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <div>
+                          <h3 className="text-base font-bold text-slate-900">
+                            {fleetModal.mode === 'add' ? 'Add Survey Equipment' : 'Edit Survey Equipment'}
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Enter hardware specifications and upload or select a sensor photo.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setFleetModal(null)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const trimmedName = fleetModal.name.trim();
+                          if (!trimmedName) {
+                            triggerFeedback('Equipment name is required', 'error');
+                            return;
+                          }
+                          const bullets = fleetModal.bulletsText
+                            .split('\n')
+                            .map((line) => line.trim())
+                            .filter(Boolean);
+                          const payload = {
+                            name: trimmedName,
+                            discipline: fleetModal.discipline.trim(),
+                            specs: fleetModal.specs.trim(),
+                            bullets,
+                            image: fleetModal.image.trim(),
+                          };
+                          const next =
+                            fleetModal.mode === 'edit' && fleetModal.index !== null
+                              ? futureReadyData.fleet.map((entry: any, i: number) =>
+                                  i === fleetModal.index ? payload : entry,
+                                )
+                              : [...futureReadyData.fleet, payload];
+                          handleDataChange('future-ready', 'fleet', next);
+                          setFleetModal(null);
+                        }}
+                        className="p-6 space-y-4 max-h-[80vh] overflow-y-auto"
+                      >
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Equipment Name *</label>
+                          <input
+                            type="text"
+                            required
+                            value={fleetModal.name}
+                            onChange={(e) =>
+                              setFleetModal((prev) => (prev ? { ...prev, name: e.target.value } : null))
+                            }
+                            placeholder="e.g. Leica GS18 T RTK GNSS Rover"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Discipline / Category</label>
+                          <input
+                            type="text"
+                            value={fleetModal.discipline}
+                            onChange={(e) =>
+                              setFleetModal((prev) => (prev ? { ...prev, discipline: e.target.value } : null))
+                            }
+                            placeholder="e.g. Geodetic Positioning & GNSS"
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1.5">Equipment Photo</label>
+                          <div className="flex items-center gap-3">
+                            <div className="w-24 h-16 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center shrink-0">
+                              {fleetModal.image ? (
+                                <img src={fleetModal.image} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <Camera size={18} className="text-slate-300" />
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  onOpenMediaPicker((url) =>
+                                    setFleetModal((prev) => (prev ? { ...prev, image: url } : null)),
+                                  )
+                                }
+                                className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white text-xs font-semibold transition cursor-pointer"
+                              >
+                                {fleetModal.image ? 'Change Photo' : 'Choose / Upload Photo'}
+                              </button>
+                              {fleetModal.image && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setFleetModal((prev) => (prev ? { ...prev, image: '' } : null))
+                                  }
+                                  className="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition cursor-pointer"
+                                >
+                                  Clear
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Technical Specifications</label>
+                          <textarea
+                            rows={3}
+                            value={fleetModal.specs}
+                            onChange={(e) =>
+                              setFleetModal((prev) => (prev ? { ...prev, specs: e.target.value } : null))
+                            }
+                            placeholder="Accuracy, frequency, range, or operational limits..."
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">
+                            Key Highlights (one per line)
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={fleetModal.bulletsText}
+                            onChange={(e) =>
+                              setFleetModal((prev) => (prev ? { ...prev, bulletsText: e.target.value } : null))
+                            }
+                            placeholder={'Tilt-compensated IMU\nSub-centimeter RTK precision'}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
+                          />
+                        </div>
+
+                        <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => setFleetModal(null)}
+                            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold transition cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-[#F4382D] text-white text-xs font-bold transition cursor-pointer shadow"
+                          >
+                            {fleetModal.mode === 'add' ? 'Add Equipment' : 'Save Changes'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </section>
 
               {/* COMPUTING LAB TABLE */}
