@@ -2,10 +2,12 @@ import 'reflect-metadata';
 import { DataSource, QueryRunner } from 'typeorm';
 import { ExternalInbox1794470400000 } from '../migrations/1794470400000-ExternalInbox';
 import { GmailInbox1794556800000 } from '../migrations/1794556800000-GmailInbox';
+import { MetaInboxConnections1794643200000 } from '../migrations/1794643200000-MetaInboxConnections';
 
 const migrations = [
   new ExternalInbox1794470400000(),
   new GmailInbox1794556800000(),
+  new MetaInboxConnections1794643200000(),
 ];
 
 async function hasGmailSchema(queryRunner: QueryRunner) {
@@ -57,6 +59,10 @@ async function run() {
         continue;
       }
       if (migration.name === 'GmailInbox1794556800000' && await hasGmailSchema(queryRunner)) {
+        await queryRunner.query('INSERT INTO "gw_inbox_schema_migrations" ("name") VALUES ($1) ON CONFLICT DO NOTHING', [migration.name]);
+        continue;
+      }
+      if (migration.name === 'MetaInboxConnections1794643200000' && await queryRunner.hasTable('meta_inbox_connection')) {
         await queryRunner.query('INSERT INTO "gw_inbox_schema_migrations" ("name") VALUES ($1) ON CONFLICT DO NOTHING', [migration.name]);
         continue;
       }

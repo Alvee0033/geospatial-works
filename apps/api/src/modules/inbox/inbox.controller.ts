@@ -1,15 +1,20 @@
-import { Body, Controller, Get, Headers, HttpCode, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Headers, HttpCode, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ReplyDto } from './dto/reply.dto';
 import { InboxService } from './inbox.service';
 import { GmailInboxService } from './gmail.service';
+import { MetaConnectionService } from './meta-connection.service';
+import { MetaCodeDto, MetaPageDto, MetaWhatsAppDto } from './dto/meta-connect.dto';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../entities/user.entity';
 
 @ApiTags('Inbox')
 @Controller('inbox')
 export class InboxController {
-  constructor(private readonly inbox: InboxService, private readonly gmail: GmailInboxService) {}
+  constructor(private readonly inbox: InboxService, private readonly gmail: GmailInboxService, private readonly meta: MetaConnectionService) {}
 
   @Get('webhook')
   @ApiOperation({ summary: 'Meta webhook subscription verification' })
@@ -27,15 +32,56 @@ export class InboxController {
   }
 
   @Get('admin/config')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   getConfiguration() { return this.inbox.getConfiguration(); }
 
   @Post('admin/gmail/connect')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   startGmailAuthorization(@Req() request: Request & { user: { id: string } }) {
     return this.gmail.startAuthorization(request.user.id);
+  }
+
+  @Delete('admin/gmail/connection')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  disconnectGmail() { return this.gmail.disconnect(); }
+
+  @Post('admin/meta/messenger/start')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  beginMessenger(@Body() dto: MetaCodeDto, @Req() request: Request & { user: { id: string } }) {
+    return this.meta.beginMessenger(dto.code, request.user.id);
+  }
+
+  @Post('admin/meta/messenger/select')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  selectMessenger(@Body() dto: MetaPageDto, @Req() request: Request & { user: { id: string } }) {
+    return this.meta.selectMessenger(dto.selectionToken, dto.pageId, request.user.id);
+  }
+
+  @Post('admin/meta/whatsapp/connect')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  connectWhatsApp(@Body() dto: MetaWhatsAppDto) {
+    return this.meta.connectWhatsApp(dto.code, dto.wabaId, dto.phoneNumberId, dto.pin, dto.isOnBizApp);
+  }
+
+  @Delete('admin/meta/:channel/connection')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  disconnectMeta(@Param('channel') channel: string) {
+    if (channel !== 'whatsapp' && channel !== 'messenger') throw new BadRequestException('Unsupported channel');
+    return this.meta.disconnect(channel === 'whatsapp' ? 'WHATSAPP' : 'MESSENGER');
   }
 
   @Get('google/callback')
@@ -51,17 +97,20 @@ export class InboxController {
   }
 
   @Get('admin/conversations')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   listConversations() { return this.inbox.listConversations(); }
 
   @Get('admin/conversations/:id/messages')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   getMessages(@Param('id') id: string) { return this.inbox.getMessages(id); }
 
   @Post('admin/conversations/:id/reply')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   sendReply(@Param('id') id: string, @Body() body: ReplyDto) { return this.inbox.sendReply(id, body.text); }
 }

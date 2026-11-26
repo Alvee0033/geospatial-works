@@ -45,6 +45,8 @@ import { ClientsModule } from './modules/clients/clients.module';
 import { InboxModule } from './modules/inbox/inbox.module';
 import { ClientMessagingContacts1794384000000 } from './migrations/1794384000000-ClientMessagingContacts';
 import { GmailInbox1794556800000 } from './migrations/1794556800000-GmailInbox';
+import { MetaInboxConnection } from './entities/meta-inbox-connection.entity';
+import { MetaInboxConnections1794643200000 } from './migrations/1794643200000-MetaInboxConnections';
 
 @Module({
   imports: [
@@ -86,6 +88,7 @@ import { GmailInbox1794556800000 } from './migrations/1794556800000-GmailInbox';
           InboxConversation,
           InboxMessage,
           GmailInboxConnection,
+          MetaInboxConnection,
         ],
         // Never mutate a database schema implicitly at startup. Use a reviewed
         // migration, or explicitly opt in to synchronization for a throwaway DB.
@@ -98,6 +101,7 @@ import { GmailInbox1794556800000 } from './migrations/1794556800000-GmailInbox';
           ClientMessagingContacts1794384000000,
           ExternalInbox1794470400000,
           GmailInbox1794556800000,
+          MetaInboxConnections1794643200000,
         ],
         migrationsRun: config.get<string>('DATABASE_MIGRATIONS_RUN') === 'true',
         logging: false,

@@ -4,28 +4,29 @@ The admin inbox receives Facebook Page Messenger and WhatsApp Business Platform 
 
 ## Server configuration
 
-Set these values in the API environment (never in the browser or source control):
+Set these values in the API environment (never in the browser or source control). The connection buttons remain disabled until the corresponding provider configuration is complete:
 
 ```dotenv
 META_APP_SECRET=
+META_APP_ID=
 META_GRAPH_API_VERSION=v27.0
-WHATSAPP_ACCESS_TOKEN=
-WHATSAPP_PHONE_NUMBER_ID=
-WHATSAPP_WEBHOOK_VERIFY_TOKEN=
-MESSENGER_PAGE_ACCESS_TOKEN=
-MESSENGER_PAGE_ID=
-MESSENGER_WEBHOOK_VERIFY_TOKEN=
+META_TOKEN_ENCRYPTION_KEY=<64-hex-characters>
+META_WEBHOOK_VERIFY_TOKEN=<long-random-secret>
+META_WHATSAPP_CONFIG_ID=
+META_MESSENGER_CONFIG_ID=
 ```
 
-Use long random, distinct verify tokens. `META_APP_SECRET` is used to validate `X-Hub-Signature-256` on incoming webhook requests. Restart the API after setting credentials.
+Generate a distinct token encryption key with `openssl rand -hex 32`. `META_APP_SECRET` validates `X-Hub-Signature-256` on incoming webhook requests. The API stores connected account tokens encrypted with AES-256-GCM. Keep these values stable across deployments and restart the API after setting them.
 
 ## Meta configuration
 
-1. Create or select a Meta developer app and add the WhatsApp Business Platform and Messenger products.
-2. Set the callback URL to `https://<public-api-host>/api/v1/inbox/webhook` and set the matching verify token for each product.
-3. Subscribe the app to WhatsApp `messages` events and the Facebook Page `messages` webhook field; connect the intended WhatsApp phone number and Page to the app.
-4. Provide the corresponding access tokens, phone number ID, and Page ID to the API environment.
-5. For production conversations outside app roles, complete Meta's required app review and permission/access setup for the business assets.
+1. Create or select a Meta developer app with WhatsApp and Messenger products. Configure the allowed admin domain and the required business permissions. Create a WhatsApp **Embedded Signup** configuration and a Facebook **Business Login** configuration, then set their IDs as `META_WHATSAPP_CONFIG_ID` and `META_MESSENGER_CONFIG_ID`.
+2. For both products, use `https://<public-api-host>/api/v1/inbox/webhook` as the webhook callback and `META_WEBHOOK_VERIFY_TOKEN` as the verify token. Subscribe to WhatsApp `messages` and Page `messages` events.
+3. In the admin Messages page, choose **Manage connections**. An administrator can sign in with Meta, select an authorized Page for Messenger, or finish WhatsApp Embedded Signup. The API exchanges the temporary authorization code, subscribes the chosen asset to webhooks, and stores its token encrypted. A new WhatsApp API number may require its six-digit two-step PIN for registration.
+4. If Meta offers a QR code during WhatsApp Embedded Signup for an eligible WhatsApp Business App number, complete that step in Meta's window. A generic WhatsApp **Linked devices** QR does not grant the Cloud API permissions needed for this inbox.
+5. For production conversations outside app roles, complete Meta's required app review, business verification, and permission/access setup. Test with a real authorized Page and phone number before relying on the inbox for customers.
+
+Existing manual `WHATSAPP_ACCESS_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` and `MESSENGER_PAGE_ACCESS_TOKEN` / `MESSENGER_PAGE_ID` environment pairs remain supported for an already configured channel. They cannot be disconnected through the admin panel; remove those environment values instead. The new connection cards represent accounts authorized through the admin panel.
 
 ## Gmail inbox
 
@@ -44,9 +45,9 @@ Generate a distinct 32-byte encryption key, for example with `openssl rand -hex 
 
 For local testing, use `http://localhost:4000/api/v1/inbox/google/callback` as the redirect URI and `http://localhost:3012` as the admin URL. Google permits localhost redirect URIs for development OAuth clients.
 
-The API webhook must be reachable from Meta over HTTPS. Localhost alone cannot receive Meta's live callbacks; use a secure temporary tunnel for local testing or deploy the API when explicitly approved.
+The API webhook must be reachable from Meta over HTTPS. Localhost alone cannot receive Meta's live callbacks; use a secure temporary tunnel for local testing.
 
-After deploying the API, back up the `gw-site-db` database, then run `npm run db:migrate-inbox` once in the API application container. This applies only the inbox schema migrations; it does not run older CMS/content migrations. The script is safe to rerun and leaves unrelated production data unchanged.
+Before deploying the API, back up the `gw-site-db` database, then run `npm run db:migrate-inbox` once in the API application container. This applies only the inbox schema migrations; it does not run older CMS/content migrations. The script is safe to rerun and leaves unrelated production data unchanged.
 
 ## Reply limits
 

@@ -9,13 +9,10 @@ import {
   Search,
   Smartphone,
   Mail,
-  ArrowUpRight,
-  CircleCheck,
-  ChevronDown,
-  ChevronUp,
-  PlugZap,
+  Settings2,
 } from 'lucide-react';
 import { Button, Badge, PageHeader } from './ui';
+import { InboxConnectionsPanel, InboxConfiguration } from './InboxConnectionsPanel';
 
 type Channel = 'WHATSAPP' | 'MESSENGER' | 'GMAIL';
 type Conversation = {
@@ -29,16 +26,12 @@ type Conversation = {
   unreadCount: number;
 };
 type Message = { id: string; channel: Channel; text: string; fromBusiness: boolean; sentAt: string };
-type Config = {
-  whatsapp: boolean;
-  messenger: boolean;
-  gmail: { configured: boolean; connected: boolean; email: string | null };
-  callbackPath: string;
-};
+type Config = InboxConfiguration & { callbackPath: string };
 
 interface InboxViewProps {
   getAuthHeaders: () => Record<string, string>;
   triggerFeedback?: (message: string, type?: 'success' | 'error') => void;
+  canManageConnections?: boolean;
 }
 
 const API = '/api/inbox/admin';
@@ -94,7 +87,7 @@ async function jsonRequest<T>(url: string, init?: RequestInit): Promise<T> {
   return payload as T;
 }
 
-export function InboxView({ getAuthHeaders, triggerFeedback }: InboxViewProps) {
+export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnections = false }: InboxViewProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [config, setConfig] = useState<Config | null>(null);
@@ -106,8 +99,6 @@ export function InboxView({ getAuthHeaders, triggerFeedback }: InboxViewProps) {
   const [threadLoading, setThreadLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const [connectingGmail, setConnectingGmail] = useState(false);
-  const [connectionNotice, setConnectionNotice] = useState('');
   const [channelsOpen, setChannelsOpen] = useState(false);
 
   const requestOptions = useCallback(
@@ -211,29 +202,6 @@ export function InboxView({ getAuthHeaders, triggerFeedback }: InboxViewProps) {
     }
   }
 
-  async function connectGmail() {
-    setConnectingGmail(true);
-    setError('');
-    try {
-      const result = await jsonRequest<{ authorizationUrl: string }>(`${API}/gmail/connect`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-      });
-      window.location.assign(result.authorizationUrl);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not start Gmail connection.');
-      setConnectingGmail(false);
-    }
-  }
-
-  function connectMeta(channel: 'facebook' | 'whatsapp') {
-    setConnectionNotice(
-      channel === 'facebook'
-        ? 'Add Meta App credentials on the API server to enable Facebook Page sign-in.'
-        : 'Add Meta App & WhatsApp Business credentials on the API server to enable WhatsApp sign-in.'
-    );
-  }
-
   const windowOpen =
     selected?.channel === 'GMAIL' ||
     (selected?.lastInboundAt
@@ -250,110 +218,41 @@ export function InboxView({ getAuthHeaders, triggerFeedback }: InboxViewProps) {
         title="Messages"
         description="Unified inbox for WhatsApp, Messenger, and Gmail"
         className="pb-3!"
-        actions={
-          <Button variant="secondary" size="sm" onClick={() => void refresh()} loading={loading} icon={<RefreshCw size={13} />}>
-            Refresh
+        actions={<div className="flex items-center gap-2">
+          <Button variant="secondary" size="sm" onClick={() => void refresh()} loading={loading} icon={<RefreshCw size={13} />}>Refresh</Button>
+          <Button variant="secondary" size="sm" onClick={() => setChannelsOpen((open) => !open)} icon={<Settings2 size={14} />}>
+            {channelsOpen ? 'Close settings' : 'Connection settings'}
           </Button>
-        }
+        </div>}
       />
 
-      {/* Tiny Collapsible Connect Bar */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs shrink-0 overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setChannelsOpen((o) => !o)}
-          className="w-full px-3.5 py-2 flex items-center justify-between gap-3 text-xs hover:bg-slate-50 transition cursor-pointer"
-        >
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 font-semibold text-slate-700">
-              <PlugZap size={13} className="text-indigo-600" />
-              Channels ({connectedCount}/3)
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-2xs">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-medium text-slate-600">
+          <span className="font-bold text-[#102d55]">Connected {connectedCount}/3</span>
+          {([
+            ['WhatsApp', config?.whatsapp],
+            ['Messenger', config?.messenger],
+            ['Gmail', config?.gmail?.connected],
+          ] as const).map(([name, connected]) => (
+            <span key={name} className="inline-flex items-center gap-1.5">
+              <span className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+              {name}
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-50 text-slate-700 border border-slate-200 text-[11px] font-medium">
-              <span className={`w-1.5 h-1.5 rounded-full ${config?.whatsapp ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-              WhatsApp
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-50 text-slate-700 border border-slate-200 text-[11px] font-medium">
-              <span className={`w-1.5 h-1.5 rounded-full ${config?.messenger ? 'bg-blue-500' : 'bg-slate-300'}`} />
-              Messenger
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-50 text-slate-700 border border-slate-200 text-[11px] font-medium">
-              <span className={`w-1.5 h-1.5 rounded-full ${config?.gmail?.connected ? 'bg-rose-500' : 'bg-slate-300'}`} />
-              Gmail
-            </span>
-          </div>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 shrink-0">
-            {channelsOpen ? 'Hide' : 'Configure'}
-            {channelsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </span>
+          ))}
+        </div>
+        <button type="button" onClick={() => setChannelsOpen((open) => !open)} className="text-[11px] font-bold text-[#143c78] hover:text-[#e62934]">
+          {channelsOpen ? 'Hide settings' : 'Manage connections'}
         </button>
-
-        {channelsOpen && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/50">
-            <div className="px-3.5 py-2.5 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <MessageCircle size={14} />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-slate-900 truncate">WhatsApp</p>
-                  <p className="text-[10px] text-slate-500 truncate">{config?.whatsapp ? 'Connected' : 'Not connected'}</p>
-                </div>
-              </div>
-              <Button size="sm" variant={config?.whatsapp ? 'secondary' : 'primary'} onClick={() => connectMeta('whatsapp')}>
-                {config?.whatsapp ? <CircleCheck size={13} /> : 'Connect'}
-              </Button>
-            </div>
-
-            <div className="px-3.5 py-2.5 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                  <Facebook size={14} />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-slate-900 truncate">Messenger</p>
-                  <p className="text-[10px] text-slate-500 truncate">{config?.messenger ? 'Connected' : 'Not connected'}</p>
-                </div>
-              </div>
-              <Button size="sm" variant={config?.messenger ? 'secondary' : 'primary'} onClick={() => connectMeta('facebook')}>
-                {config?.messenger ? <CircleCheck size={13} /> : 'Connect'}
-              </Button>
-            </div>
-
-            <div className="px-3.5 py-2.5 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-                  <Mail size={14} />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-slate-900 truncate">Gmail</p>
-                  <p className="text-[10px] text-slate-500 truncate">
-                    {config?.gmail?.connected ? config.gmail.email : 'Not connected'}
-                  </p>
-                </div>
-              </div>
-              <Button
-                size="sm"
-                variant={config?.gmail?.connected ? 'secondary' : 'primary'}
-                disabled={!config?.gmail?.connected && !config?.gmail?.configured}
-                loading={connectingGmail}
-                onClick={() => void connectGmail()}
-                icon={!config?.gmail?.connected ? <ArrowUpRight size={13} /> : undefined}
-              >
-                {config?.gmail?.connected ? 'Connected' : 'Connect'}
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
-      {connectionNotice && (
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs text-blue-900 shrink-0">
-          <span>{connectionNotice}</span>
-          <button type="button" onClick={() => setConnectionNotice('')} className="font-bold text-blue-700 cursor-pointer">
-            ×
-          </button>
-        </div>
+      {channelsOpen && (
+        <InboxConnectionsPanel
+          config={config}
+          getAuthHeaders={getAuthHeaders}
+          onRefresh={() => refresh(true)}
+          onClose={() => setChannelsOpen(false)}
+          canManageConnections={canManageConnections}
+        />
       )}
       {error && (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs text-rose-800 shrink-0">

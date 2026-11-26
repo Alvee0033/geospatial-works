@@ -34,6 +34,11 @@ export class GmailInboxService implements OnApplicationBootstrap, OnModuleDestro
     return { configured: this.configured(), connected: Boolean(connection), email: connection?.email || null };
   }
 
+  async disconnect() {
+    await this.connections.delete({ id: 'primary' });
+    return { connected: false };
+  }
+
   startAuthorization(adminId: string) {
     if (!this.configured()) throw new ServiceUnavailableException('Gmail OAuth is not configured on the API server');
     const clientId = this.config.get<string>('GOOGLE_CLIENT_ID')!;

@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { InboxChannel, InboxConversation } from '../../entities/inbox-conversation.entity';
 import { InboxMessage } from '../../entities/inbox-message.entity';
 import { GmailInboxService } from './gmail.service';
+import { MetaConnectionService } from './meta-connection.service';
 
 const asString = (value: unknown) => typeof value === 'string' ? value : '';
 const dateFromSeconds = (value: unknown) => {
@@ -20,20 +21,24 @@ export class InboxService {
     @InjectRepository(InboxMessage) private readonly messages: Repository<InboxMessage>,
     private readonly config: ConfigService,
     private readonly gmail: GmailInboxService,
+    private readonly meta: MetaConnectionService,
   ) {}
 
   async getConfiguration() {
     const gmail = await this.gmail.status();
+    const [whatsapp, messenger] = await Promise.all([this.meta.status('WHATSAPP'), this.meta.status('MESSENGER')]);
+    const setup = this.meta.setup();
     return {
-      whatsapp: Boolean(this.config.get('META_APP_SECRET') && this.config.get('WHATSAPP_ACCESS_TOKEN') && this.config.get('WHATSAPP_PHONE_NUMBER_ID') && this.config.get('WHATSAPP_WEBHOOK_VERIFY_TOKEN')),
-      messenger: Boolean(this.config.get('META_APP_SECRET') && this.config.get('MESSENGER_PAGE_ACCESS_TOKEN') && this.config.get('MESSENGER_PAGE_ID') && this.config.get('MESSENGER_WEBHOOK_VERIFY_TOKEN')),
+      whatsapp: whatsapp.connected || Boolean(this.config.get('WHATSAPP_ACCESS_TOKEN') && this.config.get('WHATSAPP_PHONE_NUMBER_ID')),
+      messenger: messenger.connected || Boolean(this.config.get('MESSENGER_PAGE_ACCESS_TOKEN') && this.config.get('MESSENGER_PAGE_ID')),
+      meta: { ...setup, whatsapp, messenger },
       gmail,
       callbackPath: '/api/v1/inbox/webhook',
     };
   }
 
   verifySubscription(mode: string, token: string, challenge: string): string {
-    const configuredTokens = [this.config.get<string>('WHATSAPP_WEBHOOK_VERIFY_TOKEN'), this.config.get<string>('MESSENGER_WEBHOOK_VERIFY_TOKEN')].filter(Boolean);
+    const configuredTokens = [this.config.get<string>('META_WEBHOOK_VERIFY_TOKEN'), this.config.get<string>('WHATSAPP_WEBHOOK_VERIFY_TOKEN'), this.config.get<string>('MESSENGER_WEBHOOK_VERIFY_TOKEN')].filter(Boolean);
     if (mode === 'subscribe' && configuredTokens.includes(token)) return challenge;
     throw new UnauthorizedException('Webhook verification failed');
   }
@@ -55,11 +60,15 @@ export class InboxService {
   }
 
   private async receiveWhatsApp(payload: any) {
+    const active = await this.meta.connection('WHATSAPP');
+    const allowedPhone = active?.assetId || this.config.get<string>('WHATSAPP_PHONE_NUMBER_ID');
+    if (!allowedPhone) return;
     for (const entry of payload.entry || []) {
       for (const change of entry.changes || []) {
         if (change.field !== 'messages') continue;
         const value = change.value || {};
         const assetId = asString(value.metadata?.phone_number_id);
+        if (assetId !== allowedPhone) continue;
         const names = new Map<string, string>((value.contacts || []).map((c: any) => [asString(c.wa_id), asString(c.profile?.name)]));
         for (const item of value.messages || []) {
           const participantId = asString(item.from);
@@ -73,8 +82,12 @@ export class InboxService {
   }
 
   private async receiveMessenger(payload: any) {
+    const active = await this.meta.connection('MESSENGER');
+    const allowedPage = active?.assetId || this.config.get<string>('MESSENGER_PAGE_ID');
+    if (!allowedPage) return;
     for (const entry of payload.entry || []) {
       const pageId = asString(entry.id);
+      if (pageId !== allowedPage) continue;
       for (const event of entry.messaging || []) {
         // Ignore delivery/read/postback/echo events: only customer-authored messages enter the inbox.
         if (!event.message || event.message.is_echo) continue;
@@ -147,12 +160,14 @@ export class InboxService {
     const payload = conversation.channel === InboxChannel.WHATSAPP
       ? { messaging_product: 'whatsapp', recipient_type: 'individual', to: conversation.participantId, type: 'text', text: { body: text } }
       : { recipient: { id: conversation.participantId }, messaging_type: 'RESPONSE', message: { text } };
-    const token = conversation.channel === InboxChannel.WHATSAPP
+    const connection = await this.meta.connection(conversation.channel === InboxChannel.WHATSAPP ? 'WHATSAPP' : 'MESSENGER');
+    const token = connection?.accessToken || (conversation.channel === InboxChannel.WHATSAPP
       ? this.config.get<string>('WHATSAPP_ACCESS_TOKEN')
-      : this.config.get<string>('MESSENGER_PAGE_ACCESS_TOKEN');
-    const assetId = conversation.channel === InboxChannel.WHATSAPP
+      : this.config.get<string>('MESSENGER_PAGE_ACCESS_TOKEN'));
+    const assetId = connection?.assetId || (conversation.channel === InboxChannel.WHATSAPP
       ? this.config.get<string>('WHATSAPP_PHONE_NUMBER_ID')
-      : this.config.get<string>('MESSENGER_PAGE_ID');
+      : this.config.get<string>('MESSENGER_PAGE_ID'));
+    if (assetId !== conversation.businessAssetId) throw new BadRequestException('This conversation belongs to a different connected account.');
     if (!token || !assetId) throw new ServiceUnavailableException(`${conversation.channel} sending is not configured`);
     const endpoint = conversation.channel === InboxChannel.WHATSAPP ? `${assetId}/messages` : `${assetId}/messages`;
     let response: Response;

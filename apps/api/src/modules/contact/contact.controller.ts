@@ -4,6 +4,9 @@ import { ContactService } from './contact.service';
 import { CreateInquiryDto } from './dto/contact.dto';
 import { InquiryStatus } from '../../entities/contact-inquiry.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../entities/user.entity';
 
 @ApiTags('Contact & Quotes')
 @Controller('contact')
@@ -18,7 +21,8 @@ export class ContactController {
 
   // Admin Endpoints
   @Get('admin/inquiries')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Get all client inquiries' })
   async getAllInquiries() {
@@ -26,7 +30,8 @@ export class ContactController {
   }
 
   @Put('admin/inquiries/:id/status')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Update inquiry status and internal notes' })
   async updateStatus(
@@ -38,7 +43,8 @@ export class ContactController {
   }
 
   @Delete('admin/inquiries/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Delete an inquiry permanently' })
   async deleteInquiry(@Param('id') id: string) {

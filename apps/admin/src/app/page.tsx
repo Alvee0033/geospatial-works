@@ -1575,7 +1575,7 @@ export default function AdminPage() {
           )}
 
           {activeTab === 'inbox' && (
-            <InboxView getAuthHeaders={getAuthHeaders} triggerFeedback={triggerFeedback} />
+            <InboxView getAuthHeaders={getAuthHeaders} triggerFeedback={triggerFeedback} canManageConnections={currentUser?.role === 'ADMIN'} />
           )}
 
           {activeTab === 'settings' && (
