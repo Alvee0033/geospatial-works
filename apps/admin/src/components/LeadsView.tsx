@@ -131,10 +131,11 @@ function formatRelative(value: string) {
 }
 
 function parseNotesAndAudit(raw = '') {
-  const match = raw.match(/\[Updated by ([^\]]+)\]\s*$/);
+  const matches = Array.from(raw.matchAll(/\[Updated by ([^\]]+)\]/g));
+  const lastMatch = matches[matches.length - 1];
   return {
-    audit: match ? match[1].trim() : '',
-    cleanNotes: match ? raw.replace(match[0], '').trim() : raw,
+    audit: lastMatch ? lastMatch[1].trim() : '',
+    cleanNotes: raw.replace(/\[Updated by [^\]]+\]\s*/g, '').trim(),
   };
 }
 
@@ -145,7 +146,7 @@ function buildAuditedNotes(cleanNotes: string, userName?: string) {
     hour: '2-digit',
     minute: '2-digit',
   }).format(new Date())}]`;
-  const trimmed = cleanNotes.trim();
+  const trimmed = cleanNotes.replace(/\[Updated by [^\]]+\]\s*/g, '').trim();
   return trimmed ? `${trimmed}\n${stamp}` : stamp;
 }
 

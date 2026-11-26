@@ -25,10 +25,14 @@ export class ContactService {
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) return;
 
-    const officeSection = await this.pageSectionRepository
-      .findOne({ where: { pageKey: 'contact', sectionKey: 'office' } })
-      .catch(() => null);
-    const content = (officeSection?.content || {}) as Record<string, any>;
+    const contactSection =
+      (await this.pageSectionRepository
+        .findOne({ where: { pageKey: 'contact', sectionKey: 'contact_info' } })
+        .catch(() => null)) ||
+      (await this.pageSectionRepository
+        .findOne({ where: { pageKey: 'contact', sectionKey: 'office' } })
+        .catch(() => null));
+    const content = (contactSection?.content || {}) as Record<string, any>;
 
     const rawSender = String(content.senderEmail || '').trim();
     const from = rawSender

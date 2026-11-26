@@ -252,7 +252,16 @@ export function NewsModal({
                       const fd = new FormData();
                       fd.append('file', file);
                       try {
-                        const res = await fetch('/api/media/upload', { method: 'POST', body: fd });
+                        const token =
+                          typeof window !== 'undefined'
+                            ? localStorage.getItem('gw_admin_jwt') || sessionStorage.getItem('gw_admin_jwt')
+                            : null;
+                        const res = await fetch('/api/media/upload', {
+                          method: 'POST',
+                          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+                          body: fd,
+                        });
+                        if (!res.ok) return;
                         const data = await res.json();
                         if (data?.url) setFormImageUrl(data.url);
                       } catch {

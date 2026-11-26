@@ -149,21 +149,32 @@ export function NewsView({
                     </span>
                   )}
                 </div>
+              </div>
 
-                <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-end gap-1.5">
-                  <Button size="sm" variant="secondary" onClick={() => onOpenEditModal(article)} icon={<Edit2 size={13} />}>
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-                    onClick={() => onDeleteArticle(article.id, article.title)}
-                    icon={<Trash2 size={13} />}
-                  >
-                    Delete
-                  </Button>
-                </div>
+              <div className="px-5 pb-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-1.5">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenEditModal(article);
+                  }}
+                  icon={<Edit2 size={13} />}
+                >
+                  Edit
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteArticle(article.id, article.title);
+                  }}
+                  icon={<Trash2 size={13} />}
+                >
+                  Delete
+                </Button>
               </div>
             </Card>
           ))}

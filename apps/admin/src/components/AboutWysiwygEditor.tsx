@@ -113,7 +113,7 @@ function EditablePhoto({
       <button
         type="button"
         onClick={onPick}
-        className="absolute top-3 right-3 z-30 px-3 py-1.5 rounded-full bg-slate-900/85 hover:bg-indigo-600 text-white text-[11px] font-bold backdrop-blur-md flex items-center gap-1.5 shadow-xl border border-white/25 cursor-pointer opacity-90 group-hover:opacity-100 transition-all"
+        className="absolute top-3 right-3 z-30 px-3 py-1.5 rounded-full bg-slate-900/85 hover:bg-indigo-600 text-white text-[11px] font-bold backdrop-blur-md flex items-center gap-1.5 shadow-xl border border-white/25 cursor-pointer opacity-100 transition-all"
         title="Change photo"
       >
         <Camera size={13} />
@@ -666,7 +666,7 @@ export function AboutWysiwygEditor({
   ];
 
   const futureSoftwareTools: { name: string; category: string; logo: string; description?: string }[] =
-    Array.isArray(futureReadyData.softwareTools) && futureReadyData.softwareTools.length > 0
+    Array.isArray(futureReadyData.softwareTools)
       ? futureReadyData.softwareTools
       : DEFAULT_FUTURE_SOFTWARE;
   const [safetyData, setSafetyData] = useState<any>(defaultSafetyData);
@@ -1139,19 +1139,6 @@ export function AboutWysiwygEditor({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {storyData.disciplines.map((d: any, idx: number) => (
                     <div key={idx} className="relative group/disc bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm flex flex-col">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (storyData.disciplines.length <= 1) return;
-                          const next = storyData.disciplines.filter((_: any, i: number) => i !== idx);
-                          handleDataChange('our-story', 'disciplines', next);
-                        }}
-                        className="absolute top-3 left-3 z-30 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
-                        title="Delete discipline card"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-
                       <div className="relative aspect-[16/10] w-full bg-neutral-900 overflow-hidden">
                         <EditablePhoto
                           src={d.image}
@@ -1216,6 +1203,22 @@ export function AboutWysiwygEditor({
                           }}
                           color="red"
                         />
+
+                        {storyData.disciplines.length > 1 && (
+                          <div className="pt-2 border-t border-neutral-100 flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const next = storyData.disciplines.filter((_: any, i: number) => i !== idx);
+                                handleDataChange('our-story', 'disciplines', next);
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white text-[11px] font-semibold transition cursor-pointer"
+                              title="Delete service card"
+                            >
+                              <Trash2 size={12} /> Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -1866,14 +1869,14 @@ export function AboutWysiwygEditor({
                         className="absolute top-1.5 right-1.5 z-10 bg-rose-600 hover:bg-rose-700 text-white p-1 rounded-full shadow transition cursor-pointer"
                         title="Delete software"
                       >
-                        <Trash2 size={10} />
+                        <Trash2 size={12} />
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditingSoftwareIdx(tIdx)}
                         className="flex flex-col justify-between gap-2 flex-1 cursor-pointer text-left w-full"
                       >
-                        <div className="h-12 flex items-center justify-between w-full pr-5">
+                        <div className="h-12 flex items-center justify-between w-full pr-6">
                           {tool.logo ? (
                             <img src={tool.logo} alt={tool.name} className="max-h-11 max-w-[100px] object-contain" />
                           ) : (
@@ -1981,18 +1984,7 @@ export function AboutWysiwygEditor({
                           />
                         </div>
                       </div>
-                      <div className="border-t border-slate-200 px-5 py-3 bg-slate-50 flex items-center justify-between">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const next = futureSoftwareTools.filter((_, i) => i !== editingSoftwareIdx);
-                            handleDataChange('future-ready', 'softwareTools', next);
-                            setEditingSoftwareIdx(null);
-                          }}
-                          className="px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-semibold cursor-pointer"
-                        >
-                          Remove
-                        </button>
+                      <div className="border-t border-slate-200 px-5 py-3 bg-slate-50 flex items-center justify-end">
                         <button
                           type="button"
                           onClick={() => setEditingSoftwareIdx(null)}
@@ -2727,20 +2719,8 @@ export function AboutWysiwygEditor({
                   {impactData.projects.map((p: any, idx: number) => (
                     <div
                       key={idx}
-                      className="relative group/proj border border-neutral-200 rounded-2xl bg-white flex flex-col overflow-hidden shadow-sm"
+                      className="relative group/proj border border-neutral-200 rounded-2xl bg-white flex flex-col shadow-sm"
                     >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (impactData.projects.length <= 1) return;
-                          const next = impactData.projects.filter((_: any, i: number) => i !== idx);
-                          handleDataChange('impact', 'projects', next);
-                        }}
-                        className="absolute top-3 right-3 z-30 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
-                        title="Delete project card"
-                      >
-                        <Trash2 size={13} />
-                      </button>
                       <div className="relative aspect-[16/10] bg-neutral-900 overflow-hidden">
                         <EditablePhoto
                           src={p.imageUrl || '/real-media/hero-corridor-infrastructure.jpg'}
@@ -2823,8 +2803,29 @@ export function AboutWysiwygEditor({
                             />
                           </p>
                         </div>
-                        <div className="pt-2 border-t border-neutral-100 text-[10px] font-mono text-neutral-400 font-bold uppercase">
-                          1ST CLASS CONTRACTOR
+                        <div className="pt-2 border-t border-neutral-100 flex items-center justify-between gap-2">
+                          <div className="text-[10px] font-mono text-neutral-400 font-bold uppercase flex-1">
+                            <EditableText
+                              value={p.contractorBadge ?? '1ST CLASS CONTRACTOR'}
+                              onChange={(val) => {
+                                const next = [...impactData.projects];
+                                next[idx].contractorBadge = val;
+                                handleDataChange('impact', 'projects', next);
+                              }}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (impactData.projects.length <= 1) return;
+                              const next = impactData.projects.filter((_: any, i: number) => i !== idx);
+                              handleDataChange('impact', 'projects', next);
+                            }}
+                            className="shrink-0 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow transition cursor-pointer"
+                            title="Delete project card"
+                          >
+                            <Trash2 size={12} />
+                          </button>
                         </div>
                       </div>
                     </div>

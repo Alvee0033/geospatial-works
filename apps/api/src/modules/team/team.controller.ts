@@ -37,20 +37,20 @@ export class TeamController {
     return this.teamService.create(dto);
   }
 
-  @Put('admin/:id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin: Update a team member' })
-  async update(@Param('id') id: string, @Body() dto: UpdateTeamMemberDto) {
-    return this.teamService.update(id, dto);
-  }
-
   @Put('admin/reorder')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin: Reorder team members' })
   async reorder(@Body() items: { id: string; sortOrder: number }[]) {
     return this.teamService.reorder(items);
+  }
+
+  @Put('admin/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: Update a team member' })
+  async update(@Param('id') id: string, @Body() dto: UpdateTeamMemberDto) {
+    return this.teamService.update(id, dto);
   }
 
   @Delete('admin/:id')

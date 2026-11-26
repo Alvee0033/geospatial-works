@@ -1468,20 +1468,25 @@ export default function AdminPage() {
                 const updated = reordered.map((m, idx) => ({ ...m, sortOrder: idx + 1 }));
                 setTeamMembers(updated);
                 try {
-                  await Promise.all(
-                    updated
-                      .filter((m) => m.id)
-                      .map((m) =>
-                        fetch(`/api/team/admin/${m.id}`, {
-                          method: 'PATCH',
-                          headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                          body: JSON.stringify({ sortOrder: m.sortOrder }),
-                        })
-                      )
-                  );
+                  const res = await fetch(`${API_BASE}/team/admin/reorder`, {
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(
+                      updated
+                        .filter((m) => m.id)
+                        .map((m) => ({ id: m.id!, sortOrder: m.sortOrder }))
+                    ),
+                  });
+                  if (!res.ok) throw new Error('Failed to save team order');
                   triggerFeedback('Team order saved.', 'success');
+                  fetch('/site-revalidate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: 'all' }),
+                  }).catch(() => {});
                 } catch {
                   triggerFeedback('Could not save team order.', 'error');
+                  loadAllData();
                 }
               }}
             />

@@ -1165,9 +1165,8 @@ export function LandingPageView({
                       onClick={() => {
                         if (activeSlide.id && activeSlide.id !== 'temp') {
                           if (window.confirm('Delete this hero slide? This cannot be undone.')) {
-                            onDeleteHeroSlide(activeSlide.id);
+                            void onDeleteHeroSlide(activeSlide.id).then(() => setSelectedSlideIndex(0));
                           }
-                          setSelectedSlideIndex(0);
                         }
                       }}
                       className="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
@@ -1246,7 +1245,7 @@ export function LandingPageView({
                 </div>
 
                 {slideMediaType === 'image' ? (
-                  <MediaAssetField label="Hero image" value={slideImageUrl} onChoose={() => onOpenMediaPicker(setSlideImageUrl)} onRemove={() => setSlideImageUrl('')} />
+                  <MediaAssetField label="Hero image" value={slideImageUrl} onChoose={() => onOpenMediaPicker((url) => setSlideImageUrl(url))} onRemove={() => setSlideImageUrl('')} />
                 ) : (
                   <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:flex-row sm:items-center">
                     <div className="grid aspect-video w-full place-items-center overflow-hidden rounded-lg bg-slate-950 text-slate-300 sm:w-40">
@@ -2259,15 +2258,16 @@ export function LandingPageView({
                           >
                             {isEditing ? 'Done' : 'Edit'}
                           </Button>
-                          {workstations.length > 1 && isEditing && (
+                          {workstations.length > 1 && (
                             <Button
                               size="sm"
                               variant="ghost"
                               className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                               onClick={() => handleRemoveWorkstation(idx)}
                               icon={<Trash2 size={12} />}
+                              title="Remove node"
                             >
-                              Remove
+                              Delete
                             </Button>
                           )}
                         </div>
@@ -3131,7 +3131,7 @@ export function LandingPageView({
               <MediaAssetField
                 label="Careers Section Image"
                 value={cultureImageUrl}
-                onChoose={() => onOpenMediaPicker(setCultureImageUrl)}
+                onChoose={() => onOpenMediaPicker((url) => setCultureImageUrl(url))}
                 onRemove={() => setCultureImageUrl('')}
               />
 
@@ -3186,7 +3186,7 @@ export function LandingPageView({
                     {cultureSubtitle}
                   </span>
                   <h3 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
-                    Lead and <span className="text-[#FB1D10]">grow</span>
+                    {cultureTitle}
                   </h3>
                   <p className="text-xs text-neutral-300 leading-relaxed max-w-md">
                     {cultureDesc}
