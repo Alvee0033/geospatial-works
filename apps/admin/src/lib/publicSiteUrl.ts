@@ -6,7 +6,10 @@ export function getPublicSiteUrl(): string {
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'http://localhost:3001';
     }
+    if (/^gw-admin\./i.test(hostname)) {
+      return `${protocol}//${hostname.replace(/^gw-admin\./i, 'gw-site.')}`;
+    }
     return `${protocol}//${hostname.replace(/^admin\./i, '')}`;
   }
-  return 'http://localhost:3001';
+  return 'https://geospatialworks.com.bd';
 }
