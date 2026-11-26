@@ -9,6 +9,7 @@ export type InboxConfiguration = {
   messenger: boolean;
   gmail: { configured: boolean; connected: boolean; email: string | null };
   meta: { appId: string | null; whatsappConfigId: string | null; messengerConfigId: string | null; webhookReady: boolean; whatsapp: Status; messenger: Status };
+  verifyToken?: string;
 };
 
 type Props = {
@@ -71,6 +72,7 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
   const [fbToken, setFbToken] = useState('');
   const [metaAppSecret, setMetaAppSecret] = useState('');
   const [metaVerifyToken, setMetaVerifyToken] = useState('');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [googleClientId, setGoogleClientId] = useState('');
   const [googleClientSecret, setGoogleClientSecret] = useState('');
   const [googleRedirectUri, setGoogleRedirectUri] = useState('https://api.geospatialworks.com.bd/api/v1/inbox/google/callback');
@@ -198,6 +200,33 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
     finally { setBusy(null); }
   }
 
+  useEffect(() => {
+    if (config?.verifyToken && !metaVerifyToken) {
+      setMetaVerifyToken(config.verifyToken);
+    }
+  }, [config?.verifyToken, metaVerifyToken]);
+
+  const generateAndSaveVerifyToken = async () => {
+    const token = `gw_verify_${Math.random().toString(36).slice(2, 10)}${Math.random().toString(36).slice(2, 6)}`;
+    setMetaVerifyToken(token);
+    try {
+      await request(`${API}/setup`, getAuthHeaders(), { metaWebhookVerifyToken: token }, 'PUT');
+      await onRefresh();
+      setNotice('Verify token generated and saved. Paste it into Meta Console.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save verify token.');
+    }
+  };
+
+  const openMetaSetup = (channel: 'whatsapp' | 'messenger') => {
+    setSetupChannel(channel);
+    if (!metaVerifyToken && !config?.verifyToken) {
+      void generateAndSaveVerifyToken();
+    } else if (!metaVerifyToken && config?.verifyToken) {
+      setMetaVerifyToken(config.verifyToken);
+    }
+  };
+
   async function saveChannelSetup(channel: 'whatsapp' | 'messenger' | 'gmail') {
     setSavingSetup(true);
     setError('');
@@ -247,14 +276,14 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
     <div className="grid gap-3 p-3 sm:p-4 lg:grid-cols-3">
       <ChannelCard icon={<MessageCircle size={21} />} name="WhatsApp Business" tone="bg-emerald-50 text-emerald-700" connected={Boolean(meta?.whatsapp.connected || config?.whatsapp)} configured={Boolean(meta?.whatsappConfigId && sdkReady)} busy={busy === 'whatsapp'} canManageConnections={canManageConnections}
         detail={meta?.whatsapp.displayName || (config?.whatsapp ? 'WhatsApp connected and active.' : 'Click Setup & Connect to enter your WhatsApp Phone ID & Token.')}
-        onConnect={() => meta?.whatsappConfigId && sdkReady ? connectMeta('whatsapp') : setSetupChannel('whatsapp')} onDisconnect={() => void disconnect('whatsapp')}>
+        onConnect={() => meta?.whatsappConfigId && sdkReady ? connectMeta('whatsapp') : openMetaSetup('whatsapp')} onDisconnect={() => void disconnect('whatsapp')}>
         {canManageConnections && !meta?.whatsapp.connected && meta?.whatsappConfigId && <label className="mt-3 block text-[11px] font-semibold text-slate-600">Two-step PIN for a new API number (optional)
           <input type="text" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={pin} onChange={(event) => setPin(event.target.value.replace(/\D/g, ''))} placeholder="6-digit PIN" className="mt-1.5 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none focus:border-[#326df1]" />
         </label>}
       </ChannelCard>
       <ChannelCard icon={<Facebook size={21} />} name="Facebook Messenger" tone="bg-blue-50 text-blue-700" connected={Boolean(meta?.messenger.connected || config?.messenger)} configured={Boolean(meta?.messengerConfigId && sdkReady)} busy={busy === 'messenger'} canManageConnections={canManageConnections}
         detail={meta?.messenger.displayName || (config?.messenger ? 'Facebook Messenger connected and active.' : 'Click Setup & Connect to enter your Page ID & Access Token.')}
-        onConnect={() => meta?.messengerConfigId && sdkReady ? connectMeta('messenger') : setSetupChannel('messenger')} onDisconnect={() => void disconnect('messenger')} />
+        onConnect={() => meta?.messengerConfigId && sdkReady ? connectMeta('messenger') : openMetaSetup('messenger')} onDisconnect={() => void disconnect('messenger')} />
       <ChannelCard icon={<Mail size={21} />} name="Gmail" tone="bg-rose-50 text-rose-700" connected={Boolean(config?.gmail.connected)} configured={Boolean(config?.gmail.configured)} busy={busy === 'gmail'} canManageConnections={canManageConnections}
         detail={config?.gmail.email || (config?.gmail.configured ? 'Choose your Google account and approve inbox access.' : 'Click Setup & Connect to enter your Google OAuth Client ID & Secret.')}
         onConnect={() => config?.gmail.configured ? void connectGmail() : setSetupChannel('gmail')} onDisconnect={() => void disconnect('gmail')} />
@@ -383,9 +412,29 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">App Secret (optional)</label>
                     <input type="password" value={metaAppSecret} onChange={(e) => setMetaAppSecret(e.target.value)} placeholder="Meta App Secret" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Verify Token (optional)</label>
-                    <input value={metaVerifyToken} onChange={(e) => setMetaVerifyToken(e.target.value)} placeholder="Auto-generated" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                  <div className="col-span-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-semibold text-slate-600">Verify Token</label>
+                      <div className="flex items-center gap-1.5">
+                        <button type="button" onClick={() => void generateAndSaveVerifyToken()} className="text-[10px] font-semibold text-indigo-600 hover:underline cursor-pointer">
+                          Generate
+                        </button>
+                        {metaVerifyToken && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard?.writeText(metaVerifyToken);
+                              setCopiedKey('wa-vt');
+                              setTimeout(() => setCopiedKey(null), 1500);
+                            }}
+                            className="text-[10px] font-semibold text-slate-500 hover:text-slate-900 cursor-pointer"
+                          >
+                            {copiedKey === 'wa-vt' ? 'Copied!' : 'Copy'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <input value={metaVerifyToken} onChange={(e) => setMetaVerifyToken(e.target.value)} placeholder="Generating..." className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono" />
                   </div>
                 </div>
               </div>
@@ -406,9 +455,29 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">App Secret (optional)</label>
                     <input type="password" value={metaAppSecret} onChange={(e) => setMetaAppSecret(e.target.value)} placeholder="Meta App Secret" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Verify Token (optional)</label>
-                    <input value={metaVerifyToken} onChange={(e) => setMetaVerifyToken(e.target.value)} placeholder="Auto-generated" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                  <div className="col-span-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-semibold text-slate-600">Verify Token</label>
+                      <div className="flex items-center gap-1.5">
+                        <button type="button" onClick={() => void generateAndSaveVerifyToken()} className="text-[10px] font-semibold text-indigo-600 hover:underline cursor-pointer">
+                          Generate
+                        </button>
+                        {metaVerifyToken && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard?.writeText(metaVerifyToken);
+                              setCopiedKey('wa-vt');
+                              setTimeout(() => setCopiedKey(null), 1500);
+                            }}
+                            className="text-[10px] font-semibold text-slate-500 hover:text-slate-900 cursor-pointer"
+                          >
+                            {copiedKey === 'wa-vt' ? 'Copied!' : 'Copy'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <input value={metaVerifyToken} onChange={(e) => setMetaVerifyToken(e.target.value)} placeholder="Generating..." className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono" />
                   </div>
                 </div>
               </div>
