@@ -36,23 +36,23 @@ function ChannelCard({ icon, name, tone, connected, detail, configured, onConnec
   icon: ReactNode; name: string; tone: string; connected: boolean; detail: string; configured: boolean; canManageConnections: boolean;
   onConnect: () => void; onDisconnect: () => void; busy: boolean; children?: ReactNode;
 }) {
-  return <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_24px_-22px_#0c2340] sm:p-5">
-    <div className="flex items-start gap-3">
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tone}`}>{icon}</span>
+  return <article className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs">
+    <div className="flex items-start gap-2.5">
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tone}`}>{icon}</span>
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-bold text-slate-950">{name}</h3>
-          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${connected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-            {connected ? 'Connected' : configured ? 'Ready to connect' : 'Setup needed'}
+        <div className="flex flex-wrap items-center gap-1.5"><h3 className="text-xs font-bold text-slate-950">{name}</h3>
+          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${connected ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600'}`}>
+            {connected ? 'Connected' : 'Not connected'}
           </span>
         </div>
-        <p className="mt-1 break-words text-xs leading-5 text-slate-500">{detail}</p>
+        <p className="mt-0.5 break-words text-[11px] leading-4 text-slate-500">{detail}</p>
       </div>
     </div>
     {children}
-    {canManageConnections && <div className="mt-4 flex items-center gap-2">
-      {connected ? <button type="button" onClick={onDisconnect} disabled={busy} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-50">Disconnect</button>
-        : <button type="button" onClick={onConnect} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg bg-[#143c78] px-3.5 py-2 text-xs font-bold text-white transition hover:bg-[#0a2d5d] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 cursor-pointer">
-          {busy ? 'Connecting…' : configured ? 'Connect account' : 'Setup & Connect'} <ArrowUpRight size={13} />
+    {canManageConnections && <div className="mt-3 flex items-center gap-2">
+      {connected ? <button type="button" onClick={onDisconnect} disabled={busy} className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-50 cursor-pointer">Disconnect</button>
+        : <button type="button" onClick={onConnect} disabled={busy} className="inline-flex items-center gap-1 rounded-lg bg-[#143c78] px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-[#0a2d5d] disabled:opacity-50 cursor-pointer">
+          {busy ? 'Connecting…' : configured ? 'Connect' : 'Setup & Connect'} <ArrowUpRight size={12} />
         </button>}
     </div>}
   </article>;
@@ -260,87 +260,128 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
         onConnect={() => config?.gmail.configured ? void connectGmail() : setSetupChannel('gmail')} onDisconnect={() => void disconnect('gmail')} />
     </div>
     {setupChannel && (
-      <div className="mx-3 mb-3 rounded-xl border border-indigo-200 bg-white p-4 sm:mx-4 space-y-3 text-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-          <h3 className="text-sm font-bold text-slate-900">
-            {setupChannel === 'whatsapp' ? 'Connect WhatsApp Business' : setupChannel === 'messenger' ? 'Connect Facebook Messenger' : 'Connect Gmail OAuth'}
-          </h3>
-          <button type="button" onClick={() => setSetupChannel(null)} className="text-slate-400 hover:text-slate-700">
-            <X size={16} />
-          </button>
-        </div>
-
-        {setupChannel === 'whatsapp' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) setSetupChannel(null);
+        }}
+      >
+        <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden text-xs">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-slate-50/70">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Phone Number ID *</label>
-              <input value={waPhoneId} onChange={(e) => setWaPhoneId(e.target.value)} placeholder="e.g. 123456789012345" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+              <h3 className="text-sm font-bold text-slate-900">
+                {setupChannel === 'whatsapp' ? 'WhatsApp Business Setup' : setupChannel === 'messenger' ? 'Facebook Messenger Setup' : 'Gmail OAuth Setup'}
+              </h3>
+              <p className="text-[11px] text-slate-500">Enter your credentials once to connect this channel</p>
             </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Cloud API Access Token *</label>
-              <input type="password" value={waToken} onChange={(e) => setWaToken(e.target.value)} placeholder="EAA..." className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Meta App Secret (for incoming webhooks)</label>
-              <input type="password" value={metaAppSecret} onChange={(e) => setMetaAppSecret(e.target.value)} placeholder="Optional" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Webhook Verify Token</label>
-              <input value={metaVerifyToken} onChange={(e) => setMetaVerifyToken(e.target.value)} placeholder="Auto-generated if blank" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
-            </div>
+            <button type="button" onClick={() => setSetupChannel(null)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700">
+              <X size={15} />
+            </button>
           </div>
-        )}
 
-        {setupChannel === 'messenger' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Facebook Page ID *</label>
-              <input value={fbPageId} onChange={(e) => setFbPageId(e.target.value)} placeholder="e.g. 109876543210" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+          <div className="p-4 space-y-3">
+            {/* Compact Step-by-Step Instructions */}
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 px-3 py-2 text-[11px] text-slate-700 leading-relaxed space-y-1">
+              {setupChannel === 'whatsapp' && (
+                <>
+                  <p className="font-semibold text-indigo-950">Where to get these (developers.facebook.com):</p>
+                  <p>1. Open your Meta App → <strong>WhatsApp → API Setup</strong> → copy <strong>Phone Number ID</strong> &amp; <strong>Access Token</strong>.</p>
+                  <p>2. Webhook URL: <code className="bg-white px-1 rounded border border-indigo-100">https://api.geospatialworks.com.bd/api/v1/inbox/webhook</code></p>
+                </>
+              )}
+              {setupChannel === 'messenger' && (
+                <>
+                  <p className="font-semibold text-indigo-950">Where to get these (developers.facebook.com):</p>
+                  <p>1. Open your Meta App → <strong>Messenger → Settings</strong> → select your Page → copy <strong>Page ID</strong> &amp; generate <strong>Page Token</strong>.</p>
+                  <p>2. Webhook URL: <code className="bg-white px-1 rounded border border-indigo-100">https://api.geospatialworks.com.bd/api/v1/inbox/webhook</code></p>
+                </>
+              )}
+              {setupChannel === 'gmail' && (
+                <>
+                  <p className="font-semibold text-indigo-950">Where to get these (console.cloud.google.com):</p>
+                  <p>1. Enable <strong>Gmail API</strong> → <strong>Credentials → Create OAuth Client ID</strong> (Web app).</p>
+                  <p>2. Add the Authorized Redirect URI below, then paste your <strong>Client ID</strong> &amp; <strong>Client Secret</strong>.</p>
+                </>
+              )}
             </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Page Access Token *</label>
-              <input type="password" value={fbToken} onChange={(e) => setFbToken(e.target.value)} placeholder="EAA..." className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Meta App Secret (for incoming webhooks)</label>
-              <input type="password" value={metaAppSecret} onChange={(e) => setMetaAppSecret(e.target.value)} placeholder="Optional" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Webhook Verify Token</label>
-              <input value={metaVerifyToken} onChange={(e) => setMetaVerifyToken(e.target.value)} placeholder="Auto-generated if blank" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
-            </div>
+
+            {setupChannel === 'whatsapp' && (
+              <div className="space-y-2.5">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Phone Number ID *</label>
+                  <input value={waPhoneId} onChange={(e) => setWaPhoneId(e.target.value)} placeholder="e.g. 123456789012345" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Cloud API Access Token *</label>
+                  <input type="password" value={waToken} onChange={(e) => setWaToken(e.target.value)} placeholder="EAA..." className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">App Secret (optional)</label>
+                    <input type="password" value={metaAppSecret} onChange={(e) => setMetaAppSecret(e.target.value)} placeholder="Meta App Secret" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Verify Token (optional)</label>
+                    <input value={metaVerifyToken} onChange={(e) => setMetaVerifyToken(e.target.value)} placeholder="Auto-generated" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {setupChannel === 'messenger' && (
+              <div className="space-y-2.5">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Facebook Page ID *</label>
+                  <input value={fbPageId} onChange={(e) => setFbPageId(e.target.value)} placeholder="e.g. 109876543210" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Page Access Token *</label>
+                  <input type="password" value={fbToken} onChange={(e) => setFbToken(e.target.value)} placeholder="EAA..." className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">App Secret (optional)</label>
+                    <input type="password" value={metaAppSecret} onChange={(e) => setMetaAppSecret(e.target.value)} placeholder="Meta App Secret" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Verify Token (optional)</label>
+                    <input value={metaVerifyToken} onChange={(e) => setMetaVerifyToken(e.target.value)} placeholder="Auto-generated" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {setupChannel === 'gmail' && (
+              <div className="space-y-2.5">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Google Client ID *</label>
+                  <input value={googleClientId} onChange={(e) => setGoogleClientId(e.target.value)} placeholder="...apps.googleusercontent.com" className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Google Client Secret *</label>
+                  <input type="password" value={googleClientSecret} onChange={(e) => setGoogleClientSecret(e.target.value)} placeholder="GOCSPX-..." className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">Authorized Redirect URI</label>
+                  <input value={googleRedirectUri} onChange={(e) => setGoogleRedirectUri(e.target.value)} className="w-full h-8 px-2.5 rounded-lg border border-slate-200 bg-slate-50 text-[11px] font-mono" />
+                </div>
+              </div>
+            )}
           </div>
-        )}
 
-        {setupChannel === 'gmail' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Google Client ID *</label>
-              <input value={googleClientId} onChange={(e) => setGoogleClientId(e.target.value)} placeholder="...apps.googleusercontent.com" className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Google Client Secret *</label>
-              <input type="password" value={googleClientSecret} onChange={(e) => setGoogleClientSecret(e.target.value)} placeholder="GOCSPX-..." className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs" />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Authorized Redirect URI</label>
-              <input value={googleRedirectUri} onChange={(e) => setGoogleRedirectUri(e.target.value)} className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono" />
-            </div>
+          <div className="border-t border-slate-200 px-4 py-2.5 bg-slate-50 flex items-center justify-end gap-2">
+            <button type="button" onClick={() => setSetupChannel(null)} className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold hover:bg-slate-100 cursor-pointer">
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={savingSetup}
+              onClick={() => void saveChannelSetup(setupChannel)}
+              className="px-4 py-1.5 rounded-lg bg-[#143c78] hover:bg-[#0a2d5d] text-white font-semibold cursor-pointer disabled:opacity-50"
+            >
+              {savingSetup ? 'Connecting…' : setupChannel === 'gmail' ? 'Save & Sign in with Google' : 'Save & Confirm Connection'}
+            </button>
           </div>
-        )}
-
-        <div className="flex justify-end gap-2 pt-1">
-          <button type="button" onClick={() => setSetupChannel(null)} className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold hover:bg-slate-50 cursor-pointer">
-            Cancel
-          </button>
-          <button
-            type="button"
-            disabled={savingSetup}
-            onClick={() => void saveChannelSetup(setupChannel)}
-            className="px-4 py-1.5 rounded-lg bg-[#143c78] hover:bg-[#0a2d5d] text-white font-semibold cursor-pointer disabled:opacity-50"
-          >
-            {savingSetup ? 'Saving…' : setupChannel === 'gmail' ? 'Save & Sign in with Google' : 'Save & Connect'}
-          </button>
         </div>
       </div>
     )}
