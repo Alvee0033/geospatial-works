@@ -423,32 +423,31 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
                 )}
               </div>
 
-              <div className="border-t border-slate-200 bg-white p-3 shrink-0">
-                {windowOpen ? (
-                  <form onSubmit={send} className="flex items-end gap-2">
-                    <textarea
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          void send(e as unknown as FormEvent);
-                        }
-                      }}
-                      rows={2}
-                      maxLength={4000}
-                      placeholder="Write a reply... (Enter to send)"
-                      className="flex-1 min-h-[44px] max-h-32 resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:bg-white"
-                    />
-                    <Button type="submit" disabled={!draft.trim()} loading={sending} icon={<Send size={14} />}>
-                      Send
-                    </Button>
-                  </form>
-                ) : (
-                  <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900">
-                    The 24-hour reply window is closed. Wait for a new message from this contact before replying.
+              <div className="border-t border-slate-200 bg-white p-3 shrink-0 space-y-2">
+                {!windowOpen && (
+                  <p className="rounded-lg bg-amber-50/80 border border-amber-200/80 px-3 py-1.5 text-[11px] text-amber-800">
+                    Older than 24h — Messenger replies will attempt delivery using Human Agent / standard messaging.
                   </p>
                 )}
+                <form onSubmit={send} className="flex items-end gap-2">
+                  <textarea
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        void send(e as unknown as FormEvent);
+                      }
+                    }}
+                    rows={2}
+                    maxLength={4000}
+                    placeholder="Write a reply... (Enter to send)"
+                    className="flex-1 min-h-[44px] max-h-32 resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:bg-white"
+                  />
+                  <Button type="submit" disabled={!draft.trim()} loading={sending} icon={<Send size={14} />}>
+                    Send
+                  </Button>
+                </form>
               </div>
             </>
           ) : (

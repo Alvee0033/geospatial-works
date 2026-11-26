@@ -221,13 +221,16 @@ export class InboxService {
     if (!conversation) throw new NotFoundException('Conversation not found');
     if (conversation.channel === InboxChannel.GMAIL) return this.gmail.sendReply(conversation, text);
     const maxAgeMs = 24 * 60 * 60 * 1000;
-    if (!conversation.lastInboundAt || Date.now() - conversation.lastInboundAt.getTime() > maxAgeMs) {
-      throw new BadRequestException('The 24-hour customer reply window has closed. Use an approved WhatsApp template or wait for the customer to message again.');
+    const within24h = Boolean(conversation.lastInboundAt && Date.now() - conversation.lastInboundAt.getTime() <= maxAgeMs);
+    if (conversation.channel === InboxChannel.WHATSAPP && !within24h) {
+      throw new BadRequestException('The 24-hour WhatsApp reply window has closed. Wait for the customer to message again.');
     }
     const version = this.config.get<string>('META_GRAPH_API_VERSION', 'v27.0');
     const payload = conversation.channel === InboxChannel.WHATSAPP
       ? { messaging_product: 'whatsapp', recipient_type: 'individual', to: conversation.participantId, type: 'text', text: { body: text } }
-      : { recipient: { id: conversation.participantId }, messaging_type: 'RESPONSE', message: { text } };
+      : within24h
+        ? { recipient: { id: conversation.participantId }, messaging_type: 'RESPONSE', message: { text } }
+        : { recipient: { id: conversation.participantId }, messaging_type: 'MESSAGE_TAG', tag: 'HUMAN_AGENT', message: { text } };
     const connection = await this.meta.connection(conversation.channel === InboxChannel.WHATSAPP ? 'WHATSAPP' : 'MESSENGER');
     const token = connection?.accessToken || (conversation.channel === InboxChannel.WHATSAPP
       ? this.settings.get('whatsappAccessToken', 'WHATSAPP_ACCESS_TOKEN')
