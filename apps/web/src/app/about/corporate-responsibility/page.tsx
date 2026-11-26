@@ -99,7 +99,19 @@ export default async function CorporateResponsibilityPage() {
       color: 'blue',
     },
   ];
-  const displayedSafetyPillars: typeof safetyPillars = safetyPillars.map((pillar, index) => ({ ...pillar, ...wysiwyg?.safetyPillars?.[index], icon: pillar.icon, color: pillar.color }));
+  const pillarIcons = [Plane, Waves, HardHat, HeartHandshake];
+  const rawPillars =
+    Array.isArray(wysiwyg?.safetyPillars) && wysiwyg.safetyPillars.length > 0
+      ? wysiwyg.safetyPillars
+      : safetyPillars;
+  const displayedSafetyPillars = rawPillars.map((pillar: any, index: number) => ({
+    title: pillar?.title || '',
+    category: pillar?.category || '',
+    desc: pillar?.desc || '',
+    bullets: (Array.isArray(pillar?.bullets) ? pillar.bullets : []) as string[],
+    icon: pillarIcons[index % pillarIcons.length] || HardHat,
+    color: index % 2 === 0 ? 'red' : 'blue',
+  }));
 
   return (
     <CorporateShell>
@@ -131,7 +143,7 @@ export default async function CorporateResponsibilityPage() {
                 SAFETY BY DESIGN &amp; AUDITED GOVERNANCE
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#141212]">
-                Our Four Health, Safety &amp; Environmental Commitments
+                {wysiwyg?.pillarsTitle || 'Health, Safety & Environmental Commitments'}
               </h2>
               <p className="text-neutral-600 text-sm sm:text-base">
                 Safety at Geospatial Works is an active daily operational protocol embedded into every survey crew, drone flight, and boat launch deployed across Bangladesh.

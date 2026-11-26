@@ -2161,7 +2161,7 @@ export function AboutWysiwygEditor({
                           const next = safetyData.safetyPillars.filter((_: any, i: number) => i !== idx);
                           handleDataChange('safety', 'safetyPillars', next);
                         }}
-                        className="absolute top-4 right-4 opacity-0 group-hover/pillar:opacity-100 text-neutral-400 hover:text-rose-500 p-1.5 transition"
+                        className="absolute top-4 right-4 text-neutral-400 hover:text-rose-500 p-1.5 transition cursor-pointer"
                         title="Delete safety pillar"
                       >
                         <Trash2 size={14} />
