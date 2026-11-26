@@ -284,23 +284,45 @@ export function InboxConnectionsPanel({ config, getAuthHeaders, onRefresh, onClo
             <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 px-3 py-2 text-[11px] text-slate-700 leading-relaxed space-y-1">
               {setupChannel === 'whatsapp' && (
                 <>
-                  <p className="font-semibold text-indigo-950">Where to get these (developers.facebook.com):</p>
-                  <p>1. Open your Meta App → <strong>WhatsApp → API Setup</strong> → copy <strong>Phone Number ID</strong> &amp; <strong>Access Token</strong>.</p>
+                  <p className="font-semibold text-indigo-950">
+                    Open{' '}
+                    <a href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer" className="underline text-indigo-700 hover:text-indigo-900">
+                      developers.facebook.com/apps
+                    </a>{' '}
+                    → your Business App:
+                  </p>
+                  <p>1. Go to <strong>WhatsApp → API Setup</strong> → copy <strong>Phone Number ID</strong> &amp; <strong>Access Token</strong>.</p>
                   <p>2. Webhook URL: <code className="bg-white px-1 rounded border border-indigo-100">https://api.geospatialworks.com.bd/api/v1/inbox/webhook</code></p>
                 </>
               )}
               {setupChannel === 'messenger' && (
                 <>
-                  <p className="font-semibold text-indigo-950">Where to get these (developers.facebook.com):</p>
-                  <p>1. Open your Meta App → <strong>Messenger → Settings</strong> → select your Page → copy <strong>Page ID</strong> &amp; generate <strong>Page Token</strong>.</p>
+                  <p className="font-semibold text-indigo-950">
+                    Open{' '}
+                    <a href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer" className="underline text-indigo-700 hover:text-indigo-900">
+                      developers.facebook.com/apps
+                    </a>{' '}
+                    → your Business App:
+                  </p>
+                  <p>1. Go to <strong>Messenger → Settings</strong> → select your Page → copy <strong>Page ID</strong> &amp; generate <strong>Page Token</strong>.</p>
                   <p>2. Webhook URL: <code className="bg-white px-1 rounded border border-indigo-100">https://api.geospatialworks.com.bd/api/v1/inbox/webhook</code></p>
                 </>
               )}
               {setupChannel === 'gmail' && (
                 <>
-                  <p className="font-semibold text-indigo-950">Where to get these (console.cloud.google.com):</p>
-                  <p>1. Enable <strong>Gmail API</strong> → <strong>Credentials → Create OAuth Client ID</strong> (Web app).</p>
-                  <p>2. Add the Authorized Redirect URI below, then paste your <strong>Client ID</strong> &amp; <strong>Client Secret</strong>.</p>
+                  <p className="font-semibold text-indigo-950">
+                    Open{' '}
+                    <a href="https://console.cloud.google.com/apis/library/gmail.googleapis.com" target="_blank" rel="noreferrer" className="underline text-indigo-700 hover:text-indigo-900">
+                      Enable Gmail API
+                    </a>{' '}
+                    &amp;{' '}
+                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer" className="underline text-indigo-700 hover:text-indigo-900">
+                      Google OAuth Credentials
+                    </a>
+                    :
+                  </p>
+                  <p>1. Create an <strong>OAuth Client ID</strong> (Web application) and add the Redirect URI below.</p>
+                  <p>2. Paste your <strong>Client ID</strong> &amp; <strong>Client Secret</strong>, then click <strong>Save &amp; Sign in</strong>.</p>
                 </>
               )}
             </div>
