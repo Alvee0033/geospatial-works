@@ -169,7 +169,7 @@ function EditableBulletList({
               <button
                 type="button"
                 onClick={() => handleDelete(idx)}
-                className="opacity-0 group-hover/item:opacity-100 text-slate-400 hover:text-rose-600 transition p-0.5 rounded cursor-pointer"
+                className="text-slate-400 hover:text-rose-600 transition p-0.5 rounded cursor-pointer"
                 title="Remove bullet"
               >
                 <Trash2 size={12} />
@@ -879,7 +879,7 @@ export function AboutWysiwygEditor({
                               const next = storyData.stats.filter((_: any, i: number) => i !== idx);
                               handleDataChange('our-story', 'stats', next);
                             }}
-                            className="absolute top-1.5 right-1.5 opacity-0 group-hover/stat:opacity-100 text-neutral-400 hover:text-rose-400 p-1 transition"
+                            className="absolute top-1.5 right-1.5 text-neutral-400 hover:text-rose-400 p-1 transition cursor-pointer"
                             title="Remove metric"
                           >
                             <Trash2 size={12} />
@@ -1046,7 +1046,7 @@ export function AboutWysiwygEditor({
                           if (current.length <= 1) return;
                           handleDataChange('our-story', 'coreValues', current.filter((_: any, i: number) => i !== idx));
                         }}
-                        className="absolute top-2.5 right-2.5 opacity-0 group-hover/val:opacity-100 p-1 rounded text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                        className="absolute top-2.5 right-2.5 p-1 rounded text-slate-400 hover:text-rose-600 transition cursor-pointer"
                         title="Remove value"
                       >
                         <Trash2 size={13} />
@@ -1146,7 +1146,7 @@ export function AboutWysiwygEditor({
                           const next = storyData.disciplines.filter((_: any, i: number) => i !== idx);
                           handleDataChange('our-story', 'disciplines', next);
                         }}
-                        className="absolute top-3 left-3 z-30 opacity-0 group-hover/disc:opacity-100 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition"
+                        className="absolute top-3 left-3 z-30 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
                         title="Delete discipline card"
                       >
                         <Trash2 size={13} />
@@ -1276,7 +1276,7 @@ export function AboutWysiwygEditor({
                           const next = storyData.milestones.filter((_: any, i: number) => i !== idx);
                           handleDataChange('our-story', 'milestones', next);
                         }}
-                        className="absolute top-2.5 right-2.5 opacity-0 group-hover/mile:opacity-100 text-neutral-400 hover:text-rose-400 p-1 transition"
+                        className="absolute top-2.5 right-2.5 text-neutral-400 hover:text-rose-400 p-1 transition cursor-pointer"
                         title="Delete milestone"
                       >
                         <Trash2 size={13} />
@@ -1402,7 +1402,7 @@ export function AboutWysiwygEditor({
                               const next = futureReadyData.stats.filter((_: any, i: number) => i !== idx);
                               handleDataChange('future-ready', 'stats', next);
                             }}
-                            className="absolute top-1.5 right-1.5 opacity-0 group-hover/stat:opacity-100 text-neutral-400 hover:text-rose-400 p-1 transition"
+                            className="absolute top-1.5 right-1.5 text-neutral-400 hover:text-rose-400 p-1 transition cursor-pointer"
                             title="Remove metric"
                           >
                             <Trash2 size={12} />
@@ -1796,7 +1796,7 @@ export function AboutWysiwygEditor({
                                 const next = futureReadyData.workstationSpecs.filter((_: any, i: number) => i !== idx);
                                 handleDataChange('future-ready', 'workstationSpecs', next);
                               }}
-                              className="opacity-0 group-hover/row:opacity-100 text-neutral-400 hover:text-rose-400 p-1 transition"
+                              className="text-neutral-400 hover:text-rose-400 p-1 transition cursor-pointer"
                               title="Delete row"
                             >
                               <Trash2 size={13} />
@@ -2089,7 +2089,7 @@ export function AboutWysiwygEditor({
                               const next = safetyData.stats.filter((_: any, i: number) => i !== idx);
                               handleDataChange('safety', 'stats', next);
                             }}
-                            className="absolute top-1.5 right-1.5 opacity-0 group-hover/stat:opacity-100 text-neutral-400 hover:text-rose-400 p-1 transition"
+                            className="absolute top-1.5 right-1.5 text-neutral-400 hover:text-rose-400 p-1 transition cursor-pointer"
                             title="Remove metric"
                           >
                             <Trash2 size={12} />
@@ -2254,7 +2254,7 @@ export function AboutWysiwygEditor({
                               if (current.length <= 1) return;
                               handleDataChange('safety', 'vaultCards', current.filter((_: any, i: number) => i !== cIdx));
                             }}
-                            className="absolute top-2 right-2 opacity-0 group-hover/vcard:opacity-100 p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
+                            className="absolute top-2 right-2 p-1 text-slate-400 hover:text-rose-400 transition cursor-pointer"
                             title="Remove card"
                           >
                             <Trash2 size={12} />
@@ -2414,7 +2414,7 @@ export function AboutWysiwygEditor({
                               const next = standardsData.stats.filter((_: any, i: number) => i !== idx);
                               handleDataChange('standards', 'stats', next);
                             }}
-                            className="absolute top-1.5 right-1.5 opacity-0 group-hover/stat:opacity-100 text-neutral-400 hover:text-rose-400 p-1 transition"
+                            className="absolute top-1.5 right-1.5 text-neutral-400 hover:text-rose-400 p-1 transition cursor-pointer"
                             title="Remove metric"
                           >
                             <Trash2 size={12} />
@@ -2511,7 +2511,7 @@ export function AboutWysiwygEditor({
                                 const next = standardsData.datumParameters.filter((_: any, i: number) => i !== idx);
                                 handleDataChange('standards', 'datumParameters', next);
                               }}
-                              className="opacity-0 group-hover/row:opacity-100 text-neutral-400 hover:text-rose-500 p-1 transition"
+                              className="text-neutral-400 hover:text-rose-500 p-1 transition cursor-pointer"
                               title="Delete parameter"
                             >
                               <Trash2 size={13} />
@@ -2564,7 +2564,7 @@ export function AboutWysiwygEditor({
                           const next = standardsData.qaGates.filter((_: any, i: number) => i !== idx);
                           handleDataChange('standards', 'qaGates', next);
                         }}
-                        className="absolute top-3 right-3 opacity-0 group-hover/gate:opacity-100 text-neutral-400 hover:text-rose-400 p-1.5 transition"
+                        className="absolute top-3 right-3 text-neutral-400 hover:text-rose-400 p-1.5 transition cursor-pointer"
                         title="Delete QA Gate"
                       >
                         <Trash2 size={13} />
@@ -2719,7 +2719,7 @@ export function AboutWysiwygEditor({
                           const next = impactData.projects.filter((_: any, i: number) => i !== idx);
                           handleDataChange('impact', 'projects', next);
                         }}
-                        className="absolute top-3 right-3 z-30 opacity-0 group-hover/proj:opacity-100 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition"
+                        className="absolute top-12 right-3 z-30 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-full shadow-lg transition cursor-pointer"
                         title="Delete project card"
                       >
                         <Trash2 size={13} />
