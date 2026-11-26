@@ -14,6 +14,7 @@ interface MediaPickerModalProps {
 
 export function MediaPickerModal({ isOpen, onClose, onSelect, getAuthHeaders, title = 'Choose an image' }: MediaPickerModalProps) {
   const [view, setView] = useState<'library' | 'upload'>('library');
+  const [libraryFilter, setLibraryFilter] = useState<'all' | 'uploaded' | 'stock'>('all');
   const [library, setLibrary] = useState<{ uploaded: MediaItem[]; stock: MediaItem[] }>({ uploaded: [], stock: [] });
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -55,7 +56,12 @@ export function MediaPickerModal({ isOpen, onClose, onSelect, getAuthHeaders, ti
     finally { setUploading(false); }
   };
 
-  const allItems = [...library.uploaded, ...library.stock];
+  const allItems =
+    libraryFilter === 'uploaded'
+      ? library.uploaded
+      : libraryFilter === 'stock'
+        ? library.stock
+        : [...library.uploaded, ...library.stock];
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/45 p-3 sm:p-6" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section role="dialog" aria-modal="true" aria-labelledby="media-picker-title" className="flex max-h-[min(86vh,760px)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
@@ -75,7 +81,32 @@ export function MediaPickerModal({ isOpen, onClose, onSelect, getAuthHeaders, ti
             {uploading && <RefreshCw size={16} className="mt-4 animate-spin text-blue-700" />}
             <input type="file" accept="image/*" disabled={uploading} onChange={(event) => { void uploadFile(event.target.files?.[0]); event.currentTarget.value = ''; }} className="sr-only" />
           </label> : <>
-            <div className="mb-4 flex items-center justify-between gap-3"><p className="text-sm text-slate-600">{loading ? 'Loading images…' : `${allItems.length} ${allItems.length === 1 ? 'image' : 'images'}`}</p><button type="button" onClick={() => void fetchLibrary()} disabled={loading} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"><RefreshCw size={13} className={loading ? 'animate-spin' : ''} />Refresh</button></div>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setLibraryFilter('all')}
+                  className={`px-2.5 py-1 rounded-md font-medium transition cursor-pointer ${libraryFilter === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}`}
+                >
+                  All ({library.uploaded.length + library.stock.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLibraryFilter('uploaded')}
+                  className={`px-2.5 py-1 rounded-md font-medium transition cursor-pointer ${libraryFilter === 'uploaded' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}`}
+                >
+                  Recently Uploaded ({library.uploaded.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLibraryFilter('stock')}
+                  className={`px-2.5 py-1 rounded-md font-medium transition cursor-pointer ${libraryFilter === 'stock' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}`}
+                >
+                  Stock ({library.stock.length})
+                </button>
+              </div>
+              <button type="button" onClick={() => void fetchLibrary()} disabled={loading} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"><RefreshCw size={13} className={loading ? 'animate-spin' : ''} />Refresh</button>
+            </div>
             {loading ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="aspect-[4/3] animate-pulse rounded-lg bg-slate-100" />)}</div> : allItems.length ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {allItems.map((item, index) => <button type="button" key={`${item.url}-${index}`} onClick={() => { onSelect(item.url); onClose(); }} className="group overflow-hidden rounded-lg border border-slate-200 text-left transition hover:border-blue-400 hover:ring-2 hover:ring-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                 <span className="block aspect-[4/3] overflow-hidden bg-slate-100"><img src={item.url} alt={item.alt || item.name || ''} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" /></span>
