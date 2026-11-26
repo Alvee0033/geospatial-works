@@ -148,12 +148,15 @@ export function ProjectsView({
                 </div>
               )}
 
-              <div className="p-5 flex-1 flex flex-col gap-3">
+              <div onClick={() => onOpenEditModal(project)} className="p-5 flex-1 flex flex-col gap-3 cursor-pointer">
                 <div className="flex items-center justify-between gap-2">
                   <Badge variant="brand">{project.category}</Badge>
                   <button
                     type="button"
-                    onClick={() => onToggleMilestone(project)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleMilestone(project);
+                    }}
                     className="cursor-pointer"
                     title="Toggle milestone status"
                   >

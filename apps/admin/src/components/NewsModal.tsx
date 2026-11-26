@@ -236,6 +236,34 @@ export function NewsModal({
             </div>
 
             <MediaAssetField label="Article image" value={formImageUrl} onChoose={onOpenMediaPicker} onRemove={() => setFormImageUrl('')} />
+
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-700">Article Video (Optional)</span>
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-indigo-600 text-white text-[11px] font-semibold cursor-pointer transition">
+                  <span>Upload Video</span>
+                  <input
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    className="sr-only"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const fd = new FormData();
+                      fd.append('file', file);
+                      try {
+                        const res = await fetch('/api/media/upload', { method: 'POST', body: fd });
+                        const data = await res.json();
+                        if (data?.url) setFormImageUrl(data.url);
+                      } catch {
+                        // ignore
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              <p className="text-[11px] text-slate-500">Upload an MP4/WebM video to attach as media for this article.</p>
+            </div>
           </form>
 
           {/* Sticky Bottom Action Footer */}

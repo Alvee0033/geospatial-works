@@ -112,12 +112,15 @@ export function NewsView({
                 </div>
               )}
 
-              <div className="p-5 flex-1 flex flex-col gap-3">
+              <div onClick={() => onOpenEditModal(article)} className="p-5 flex-1 flex flex-col gap-3 cursor-pointer">
                 <div className="flex items-center justify-between gap-2">
                   <Badge variant="brand">{article.category}</Badge>
                   <button
                     type="button"
-                    onClick={() => onTogglePublished(article)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onTogglePublished(article);
+                    }}
                     className="cursor-pointer"
                     title="Toggle published status"
                   >

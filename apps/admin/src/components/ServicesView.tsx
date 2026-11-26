@@ -93,15 +93,17 @@ export function ServicesView({
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filtered.map((service) => (
             <Card key={service.id} padding="none" className="flex flex-col overflow-hidden hover:border-indigo-300 transition">
-              {service.imageUrl ? (
-                <div className="aspect-video bg-slate-100 overflow-hidden border-b border-slate-100">
-                  <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover" />
-                </div>
-              ) : (
-                <div className="aspect-video bg-slate-50 border-b border-slate-100 flex items-center justify-center text-slate-300">
-                  <Layers size={28} />
-                </div>
-              )}
+              <div onClick={() => onOpenEditModal(service)} className="cursor-pointer">
+                {service.imageUrl ? (
+                  <div className="aspect-video bg-slate-100 overflow-hidden border-b border-slate-100">
+                    <img src={service.imageUrl} alt={service.title} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="aspect-video bg-slate-50 border-b border-slate-100 flex items-center justify-center text-slate-300">
+                    <Layers size={28} />
+                  </div>
+                )}
+              </div>
 
               <div className="p-5 flex-1 flex flex-col gap-3">
                 <div className="flex items-center justify-between gap-2">
