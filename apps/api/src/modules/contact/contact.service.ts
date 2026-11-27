@@ -44,7 +44,12 @@ export class ContactService {
         : `Geospatial Works <${rawSender}>`
       : process.env.RESEND_FROM || process.env.EMAIL_FROM || 'Geospatial Works <noreply@geospatialworks.com.bd>';
 
-    const isCvRequest = /cv|resume/i.test(inquiry.serviceType || '');
+    const isCvRequest = /^CV request\b/i.test(inquiry.serviceType || '');
+    const requestedMember = isCvRequest
+      ? inquiry.serviceType?.match(/^CV request:\s*(.+)$/i)?.[1] ||
+        inquiry.message.match(/^CV request for (.+?)\. Organization:/)?.[1] ||
+        'a team member'
+      : '';
     const notifyTo = String(
       (isCvRequest
         ? content.cvRequestEmail || content.emailCareers
@@ -69,11 +74,18 @@ export class ContactService {
       if (!response.ok) throw new Error(`Email provider returned HTTP ${response.status}`);
     };
 
+    const notificationSubject = isCvRequest
+      ? `CV request for ${requestedMember} — ${inquiry.fullName}`
+      : `[${inquiry.serviceType || 'Inquiry'}] from ${inquiry.fullName}`;
+    const notificationHtml = isCvRequest
+      ? `<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#12284b"><div style="border-top:5px solid #ec2d31;padding:24px;border-radius:8px;background:#f5f8fc"><p style="font-size:12px;font-weight:bold;letter-spacing:.12em;color:#2865ba">GEOSPATIAL WORKS · CV REQUEST</p><h1 style="font-size:24px;line-height:1.25;margin:12px 0">${escapeHtml(requestedMember)}</h1><p style="margin:0 0 20px">${escapeHtml(inquiry.fullName)} requested this team member’s CV.</p><table style="width:100%;border-collapse:collapse;font-size:14px"><tr><td style="padding:8px 0;color:#52627a">Requester</td><td>${escapeHtml(inquiry.fullName)}</td></tr><tr><td style="padding:8px 0;color:#52627a">Email</td><td>${escapeHtml(inquiry.email)}</td></tr><tr><td style="padding:8px 0;color:#52627a">Phone</td><td>${escapeHtml(inquiry.phone || 'Not provided')}</td></tr></table><div style="background:white;padding:16px;margin-top:20px;border-radius:8px;white-space:pre-wrap">${escapeHtml(inquiry.message)}</div><p style="font-size:13px;margin-top:20px">Reply to this email and attach the requested CV. Your reply will go to ${escapeHtml(inquiry.email)}.</p></div></div>`
+      : `<p><strong>Name:</strong> ${escapeHtml(inquiry.fullName)}</p><p><strong>Email:</strong> ${escapeHtml(inquiry.email)}</p><p><strong>Phone:</strong> ${escapeHtml(inquiry.phone || '—')}</p><p><strong>Type:</strong> ${escapeHtml(inquiry.serviceType || 'General')}</p><p><strong>Message:</strong><br/>${escapeHtml(inquiry.message).replace(/\n/g, '<br/>')}</p>`;
+
     await Promise.all([
       send(
         notifyTo,
-        `[${inquiry.serviceType || 'Inquiry'}] from ${inquiry.fullName}`,
-        `<p><strong>Name:</strong> ${escapeHtml(inquiry.fullName)}</p><p><strong>Email:</strong> ${escapeHtml(inquiry.email)}</p><p><strong>Phone:</strong> ${escapeHtml(inquiry.phone || '—')}</p><p><strong>Type:</strong> ${escapeHtml(inquiry.serviceType || 'General')}</p><p><strong>Message:</strong><br/>${escapeHtml(inquiry.message).replace(/\n/g, '<br/>')}</p><p>Reply to this email to send the CV to the requester.</p>`,
+        notificationSubject,
+        notificationHtml,
         inquiry.email,
       ),
       send(

@@ -20,7 +20,7 @@ test('CV request uses the settings receiver and requester reply address', async 
   };
   const inquiry = {
     id: 'request-id', fullName: 'Jane <Example>', email: 'jane@example.org',
-    serviceType: 'CV request', message: 'CV for A & B',
+    serviceType: 'CV request: Engineer A & B', message: 'Organization: Example Ltd\nReason: Project bid',
   };
   const service = new ContactService(
     { create: (value) => value, save: async () => inquiry },
@@ -38,8 +38,9 @@ test('CV request uses the settings receiver and requester reply address', async 
   assert.deepEqual(sent[0].to, ['cv@example.org']);
   assert.equal(sent[0].from, 'Geospatial Works <security@geospatialworks.com.bd>');
   assert.equal(sent[0].reply_to, 'jane@example.org');
+  assert.equal(sent[0].subject, 'CV request for Engineer A & B — Jane <Example>');
   assert.match(sent[0].html, /Jane &lt;Example&gt;/);
-  assert.match(sent[0].html, /A &amp; B/);
+  assert.match(sent[0].html, /Engineer A &amp; B/);
   assert.deepEqual(sent[1].to, ['jane@example.org']);
   assert.equal(sent[1].reply_to, undefined);
 });

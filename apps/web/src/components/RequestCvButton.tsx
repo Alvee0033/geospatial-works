@@ -38,8 +38,8 @@ export default function RequestCvButton({ memberName, className = '' }: Props) {
         fullName: String(values.get('fullName') || '').trim(),
         email: String(values.get('email') || '').trim(),
         phone: String(values.get('phone') || '').trim() || undefined,
-        serviceType: 'CV request',
-        message: `CV request for ${memberName}. Organization: ${String(values.get('organization') || '').trim() || 'Not provided'}. Reason: ${String(values.get('reason') || '').trim()}`,
+        serviceType: `CV request: ${memberName}`,
+        message: `Organization: ${String(values.get('organization') || '').trim() || 'Not provided'}\nReason: ${String(values.get('reason') || '').trim()}`,
       });
       form.reset();
       setStatus('sent');

@@ -21,6 +21,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { TeamMemberItem, TEAM_CATEGORIES } from './TeamMemberDrawer';
+import type { InquiryItem, InquiryStatus } from './LeadsView';
 import { Button, Badge, PageHeader, SearchFilterBar, EmptyState } from './ui';
 
 interface TeamViewProps {
@@ -32,6 +33,14 @@ interface TeamViewProps {
   onDeleteMember: (id: string, name: string) => void;
   onToggleActive?: (m: TeamMemberItem) => void;
   onReorderMembers?: (reordered: TeamMemberItem[]) => Promise<void>;
+  inquiries: InquiryItem[];
+  onUpdateInquiryStatus: (id: string, status: InquiryStatus) => Promise<void>;
+}
+
+function requestedMember(inquiry: InquiryItem): string {
+  return inquiry.serviceType?.match(/^CV request:\s*(.+)$/i)?.[1]
+    || inquiry.message.match(/^CV request for (.+?)\. Organization:/)?.[1]
+    || 'Team member';
 }
 
 function FormattedCvDocument({ member }: { member: TeamMemberItem }) {
@@ -270,7 +279,10 @@ export function TeamView({
   onDeleteMember,
   onToggleActive,
   onReorderMembers,
+  inquiries,
+  onUpdateInquiryStatus,
 }: TeamViewProps) {
+  const [activeSection, setActiveSection] = useState<'members' | 'requests'>('members');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [previewMember, setPreviewMember] = useState<TeamMemberItem | null>(null);
   const [activeCvTab, setActiveCvTab] = useState<'full' | 'structured'>('full');
@@ -288,6 +300,11 @@ export function TeamView({
   }, [teamMembers]);
 
   const [localSearch, setLocalSearch] = useState('');
+  const cvRequests = useMemo(
+    () => inquiries.filter((item) => /^CV request\b/i.test(item.serviceType || '')),
+    [inquiries],
+  );
+  const pendingCvRequests = cvRequests.filter((item) => item.status !== 'RESOLVED').length;
 
   // Filter members by category + search query
   const filteredMembers = useMemo(() => {
@@ -327,6 +344,27 @@ export function TeamView({
           </>
         }
       />
+
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3" role="tablist" aria-label="Team sections">
+        <button type="button" role="tab" aria-selected={activeSection === 'members'} onClick={() => setActiveSection('members')} className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${activeSection === 'members' ? 'bg-[#153d7a] text-white' : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-300'}`}>Team members <span className="ml-1 opacity-70">{teamMembers.length}</span></button>
+        <button type="button" role="tab" aria-selected={activeSection === 'requests'} onClick={() => setActiveSection('requests')} className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${activeSection === 'requests' ? 'bg-[#153d7a] text-white' : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-300'}`}>CV requests <span className={`ml-1 rounded-full px-1.5 py-0.5 text-xs ${pendingCvRequests ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-500'}`}>{pendingCvRequests}</span></button>
+      </div>
+
+      {activeSection === 'requests' ? (
+        <div role="tabpanel" className="space-y-3">
+          <div><h2 className="text-lg font-bold text-slate-900">CV requests</h2><p className="text-sm text-slate-500">Reply to the requester by email and attach the team member’s CV.</p></div>
+          {cvRequests.length === 0 ? <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-sm text-slate-500">No CV requests yet.</div> : cvRequests.map((item) => {
+            const memberName = requestedMember(item);
+            const member = teamMembers.find((person) => person.name.toLowerCase() === memberName.toLowerCase());
+            return <article key={item.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-widest text-[#2865ba]">Requested CV</p><h3 className="mt-1 text-lg font-bold text-slate-900">{memberName}</h3><p className="mt-1 text-sm text-slate-600">Requested by <strong>{item.fullName}</strong> · {new Date(item.createdAt).toLocaleString()}</p></div><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${item.status === 'RESOLVED' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>{item.status === 'RESOLVED' ? 'Handled' : 'Needs reply'}</span></div>
+              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2"><p><span className="text-slate-500">Email</span><br/><a className="font-semibold text-[#153d7a] hover:underline" href={`mailto:${item.email}`}>{item.email}</a></p>{item.phone && <p><span className="text-slate-500">Phone</span><br/>{item.phone}</p>}</div>
+              <p className="mt-3 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{item.message}</p>
+              <div className="mt-4 flex flex-wrap gap-2"><a href={`mailto:${item.email}?subject=${encodeURIComponent(`Requested CV: ${memberName}`)}&body=${encodeURIComponent(`Hello ${item.fullName},\n\nPlease find the requested CV for ${memberName} attached.\n\nBest regards,\nGeospatial Works`)}`} className="inline-flex items-center gap-2 rounded-lg bg-[#153d7a] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#2158a5]"><Mail size={14}/> Reply with CV</a>{member && <button type="button" onClick={() => setPreviewMember(member)} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Eye size={14}/> View team member</button>}{item.status !== 'RESOLVED' && <button type="button" onClick={() => void onUpdateInquiryStatus(item.id, 'RESOLVED')} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 px-3.5 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50"><CheckCircle2 size={14}/> Mark handled</button>}</div>
+            </article>;
+          })}
+        </div>
+      ) : <div role="tabpanel" className="space-y-6">
 
       <SearchFilterBar
         search={localSearch}
@@ -518,6 +556,8 @@ export function TeamView({
           })}
         </div>
       )}
+
+      </div>}
 
       {/* CV Quick Preview Modal */}
       {previewMember && (

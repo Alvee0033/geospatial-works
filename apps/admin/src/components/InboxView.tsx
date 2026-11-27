@@ -1,6 +1,6 @@
 'use client';
 
-import React, { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Facebook,
   MessageCircle,
@@ -36,6 +36,14 @@ interface InboxViewProps {
 }
 
 const API = '/api/inbox/admin';
+const CACHE_TTL_MS = 5 * 60_000;
+let inboxCache: {
+  auth: string;
+  updatedAt: number;
+  conversations: Conversation[];
+  config: Config | null;
+  threads: Record<string, Message[]>;
+} | null = null;
 
 function relativeTime(value?: string | null) {
   if (!value) return 'New';
@@ -89,14 +97,19 @@ async function jsonRequest<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnections = false }: InboxViewProps) {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const auth = getAuthHeaders().Authorization || '';
+  if (inboxCache && (inboxCache.auth !== auth || Date.now() - inboxCache.updatedAt > CACHE_TTL_MS)) inboxCache = null;
+  const [conversations, setConversations] = useState<Conversation[]>(() => inboxCache?.conversations || []);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [config, setConfig] = useState<Config | null>(null);
-  const [selectedId, setSelectedId] = useState('');
+  const [config, setConfig] = useState<Config | null>(() => inboxCache?.config || null);
+  const [selectedId, setSelectedId] = useState(() => inboxCache?.conversations[0]?.id || '');
+  const selectedIdRef = useRef(selectedId);
+  selectedIdRef.current = selectedId;
+  const threadEndRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'ALL' | Channel>('ALL');
   const [draft, setDraft] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!inboxCache);
   const [threadLoading, setThreadLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -112,14 +125,16 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
 
   const refresh = useCallback(
     async (quiet = false) => {
-      if (!quiet) setLoading(true);
+      if (!quiet && !inboxCache?.conversations.length) setLoading(true);
       try {
-        const [threads, status] = await Promise.all([
-          jsonRequest<Conversation[]>(`${API}/conversations`, requestOptions()),
-          jsonRequest<Config>(`${API}/config`, requestOptions()),
-        ]);
+        const statusPromise = jsonRequest<Config>(`${API}/config`, requestOptions());
+        void statusPromise.then((status) => {
+          setConfig(status);
+          if (inboxCache?.auth === auth) inboxCache.config = status;
+        }).catch(() => undefined);
+        const threads = await jsonRequest<Conversation[]>(`${API}/conversations`, requestOptions());
         setConversations(threads);
-        setConfig(status);
+        inboxCache = { auth, updatedAt: Date.now(), conversations: threads, config: inboxCache?.auth === auth ? inboxCache.config : null, threads: inboxCache?.auth === auth ? inboxCache.threads : {} };
         setError('');
         setSelectedId((current) =>
           current && threads.some((item) => item.id === current) ? current : threads[0]?.id || ''
@@ -130,43 +145,58 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
         if (!quiet) setLoading(false);
       }
     },
-    [requestOptions]
+    [requestOptions, auth]
   );
 
   useEffect(() => {
     void refresh();
+    const initialSync = window.setTimeout(() => void refresh(true), 5_000);
     const timer = window.setInterval(() => void refresh(true), 30_000);
-    return () => window.clearInterval(timer);
+    return () => { window.clearTimeout(initialSync); window.clearInterval(timer); };
   }, [refresh]);
 
   const selected = conversations.find((item) => item.id === selectedId) || null;
 
   const loadThread = useCallback(
     async (conversationId: string) => {
-      setThreadLoading(true);
+      const cached = inboxCache?.auth === auth ? inboxCache.threads[conversationId] : undefined;
+      if (cached) setMessages(cached);
+      setThreadLoading(!cached);
       try {
         const items = await jsonRequest<Message[]>(
           `${API}/conversations/${conversationId}/messages`,
           requestOptions()
         );
-        setMessages(items);
+        if (inboxCache?.auth === auth) inboxCache.threads[conversationId] = items;
+        if (selectedIdRef.current === conversationId) setMessages(items);
         setConversations((current) =>
           current.map((item) => (item.id === conversationId ? { ...item, unreadCount: 0 } : item))
         );
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Could not load this conversation.');
-        setMessages([]);
+        if (selectedIdRef.current === conversationId) setError(err instanceof Error ? err.message : 'Could not load this conversation.');
+        if (!cached && selectedIdRef.current === conversationId) setMessages([]);
       } finally {
-        setThreadLoading(false);
+        if (selectedIdRef.current === conversationId) setThreadLoading(false);
       }
     },
-    [requestOptions]
+    [requestOptions, auth]
   );
 
   useEffect(() => {
     if (selectedId) void loadThread(selectedId);
     else setMessages([]);
   }, [selectedId, loadThread]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    const timer = window.setInterval(() => void loadThread(selectedId), 10_000);
+    return () => window.clearInterval(timer);
+  }, [selectedId, loadThread]);
+
+  useEffect(() => {
+    const threadPane = threadEndRef.current?.parentElement;
+    if (threadPane) threadPane.scrollTop = threadPane.scrollHeight;
+  }, [selectedId, messages.length]);
 
   const filtered = useMemo(
     () =>
@@ -191,6 +221,7 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
         body: JSON.stringify({ text }),
       });
       setMessages((items) => [...items, sent]);
+      if (inboxCache?.auth === auth) inboxCache.threads[selected.id] = [...(inboxCache.threads[selected.id] || messages), sent];
       setDraft('');
       setConversations((items) =>
         items.map((item) =>
@@ -436,7 +467,7 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
                 </Badge>
               </header>
 
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2.5">
+              <div className="flex-1 overflow-y-auto bg-[radial-gradient(circle_at_1px_1px,#dce5f1_1px,transparent_0)] bg-size-[22px_22px] p-4 sm:p-6 space-y-3">
                 {threadLoading ? (
                   <div className="space-y-3">
                     {[0, 1, 2].map((n) => (
@@ -450,13 +481,14 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
                       className={`flex ${message.fromBusiness ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[82%] sm:max-w-[70%] rounded-2xl px-3.5 py-2 shadow-2xs ${
+                        className={`max-w-[88%] sm:max-w-[72%] rounded-2xl px-4 py-3 shadow-sm ${
                           message.fromBusiness
-                            ? `${CHANNEL_STYLE[selected.channel].bubble} rounded-br-sm`
-                            : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm'
+                            ? 'bg-[#173e7a] text-white rounded-br-md'
+                            : 'bg-white border border-slate-200 text-slate-800 rounded-bl-md'
                         }`}
                       >
-                        <div className="space-y-1.5 text-xs leading-relaxed">
+                        <p className={`mb-1.5 text-[10px] font-bold uppercase tracking-wide ${message.fromBusiness ? 'text-blue-200' : 'text-slate-500'}`}>{message.fromBusiness ? 'Geospatial Works' : selected.participantName || selected.participantId}</p>
+                        <div className="space-y-1.5 text-sm leading-relaxed">
                           {message.text.split('\n').map((line, li) => {
                             const imgMatch = line.match(/^\[\[IMG:(.+?)\]\]$/);
                             if (imgMatch) {
@@ -505,15 +537,16 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
                     </div>
                   ))
                 )}
+                <div ref={threadEndRef} />
               </div>
 
-              <div className="border-t border-slate-200 bg-white p-3 shrink-0 space-y-2">
+              <div className="border-t border-slate-200 bg-white p-3 sm:p-4 shrink-0 space-y-2">
                 {!windowOpen && (
                   <p className="rounded-lg bg-amber-50/80 border border-amber-200/80 px-3 py-1.5 text-[11px] text-amber-800">
                     Older than 24h — Messenger replies will attempt delivery using Human Agent / standard messaging.
                   </p>
                 )}
-                <form onSubmit={send} className="flex items-end gap-2">
+                <form onSubmit={send} className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-1.5 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
                   <textarea
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
@@ -526,7 +559,7 @@ export function InboxView({ getAuthHeaders, triggerFeedback, canManageConnection
                     rows={2}
                     maxLength={4000}
                     placeholder="Write a reply... (Enter to send)"
-                    className="flex-1 min-h-[44px] max-h-32 resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 outline-none focus:border-indigo-500 focus:bg-white"
+                    className="flex-1 min-h-[44px] max-h-32 resize-y rounded-xl border-0 bg-transparent px-3 py-2 text-sm text-slate-900 outline-none"
                   />
                   <Button type="submit" disabled={!draft.trim()} loading={sending} icon={<Send size={14} />}>
                     Send

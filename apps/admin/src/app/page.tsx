@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { Header } from '../components/Header';
 import { DashboardView } from '../components/DashboardView';
@@ -152,14 +152,14 @@ export default function AdminPage() {
     setTimeout(() => setFeedback(null), 3500);
   };
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = useCallback(() => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('gw_admin_jwt') || sessionStorage.getItem('gw_admin_jwt');
       if (token) headers['Authorization'] = `Bearer ${token}`;
     }
     return headers;
-  };
+  }, []);
 
   // Persistent Tab Synchronization
   const handleSetActiveTab = (tab: AdminTab) => {
@@ -1459,6 +1459,8 @@ export default function AdminPage() {
           {activeTab === 'team' && (
             <TeamView
               teamMembers={teamMembers}
+              inquiries={inquiries}
+              onUpdateInquiryStatus={handleUpdateInquiryStatus}
               loading={loading}
               searchQuery={searchQuery}
               onOpenCreateDrawer={openCreateTeamDrawer}

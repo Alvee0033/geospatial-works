@@ -232,7 +232,7 @@ export class InboxService {
   }
 
   async listConversations() {
-    await this.syncMessengerHistory().catch(() => undefined);
+    void this.syncMessengerHistory().catch(() => undefined);
     return this.conversations.find({ where: { active: true }, order: { lastMessageAt: 'DESC', updatedAt: 'DESC' }, take: 200 });
   }
 
