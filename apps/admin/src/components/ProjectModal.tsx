@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { ServiceItem } from './ServiceModal';
 import { MediaAssetField } from './MediaAssetField';
+import { DisplayOrderPicker, OrderItem } from './DisplayOrderPicker';
 import { Button, Input, Textarea, FormField, Badge, Card, LineListInput, TimelineRangeInput } from './ui';
 
 interface ProjectModalProps {
@@ -23,6 +24,8 @@ interface ProjectModalProps {
   onSubmit: (e: React.FormEvent) => void;
   isEditing: boolean;
   services: ServiceItem[];
+  orderItems: OrderItem[];
+  currentId?: string;
   formTitle: string;
   setFormTitle: (v: string) => void;
   formSlug: string;
@@ -63,6 +66,8 @@ export function ProjectModal({
   onSubmit,
   isEditing,
   services,
+  orderItems,
+  currentId,
   formTitle,
   setFormTitle,
   formSlug,
@@ -211,8 +216,8 @@ export function ProjectModal({
                         className="font-mono text-xs"
                       />
                     </FormField>
-                    <FormField label="Display order" hint="Lower numbers appear first">
-                      <Input type="number" min="0" value={formSortOrder} onChange={(e) => setFormSortOrder(Number(e.target.value) || 0)} />
+                    <FormField label="Display order">
+                      <DisplayOrderPicker items={orderItems} currentId={currentId} currentTitle={formTitle} position={formSortOrder} onChange={setFormSortOrder} />
                     </FormField>
                   </div>
                 </Card>

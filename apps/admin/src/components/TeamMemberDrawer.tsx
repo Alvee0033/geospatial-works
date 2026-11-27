@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { MediaAssetField } from './MediaAssetField';
+import { DisplayOrderPicker, OrderItem } from './DisplayOrderPicker';
 import {
   X,
   Camera,
@@ -71,6 +72,8 @@ interface TeamMemberDrawerProps {
   onClose: () => void;
   onSubmit: (e: React.FormEvent) => void;
   isEditing: boolean;
+  orderItems: OrderItem[];
+  currentId?: string;
   formName: string;
   setFormName: (v: string) => void;
   formRole: string;
@@ -110,6 +113,8 @@ export function TeamMemberDrawer({
   onClose,
   onSubmit,
   isEditing,
+  orderItems,
+  currentId,
   formName,
   setFormName,
   formRole,
@@ -388,16 +393,11 @@ export function TeamMemberDrawer({
                 <MediaAssetField label="Profile photo" value={formImage} onChoose={onOpenMediaPicker} onRemove={() => setFormImage('')} aspect="portrait" />
 
                 {/* Sort Order */}
-                <div className="w-48">
+                <div className="max-w-sm">
                   <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
-                    Display Order Priority
+                    Display order
                   </label>
-                  <input
-                    type="number"
-                    value={formSortOrder}
-                    onChange={(e) => setFormSortOrder(parseInt(e.target.value) || 0)}
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none transition"
-                  />
+                  <DisplayOrderPicker items={orderItems} currentId={currentId} currentTitle={formName} position={formSortOrder} onChange={setFormSortOrder} />
                 </div>
               </div>
             ) : (

@@ -18,6 +18,7 @@ import {
   UpdateApplicationStatusDto,
 } from './dto/career.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ReorderRecordsDto } from '../../common/reorder-records';
 
 @ApiTags('Careers & Applications')
 @Controller('careers')
@@ -59,6 +60,14 @@ export class CareersController {
   @ApiOperation({ summary: 'Admin: Create a new job opening' })
   async createJob(@Body() dto: CreateJobPostDto) {
     return this.careersService.createJob(dto);
+  }
+
+  @Put('admin/jobs/reorder')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async reorderJobs(@Body() dto: ReorderRecordsDto) {
+    await this.careersService.reorderJobs(dto.ids);
+    return { ok: true };
   }
 
   @Put('admin/jobs/:id')

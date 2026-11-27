@@ -25,6 +25,7 @@ import { AdminTab } from '../components/Sidebar';
 import { MediaPickerModal } from '../components/MediaPickerModal';
 import { Toast, ConfirmDialog } from '../components/ui';
 import { ShieldCheck } from 'lucide-react';
+import { orderIdsAfterMove, OrderedRecord } from '../lib/display-order';
 
 const API_BASE = '/api';
 
@@ -364,6 +365,15 @@ export default function AdminPage() {
     }
   };
 
+  const saveDisplayOrder = async (resource: 'projects' | 'services' | 'articles', items: OrderedRecord[], id: string, position: number) => {
+    const res = await fetch(`${API_BASE}/${resource}/admin/reorder`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ ids: orderIdsAfterMove(items, id, position) }),
+    });
+    if (!res.ok) throw new Error('The item was saved, but its order could not be updated. Refresh and try again.');
+  };
+
   // --- Project Handlers ---
   const openCreateProjectModal = () => {
     setEditingProject(null);
@@ -393,7 +403,7 @@ export default function AdminPage() {
     setProjDeliverables(proj.deliverables || '');
     setProjDetails({ overview: proj.details?.overview || '', challenges: (proj.details?.challenges || []).join('\n'), approach: (proj.details?.approach || []).join('\n'), results: (proj.details?.results || []).join('\n'), toolsUsed: (proj.details?.toolsUsed || []).join('\n'), timeline: proj.details?.timeline || '' });
     setProjImageUrl(proj.imageUrl || '');
-    setProjSortOrder(proj.sortOrder);
+    setProjSortOrder([...projects].sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title)).findIndex((item) => item.id === proj.id) + 1);
     setProjIsMilestone(proj.isMilestone);
     setProjIsActive(proj.isActive !== false);
     setProjectModalOpen(true);
@@ -445,7 +455,13 @@ export default function AdminPage() {
       }
 
       if (res.ok) {
-        triggerFeedback(editingProject ? 'Project updated!' : 'New project created!');
+        const saved = await res.json() as ProjectItem;
+        try {
+          await saveDisplayOrder('projects', projects, saved.id, projSortOrder);
+          triggerFeedback(editingProject ? 'Project updated!' : 'New project created!');
+        } catch (error) {
+          triggerFeedback(error instanceof Error ? error.message : 'Could not save project order.', 'error');
+        }
         setProjectModalOpen(false);
         loadAllData();
         fetch('/site-revalidate', {
@@ -543,7 +559,7 @@ export default function AdminPage() {
     setSvcBenefits((svc.details?.benefits || []).join('\n'));
     setSvcHeadings({ overviewTitle: svc.details?.overviewTitle || '', equipmentTitle: svc.details?.equipmentTitle || '', benefitsTitle: svc.details?.benefitsTitle || '', standardsTitle: svc.details?.standardsTitle || '' });
     setSvcImageUrl(svc.imageUrl || '');
-    setSvcSortOrder(svc.sortOrder);
+    setSvcSortOrder([...services].sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title)).findIndex((item) => item.id === svc.id) + 1);
     setSvcIsActive(svc.isActive);
     setServiceModalOpen(true);
   };
@@ -596,7 +612,13 @@ export default function AdminPage() {
       }
 
       if (res.ok) {
-        triggerFeedback(editingService ? 'Service discipline updated!' : 'New service published!');
+        const saved = await res.json() as ServiceItem;
+        try {
+          await saveDisplayOrder('services', services, saved.id, svcSortOrder);
+          triggerFeedback(editingService ? 'Service updated!' : 'New service created!');
+        } catch (error) {
+          triggerFeedback(error instanceof Error ? error.message : 'Could not save service order.', 'error');
+        }
         setServiceModalOpen(false);
         loadAllData();
         fetch('/site-revalidate', {
@@ -691,7 +713,7 @@ export default function AdminPage() {
     setArtSummary(art.summary);
     setArtContent(art.content || '');
     setArtImageUrl(art.imageUrl || '');
-    setArtSortOrder(art.sortOrder);
+    setArtSortOrder([...articles].sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title)).findIndex((item) => item.id === art.id) + 1);
     setArtVideoUrl(art.meta?.videoUrl || '');
     setArtReadTime(art.meta?.readTime || '');
     setArtAuthorRole(art.meta?.authorRole || '');
@@ -744,7 +766,13 @@ export default function AdminPage() {
       }
 
       if (res.ok) {
-        triggerFeedback(editingArticle ? 'Article updated!' : 'New article published!');
+        const saved = await res.json() as ArticleItem;
+        try {
+          await saveDisplayOrder('articles', articles, saved.id, artSortOrder);
+          triggerFeedback(editingArticle ? 'Article updated!' : 'New article published!');
+        } catch (error) {
+          triggerFeedback(error instanceof Error ? error.message : 'Could not save article order.', 'error');
+        }
         setNewsModalOpen(false);
         loadAllData();
         fetch('/site-revalidate', {
@@ -963,7 +991,7 @@ export default function AdminPage() {
     setTeamImage(m.image || "");
     setTeamEmail(m.email || "");
     setTeamPhone(m.phone || "");
-    setTeamSortOrder(m.sortOrder || 1);
+    setTeamSortOrder([...teamMembers].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0) || a.name.localeCompare(b.name)).findIndex((item) => item.id === m.id) + 1);
     setTeamIsActive(m.isActive ?? true);
     setTeamCvSummary(m.structuredCv?.summary || m.bio || "");
     setTeamEducation(m.structuredCv?.education ? [...m.structuredCv.education] : []);
@@ -1014,7 +1042,15 @@ export default function AdminPage() {
       });
 
       if (res.ok) {
-        triggerFeedback(editingTeamMember ? "Team member & CV updated!" : "New team member & CV created!");
+        const saved = await res.json() as TeamMemberItem;
+        try {
+          const ordered = orderIdsAfterMove(teamMembers.filter((member): member is TeamMemberItem & { id: string } => !!member.id).map((member) => ({ id: member.id, title: member.name, sortOrder: member.sortOrder || 0 })), saved.id!, teamSortOrder);
+          const reorderRes = await fetch(`${API_BASE}/team/admin/reorder`, { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify(ordered.map((id, index) => ({ id, sortOrder: index + 1 }))) });
+          if (!reorderRes.ok) throw new Error('Could not save team order. Refresh and try again.');
+          triggerFeedback(editingTeamMember ? "Team member & CV updated!" : "New team member & CV created!");
+        } catch (error) {
+          triggerFeedback(error instanceof Error ? error.message : 'Could not save team order.', 'error');
+        }
         setTeamDrawerOpen(false);
         loadAllData();
         fetch("/site-revalidate", {
@@ -1085,9 +1121,15 @@ export default function AdminPage() {
       });
 
       if (res.ok) {
-        triggerFeedback(
-          editingJob ? 'Career opening updated successfully.' : 'New career opening published.'
-        );
+        const saved = await res.json() as JobPostItem;
+        try {
+          const ordered = orderIdsAfterMove(jobs, saved.id, jobData.sortOrder || jobs.length + 1);
+          const reorderRes = await fetch(`${API_BASE}/careers/admin/jobs/reorder`, { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify({ ids: ordered }) });
+          if (!reorderRes.ok) throw new Error('The job was saved, but its order could not be updated. Refresh and try again.');
+          triggerFeedback(editingJob ? 'Career opening updated.' : 'New career opening created.');
+        } catch (error) {
+          triggerFeedback(error instanceof Error ? error.message : 'Could not save job order.', 'error');
+        }
         loadAllData();
         fetch('/site-revalidate', {
           method: 'POST',
@@ -1621,6 +1663,8 @@ export default function AdminPage() {
         onClose={() => setProjectModalOpen(false)}
         onSubmit={handleSaveProject}
         isEditing={!!editingProject}
+        orderItems={projects}
+        currentId={editingProject?.id}
         services={services}
         formTitle={projTitle}
         setFormTitle={setProjTitle}
@@ -1658,6 +1702,8 @@ export default function AdminPage() {
         onClose={() => setServiceModalOpen(false)}
         onSubmit={handleSaveService}
         isEditing={!!editingService}
+        orderItems={services}
+        currentId={editingService?.id}
         formTitle={svcTitle}
         setFormTitle={setSvcTitle}
         formSlug={svcSlug}
@@ -1696,6 +1742,8 @@ export default function AdminPage() {
         onClose={() => setNewsModalOpen(false)}
         onSubmit={handleSaveArticle}
         isEditing={!!editingArticle}
+        orderItems={articles}
+        currentId={editingArticle?.id}
         formTitle={artTitle}
         setFormTitle={setArtTitle}
         formSlug={artSlug}
@@ -1759,6 +1807,8 @@ export default function AdminPage() {
         onClose={() => setTeamDrawerOpen(false)}
         onSubmit={handleSaveTeamMember}
         isEditing={!!editingTeamMember}
+        orderItems={teamMembers.filter((member): member is TeamMemberItem & { id: string } => !!member.id).map((member) => ({ id: member.id, title: member.name, sortOrder: member.sortOrder || 0 }))}
+        currentId={editingTeamMember?.id}
         formName={teamName}
         setFormName={setTeamName}
         formRole={teamRole}
@@ -1812,6 +1862,7 @@ export default function AdminPage() {
         onClose={() => setJobModalOpen(false)}
         onSave={handleSaveJob}
         initialData={editingJob}
+        orderItems={jobs}
       />
     </div>
   );

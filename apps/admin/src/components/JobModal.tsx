@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { DisplayOrderPicker, OrderItem } from './DisplayOrderPicker';
 import {
   X,
   Briefcase,
@@ -53,9 +54,10 @@ interface JobDrawerProps {
   onClose: () => void;
   onSave: (data: Partial<JobPostItem>) => Promise<void>;
   initialData?: JobPostItem | null;
+  orderItems: OrderItem[];
 }
 
-export function JobDrawer({ isOpen, onClose, onSave, initialData }: JobDrawerProps) {
+export function JobDrawer({ isOpen, onClose, onSave, initialData, orderItems }: JobDrawerProps) {
   const [title, setTitle] = useState(initialData?.title || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [department, setDepartment] = useState(initialData?.department || CAREER_DEPARTMENTS[0]);
@@ -107,7 +109,7 @@ export function JobDrawer({ isOpen, onClose, onSave, initialData }: JobDrawerPro
       );
       setStatus(initialData.status || 'published');
       setIsActive(initialData.isActive ?? true);
-      setSortOrder(initialData.sortOrder ?? 0);
+      setSortOrder([...orderItems].sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title)).findIndex((item) => item.id === initialData.id) + 1);
     } else {
       setTitle('');
       setSlug('');
@@ -123,9 +125,9 @@ export function JobDrawer({ isOpen, onClose, onSave, initialData }: JobDrawerPro
       setResponsibilitiesText('');
       setStatus('published');
       setIsActive(true);
-      setSortOrder(0);
+      setSortOrder(orderItems.length + 1);
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, orderItems]);
 
   if (!isOpen) return null;
 
@@ -399,15 +401,7 @@ export function JobDrawer({ isOpen, onClose, onSave, initialData }: JobDrawerPro
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-slate-600 font-bold">Sort Order:</span>
-              <input
-                type="number"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(Number(e.target.value))}
-                className="w-16 px-2 py-1 rounded-lg border border-slate-200 bg-white text-center font-bold text-slate-800"
-              />
-            </div>
+            <div className="w-full max-w-xs"><span className="mb-1 block text-xs font-bold text-slate-600">Display order</span><DisplayOrderPicker items={orderItems} currentId={initialData?.id} currentTitle={title} position={sortOrder} onChange={setSortOrder} /></div>
           </div>
 
           {/* Drawer Footer Actions */}

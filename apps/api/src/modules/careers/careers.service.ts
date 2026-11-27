@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JobPost, JobStatus } from '../../entities/job-post.entity';
 import { JobApplication, ApplicationStatus } from '../../entities/job-application.entity';
+import { reorderRecords } from '../../common/reorder-records';
 import {
   CreateJobPostDto,
   UpdateJobPostDto,
@@ -82,6 +83,10 @@ export class CareersService {
     const job = await this.findJobById(id);
     await this.jobPostRepo.remove(job);
     return { success: true, message: `Job ${job.title} deleted successfully` };
+  }
+
+  async reorderJobs(ids: string[]): Promise<void> {
+    return reorderRecords(this.jobPostRepo, ids);
   }
 
   // ===================== APPLICATIONS =====================

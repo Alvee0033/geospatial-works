@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../entities/user.entity';
+import { ReorderRecordsDto } from '../../common/reorder-records';
 
 @ApiTags('Services')
 @Controller('services')
@@ -25,6 +26,15 @@ export class ServicesController {
   }
 
   // Admin Endpoints
+  @Put('admin/reorder')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  @ApiBearerAuth()
+  async reorder(@Body() dto: ReorderRecordsDto) {
+    await this.servicesService.reorder(dto.ids);
+    return { ok: true };
+  }
+
   @Get('admin/all')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.EDITOR)

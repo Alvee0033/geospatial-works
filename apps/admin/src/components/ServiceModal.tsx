@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { MediaAssetField } from './MediaAssetField';
+import { DisplayOrderPicker, OrderItem } from './DisplayOrderPicker';
 import { Button, Input, Textarea, FormField, Badge, Card, LineListInput } from './ui';
 
 export interface ServiceItem {
@@ -34,6 +35,8 @@ interface ServiceModalProps {
   onClose: () => void;
   onSubmit: (e: React.FormEvent) => void;
   isEditing: boolean;
+  orderItems: OrderItem[];
+  currentId?: string;
   formTitle: string;
   setFormTitle: (v: string) => void;
   formSlug: string;
@@ -68,6 +71,8 @@ export function ServiceModal({
   onClose,
   onSubmit,
   isEditing,
+  orderItems,
+  currentId,
   formTitle,
   setFormTitle,
   formSlug,
@@ -204,11 +209,7 @@ export function ServiceModal({
                     </FormField>
 
                     <FormField label="Display Order">
-                      <Input
-                        type="number"
-                        value={formSortOrder}
-                        onChange={(e) => setFormSortOrder(Number(e.target.value) || 0)}
-                      />
+                      <DisplayOrderPicker items={orderItems} currentId={currentId} currentTitle={formTitle} position={formSortOrder} onChange={setFormSortOrder} />
                     </FormField>
                   </div>
                 </Card>

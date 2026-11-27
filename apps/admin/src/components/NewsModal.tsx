@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Camera, Check } from 'lucide-react';
 import { MediaAssetField } from './MediaAssetField';
+import { DisplayOrderPicker, OrderItem } from './DisplayOrderPicker';
 
 export interface ArticleItem {
   id: string;
@@ -34,6 +35,8 @@ interface NewsModalProps {
   onClose: () => void;
   onSubmit: (e: React.FormEvent) => void;
   isEditing: boolean;
+  orderItems: OrderItem[];
+  currentId?: string;
   formTitle: string;
   setFormTitle: (v: string) => void;
   formSlug: string;
@@ -68,6 +71,8 @@ export function NewsModal({
   onClose,
   onSubmit,
   isEditing,
+  orderItems,
+  currentId,
   formTitle,
   setFormTitle,
   formSlug,
@@ -197,10 +202,7 @@ export function NewsModal({
               </label>
             </div>
 
-            <label className="block text-xs font-bold text-slate-700">Display order
-              <input type="number" min="0" value={formSortOrder} onChange={(e) => setFormSortOrder(Number(e.target.value) || 0)} className="mt-1.5 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900" />
-              <span className="mt-1 block font-normal text-slate-500">Lower numbers appear first in News &amp; Insights.</span>
-            </label>
+            <div><span className="mb-1.5 block text-xs font-bold text-slate-700">Display order</span><DisplayOrderPicker items={orderItems} currentId={currentId} currentTitle={formTitle} position={formSortOrder} onChange={setFormSortOrder} /></div>
 
             {/* Author & Date in 2-column grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

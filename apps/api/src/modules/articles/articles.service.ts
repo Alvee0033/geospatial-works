@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Article } from '../../entities/article.entity';
 import { Project } from '../../entities/project.entity';
 import { CreateArticleDto, UpdateArticleDto } from './dto/article.dto';
+import { reorderRecords } from '../../common/reorder-records';
 
 @Injectable()
 export class ArticlesService {
@@ -117,6 +118,10 @@ export class ArticlesService {
   async remove(id: string): Promise<void> {
     const res = await this.articleRepo.delete(id);
     if (!res.affected) throw new NotFoundException(`Article with ID "${id}" not found`);
+  }
+
+  async reorder(ids: string[]): Promise<void> {
+    return reorderRecords(this.articleRepo, ids);
   }
 }
 

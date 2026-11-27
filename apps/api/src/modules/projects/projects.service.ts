@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from '../../entities/project.entity';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
+import { reorderRecords } from '../../common/reorder-records';
 
 @Injectable()
 export class ProjectsService {
@@ -50,6 +51,10 @@ export class ProjectsService {
     if (result.affected === 0) {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }
+  }
+
+  async reorder(ids: string[]): Promise<void> {
+    return reorderRecords(this.projectRepository, ids);
   }
 }
 

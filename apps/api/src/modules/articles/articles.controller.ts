@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../../entities/user.entity';
+import { ReorderRecordsDto } from '../../common/reorder-records';
 
 @ApiTags('News & Articles')
 @Controller('articles')
@@ -33,6 +34,15 @@ export class ArticlesController {
   @ApiOperation({ summary: 'Create project case studies and hide starter demo articles' })
   async seedProjectCaseStudies() {
     return this.articlesService.seedProjectCaseStudies();
+  }
+
+  @Put('admin/reorder')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  @ApiBearerAuth()
+  async reorder(@Body() dto: ReorderRecordsDto) {
+    await this.articlesService.reorder(dto.ids);
+    return { ok: true };
   }
 
   @Get(':slug')
