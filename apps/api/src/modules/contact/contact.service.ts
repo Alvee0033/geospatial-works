@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ContactInquiry, InquiryStatus } from '../../entities/contact-inquiry.entity';
@@ -7,6 +7,7 @@ import { CreateInquiryDto } from './dto/contact.dto';
 
 @Injectable()
 export class ContactService {
+  private readonly logger = new Logger(ContactService.name);
   constructor(
     @InjectRepository(ContactInquiry)
     private readonly inquiryRepository: Repository<ContactInquiry>,
@@ -17,7 +18,9 @@ export class ContactService {
   async createInquiry(dto: CreateInquiryDto): Promise<ContactInquiry> {
     const inquiry = this.inquiryRepository.create(dto);
     const saved = await this.inquiryRepository.save(inquiry);
-    void this.sendInquiryEmails(saved).catch(() => undefined);
+    void this.sendInquiryEmails(saved).catch((error: unknown) => {
+      this.logger.error(`Email notification failed for inquiry ${saved.id}`, error instanceof Error ? error.stack : String(error));
+    });
     return saved;
   }
 
@@ -52,24 +55,31 @@ export class ContactService {
         'admin@geospatialworks.com.bd',
     ).trim();
 
-    const send = (to: string, subject: string, html: string) =>
-      fetch('https://api.resend.com/emails', {
+    const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    })[character] || character);
+
+    const send = async (to: string, subject: string, html: string, replyTo?: string) => {
+      const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from, to: [to], subject, html }),
+        body: JSON.stringify({ from, to: [to], subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
         signal: AbortSignal.timeout(10000),
       });
+      if (!response.ok) throw new Error(`Email provider returned HTTP ${response.status}`);
+    };
 
-    await Promise.allSettled([
+    await Promise.all([
       send(
         notifyTo,
         `[${inquiry.serviceType || 'Inquiry'}] from ${inquiry.fullName}`,
-        `<p><strong>Name:</strong> ${inquiry.fullName}</p><p><strong>Email:</strong> ${inquiry.email}</p><p><strong>Phone:</strong> ${inquiry.phone || '—'}</p><p><strong>Type:</strong> ${inquiry.serviceType || 'General'}</p><p><strong>Message:</strong><br/>${inquiry.message}</p>`,
+        `<p><strong>Name:</strong> ${escapeHtml(inquiry.fullName)}</p><p><strong>Email:</strong> ${escapeHtml(inquiry.email)}</p><p><strong>Phone:</strong> ${escapeHtml(inquiry.phone || '—')}</p><p><strong>Type:</strong> ${escapeHtml(inquiry.serviceType || 'General')}</p><p><strong>Message:</strong><br/>${escapeHtml(inquiry.message).replace(/\n/g, '<br/>')}</p><p>Reply to this email to send the CV to the requester.</p>`,
+        inquiry.email,
       ),
       send(
         inquiry.email,
         `Request received — Geospatial Works`,
-        `<p>Dear ${inquiry.fullName},</p><p>Thank you for contacting Geospatial Works regarding <strong>${inquiry.serviceType || 'your inquiry'}</strong>. Our team has received your request and will respond shortly.</p><p>Best regards,<br/>Geospatial Works Bangladesh</p>`,
+        `<p>Dear ${escapeHtml(inquiry.fullName)},</p><p>Thank you for contacting Geospatial Works regarding <strong>${escapeHtml(inquiry.serviceType || 'your inquiry')}</strong>. Our team has received your request and will respond shortly.</p><p>Best regards,<br/>Geospatial Works Bangladesh</p>`,
       ),
     ]);
   }

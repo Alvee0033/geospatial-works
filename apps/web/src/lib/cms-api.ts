@@ -1,6 +1,6 @@
 const API_BASE = typeof window === 'undefined'
   ? `${process.env.BACKEND_INTERNAL_URL || 'http://gw-site-api:4000'}/api/v1`
-  : (process.env.NEXT_PUBLIC_API_BASE_URL || '/api');
+  : '/api';
 
 export interface HeroSlideData {
   id: string;
