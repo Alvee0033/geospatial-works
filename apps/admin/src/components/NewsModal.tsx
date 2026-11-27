@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Camera, Check } from 'lucide-react';
 import { MediaAssetField } from './MediaAssetField';
 
@@ -14,6 +14,7 @@ export interface ArticleItem {
   content?: string;
   author?: string;
   imageUrl?: string;
+  meta?: { readTime?: string; authorRole?: string; videoUrl?: string; [key: string]: string | undefined };
   isPublished: boolean;
   sortOrder: number;
   createdAt?: string;
@@ -49,8 +50,16 @@ interface NewsModalProps {
   setFormContent: (v: string) => void;
   formImageUrl: string;
   setFormImageUrl: (v: string) => void;
+  formVideoUrl: string;
+  setFormVideoUrl: (v: string) => void;
+  formReadTime: string;
+  setFormReadTime: (v: string) => void;
+  formAuthorRole: string;
+  setFormAuthorRole: (v: string) => void;
   formIsPublished: boolean;
   setFormIsPublished: (v: boolean) => void;
+  formSortOrder: number;
+  setFormSortOrder: (v: number) => void;
   onOpenMediaPicker: () => void;
 }
 
@@ -75,10 +84,20 @@ export function NewsModal({
   setFormContent,
   formImageUrl,
   setFormImageUrl,
+  formVideoUrl,
+  setFormVideoUrl,
+  formReadTime,
+  setFormReadTime,
+  formAuthorRole,
+  setFormAuthorRole,
   formIsPublished,
   setFormIsPublished,
+  formSortOrder,
+  setFormSortOrder,
   onOpenMediaPicker,
 }: NewsModalProps) {
+  const [videoUploading, setVideoUploading] = useState(false);
+  const [videoError, setVideoError] = useState('');
   if (!isOpen) return null;
 
   return (
@@ -145,17 +164,14 @@ export function NewsModal({
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1.5">
                   Category *
                 </label>
-                <select
+                <input
+                  list="article-category-options"
+                  required
                   value={formCategory}
                   onChange={(e) => setFormCategory(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none transition cursor-pointer"
-                >
-                  {ARTICLE_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                />
+                <datalist id="article-category-options">{ARTICLE_CATEGORIES.map((category) => <option key={category} value={category} />)}</datalist>
               </div>
 
               <div>
@@ -171,6 +187,20 @@ export function NewsModal({
                 />
               </div>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label className="text-xs font-bold text-slate-700">Author role
+                <input value={formAuthorRole} onChange={(e) => setFormAuthorRole(e.target.value)} placeholder="Optional role shown beside the author" className="mt-1.5 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900" />
+              </label>
+              <label className="text-xs font-bold text-slate-700">Reading time
+                <input value={formReadTime} onChange={(e) => setFormReadTime(e.target.value)} placeholder="e.g. 4 min read" className="mt-1.5 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900" />
+              </label>
+            </div>
+
+            <label className="block text-xs font-bold text-slate-700">Display order
+              <input type="number" min="0" value={formSortOrder} onChange={(e) => setFormSortOrder(Number(e.target.value) || 0)} className="mt-1.5 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900" />
+              <span className="mt-1 block font-normal text-slate-500">Lower numbers appear first in News &amp; Insights.</span>
+            </label>
 
             {/* Author & Date in 2-column grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -222,13 +252,13 @@ export function NewsModal({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Full Article Body / Content (Markdown or Text)
+                  Full article
                 </label>
-                <span className="text-[11px] text-slate-400">Supports headers, lists, code, and links</span>
+                <span className="text-[11px] text-slate-400">Use ## for headings and &gt; for quotes</span>
               </div>
               <textarea
                 rows={12}
-                placeholder="## Background & Engineering Challenge&#10;&#10;Explain the full engineering background, project scope, field conditions, sensors and instrumentation used (e.g. Trimble R12i GNSS, multibeam sonar, DJI Matrice 300 RTK), data processing pipelines, and actionable conclusions..."
+                placeholder="## Background&#10;&#10;Explain the work in clear language..."
                 value={formContent}
                 onChange={(e) => setFormContent(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 focus:border-indigo-500 focus:bg-white rounded-xl p-4 text-xs font-mono text-slate-800 focus:outline-none transition leading-relaxed min-h-[260px]"
@@ -241,14 +271,17 @@ export function NewsModal({
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold text-slate-700">Article Video (Optional)</span>
                 <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-indigo-600 text-white text-[11px] font-semibold cursor-pointer transition">
-                  <span>Upload Video</span>
+                  <span>{videoUploading ? 'Uploading…' : 'Upload video'}</span>
                   <input
                     type="file"
                     accept="video/mp4,video/webm,video/quicktime"
+                    disabled={videoUploading}
                     className="sr-only"
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
+                      setVideoUploading(true);
+                      setVideoError('');
                       const fd = new FormData();
                       fd.append('file', file);
                       try {
@@ -261,17 +294,23 @@ export function NewsModal({
                           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
                           body: fd,
                         });
-                        if (!res.ok) return;
+                        if (!res.ok) throw new Error('Upload failed. Please try again.');
                         const data = await res.json();
-                        if (data?.url) setFormImageUrl(data.url);
+                        if (!data?.url) throw new Error('The upload did not return a video URL.');
+                        setFormVideoUrl(data.url);
                       } catch {
-                        // ignore
+                        setVideoError('Could not upload this video. Please try again.');
+                      } finally {
+                        setVideoUploading(false);
+                        e.target.value = '';
                       }
                     }}
                   />
                 </label>
               </div>
-              <p className="text-[11px] text-slate-500">Upload an MP4/WebM video to attach as media for this article.</p>
+              <p className="text-[11px] text-slate-500">The video appears in the article without replacing its cover image.</p>
+              {formVideoUrl && <div className="space-y-2"><video src={formVideoUrl} controls preload="metadata" className="w-full max-h-52 rounded-lg bg-black" /><button type="button" onClick={() => setFormVideoUrl('')} className="text-xs font-semibold text-red-600">Remove video</button></div>}
+              {videoError && <p role="alert" className="text-xs text-red-600">{videoError}</p>}
             </div>
           </form>
 

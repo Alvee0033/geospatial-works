@@ -85,21 +85,23 @@ export default function AdminPage() {
   const [projDescription, setProjDescription] = useState('');
   const [projDeliverables, setProjDeliverables] = useState('');
   const [projDetails, setProjDetails] = useState({ overview: '', challenges: '', approach: '', results: '', toolsUsed: '', timeline: '' });
-  const [projImageUrl, setProjImageUrl] = useState('/inner/bridge-aerial.webp');
+  const [projImageUrl, setProjImageUrl] = useState('');
+  const [projSortOrder, setProjSortOrder] = useState(0);
   const [projIsMilestone, setProjIsMilestone] = useState(false);
   const [projIsActive, setProjIsActive] = useState(true);
 
   // Service Form Fields
   const [svcTitle, setSvcTitle] = useState('');
   const [svcSlug, setSvcSlug] = useState('');
-  const [svcCategory, setSvcCategory] = useState('SURVEY & GEODATA');
+  const [svcCategory, setSvcCategory] = useState('');
   const [svcDescription, setSvcDescription] = useState('');
   const [svcFeatures, setSvcFeatures] = useState('');
   const [svcLead, setSvcLead] = useState('');
   const [svcEquipment, setSvcEquipment] = useState('');
   const [svcStandards, setSvcStandards] = useState('');
   const [svcBenefits, setSvcBenefits] = useState('');
-  const [svcImageUrl, setSvcImageUrl] = useState('/real-media/service-topographic-uav.png');
+  const [svcHeadings, setSvcHeadings] = useState({ overviewTitle: '', equipmentTitle: '', benefitsTitle: '', standardsTitle: '' });
+  const [svcImageUrl, setSvcImageUrl] = useState('');
   const [svcSortOrder, setSvcSortOrder] = useState(1);
   const [svcIsActive, setSvcIsActive] = useState(true);
 
@@ -112,6 +114,10 @@ export default function AdminPage() {
   const [artSummary, setArtSummary] = useState('');
   const [artContent, setArtContent] = useState('');
   const [artImageUrl, setArtImageUrl] = useState('');
+  const [artSortOrder, setArtSortOrder] = useState(0);
+  const [artVideoUrl, setArtVideoUrl] = useState('');
+  const [artReadTime, setArtReadTime] = useState('');
+  const [artAuthorRole, setArtAuthorRole] = useState('');
   const [artIsPublished, setArtIsPublished] = useState(true);
 
   // About Section Drawer state
@@ -364,13 +370,14 @@ export default function AdminPage() {
     setProjTitle('');
     setProjSlug('');
     setProjClient('');
-    setProjCategory(services[0]?.title || 'Topographic & Land Survey');
-    setProjLocation('Dhaka Division');
+    setProjCategory('');
+    setProjLocation('');
     setProjDescription('');
     setProjDeliverables('');
     setProjDetails({ overview: '', challenges: '', approach: '', results: '', toolsUsed: '', timeline: '' });
-    setProjImageUrl('/inner/bridge-aerial.webp');
-    setProjIsMilestone(true);
+    setProjImageUrl('');
+    setProjSortOrder(projects.length + 1);
+    setProjIsMilestone(false);
     setProjIsActive(true);
     setProjectModalOpen(true);
   };
@@ -385,7 +392,8 @@ export default function AdminPage() {
     setProjDescription(proj.description);
     setProjDeliverables(proj.deliverables || '');
     setProjDetails({ overview: proj.details?.overview || '', challenges: (proj.details?.challenges || []).join('\n'), approach: (proj.details?.approach || []).join('\n'), results: (proj.details?.results || []).join('\n'), toolsUsed: (proj.details?.toolsUsed || []).join('\n'), timeline: proj.details?.timeline || '' });
-    setProjImageUrl(proj.imageUrl || '/inner/bridge-aerial.webp');
+    setProjImageUrl(proj.imageUrl || '');
+    setProjSortOrder(proj.sortOrder);
     setProjIsMilestone(proj.isMilestone);
     setProjIsActive(proj.isActive !== false);
     setProjectModalOpen(true);
@@ -393,8 +401,8 @@ export default function AdminPage() {
 
   const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projTitle.trim()) {
-      triggerFeedback('Project title is required', 'error');
+    if (!projTitle.trim() || !projClient.trim() || !projCategory.trim() || !projDescription.trim()) {
+      triggerFeedback('Add a title, client, category, and description before saving.', 'error');
       return;
     }
 
@@ -409,7 +417,7 @@ export default function AdminPage() {
       title: projTitle.trim(),
       slug: slug,
       client: projClient.trim(),
-      category: projCategory || (services[0]?.title ?? 'Topographic & Land Survey'),
+      category: projCategory.trim(),
       location: projLocation.trim(),
       description: projDescription.trim(),
       deliverables: projDeliverables.trim(),
@@ -417,7 +425,7 @@ export default function AdminPage() {
       imageUrl: projImageUrl.trim(),
       isMilestone: projIsMilestone,
       isActive: projIsActive,
-      sortOrder: editingProject ? editingProject.sortOrder : projects.length + 1,
+      sortOrder: projSortOrder,
     };
 
     try {
@@ -508,14 +516,15 @@ export default function AdminPage() {
     setEditingService(null);
     setSvcTitle('');
     setSvcSlug('');
-    setSvcCategory('SURVEY & GEODATA');
+    setSvcCategory('');
     setSvcDescription('');
     setSvcFeatures('');
     setSvcLead('');
     setSvcEquipment('');
     setSvcStandards('');
     setSvcBenefits('');
-    setSvcImageUrl('/real-media/service-topographic-uav.png');
+    setSvcHeadings({ overviewTitle: '', equipmentTitle: '', benefitsTitle: '', standardsTitle: '' });
+    setSvcImageUrl('');
     setSvcSortOrder(services.length + 1);
     setSvcIsActive(true);
     setServiceModalOpen(true);
@@ -532,7 +541,8 @@ export default function AdminPage() {
     setSvcEquipment((svc.details?.equipment || []).join('\n'));
     setSvcStandards((svc.details?.standards || []).join('\n'));
     setSvcBenefits((svc.details?.benefits || []).join('\n'));
-    setSvcImageUrl(svc.imageUrl || '/real-media/service-topographic-uav.png');
+    setSvcHeadings({ overviewTitle: svc.details?.overviewTitle || '', equipmentTitle: svc.details?.equipmentTitle || '', benefitsTitle: svc.details?.benefitsTitle || '', standardsTitle: svc.details?.standardsTitle || '' });
+    setSvcImageUrl(svc.imageUrl || '');
     setSvcSortOrder(svc.sortOrder);
     setSvcIsActive(svc.isActive);
     setServiceModalOpen(true);
@@ -540,8 +550,8 @@ export default function AdminPage() {
 
   const handleSaveService = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!svcTitle.trim()) {
-      triggerFeedback('Service title is required', 'error');
+    if (!svcTitle.trim() || !svcCategory.trim() || !svcDescription.trim()) {
+      triggerFeedback('Add a service title, category, and overview before saving.', 'error');
       return;
     }
 
@@ -563,7 +573,7 @@ export default function AdminPage() {
       category: svcCategory.trim(),
       description: svcDescription.trim(),
       features: featuresArray,
-      details: { lead: svcLead.trim(), equipment: svcEquipment.split('\n').map(v => v.trim()).filter(Boolean), standards: svcStandards.split('\n').map(v => v.trim()).filter(Boolean), benefits: svcBenefits.split('\n').map(v => v.trim()).filter(Boolean) },
+      details: { ...(editingService?.details || {}), ...Object.fromEntries(Object.entries(svcHeadings).map(([key, value]) => [key, value.trim()])), lead: svcLead.trim(), equipment: svcEquipment.split('\n').map(v => v.trim()).filter(Boolean), standards: svcStandards.split('\n').map(v => v.trim()).filter(Boolean), benefits: svcBenefits.split('\n').map(v => v.trim()).filter(Boolean) },
       imageUrl: svcImageUrl.trim(),
       sortOrder: Number(svcSortOrder) || 1,
       isActive: svcIsActive,
@@ -659,10 +669,14 @@ export default function AdminPage() {
     setArtSlug('');
     setArtCategory(ARTICLE_CATEGORIES[0]);
     setArtPublishDate(new Date().toISOString().split('T')[0]);
-    setArtAuthor('Geospatial Works Technical Team');
+    setArtAuthor('');
     setArtSummary('');
     setArtContent('');
     setArtImageUrl('');
+    setArtSortOrder(articles.length + 1);
+    setArtVideoUrl('');
+    setArtReadTime('');
+    setArtAuthorRole('');
     setArtIsPublished(true);
     setNewsModalOpen(true);
   };
@@ -677,14 +691,18 @@ export default function AdminPage() {
     setArtSummary(art.summary);
     setArtContent(art.content || '');
     setArtImageUrl(art.imageUrl || '');
+    setArtSortOrder(art.sortOrder);
+    setArtVideoUrl(art.meta?.videoUrl || '');
+    setArtReadTime(art.meta?.readTime || '');
+    setArtAuthorRole(art.meta?.authorRole || '');
     setArtIsPublished(art.isPublished);
     setNewsModalOpen(true);
   };
 
   const handleSaveArticle = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!artTitle.trim()) {
-      triggerFeedback('Article title is required', 'error');
+    if (!artTitle.trim() || !artCategory.trim() || !artSummary.trim()) {
+      triggerFeedback('Add an article title, category, and summary before saving.', 'error');
       return;
     }
 
@@ -704,8 +722,9 @@ export default function AdminPage() {
       summary: artSummary.trim(),
       content: artContent.trim(),
       imageUrl: artImageUrl.trim(),
+      meta: { ...(editingArticle?.meta || {}), videoUrl: artVideoUrl.trim(), readTime: artReadTime.trim(), authorRole: artAuthorRole.trim() },
       isPublished: artIsPublished,
-      sortOrder: editingArticle ? editingArticle.sortOrder : articles.length + 1,
+      sortOrder: artSortOrder,
     };
 
     try {
@@ -1625,6 +1644,8 @@ export default function AdminPage() {
         setFormIsMilestone={setProjIsMilestone}
         formIsActive={projIsActive}
         setFormIsActive={setProjIsActive}
+        formSortOrder={projSortOrder}
+        setFormSortOrder={setProjSortOrder}
         onOpenMediaPicker={() => {
           setMediaTargetCallback(() => (url: string) => setProjImageUrl(url));
           setMediaModalOpen(true);
@@ -1655,6 +1676,8 @@ export default function AdminPage() {
         setFormStandards={setSvcStandards}
         formBenefits={svcBenefits}
         setFormBenefits={setSvcBenefits}
+        formHeadings={svcHeadings}
+        onHeadingChange={(field, value) => setSvcHeadings((current) => ({ ...current, [field]: value }))}
         formImageUrl={svcImageUrl}
         setFormImageUrl={setSvcImageUrl}
         formSortOrder={svcSortOrder}
@@ -1689,8 +1712,16 @@ export default function AdminPage() {
         setFormContent={setArtContent}
         formImageUrl={artImageUrl}
         setFormImageUrl={setArtImageUrl}
+        formVideoUrl={artVideoUrl}
+        setFormVideoUrl={setArtVideoUrl}
+        formReadTime={artReadTime}
+        setFormReadTime={setArtReadTime}
+        formAuthorRole={artAuthorRole}
+        setFormAuthorRole={setArtAuthorRole}
         formIsPublished={artIsPublished}
         setFormIsPublished={setArtIsPublished}
+        formSortOrder={artSortOrder}
+        setFormSortOrder={setArtSortOrder}
         onOpenMediaPicker={() => {
           setMediaTargetCallback(() => (url: string) => setArtImageUrl(url));
           setMediaModalOpen(true);

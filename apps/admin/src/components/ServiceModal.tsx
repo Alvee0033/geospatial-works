@@ -24,7 +24,7 @@ export interface ServiceItem {
   imageUrl?: string;
   sortOrder: number;
   isActive: boolean;
-  details?: { lead?: string; equipment?: string[]; standards?: string[]; benefits?: string[] };
+  details?: { lead?: string; equipment?: string[]; standards?: string[]; benefits?: string[]; overviewTitle?: string; equipmentTitle?: string; benefitsTitle?: string; standardsTitle?: string };
   createdAt?: string;
   updatedAt?: string;
 }
@@ -52,6 +52,8 @@ interface ServiceModalProps {
   setFormStandards: (v: string) => void;
   formBenefits: string;
   setFormBenefits: (v: string) => void;
+  formHeadings: { overviewTitle: string; equipmentTitle: string; benefitsTitle: string; standardsTitle: string };
+  onHeadingChange: (field: keyof ServiceModalProps['formHeadings'], value: string) => void;
   formImageUrl: string;
   setFormImageUrl: (v: string) => void;
   formSortOrder: number;
@@ -84,6 +86,8 @@ export function ServiceModal({
   setFormStandards,
   formBenefits,
   setFormBenefits,
+  formHeadings,
+  onHeadingChange,
   formImageUrl,
   setFormImageUrl,
   formSortOrder,
@@ -279,6 +283,9 @@ export function ServiceModal({
                       onChange={(e) => setFormLead(e.target.value)}
                     />
                   </FormField>
+                  <FormField label="Overview heading" hint="Heading above the service description">
+                    <Input value={formHeadings.overviewTitle} onChange={(e) => onHeadingChange('overviewTitle', e.target.value)} placeholder="Service overview" />
+                  </FormField>
                 </Card>
 
                 <Card padding="md" className="space-y-4">
@@ -301,6 +308,7 @@ export function ServiceModal({
                       addLabel="Add Item"
                     />
                   </FormField>
+                  <FormField label="Equipment heading"><Input value={formHeadings.equipmentTitle} onChange={(e) => onHeadingChange('equipmentTitle', e.target.value)} placeholder="Equipment we use" /></FormField>
 
                   <FormField label="Standards &amp; Compliance">
                     <LineListInput
@@ -310,6 +318,7 @@ export function ServiceModal({
                       addLabel="Add Standard"
                     />
                   </FormField>
+                  <FormField label="Standards heading"><Input value={formHeadings.standardsTitle} onChange={(e) => onHeadingChange('standardsTitle', e.target.value)} placeholder="Our standards" /></FormField>
                 </Card>
 
                 <Card padding="md" className="space-y-4">
@@ -331,6 +340,7 @@ export function ServiceModal({
                       addLabel="Add Benefit"
                     />
                   </FormField>
+                  <FormField label="Benefits heading"><Input value={formHeadings.benefitsTitle} onChange={(e) => onHeadingChange('benefitsTitle', e.target.value)} placeholder="Why work with us" /></FormField>
                 </Card>
               </>
             )}

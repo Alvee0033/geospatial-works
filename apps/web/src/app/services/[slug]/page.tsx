@@ -18,6 +18,7 @@ interface ServiceDetail {
   deliverables: string[];
   standards: string[];
   benefits: string[];
+  headings: { overview: string; equipment: string; benefits: string; standards: string };
 }
 
 export default async function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -39,6 +40,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
     deliverables: dbService.features || [],
     standards: detail.standards || [],
     benefits: detail.benefits || [],
+    headings: { overview: detail.overviewTitle || 'Service overview', equipment: detail.equipmentTitle || 'Equipment we use', benefits: detail.benefitsTitle || 'Why work with us', standards: detail.standardsTitle || 'Our standards' },
   };
   const related = cmsServices.filter((item) => item.slug !== slug).slice(0, 2)
     .map((item) => ({ ...item, image: item.imageUrl || '', lead: item.details?.lead || item.description }));
@@ -80,10 +82,10 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
         {/* =========================================================================
             FEATURED HERO PHOTOGRAPHY
             ========================================================================= */}
-        <section className="max-w-[1440px] mx-auto px-6 md:px-12 py-8">
+        {service.image && <section className="max-w-[1440px] mx-auto px-6 md:px-12 py-8">
           <div className="aspect-[21/9] sm:aspect-[16/8] overflow-hidden bg-neutral-900 shadow-xl relative">
             <img
-              src={service.image || undefined}
+              src={service.image}
               alt={service.title}
               className="w-full h-full object-cover"
             />
@@ -91,7 +93,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
               {service.title} • Field Equipment & In-Situ Standards
             </div>
           </div>
-        </section>
+        </section>}
 
         {/* =========================================================================
             TECHNICAL SPECIFICATIONS GRID (8:4 SPLIT)
@@ -105,7 +107,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                   01 / CAPABILITY OVERVIEW
                 </span>
                 <h2 className="text-[26px] sm:text-[30px] font-extrabold tracking-[-0.02em] text-[#141212] leading-tight">
-                  Uncompromising Standards for Critical Infrastructure
+                  {service.headings.overview}
                 </h2>
                 <p className="text-[16px] text-neutral-700 leading-[1.8]">
                   {service.description}
@@ -136,7 +138,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                   03 / EQUIPMENT SUITE
                 </span>
                 <h3 className="text-[24px] font-bold text-[#141212]">
-                  Survey-Grade Instrumentation
+                  {service.headings.equipment}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                   {service.equipment.map((eq, idx) => (
@@ -154,7 +156,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                   04 / PROJECT ADVANTAGES
                 </span>
                 <h3 className="text-[24px] font-bold text-[#141212]">
-                  Why Engineering Leaders Choose Geospatial Works
+                  {service.headings.benefits}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                   {service.benefits.map((b, idx) => (
@@ -175,7 +177,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
                     COMPLIANCE & STANDARDS
                   </span>
                   <h3 className="text-[20px] font-extrabold text-[#141212] pt-1">
-                    Quality Benchmarks
+                    {service.headings.standards}
                   </h3>
                 </div>
 

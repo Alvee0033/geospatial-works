@@ -36,7 +36,7 @@ export interface ServiceData {
   imageUrl?: string;
   sortOrder: number;
   isActive: boolean;
-  details?: { lead?: string; equipment?: string[]; standards?: string[]; benefits?: string[] };
+  details?: { lead?: string; equipment?: string[]; standards?: string[]; benefits?: string[]; overviewTitle?: string; equipmentTitle?: string; benefitsTitle?: string; standardsTitle?: string };
 }
 
 export interface ProjectData {
@@ -65,7 +65,7 @@ export interface ArticleData {
   content?: string;
   author?: string;
   imageUrl?: string | null;
-  meta?: { readTime?: string; authorRole?: string; authorImage?: string };
+  meta?: { readTime?: string; authorRole?: string; authorImage?: string; videoUrl?: string };
   isPublished: boolean;
   sortOrder: number;
 }

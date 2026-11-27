@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { ServiceItem } from './ServiceModal';
 import { MediaAssetField } from './MediaAssetField';
-import { Button, Input, Textarea, Select, FormField, Badge, Card, LineListInput, TimelineRangeInput } from './ui';
+import { Button, Input, Textarea, FormField, Badge, Card, LineListInput, TimelineRangeInput } from './ui';
 
 interface ProjectModalProps {
   isOpen: boolean;
@@ -52,6 +52,8 @@ interface ProjectModalProps {
   setFormIsMilestone: (v: boolean) => void;
   formIsActive: boolean;
   setFormIsActive: (v: boolean) => void;
+  formSortOrder: number;
+  setFormSortOrder: (v: number) => void;
   onOpenMediaPicker: () => void;
 }
 
@@ -83,25 +85,15 @@ export function ProjectModal({
   setFormIsMilestone,
   formIsActive,
   setFormIsActive,
+  formSortOrder,
+  setFormSortOrder,
   onOpenMediaPicker,
 }: ProjectModalProps) {
   const [activeTab, setActiveTab] = useState<'basic' | 'details'>('basic');
 
   if (!isOpen) return null;
 
-  const defaultServices = [
-    'Topographic & Land Survey',
-    'Airborne UAV (Drone) Survey',
-    'Hydrographic & Bathymetric Survey',
-    'Feasibility, BOQ & Civil Design',
-    'Geographic Information Systems (GIS)',
-    'Environmental & Coastal Assessment',
-  ];
-
-  const serviceOptions = services.length > 0 ? services.map((s) => s.title) : [...defaultServices];
-  if (formCategory && !serviceOptions.includes(formCategory)) {
-    serviceOptions.push(formCategory);
-  }
+  const serviceOptions = services.map((service) => service.title);
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -206,14 +198,9 @@ export function ProjectModal({
                       />
                     </FormField>
 
-                    <FormField label="Service Category" required>
-                      <Select value={formCategory} onChange={(e) => setFormCategory(e.target.value)}>
-                        {serviceOptions.map((opt) => (
-                          <option key={opt} value={opt}>
-                            {opt}
-                          </option>
-                        ))}
-                      </Select>
+                    <FormField label="Project Category" required hint="Choose an existing service or enter a category">
+                      <Input required list="project-service-categories" value={formCategory} onChange={(e) => setFormCategory(e.target.value)} placeholder="Enter a category" />
+                      <datalist id="project-service-categories">{serviceOptions.map((option) => <option key={option} value={option} />)}</datalist>
                     </FormField>
 
                     <FormField label="URL Slug" hint="Auto-generated if blank">
@@ -223,6 +210,9 @@ export function ProjectModal({
                         onChange={(e) => setFormSlug(e.target.value)}
                         className="font-mono text-xs"
                       />
+                    </FormField>
+                    <FormField label="Display order" hint="Lower numbers appear first">
+                      <Input type="number" min="0" value={formSortOrder} onChange={(e) => setFormSortOrder(Number(e.target.value) || 0)} />
                     </FormField>
                   </div>
                 </Card>
