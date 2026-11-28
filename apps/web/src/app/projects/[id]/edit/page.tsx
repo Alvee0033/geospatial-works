@@ -240,7 +240,7 @@ function EditProjectContent() {
         tax_status: taxStatus,
         tax_rate: taxRate,
         income_tax_rate: incomeTaxRate,
-        expected_net_revenue: expectedNetRevenue,
+        expected_net_revenue: Math.max(0, expectedRevenue),
         advance_received: advanceReceived,
         amount_received: amountReceived,
         amount_receivable: amountReceivable,
@@ -821,7 +821,7 @@ function EditProjectContent() {
                   {/* Summary Breakdown Box */}
                   <div className="p-3 bg-white/80 border border-indigo-100 rounded-xl space-y-2 text-xs">
                     <div className="flex justify-between text-slate-500">
-                      <span>Project Value Excl. IT-VAT:</span>
+                      <span>Project Value (After Tax):</span>
                       <span className="font-mono font-bold text-slate-900">৳{expectedNetRevenue.toLocaleString()}</span>
                     </div>
                     <div className={`flex justify-between items-center py-1 px-2 rounded-xl transition-all ${
@@ -853,11 +853,11 @@ function EditProjectContent() {
                       <span className="font-mono font-bold text-slate-900">৳{Math.round(calculatedOfficeBenefit).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between border-t border-indigo-100 pt-2 text-slate-700">
-                      <span className="font-bold">Expected Revenue:</span>
+                      <span className="font-bold">Net Revenue (Profit after Cost):</span>
                       <span className={`font-mono font-bold ${expectedRevenue < 0 ? 'text-rose-700' : 'text-emerald-700'}`}>৳{Math.round(expectedRevenue).toLocaleString()}</span>
                     </div>
                     <div className="border-t border-indigo-100 pt-2 flex justify-between text-sm font-bold">
-                      <span className="text-indigo-700">Total Project Budget:</span>
+                      <span className="text-indigo-700">Total Project Cost (Budget):</span>
                       <span className="font-mono text-indigo-700">৳{Math.round(calculatedTotalBudget).toLocaleString()}</span>
                     </div>
                   </div>

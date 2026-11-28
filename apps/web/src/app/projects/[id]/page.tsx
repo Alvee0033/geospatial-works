@@ -211,6 +211,12 @@ function ProjectDetailContent() {
   const amountReceived = Number(project.amountReceived || project.amount_received || advanceReceived);
   const receivable = Math.max(0, grossValue - amountReceived);
 
+  const taxStatusVal = String(project.taxStatus || (project as any).tax_status || 'included').toLowerCase();
+  const taxRateVal = Number(project.taxRate ?? (project as any).tax_rate ?? 0.10);
+  const incomeTaxRateVal = Number(project.incomeTaxRate ?? (project as any).income_tax_rate ?? 0);
+  const totalTaxWithheld = taxStatusVal === 'included' ? Math.round(grossValue * (taxRateVal + incomeTaxRateVal)) : 0;
+  const projectValueAfterTax = Math.max(0, grossValue - totalTaxWithheld);
+
   // Expense calculations
   const projectExpenses = expenses.filter(
     (e) => e.projectId === project.id || e.project_id === project.id || e.projectId === project.projectId
@@ -606,17 +612,17 @@ function ProjectDetailContent() {
 
         {/* Executive Metric Cards (Desktop Color-Coded) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5">
-          {/* Card 1: Contract Value & Tax */}
+          {/* Card 1: Total Project Value & Net Revenue */}
           <div className="bg-white text-slate-900 min-h-[88px] p-2 rounded-md border border-slate-200 border-l-2 border-l-slate-400 space-y-1">
             <div className="flex items-center justify-between text-slate-500 text-[8px] font-bold uppercase tracking-wider">
-              <span>Contract Value</span>
+              <span>Total Project Value</span>
               <span className="p-0.5 bg-slate-100 rounded text-slate-600">
                 <Building size={12} />
               </span>
             </div>
             <p className="text-[17px] leading-none font-extrabold tracking-tight">৳{grossValue.toLocaleString()}</p>
             <p className="text-[9px] leading-4 text-slate-500 truncate">
-              Net <span className="font-bold text-slate-700">৳{(project.expectedNetRevenue || project.expected_net_revenue || grossValue).toLocaleString()}</span>
+              Net Revenue <span className="font-bold text-emerald-700">৳{Math.max(0, projectValueAfterTax - totalSpent).toLocaleString()}</span>
               <span className="mx-1 text-slate-300">·</span>
               Tax <span className="font-semibold text-slate-700">{project.taxStatus || 'Included'} ({((project.taxRate || 0.10) * 100).toFixed(0)}%)</span>
             </p>
@@ -848,34 +854,41 @@ function ProjectDetailContent() {
 
                 <div className="space-y-3 text-xs">
                   <div className="flex justify-between text-slate-500">
-                    <span>Gross Contract Value:</span>
+                    <span>Total Project Value:</span>
                     <span className="font-bold text-slate-900 font-mono">৳{grossValue.toLocaleString()}</span>
                   </div>
 
                   <div className="flex justify-between text-slate-500">
-                    <span>Tax Withholding ({((project.taxRate || 0.10) * 100).toFixed(0)}%):</span>
-                    {project.taxStatus === 'included' || (project as any).tax_status === 'included' ? (
+                    <span>Tax Withholding ({((taxRateVal + incomeTaxRateVal) * 100).toFixed(0)}%):</span>
+                    {taxStatusVal === 'included' ? (
                       <span className="font-bold text-rose-600 font-mono">
-                        -৳{Math.round(grossValue * (project.taxRate || 0.10)).toLocaleString()}
+                        -৳{totalTaxWithheld.toLocaleString()}
                       </span>
                     ) : (
                       <span className="font-bold text-slate-400 font-mono">
-                        ৳0 ({project.taxStatus === 'excluded' || (project as any).tax_status === 'excluded' ? 'Excluded' : 'N/A'})
+                        ৳0 ({taxStatusVal === 'excluded' ? 'Excluded' : 'N/A'})
                       </span>
                     )}
                   </div>
 
                   <div className="flex justify-between text-slate-500">
-                    <span>Net Project Revenue:</span>
-                    <span className="font-bold text-emerald-600 font-mono">
-                      ৳{(project.expectedNetRevenue || grossValue * 0.9).toLocaleString()}
+                    <span>Project Value (After Tax):</span>
+                    <span className="font-bold text-slate-800 font-mono">
+                      ৳{projectValueAfterTax.toLocaleString()}
                     </span>
                   </div>
 
                   <div className="border-t border-indigo-100 pt-3 flex justify-between text-slate-500">
-                    <span>Direct Operational Budget:</span>
+                    <span>Total Project Cost (Budget):</span>
                     <span className="font-bold text-slate-900 font-mono">
                       ৳{agreedBudget.toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between text-slate-500">
+                    <span>Actual Cost Spent:</span>
+                    <span className="font-bold text-amber-600 font-mono">
+                      -৳{totalSpent.toLocaleString()}
                     </span>
                   </div>
 
@@ -887,9 +900,9 @@ function ProjectDetailContent() {
                   </div>
 
                   <div className="border-t border-indigo-100 pt-3 flex justify-between text-sm font-bold">
-                    <span className="text-indigo-700">Estimated Project Profit:</span>
+                    <span className="text-indigo-700">Net Revenue (Profit after Cost):</span>
                     <span className="font-mono text-emerald-600">
-                      ৳{Math.max(0, (project.expectedNetRevenue || grossValue * 0.9) - totalSpent).toLocaleString()}
+                      ৳{Math.max(0, projectValueAfterTax - totalSpent).toLocaleString()}
                     </span>
                   </div>
                 </div>

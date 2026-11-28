@@ -391,7 +391,7 @@ export default function NewProjectPage() {
         tax_status: taxStatus,
         tax_rate: taxRate,
         income_tax_rate: incomeTaxRate,
-        expected_net_revenue: expectedNetRevenue,
+        expected_net_revenue: Math.max(0, expectedRevenue),
         advance_received: advanceReceived,
         amount_received: amountReceived,
         amount_receivable: amountReceivable,
@@ -1008,7 +1008,7 @@ export default function NewProjectPage() {
                       </span>
                     </div>
                     <div className="flex justify-between text-slate-600 pt-1 border-t border-emerald-200/50">
-                      <span className="font-bold text-slate-800">Project Value Excl. IT-VAT:</span>
+                      <span className="font-bold text-slate-800">Project Value (After Tax):</span>
                       <span className="font-mono font-bold text-emerald-800">৳{Math.round(expectedNetRevenue).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-slate-600">
@@ -1020,11 +1020,11 @@ export default function NewProjectPage() {
                       <span className="font-mono font-semibold text-slate-800">৳{Math.round(calculatedOfficeBenefit).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between border-t border-emerald-200/50 pt-2 text-slate-700">
-                      <span className="font-bold">Expected Revenue:</span>
+                      <span className="font-bold">Net Revenue (Profit after Cost):</span>
                       <span className={`font-mono font-bold ${expectedRevenue < 0 ? 'text-rose-700' : 'text-emerald-800'}`}>৳{Math.round(expectedRevenue).toLocaleString()}</span>
                     </div>
                     <div className="border-t border-emerald-300/80 pt-2 flex justify-between text-sm font-bold">
-                      <span className="text-emerald-950 font-extrabold">Total Project Budget:</span>
+                      <span className="text-emerald-950 font-extrabold">Total Project Cost (Budget):</span>
                       <span className="font-mono text-emerald-800 font-extrabold">৳{Math.round(calculatedTotalBudget).toLocaleString()}</span>
                     </div>
                   </div>
