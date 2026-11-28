@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ContactInquiry, InquiryStatus } from '../../entities/contact-inquiry.entity';
@@ -108,6 +108,93 @@ export class ContactService {
     inquiry.status = status;
     if (internalNotes !== undefined) inquiry.internalNotes = internalNotes;
     return this.inquiryRepository.save(inquiry);
+  }
+
+  async replyWithCv(
+    id: string,
+    payload: { subject?: string; message?: string; markResolved?: boolean },
+    file?: Express.Multer.File,
+  ): Promise<{ success: boolean; inquiry: ContactInquiry }> {
+    const inquiry = await this.inquiryRepository.findOne({ where: { id } });
+    if (!inquiry) throw new NotFoundException('Inquiry not found');
+
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new InternalServerErrorException('Email provider is not configured (missing RESEND_API_KEY).');
+    }
+
+    const contactSection =
+      (await this.pageSectionRepository
+        .findOne({ where: { pageKey: 'contact', sectionKey: 'contact_info' } })
+        .catch(() => null)) ||
+      (await this.pageSectionRepository
+        .findOne({ where: { pageKey: 'contact', sectionKey: 'office' } })
+        .catch(() => null));
+    const content = (contactSection?.content || {}) as Record<string, any>;
+
+    const rawSender = String(content.senderEmail || '').trim();
+    const from = rawSender
+      ? rawSender.includes('<')
+        ? rawSender
+        : `Geospatial Works <${rawSender}>`
+      : process.env.RESEND_FROM || process.env.EMAIL_FROM || 'Geospatial Works <noreply@geospatialworks.com.bd>';
+
+    const replyTo = String(content.cvRequestEmail || content.email || '').trim() || undefined;
+    const requestedMember =
+      inquiry.serviceType?.match(/^CV request:\s*(.+)$/i)?.[1] ||
+      inquiry.message.match(/^CV request for (.+?)\. Organization:/)?.[1] ||
+      'Team member';
+
+    const subject = (payload.subject || '').trim() || `Requested CV: ${requestedMember}`;
+    const messageText =
+      (payload.message || '').trim() ||
+      `Hello ${inquiry.fullName},\n\nPlease find the requested CV for ${requestedMember} attached.\n\nBest regards,\nGeospatial Works`;
+
+    const escapeHtml = (value: string) =>
+      value.replace(/[&<>"']/g, (character) =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] || character),
+      );
+
+    const html = `<div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#12284b;line-height:1.6"><div style="border-top:4px solid #153d7a;padding:24px;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px"><p style="white-space:pre-wrap;margin:0">${escapeHtml(messageText)}</p></div></div>`;
+
+    const emailBody: Record<string, any> = {
+      from,
+      to: [inquiry.email],
+      subject,
+      html,
+      ...(replyTo ? { reply_to: replyTo } : {}),
+    };
+
+    if (file?.buffer?.length) {
+      emailBody.attachments = [
+        {
+          filename: file.originalname || 'cv.pdf',
+          content: file.buffer.toString('base64'),
+        },
+      ];
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(emailBody),
+      signal: AbortSignal.timeout(20000),
+    });
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      this.logger.error(`Resend CV reply failed (${response.status}): ${detail}`);
+      throw new BadRequestException(`Email provider error (HTTP ${response.status}): ${detail || 'Failed to send email'}`);
+    }
+
+    if (payload.markResolved !== false) {
+      inquiry.status = InquiryStatus.RESOLVED;
+    }
+    const auditLine = `[CV sent to ${inquiry.email}${file?.originalname ? ` (${file.originalname})` : ''} · ${new Date().toISOString()}]`;
+    inquiry.internalNotes = inquiry.internalNotes ? `${inquiry.internalNotes}\n${auditLine}` : auditLine;
+    const saved = await this.inquiryRepository.save(inquiry);
+
+    return { success: true, inquiry: saved };
   }
 
   async deleteInquiry(id: string): Promise<{ success: boolean; id: string }> {

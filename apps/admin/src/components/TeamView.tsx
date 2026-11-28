@@ -19,6 +19,10 @@ import {
   CheckCircle2,
   XCircle,
   FileText,
+  Upload,
+  Send,
+  X,
+  Paperclip,
 } from 'lucide-react';
 import { TeamMemberItem, TEAM_CATEGORIES } from './TeamMemberDrawer';
 import type { InquiryItem, InquiryStatus } from './LeadsView';
@@ -35,6 +39,8 @@ interface TeamViewProps {
   onReorderMembers?: (reordered: TeamMemberItem[]) => Promise<void>;
   inquiries: InquiryItem[];
   onUpdateInquiryStatus: (id: string, status: InquiryStatus) => Promise<void>;
+  onRefresh?: () => void;
+  triggerFeedback?: (msg: string, type?: 'success' | 'error') => void;
 }
 
 function requestedMember(inquiry: InquiryItem): string {
@@ -281,6 +287,8 @@ export function TeamView({
   onReorderMembers,
   inquiries,
   onUpdateInquiryStatus,
+  onRefresh,
+  triggerFeedback,
 }: TeamViewProps) {
   const [activeSection, setActiveSection] = useState<'members' | 'requests'>('members');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -288,6 +296,65 @@ export function TeamView({
   const [activeCvTab, setActiveCvTab] = useState<'full' | 'structured'>('full');
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [replyModalItem, setReplyModalItem] = useState<InquiryItem | null>(null);
+  const [replySubject, setReplySubject] = useState('');
+  const [replyMessage, setReplyMessage] = useState('');
+  const [replyFile, setReplyFile] = useState<File | null>(null);
+  const [replyMarkResolved, setReplyMarkResolved] = useState(true);
+  const [sendingReply, setSendingReply] = useState(false);
+
+  const openReplyModal = (item: InquiryItem) => {
+    const memberName = requestedMember(item);
+    setReplyModalItem(item);
+    setReplySubject(`Requested CV: ${memberName}`);
+    setReplyMessage(
+      `Hello ${item.fullName},\n\nPlease find the requested CV for ${memberName} attached.\n\nBest regards,\nGeospatial Works`,
+    );
+    setReplyFile(null);
+    setReplyMarkResolved(true);
+  };
+
+  const handleSendCvReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyModalItem || sendingReply) return;
+    if (!replyFile) {
+      triggerFeedback?.('Please attach a CV file (PDF or Word document) before sending.', 'error');
+      return;
+    }
+
+    setSendingReply(true);
+    try {
+      const token =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('gw_admin_jwt') || sessionStorage.getItem('gw_admin_jwt')
+          : null;
+      const formData = new FormData();
+      formData.append('subject', replySubject.trim());
+      formData.append('message', replyMessage.trim());
+      formData.append('markResolved', replyMarkResolved ? 'true' : 'false');
+      formData.append('file', replyFile);
+
+      const res = await fetch(`/api/contact/admin/inquiries/${replyModalItem.id}/reply-cv`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || `Failed to send email (HTTP ${res.status})`);
+      }
+
+      triggerFeedback?.(`CV sent directly to ${replyModalItem.email}!`, 'success');
+      setReplyModalItem(null);
+      setReplyFile(null);
+      onRefresh?.();
+    } catch (err: any) {
+      triggerFeedback?.(err?.message || 'Failed to send CV email.', 'error');
+    } finally {
+      setSendingReply(false);
+    }
+  };
 
   // All distinct categories from data + fallback
   const categories = useMemo(() => {
@@ -360,7 +427,7 @@ export function TeamView({
               <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-widest text-[#2865ba]">Requested CV</p><h3 className="mt-1 text-lg font-bold text-slate-900">{memberName}</h3><p className="mt-1 text-sm text-slate-600">Requested by <strong>{item.fullName}</strong> · {new Date(item.createdAt).toLocaleString()}</p></div><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${item.status === 'RESOLVED' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>{item.status === 'RESOLVED' ? 'Handled' : 'Needs reply'}</span></div>
               <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2"><p><span className="text-slate-500">Email</span><br/><a className="font-semibold text-[#153d7a] hover:underline" href={`mailto:${item.email}`}>{item.email}</a></p>{item.phone && <p><span className="text-slate-500">Phone</span><br/>{item.phone}</p>}</div>
               <p className="mt-3 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{item.message}</p>
-              <div className="mt-4 flex flex-wrap gap-2"><a href={`mailto:${item.email}?subject=${encodeURIComponent(`Requested CV: ${memberName}`)}&body=${encodeURIComponent(`Hello ${item.fullName},\n\nPlease find the requested CV for ${memberName} attached.\n\nBest regards,\nGeospatial Works`)}`} className="inline-flex items-center gap-2 rounded-lg bg-[#153d7a] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#2158a5]"><Mail size={14}/> Reply with CV</a>{member && <button type="button" onClick={() => setPreviewMember(member)} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Eye size={14}/> View team member</button>}{item.status !== 'RESOLVED' && <button type="button" onClick={() => void onUpdateInquiryStatus(item.id, 'RESOLVED')} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 px-3.5 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50"><CheckCircle2 size={14}/> Mark handled</button>}</div>
+              <div className="mt-4 flex flex-wrap gap-2"><button type="button" onClick={() => openReplyModal(item)} className="inline-flex items-center gap-2 rounded-lg bg-[#153d7a] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#2158a5] transition cursor-pointer"><Mail size={14}/> Reply with CV</button>{member && <button type="button" onClick={() => setPreviewMember(member)} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"><Eye size={14}/> View team member</button>}{item.status !== 'RESOLVED' && <button type="button" onClick={() => void onUpdateInquiryStatus(item.id, 'RESOLVED')} className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 px-3.5 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 cursor-pointer"><CheckCircle2 size={14}/> Mark handled</button>}</div>
             </article>;
           })}
         </div>
@@ -746,6 +813,134 @@ export function TeamView({
                 <span>Edit Full Profile</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* =========================================================================
+          REPLY WITH CV MODAL (DIRECT SEND WITH FILE ATTACHMENT)
+          ========================================================================= */}
+      {replyModalItem && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !sendingReply) setReplyModalItem(null);
+          }}
+        >
+          <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Send CV Directly to Requester</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  To: <strong>{replyModalItem.fullName}</strong> &lt;{replyModalItem.email}&gt;
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={sendingReply}
+                onClick={() => setReplyModalItem(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSendCvReply} className="p-5 space-y-4 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Subject</label>
+                <input
+                  type="text"
+                  required
+                  value={replySubject}
+                  onChange={(e) => setReplySubject(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Message</label>
+                <textarea
+                  rows={5}
+                  required
+                  value={replyMessage}
+                  onChange={(e) => setReplyMessage(e.target.value)}
+                  className="w-full p-3 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1.5">Attach CV File *</label>
+                {replyFile ? (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50/50 px-3.5 py-2.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Paperclip size={14} className="text-indigo-600 shrink-0" />
+                      <span className="font-semibold text-slate-900 truncate">{replyFile.name}</span>
+                      <span className="text-[11px] text-slate-500 shrink-0">
+                        ({(replyFile.size / 1024).toFixed(0)} KB)
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setReplyFile(null)}
+                      className="text-rose-600 hover:text-rose-700 font-semibold shrink-0 cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100/80 hover:border-indigo-400 px-4 py-5 cursor-pointer transition">
+                    <Upload size={18} className="text-indigo-600" />
+                    <span className="font-semibold text-slate-800">Click to attach CV (PDF, DOC, DOCX)</span>
+                    <span className="text-[11px] text-slate-500">Max file size 20 MB</span>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) setReplyFile(f);
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+
+              <label className="flex items-center gap-2 text-xs text-slate-700 select-none cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={replyMarkResolved}
+                  onChange={(e) => setReplyMarkResolved(e.target.checked)}
+                  className="h-4 w-4 rounded accent-indigo-600"
+                />
+                <span>Mark this CV request as Handled after sending</span>
+              </label>
+
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
+                <a
+                  href={`mailto:${replyModalItem.email}?subject=${encodeURIComponent(replySubject)}&body=${encodeURIComponent(replyMessage)}`}
+                  className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 underline"
+                >
+                  Open in Mail App instead
+                </a>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={sendingReply}
+                    onClick={() => setReplyModalItem(null)}
+                    className="px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold hover:bg-slate-100 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={sendingReply || !replyFile}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#153d7a] hover:bg-[#2158a5] text-white font-bold shadow-xs transition cursor-pointer disabled:opacity-50"
+                  >
+                    <Send size={13} />
+                    <span>{sendingReply ? 'Sending...' : 'Send Email with CV'}</span>
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

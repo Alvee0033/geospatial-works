@@ -1,5 +1,7 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { ContactService } from './contact.service';
 import { CreateInquiryDto } from './dto/contact.dto';
 import { InquiryStatus } from '../../entities/contact-inquiry.entity';
@@ -40,6 +42,36 @@ export class ContactController {
     @Body('internalNotes') internalNotes?: string,
   ) {
     return this.contactService.updateStatus(id, status, internalNotes);
+  }
+
+  @Post('admin/inquiries/:id/reply-cv')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EDITOR)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Admin: Send direct CV email reply with optional file attachment' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 20 * 1024 * 1024 },
+    }),
+  )
+  async replyWithCv(
+    @Param('id') id: string,
+    @Body('subject') subject?: string,
+    @Body('message') message?: string,
+    @Body('markResolved') markResolved?: string,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.contactService.replyWithCv(
+      id,
+      {
+        subject,
+        message,
+        markResolved: markResolved !== 'false',
+      },
+      file,
+    );
   }
 
   @Delete('admin/inquiries/:id')

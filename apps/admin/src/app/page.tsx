@@ -1522,6 +1522,8 @@ export default function AdminPage() {
               teamMembers={teamMembers}
               inquiries={inquiries}
               onUpdateInquiryStatus={handleUpdateInquiryStatus}
+              onRefresh={loadAllData}
+              triggerFeedback={triggerFeedback}
               loading={loading}
               searchQuery={searchQuery}
               onOpenCreateDrawer={openCreateTeamDrawer}
