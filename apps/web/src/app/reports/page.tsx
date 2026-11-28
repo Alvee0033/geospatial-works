@@ -11,39 +11,46 @@ import { getWorkLocation, type AttendanceWorkLocation } from '@/lib/attendanceDa
 import { readPageCache, writePageCache } from '@/lib/pageCache';
 import { mergeSettledData } from '@/lib/liveDataCache.mjs';
 
-type Kind = 'financial' | 'expenses' | 'tasks' | 'leaves' | 'attendance' | 'payroll';
+type Kind = 'financial' | 'expenses' | 'tasks' | 'leaves' | 'attendance' | 'payroll' | 'audit';
 type Format = 'csv' | 'xlsx' | 'pdf' | 'docx';
 type Row = Record<string, unknown>;
 type ReportsPageCache = { data: Record<Kind, Row[]>; projects: Row[]; users: Row[] };
+
 const kinds: { id: Kind; label: string }[] = [
-  { id: 'financial', label: 'Project financials' }, { id: 'expenses', label: 'Expenses' },
-  { id: 'tasks', label: 'Tasks' }, { id: 'leaves', label: 'Leave requests' },
-  { id: 'attendance', label: 'Attendance' }, { id: 'payroll', label: 'Payroll & Salary' },
+  { id: 'financial', label: 'Project Financials' },
+  { id: 'expenses', label: 'Expenses' },
+  { id: 'tasks', label: 'Tasks' },
+  { id: 'leaves', label: 'Leave Requests' },
+  { id: 'attendance', label: 'Attendance' },
+  { id: 'payroll', label: 'Payroll & Salary' },
+  { id: 'audit', label: 'Audit Logs' },
 ];
+
 const columns: Record<Kind, { key: string; label: string }[]> = {
   financial: [
     { key: 'projectName', label: 'Project' },
     { key: 'client', label: 'Client' },
-    { key: 'grossProjectValue', label: 'Contract value' },
+    { key: 'grossProjectValue', label: 'Total Project Value' },
     { key: 'budget', label: 'Budget' },
     { key: 'totalReceived', label: 'Received' },
-    { key: 'amountReceivable', label: 'Remaining' },
-    { key: 'officeBenefit', label: 'Office benefit 30%' },
-    { key: 'totalSpent', label: 'Total spent' },
-    { key: 'expenseRatio', label: 'Expense ratio' },
-    { key: 'netMargin', label: 'Net margin' },
+    { key: 'amountReceivable', label: 'Receivable' },
+    { key: 'officeBenefit', label: 'Office Benefit' },
+    { key: 'totalSpent', label: 'Total Spent' },
+    { key: 'expenseRatio', label: 'Expense Ratio' },
+    { key: 'netRevenue', label: 'Net Revenue' },
+    { key: 'netMarginPct', label: 'Margin' },
     { key: 'status', label: 'Status' },
   ],
   expenses: [
     { key: 'date', label: 'Date' },
     { key: 'projectName', label: 'Project' },
     { key: 'categoryName', label: 'Category' },
-    { key: 'employeeName', label: 'Submitted by' },
+    { key: 'employeeName', label: 'Submitted By' },
     { key: 'baseCost', label: 'Base Cost' },
-    { key: 'taxVat', label: 'VAT/Tax' },
+    { key: 'taxVat', label: 'VAT / Tax' },
     { key: 'amount', label: 'Total Amount' },
-    { key: 'receiptInfo', label: 'Receipt status' },
-    { key: 'details', label: 'Details/Meal info' },
+    { key: 'receiptInfo', label: 'Receipt Status' },
+    { key: 'details', label: 'Details / Meal Info' },
     { key: 'justificationStatus', label: 'Justification' },
     { key: 'status', label: 'Status' },
     { key: 'rejectionReason', label: 'Rejection Reason' },
@@ -51,16 +58,16 @@ const columns: Record<Kind, { key: string; label: string }[]> = {
   tasks: [
     { key: 'title', label: 'Task' },
     { key: 'projectName', label: 'Project' },
-    { key: 'assigneeName', label: 'Assigned to' },
-    { key: 'dueDate', label: 'Due date' },
+    { key: 'assigneeName', label: 'Assigned To' },
+    { key: 'dueDate', label: 'Due Date' },
     { key: 'priority', label: 'Priority' },
     { key: 'status', label: 'Status' },
   ],
   leaves: [
     { key: 'employeeName', label: 'Employee' },
-    { key: 'leaveType', label: 'Type' },
-    { key: 'startDate', label: 'From' },
-    { key: 'endDate', label: 'To' },
+    { key: 'leaveType', label: 'Leave Type' },
+    { key: 'startDate', label: 'From Date' },
+    { key: 'endDate', label: 'To Date' },
     { key: 'totalDays', label: 'Days' },
     { key: 'reason', label: 'Reason' },
     { key: 'status', label: 'Status' },
@@ -70,11 +77,11 @@ const columns: Record<Kind, { key: string; label: string }[]> = {
     { key: 'employeeName', label: 'Employee' },
     { key: 'department', label: 'Department' },
     { key: 'sessionType', label: 'Shift' },
-    { key: 'loginTime', label: 'Time' },
-    { key: 'categoryName', label: 'Work mode' },
+    { key: 'loginTime', label: 'Check-in Time' },
+    { key: 'categoryName', label: 'Work Mode' },
     { key: 'status', label: 'Status' },
     { key: 'addressText', label: 'Location' },
-    { key: 'notes', label: 'Notes/Early departure' },
+    { key: 'notes', label: 'Notes / Early Departure' },
   ],
   payroll: [
     { key: 'employeeName', label: 'Employee' },
@@ -86,34 +93,102 @@ const columns: Record<Kind, { key: string; label: string }[]> = {
     { key: 'finalPayableSalary', label: 'Net Payable' },
     { key: 'status', label: 'Status' },
   ],
+  audit: [
+    { key: 'createdAt', label: 'Timestamp' },
+    { key: 'actorName', label: 'Actor' },
+    { key: 'action', label: 'Action' },
+    { key: 'entityType', label: 'Entity' },
+    { key: 'detailsText', label: 'Details' },
+  ],
 };
-const workLocationLabels: Record<AttendanceWorkLocation, string> = { office: 'Office', home: 'Home', home_office: 'Home office', field: 'Field', unknown: 'Unspecified' };
+
+const workLocationLabels: Record<AttendanceWorkLocation, string> = {
+  office: 'Office',
+  home: 'Home',
+  home_office: 'Home Office',
+  field: 'Field',
+  unknown: 'Unspecified',
+};
+
 const workLocationTones: Record<AttendanceWorkLocation, string> = {
-  office: 'bg-indigo-50 text-indigo-700', home: 'bg-violet-50 text-violet-700',
-  home_office: 'bg-sky-50 text-sky-700', field: 'bg-amber-50 text-amber-700', unknown: 'bg-slate-100 text-slate-600',
+  office: 'bg-indigo-50 text-indigo-700',
+  home: 'bg-violet-50 text-violet-700',
+  home_office: 'bg-sky-50 text-sky-700',
+  field: 'bg-amber-50 text-amber-700',
+  unknown: 'bg-slate-100 text-slate-600',
 };
+
 const get = (row: Row | undefined, ...keys: string[]): string => {
   const value = keys.map((key) => row?.[key]).find((item) => item !== undefined && item !== null && item !== '');
   return value === undefined ? '' : String(value);
 };
-const dateLabel = (value: unknown) => { const d = new Date(String(value || '')); return !value || Number.isNaN(d.getTime()) ? String(value || '') : d.toLocaleDateString(); };
+
+const hasNumeric = (row: Row | undefined, ...keys: string[]): number | null => {
+  for (const key of keys) {
+    const val = row?.[key];
+    if (val !== undefined && val !== null && val !== '') {
+      const n = Number(val);
+      if (Number.isFinite(n)) return n;
+    }
+  }
+  return null;
+};
+
+const formatLabel = (value: string): string => {
+  if (!value) return '—';
+  return value
+    .replaceAll('_', ' ')
+    .replaceAll('-', ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const dateLabel = (value: unknown) => {
+  if (!value) return '—';
+  const d = new Date(String(value));
+  return Number.isNaN(d.getTime())
+    ? String(value)
+    : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+const dateTimeLabel = (value: unknown) => {
+  if (!value) return '—';
+  const d = new Date(String(value));
+  return Number.isNaN(d.getTime())
+    ? String(value)
+    : d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
 const timeLabel = (value: unknown) => {
   if (!value) return '—';
   const d = new Date(String(value));
-  return !Number.isNaN(d.getTime()) ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : String(value);
+  return !Number.isNaN(d.getTime()) ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : String(value);
 };
+
+const formatMoneyUi = (amount: number) => `৳${Math.round(amount).toLocaleString('en-US')}`;
+const formatMoneyDoc = (amount: number) => `BDT ${Math.round(amount).toLocaleString('en-US')}`;
 const fileSlug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+
 const isMoneyColumn = (kind: Kind, key: string) =>
-  (kind === 'financial' && ['grossProjectValue', 'totalReceived', 'amountReceivable', 'budget', 'officeBenefit', 'totalSpent'].includes(key)) ||
+  (kind === 'financial' && ['grossProjectValue', 'totalReceived', 'amountReceivable', 'budget', 'officeBenefit', 'totalSpent', 'netRevenue'].includes(key)) ||
   (kind === 'expenses' && ['amount', 'baseCost', 'taxVat'].includes(key)) ||
   (kind === 'payroll' && ['monthlyBaseSalary', 'totalAdditions', 'totalDeductions', 'finalPayableSalary'].includes(key));
+
+const isNumericColumn = (kind: Kind, key: string) =>
+  isMoneyColumn(kind, key) || ['expenseRatio', 'netMarginPct', 'totalDays'].includes(key);
+
+const isTruncatedColumn = (key: string) =>
+  ['projectName', 'client', 'title', 'assigneeName', 'employeeName', 'department', 'designation', 'reason', 'addressText', 'notes', 'details', 'rejectionReason', 'detailsText', 'receiptInfo'].includes(key);
+
 const statusTone = (value: string) => {
   const status = value.toLowerCase();
-  if (['approved', 'completed', 'paid', 'present', 'on track', 'finalized'].some((part) => status.includes(part))) return 'bg-emerald-50 text-emerald-700';
-  if (['pending', 'ongoing', 'in progress', 'late', 'at risk'].some((part) => status.includes(part))) return 'bg-amber-50 text-amber-700';
-  if (['rejected', 'overdue', 'absent', 'off track'].some((part) => status.includes(part))) return 'bg-rose-50 text-rose-700';
+  if (['approved', 'completed', 'paid', 'present', 'on track', 'finalized', 'done'].some((part) => status.includes(part))) return 'bg-emerald-50 text-emerald-700';
+  if (['pending', 'ongoing', 'in progress', 'in_progress', 'late', 'at risk'].some((part) => status.includes(part))) return 'bg-amber-50 text-amber-700';
+  if (['rejected', 'overdue', 'absent', 'off track', 'high'].some((part) => status.includes(part))) return 'bg-rose-50 text-rose-700';
   return 'bg-slate-100 text-slate-600';
 };
+
 const exportTone: Record<Format, string> = {
   csv: 'border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100',
   xlsx: 'border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100',
@@ -131,8 +206,11 @@ const kpiToneStyles: Record<string, { border: string; text: string; dot: string 
 };
 
 export default function ReportsPage() {
+  const currentYear = new Date().getFullYear();
   const [kind, setKind] = useState<Kind>('financial');
-  const [data, setData] = useState<Record<Kind, Row[]>>({ financial: [], expenses: [], tasks: [], leaves: [], attendance: [], payroll: [] });
+  const [data, setData] = useState<Record<Kind, Row[]>>({
+    financial: [], expenses: [], tasks: [], leaves: [], attendance: [], payroll: [], audit: [],
+  });
   const [projects, setProjects] = useState<Row[]>([]);
   const [users, setUsers] = useState<Row[]>([]);
   const [filters, setFilters] = useState<ReportFilters>({});
@@ -140,14 +218,13 @@ export default function ReportsPage() {
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState(false);
   const [reportMonth, setReportMonth] = useState(() => new Date().getMonth() + 1);
-  const [reportYear, setReportYear] = useState(() => new Date().getFullYear());
+  const [reportYear, setReportYear] = useState(() => currentYear);
   const refreshSequence = useRef(0);
 
   const refresh = async (silent = false) => {
     const sequence = ++refreshSequence.current;
     if (!silent) setLoading(true);
     setError('');
-    // Load the selected attendance range; the default view covers the recent 90 days.
     const now = new Date();
     const pastDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
     const defaultFrom = pastDate.toISOString().slice(0, 10);
@@ -162,11 +239,23 @@ export default function ReportsPage() {
       ApiClient.getAttendance({ from: fromStr, to: toStr }),
       ApiClient.getUsers(),
       ApiClient.getSalaryReport(reportMonth, reportYear),
+      ApiClient.getAuditLogs(),
     ]);
     if (sequence !== refreshSequence.current) return;
     const merged = mergeSettledData(
-      { projects, expenses: data.expenses, tasks: data.tasks, leaves: data.leaves, attendance: data.attendance, users },
-      Object.fromEntries(['projects', 'expenses', 'tasks', 'leaves', 'attendance', 'users'].map((key, index) => [key, requests[index]])),
+      {
+        projects,
+        expenses: data.expenses,
+        tasks: data.tasks,
+        leaves: data.leaves,
+        attendance: data.attendance,
+        users,
+        audit: data.audit,
+      },
+      Object.fromEntries(['projects', 'expenses', 'tasks', 'leaves', 'attendance', 'users', 'audit'].map((key, index) => [
+        key,
+        requests[index === 6 ? 7 : index],
+      ])),
     );
     const p = merged.data.projects as Row[];
     const e = merged.data.expenses as Row[];
@@ -174,6 +263,7 @@ export default function ReportsPage() {
     const l = merged.data.leaves as Row[];
     const a = merged.data.attendance as Row[];
     const u = merged.data.users as Row[];
+    const auditRaw = merged.data.audit as Row[];
     const salaryResult = requests[6].status === 'fulfilled' ? requests[6].value : null;
     const salaryList = (salaryResult?.employees || []) as Row[];
 
@@ -181,6 +271,7 @@ export default function ReportsPage() {
     const userById = new Map(u.map((row) => [get(row, 'id'), row]));
     const projectName = (row: Row) => get(row, 'projectName', 'project_name') || get(projectById.get(String(get(row, 'projectId', 'project_id'))), 'name');
     const userName = (row: Row, ...idKeys: string[]) => get(row, 'employeeName', 'employee_name', 'userName', 'user_name', 'assigneeName', 'assignee_name') || get(userById.get(String(get(row, ...idKeys))), 'name', 'full_name');
+
     const taskAssignees = (row: Row) => {
       const source = row.assignees ?? row.assigneeIds ?? row.assignee_ids;
       const values = Array.isArray(source) ? source : [];
@@ -195,42 +286,56 @@ export default function ReportsPage() {
       }
       return members;
     };
+
     const nextData: Record<Kind, Row[]> = {
       financial: p.map((row) => {
         const projId = get(row, 'id');
-        const projGrossVal = Number(get(row, 'grossProjectValue', 'gross_project_value', 'budget')) || 0;
-        const projBudget = Number(get(row, 'budget')) || 0;
-        const projReceived = Number(get(row, 'amountReceived', 'amount_received', 'totalReceived', 'total_received')) || 0;
-        const projRemaining = Number(get(row, 'amountReceivable', 'amount_receivable')) || Math.max(0, projGrossVal - projReceived);
+        const projGrossVal = hasNumeric(row, 'grossProjectValue', 'gross_project_value') ?? 0;
+        const projBudget = hasNumeric(row, 'budget') ?? 0;
+        const projReceived = hasNumeric(row, 'amountReceived', 'amount_received', 'totalReceived', 'total_received') ?? 0;
+        const explicitReceivable = hasNumeric(row, 'amountReceivable', 'amount_receivable');
+        const projReceivable = explicitReceivable !== null ? explicitReceivable : Math.max(0, projGrossVal - projReceived);
 
-        // Calculate approved expenses for this project
-        const projExpenses = e.filter((exp) => String(get(exp, 'projectId', 'project_id')) === String(projId) && String(get(exp, 'status')).toLowerCase() === 'approved');
+        const taxStatus = String(get(row, 'taxStatus', 'tax_status') || 'included').toLowerCase();
+        const rawTaxRate = hasNumeric(row, 'taxRate', 'tax_rate') ?? 0.10;
+        const rawIncomeTaxRate = hasNumeric(row, 'incomeTaxRate', 'income_tax_rate') ?? 0;
+        const vatPct = rawTaxRate > 1 ? rawTaxRate / 100 : rawTaxRate;
+        const itPct = rawIncomeTaxRate > 1 ? rawIncomeTaxRate / 100 : rawIncomeTaxRate;
+        const taxWithheld = taxStatus === 'included' ? Math.round(projGrossVal * Math.min(1, vatPct + itPct)) : 0;
+        const projectValueAfterTax = Math.max(0, projGrossVal - taxWithheld);
+
+        const projExpenses = e.filter(
+          (exp) => String(get(exp, 'projectId', 'project_id')) === String(projId) &&
+            ['approved', 'paid'].includes(String(get(exp, 'status')).toLowerCase()),
+        );
         const totalSpent = projExpenses.reduce((sum, exp) => sum + (Number(get(exp, 'amount')) || 0), 0);
 
-        // Office benefit 30%
-        const officeBenefitRate = Number(get(row, 'officeBenefitRate', 'office_benefit_rate')) || 0.30;
-        const officeBenefit = Math.round((projBudget || projGrossVal) * officeBenefitRate);
+        const rawBenefitRate = hasNumeric(row, 'officeBenefitRate', 'office_benefit_rate');
+        const benefitRate = rawBenefitRate !== null ? (rawBenefitRate > 1 ? rawBenefitRate / 100 : rawBenefitRate) : 0.30;
+        const officeBenefit = Math.round((projBudget || projGrossVal) * benefitRate);
 
-        // Expense ratio
         const expenseRatio = projBudget > 0 ? Math.round((totalSpent / projBudget) * 100) : (projGrossVal > 0 ? Math.round((totalSpent / projGrossVal) * 100) : 0);
 
-        // Net margin
-        const netMarginVal = projGrossVal > 0 ? (projGrossVal - totalSpent) : (projGrossVal - projBudget);
-        const netMarginPct = projGrossVal > 0 ? Math.round((netMarginVal / projGrossVal) * 100) : 0;
+        // Net Revenue = Profit remaining after subtracting project cost from after-tax project value
+        const netRevenue = Math.max(0, projectValueAfterTax - totalSpent);
+        const netMarginPct = projectValueAfterTax > 0 ? Math.round((netRevenue / projectValueAfterTax) * 100) : 0;
 
         return {
           ...row,
+          date: get(row, 'startDate', 'start_date', 'createdAt', 'created_at'),
           projectId: projId,
           projectName: get(row, 'name') || 'Project',
           client: get(row, 'client', 'client_name') || 'Internal',
           grossProjectValue: projGrossVal,
-          budget: projBudget || '—',
+          projectValueAfterTax,
+          budget: projBudget,
           totalReceived: projReceived,
-          amountReceivable: projRemaining,
+          amountReceivable: projReceivable,
           officeBenefit,
           totalSpent,
           expenseRatio: `${expenseRatio}%`,
-          netMargin: `${netMarginPct}% (৳${netMarginVal.toLocaleString('en-US')})`,
+          netRevenue,
+          netMarginPct: `${netMarginPct}%`,
           status: get(row, 'status') || 'ongoing',
         };
       }),
@@ -239,30 +344,32 @@ export default function ReportsPage() {
         const taxAmt = Number(get(row, 'taxAmount', 'tax_amount')) || 0;
         const totalTaxVat = vatAmt + taxAmt;
         const grossAmount = Number(get(row, 'amount')) || 0;
-        const explicitBase = get(row, 'baseCost', 'base_cost');
-        const baseCost = explicitBase !== '' && explicitBase !== undefined && explicitBase !== null
-          ? Number(explicitBase)
-          : (grossAmount > totalTaxVat ? grossAmount - totalTaxVat : grossAmount);
+        const explicitBase = hasNumeric(row, 'baseCost', 'base_cost');
+        const baseCost = explicitBase !== null ? explicitBase : Math.max(0, grossAmount - totalTaxVat);
 
         const food = row.foodDetails as Row | undefined;
         let foodStr = '';
         if (food) {
-          foodStr = [food.mealType, food.numberOfPeople ? `${food.numberOfPeople} pers.` : ''].filter(Boolean).join(' • ');
+          foodStr = [food.mealType, food.numberOfPeople ? `${food.numberOfPeople} people` : ''].filter(Boolean).join(' • ');
         }
         const note = get(row, 'note', 'description');
         const combinedDetails = [foodStr, note].filter(Boolean).join(' — ') || '—';
 
         const photos = Array.isArray(row.receiptPhotos) ? row.receiptPhotos : (Array.isArray(row.receiptPhotoUrls) ? row.receiptPhotoUrls : []);
         const photoCount = photos.length || (row.receiptPhotoUrl || row.hasReceipt ? 1 : 0);
-        const receiptStr = photoCount > 0 ? `Attached (${photoCount} ${photoCount > 1 ? 'photos' : 'photo'})` : 'No receipt';
+        const receiptStr = photoCount > 0 ? `Attached (${photoCount})` : 'No receipt';
 
         const justStatus = get(row, 'justificationStatus', 'justification_status') || 'none';
-        const justificationText = justStatus === 'none' ? 'Not Required' : justStatus === 'required' ? 'Required' : justStatus === 'submitted' ? 'Pending Review' : justStatus === 'approved' ? 'Approved' : justStatus === 'rejected' ? 'Rejected' : justStatus;
+        const justificationText = justStatus === 'none' ? 'Not Required' : justStatus === 'required' ? 'Required' : justStatus === 'submitted' ? 'Pending Review' : formatLabel(justStatus);
+
+        const rawProjId = get(row, 'projectId', 'project_id');
+        const expType = get(row, 'expenseType', 'expense_type') || (rawProjId ? 'project' : 'office');
 
         return {
           ...row,
           date: get(row, 'date', 'createdAt', 'created_at'),
-          projectName: projectName(row) || (get(row, 'projectId', 'project_id') ? 'Project unavailable' : 'Office expense'),
+          expenseType: expType,
+          projectName: projectName(row) || (rawProjId ? 'Project unavailable' : 'Office Expense'),
           employeeName: userName(row, 'employeeId', 'employee_id', 'userId', 'user_id') || 'Staff',
           categoryName: get(row, 'categoryName', 'category_name', 'category') || 'General',
           baseCost,
@@ -281,20 +388,38 @@ export default function ReportsPage() {
           ...row,
           dueDate: get(row, 'dueDate', 'due_date'),
           date: get(row, 'createdAt', 'created_at', 'dueDate', 'due_date'),
-          projectName: projectName(row),
+          projectName: projectName(row) || '—',
           assignees,
           assigneeIds: assignees.map((person) => person.id),
           assigneeName: assignees.map((person) => person.name).filter(Boolean).join(', ') || 'Unassigned',
           priority: get(row, 'priority') || 'Medium',
+          status: get(row, 'status') || 'pending',
         };
       }),
-      leaves: l.map((row) => ({
-        ...row,
-        date: get(row, 'startDate', 'start_date'),
-        employeeName: userName(row, 'userId', 'user_id', 'employeeId', 'employee_id'),
-        reason: get(row, 'reason') || '—',
-        status: get(row, 'status') || (row.isApproved || row.is_approved ? 'approved' : 'pending'),
-      })),
+      leaves: l.map((row) => {
+        const startStr = get(row, 'startDate', 'start_date');
+        const endStr = get(row, 'endDate', 'end_date') || startStr;
+        const explicitDays = hasNumeric(row, 'totalDays', 'days', 'total_days');
+        let computedDays = explicitDays;
+        if (computedDays === null && startStr) {
+          const s = new Date(startStr);
+          const en = new Date(endStr);
+          if (!Number.isNaN(s.getTime()) && !Number.isNaN(en.getTime())) {
+            computedDays = Math.max(1, Math.round((en.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+          }
+        }
+        return {
+          ...row,
+          date: startStr,
+          startDate: startStr,
+          endDate: endStr,
+          totalDays: computedDays ?? 1,
+          leaveType: formatLabel(get(row, 'leaveType', 'leave_type') || 'casual'),
+          employeeName: userName(row, 'userId', 'user_id', 'employeeId', 'employee_id') || 'Employee',
+          reason: get(row, 'reason') || '—',
+          status: get(row, 'status') || (row.isApproved || row.is_approved ? 'approved' : 'pending'),
+        };
+      }),
       attendance: a.map((row) => {
         const rawTime = get(row, 'loginTime', 'login_time', 'checkInTime', 'check_in_time');
         const rawShift = get(row, 'sessionType', 'session_type', 'shift');
@@ -306,7 +431,7 @@ export default function ReportsPage() {
           row.is_late ||
           Number(row.lateMinutes ?? row.late_minutes ?? 0) > 0 ||
           String(rawStatus).toLowerCase().includes('late') ||
-          String(row.notes ?? '').toLowerCase().includes('late')
+          String(row.notes ?? '').toLowerCase().includes('late'),
         );
         const resolvedStatus = isLate && (!rawStatus || String(rawStatus).toLowerCase() === 'present') ? 'late' : rawStatus ? String(rawStatus).toLowerCase() : 'present';
         const addr = get(row, 'addressText', 'address_text', 'location', 'place', 'workLocation');
@@ -338,59 +463,129 @@ export default function ReportsPage() {
         status: emp.isConfirmed || emp.is_confirmed ? 'Finalized' : 'Pending Confirmation',
         date: `${reportYear}-${String(reportMonth).padStart(2, '0')}-01`,
       })),
+      audit: auditRaw.map((log) => {
+        const rawDetails = log.details;
+        const detailsText = typeof rawDetails === 'string'
+          ? rawDetails
+          : rawDetails && typeof rawDetails === 'object'
+            ? Object.entries(rawDetails as Record<string, unknown>).map(([k, v]) => `${k}: ${String(v)}`).join(' · ')
+            : '—';
+        return {
+          ...log,
+          date: get(log, 'createdAt', 'created_at'),
+          createdAt: get(log, 'createdAt', 'created_at'),
+          actorName: get(log, 'actorName', 'actor_name', 'userName', 'user_name') || userName(log, 'userId', 'user_id', 'actorId', 'actor_id') || 'System',
+          action: formatLabel(get(log, 'action') || 'Event'),
+          entityType: formatLabel(get(log, 'entityType', 'entity_type') || 'Record'),
+          status: get(log, 'action') || 'logged',
+          detailsText: detailsText || '—',
+        };
+      }),
     };
+
     setProjects(p);
     setUsers(u);
     setData(nextData);
-    if (merged.failed.length === 0 && requests[6].status === 'fulfilled') writePageCache<ReportsPageCache>('reports', { data: nextData, projects: p, users: u });
+    if (merged.failed.length === 0 && requests[6].status === 'fulfilled') {
+      writePageCache<ReportsPageCache>('reports', { data: nextData, projects: p, users: u });
+    }
     const failed = [...merged.failed, ...(requests[6].status === 'rejected' ? ['payroll'] : [])];
-    if (failed.length) setError('Could not refresh ' + failed.map((key) => key === 'users' ? 'employees' : key).join(', ') + '. Showing the last records received from the server where available.');
+    if (failed.length) {
+      setError('Could not refresh ' + failed.map((key) => (key === 'users' ? 'employees' : key)).join(', ') + '. Showing the last records received from the server.');
+    }
     setLoading(false);
   };
+
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
+
   useEffect(() => {
     const cached = readPageCache<ReportsPageCache>('reports');
     if (cached) {
-      setData(cached.data);
-      setProjects(cached.projects);
-      setUsers(cached.users);
+      setData((prev) => ({ ...prev, ...cached.data }));
+      setProjects(cached.projects || []);
+      setUsers(cached.users || []);
     }
     void refreshRef.current(true);
-    return ApiClient.subscribeToDataRefresh(() => { void refreshRef.current(true); });
+    return ApiClient.subscribeToDataRefresh(() => {
+      void refreshRef.current(true);
+    });
   }, []);
+
   useEffect(() => {
     if (kind === 'payroll' || (kind === 'attendance' && (filters.from || filters.to))) {
-      queueMicrotask(() => { void refreshRef.current(true); });
+      queueMicrotask(() => {
+        void refreshRef.current(true);
+      });
     }
   }, [kind, reportMonth, reportYear, filters.from, filters.to]);
 
   const rows = data[kind];
-  const filtered = useMemo(() => filterReportRows(rows, filters), [rows, filters]);
-  const categoryOptions = [...new Set(rows.map((row) => String(get(row, 'categoryName', 'category_name', 'category', 'leaveType', 'leave_type'))).filter(Boolean))].sort();
-  const statusOptions = [...new Set(rows.map((row) => String(get(row, 'status', 'approvalStatus', 'approval_status'))).filter(Boolean))].sort();
-  const filter = (key: keyof ReportFilters, value: string) => setFilters((current) => ({ ...current, [key]: value && value !== 'all' ? value : undefined }));
+
+  const filtered = useMemo(() => {
+    if (kind === 'leaves' && (filters.from || filters.to)) {
+      const baseFiltered = filterReportRows(rows, { ...filters, from: undefined, to: undefined });
+      return baseFiltered.filter((row) => {
+        const s = String(get(row, 'startDate', 'date')).slice(0, 10);
+        const e = String(get(row, 'endDate', 'startDate', 'date')).slice(0, 10);
+        if (filters.from && e && e < filters.from) return false;
+        if (filters.to && s && s > filters.to) return false;
+        return true;
+      });
+    }
+    return filterReportRows(rows, filters);
+  }, [rows, filters, kind]);
+
+  const categoryOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    rows.forEach((row) => {
+      const val = String(get(row, 'categoryName', 'category_name', 'category', 'leaveType', 'leave_type')).trim();
+      if (val && !map.has(val.toLowerCase())) map.set(val.toLowerCase(), val);
+    });
+    return Array.from(map.values()).sort();
+  }, [rows]);
+
+  const statusOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    rows.forEach((row) => {
+      const val = String(get(row, 'status', 'approvalStatus', 'approval_status')).trim();
+      if (val && !map.has(val.toLowerCase())) map.set(val.toLowerCase(), val);
+    });
+    return Array.from(map.values()).sort();
+  }, [rows]);
+
+  const clientOptions = useMemo(
+    () => [...new Set(data.financial.map((r) => String(get(r, 'client')).trim()).filter(Boolean))].sort(),
+    [data.financial],
+  );
+
+  const departmentOptions = useMemo(
+    () => [...new Set(rows.map((r) => String(get(r, 'department')).trim()).filter((d) => d && d !== '—'))].sort(),
+    [rows],
+  );
+
+  const filter = (key: keyof ReportFilters, value: string) =>
+    setFilters((current) => ({ ...current, [key]: value && value !== 'all' ? value : undefined }));
   const clearFilters = () => setFilters({});
 
-  // Summary KPI Metrics computed for the currently active tab and active filters
   const kpis = useMemo(() => {
     const totalCount = filtered.length;
 
     if (kind === 'financial') {
-      const contractVal = filtered.reduce((acc, r) => acc + (Number(get(r, 'grossProjectValue', 'contract_value')) || 0), 0);
-      const budget = filtered.reduce((acc, r) => acc + (Number(get(r, 'budget')) || 0), 0);
-      const received = filtered.reduce((acc, r) => acc + (Number(get(r, 'totalReceived', 'amount_received', 'amountReceived')) || 0), 0);
-      const receivable = filtered.reduce((acc, r) => acc + (Number(get(r, 'amountReceivable', 'amount_receivable')) || 0), 0);
+      const contractVal = filtered.reduce((acc, r) => acc + (Number(r.grossProjectValue) || 0), 0);
+      const budget = filtered.reduce((acc, r) => acc + (Number(r.budget) || 0), 0);
+      const received = filtered.reduce((acc, r) => acc + (Number(r.totalReceived) || 0), 0);
+      const receivable = filtered.reduce((acc, r) => acc + (Number(r.amountReceivable) || 0), 0);
       const spentTotal = filtered.reduce((acc, r) => acc + (Number(r.totalSpent) || 0), 0);
-      const officeBenefitTotal = filtered.reduce((acc, r) => acc + (Number(r.officeBenefit) || 0), 0);
+      const netRevTotal = filtered.reduce((acc, r) => acc + (Number(r.netRevenue) || 0), 0);
 
       return [
-        { label: 'Total Projects', value: totalCount.toString(), helper: `Portfolio count`, tone: 'slate' },
-        { label: 'Contract Value', value: `৳${contractVal.toLocaleString('en-US')}`, helper: 'Gross Portfolio Value', tone: 'indigo' },
-        { label: 'Total Budgeted', value: `৳${budget.toLocaleString('en-US')}`, helper: 'Allocated Project Funds', tone: 'sky' },
-        { label: 'Total Received', value: `৳${received.toLocaleString('en-US')}`, helper: 'Realized Inflows', tone: 'emerald' },
-        { label: 'Receivable Balance', value: `৳${receivable.toLocaleString('en-US')}`, helper: 'Pending Receivables', tone: 'amber' },
-        { label: 'Office Benefit (30%)', value: `৳${officeBenefitTotal.toLocaleString('en-US')}`, helper: `Spent: ৳${spentTotal.toLocaleString('en-US')}`, tone: 'violet' },
+        { label: 'Total Projects', value: totalCount.toString(), helper: 'Portfolio count', tone: 'slate' },
+        { label: 'Total Project Value', value: formatMoneyUi(contractVal), helper: 'Gross Contract Value', tone: 'indigo' },
+        { label: 'Total Budgeted', value: formatMoneyUi(budget), helper: 'Allocated Funds', tone: 'sky' },
+        { label: 'Total Received', value: formatMoneyUi(received), helper: `Receivable: ${formatMoneyUi(receivable)}`, tone: 'emerald' },
+        { label: 'Total Spent', value: formatMoneyUi(spentTotal), helper: 'Approved & Paid Costs', tone: 'amber' },
+        { label: 'Net Revenue', value: formatMoneyUi(netRevTotal), helper: 'Profit After Cost & Tax', tone: 'violet' },
       ];
     }
 
@@ -405,9 +600,9 @@ export default function ReportsPage() {
 
       return [
         { label: 'Total Claims', value: totalCount.toString(), helper: `${approvedCount} approved • ${pendingCount} pending`, tone: 'slate' },
-        { label: 'Total Amount', value: `৳${grossAmt.toLocaleString('en-US')}`, helper: 'Gross Expenditures (BDT)', tone: 'emerald' },
-        { label: 'Total Base Cost', value: `৳${baseCost.toLocaleString('en-US')}`, helper: 'Net Direct Cost', tone: 'indigo' },
-        { label: 'Total VAT / Tax', value: `৳${vatTax.toLocaleString('en-US')}`, helper: 'Statutory Deductions', tone: 'violet' },
+        { label: 'Total Amount', value: formatMoneyUi(grossAmt), helper: 'Gross Expenditures (BDT)', tone: 'emerald' },
+        { label: 'Total Base Cost', value: formatMoneyUi(baseCost), helper: 'Net Direct Cost', tone: 'indigo' },
+        { label: 'Total VAT / Tax', value: formatMoneyUi(vatTax), helper: 'Statutory Deductions', tone: 'violet' },
         { label: 'Approval Rate', value: `${approvalRate}%`, helper: `${receiptsAttached} vouchers attached`, tone: 'amber' },
       ];
     }
@@ -445,7 +640,7 @@ export default function ReportsPage() {
     if (kind === 'leaves') {
       const approvedCount = filtered.filter((r) => String(r.status).toLowerCase() === 'approved').length;
       const pendingCount = filtered.filter((r) => String(r.status).toLowerCase() === 'pending').length;
-      const totalDays = filtered.reduce((acc, r) => acc + (Number(get(r, 'totalDays', 'days', 'total_days')) || 1), 0);
+      const totalDays = filtered.reduce((acc, r) => acc + (hasNumeric(r, 'totalDays', 'days', 'total_days') ?? 1), 0);
 
       return [
         { label: 'Total Requests', value: totalCount.toString(), helper: 'Leave submissions', tone: 'slate' },
@@ -455,7 +650,16 @@ export default function ReportsPage() {
       ];
     }
 
-    // payroll
+    if (kind === 'audit') {
+      const uniqueActors = new Set(filtered.map((r) => String(r.actorName || ''))).size;
+      const uniqueEntities = new Set(filtered.map((r) => String(r.entityType || ''))).size;
+      return [
+        { label: 'Audit Events', value: totalCount.toString(), helper: 'Recorded system actions', tone: 'slate' },
+        { label: 'Active Actors', value: uniqueActors.toString(), helper: 'Distinct users', tone: 'indigo' },
+        { label: 'Entity Types', value: uniqueEntities.toString(), helper: 'Affected modules', tone: 'emerald' },
+      ];
+    }
+
     const baseTotal = filtered.reduce((acc, r) => acc + (Number(r.monthlyBaseSalary) || 0), 0);
     const additionsTotal = filtered.reduce((acc, r) => acc + (Number(r.totalAdditions) || 0), 0);
     const deductionsTotal = filtered.reduce((acc, r) => acc + (Number(r.totalDeductions) || 0), 0);
@@ -464,19 +668,22 @@ export default function ReportsPage() {
 
     return [
       { label: 'Employees on Payroll', value: totalCount.toString(), helper: `${finalizedCount} finalized`, tone: 'slate' },
-      { label: 'Total Base Payroll', value: `৳${baseTotal.toLocaleString('en-US')}`, helper: 'Gross Monthly Base', tone: 'indigo' },
-      { label: 'Total Allowances', value: `৳${additionsTotal.toLocaleString('en-US')}`, helper: 'Bonus & Adjustments', tone: 'emerald' },
-      { label: 'Total Deductions', value: `৳${deductionsTotal.toLocaleString('en-US')}`, helper: 'Absence & Penalties', tone: 'amber' },
-      { label: 'Net Payable Salary', value: `৳${payableTotal.toLocaleString('en-US')}`, helper: 'Total Disbursement', tone: 'sky' },
+      { label: 'Total Base Payroll', value: formatMoneyUi(baseTotal), helper: 'Gross Monthly Base', tone: 'indigo' },
+      { label: 'Total Allowances', value: formatMoneyUi(additionsTotal), helper: 'Bonus & Adjustments', tone: 'emerald' },
+      { label: 'Total Deductions', value: formatMoneyUi(deductionsTotal), helper: 'Absence & Penalties', tone: 'amber' },
+      { label: 'Net Payable Salary', value: formatMoneyUi(payableTotal), helper: 'Total Disbursement', tone: 'sky' },
     ];
   }, [filtered, kind]);
 
   const exportRows = async (format: Format, targetRows = filtered) => {
     if (!targetRows.length || exporting) return;
     setExporting(true);
-    const reportTitle = (kinds.find((item) => item.id === kind)?.label || 'Report') + (kind === 'payroll' ? ` — ${new Date(reportYear, reportMonth - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' })}` : '') + ' report';
+    const baseLabel = kinds.find((item) => item.id === kind)?.label || 'Report';
+    const reportTitle = kind === 'payroll'
+      ? `${baseLabel} Report — ${new Date(reportYear, reportMonth - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' })}`
+      : `${baseLabel} Report`;
     const recordName = targetRows.length === 1
-      ? get(targetRows[0], 'projectName', 'title', 'employeeName', 'name', 'id')
+      ? get(targetRows[0], 'projectName', 'title', 'employeeName', 'actorName', 'name', 'id')
       : '';
     const fileName = [fileSlug(reportTitle), recordName && fileSlug(recordName), new Date().toISOString().slice(0, 10)]
       .filter(Boolean)
@@ -488,29 +695,53 @@ export default function ReportsPage() {
       reportColumns.map((column) => {
         const rawVal = row[column.key];
         if (kind === 'attendance' && column.key === 'categoryName') {
-          return workLocationLabels[String(rawVal) as AttendanceWorkLocation] || 'Office';
+          return workLocationLabels[String(rawVal) as AttendanceWorkLocation] || 'Unspecified';
+        }
+        if (column.key === 'createdAt') {
+          return dateTimeLabel(rawVal);
         }
         if (column.key.toLowerCase().includes('date') && !column.key.toLowerCase().includes('update')) {
           return dateLabel(rawVal);
         }
+        if (column.key === 'status' && rawVal) {
+          return formatLabel(String(rawVal));
+        }
         if (isMoneyColumn(kind, column.key)) {
           const num = Number(rawVal);
           if (Number.isFinite(num)) {
-            // For PDF and Word: use standard BDT prefix so no character corruption (? glyph) happens
             if (format === 'pdf' || format === 'docx') {
-              return `BDT ${num.toLocaleString('en-US')}`;
+              return formatMoneyDoc(num);
             }
-            // For Excel: return raw number so Excel understands it's a number
-            if (format === 'xlsx') {
-              return num;
-            }
-            // For CSV: format as number
-            return num;
+            return Math.round(num);
           }
         }
-        return rawVal === null || rawVal === undefined ? '' : String(rawVal);
-      })
+        return rawVal === null || rawVal === undefined || rawVal === '' ? (format === 'pdf' || format === 'docx' ? '—' : '') : String(rawVal);
+      }),
     );
+
+    // Append Totals row when exporting multiple rows with numeric/money columns
+    if (targetRows.length > 1 && ['financial', 'expenses', 'payroll', 'leaves'].includes(kind)) {
+      const totalsRow = reportColumns.map((column, colIdx) => {
+        if (colIdx === 0) return 'Total';
+        if (isMoneyColumn(kind, column.key)) {
+          const sum = targetRows.reduce((acc, r) => acc + (Number(r[column.key]) || 0), 0);
+          return format === 'pdf' || format === 'docx' ? formatMoneyDoc(sum) : Math.round(sum);
+        }
+        if (kind === 'leaves' && column.key === 'totalDays') {
+          const sum = targetRows.reduce((acc, r) => acc + (Number(r[column.key]) || 0), 0);
+          return format === 'pdf' || format === 'docx' ? `${sum} days` : sum;
+        }
+        return '';
+      });
+      values.push(totalsRow);
+    }
+
+    const recordUnit = targetRows.length === 1 ? 'record' : 'records';
+    const subtitle = kind === 'payroll'
+      ? `${targetRows.length} ${recordUnit}  ·  ${new Date(reportYear, reportMonth - 1).toLocaleString('en-US', { month: 'long', year: 'numeric' })}`
+      : kind === 'financial' && !filters.from && !filters.to
+        ? `${targetRows.length} ${recordUnit}  ·  Current Project Financial Snapshot`
+        : `${targetRows.length} ${recordUnit}  ·  ${filters.from || 'All dates'} to ${filters.to || 'today'}`;
 
     try {
       if (format === 'csv') {
@@ -526,25 +757,33 @@ export default function ReportsPage() {
         link.click();
         URL.revokeObjectURL(url);
       } else if (format === 'xlsx') {
-        const excelData = targetRows.map((_, index) =>
-          Object.fromEntries(headings.map((heading, columnIndex) => [heading, values[index][columnIndex]]))
+        const excelData = values.map((rowVals) =>
+          Object.fromEntries(headings.map((heading, columnIndex) => [heading, rowVals[columnIndex]])),
         );
         ExportUtils.exportToExcel(excelData, fileName, reportTitle.slice(0, 31));
       } else if (format === 'pdf') {
         await ExportUtils.exportToPdf(headings, values as string[][], reportTitle, fileName, {
           orientation: headings.length > 6 ? 'landscape' : 'portrait',
-          subtitle: `${targetRows.length} records · ${filters.from || 'All dates'} to ${filters.to || 'today'}`,
+          subtitle,
         });
       } else {
-        await ExportUtils.exportToDocx(reportTitle, [headings, ...(values as string[][])], fileName);
+        await ExportUtils.exportToDocx(reportTitle, [headings, ...values.map((r) => r.map((c) => String(c ?? '')))], fileName, { subtitle });
       }
-      notifyAction(`${targetRows.length === 1 ? 'Record' : `${targetRows.length} records`} exported as ${format === 'xlsx' ? 'Excel' : format.toUpperCase()}.`);
-    } catch (error) {
-      notifyAction(error instanceof Error ? error.message : 'The report could not be exported.', 'error', 'Export failed');
+      notifyAction(`${targetRows.length} ${recordUnit} exported as ${format === 'xlsx' ? 'Excel' : format === 'docx' ? 'Word' : format.toUpperCase()}.`);
+    } catch (err) {
+      notifyAction(err instanceof Error ? err.message : 'The report could not be exported.', 'error', 'Export failed');
     } finally {
       setExporting(false);
     }
   };
+
+  const kpiGridCols = kpis.length >= 6
+    ? 'xl:grid-cols-6'
+    : kpis.length === 5
+      ? 'xl:grid-cols-5'
+      : kpis.length === 3
+        ? 'xl:grid-cols-3'
+        : 'xl:grid-cols-4';
 
   return (
     <AdminLayout title="Reports" subtitle="Clear, exportable views of live business data">
@@ -560,7 +799,7 @@ export default function ReportsPage() {
                   Live Sync
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-slate-500">Filter business records and export detailed audit reports or single rows.</p>
+              <p className="mt-0.5 text-xs text-slate-500">Filter live business records and export formatted audit reports or individual rows.</p>
             </div>
             <button
               type="button"
@@ -605,17 +844,17 @@ export default function ReportsPage() {
         </section>
 
         {/* KPI Metric Chips */}
-        <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <section className={`grid grid-cols-2 gap-2 sm:grid-cols-3 ${kpiGridCols}`}>
           {kpis.map((kpi, idx) => (
             <div
               key={idx}
               className={`rounded-xl border ${kpiToneStyles[kpi.tone]?.border || 'border-slate-200'} bg-white p-3 shadow-xs transition-shadow hover:shadow-sm`}
             >
               <div className="flex items-center justify-between gap-1">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{kpi.label}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{kpi.label}</span>
                 <span className={`h-2 w-2 rounded-full ${kpiToneStyles[kpi.tone]?.dot || 'bg-slate-400'}`} />
               </div>
-              <p className={`mt-1 text-lg font-bold tracking-tight ${kpiToneStyles[kpi.tone]?.text || 'text-slate-900'}`}>
+              <p className={`mt-1 text-lg font-bold tracking-tight tabular-nums ${kpiToneStyles[kpi.tone]?.text || 'text-slate-900'}`}>
                 {kpi.value}
               </p>
               <p className="mt-0.5 truncate text-[10px] text-slate-400">{kpi.helper}</p>
@@ -625,117 +864,242 @@ export default function ReportsPage() {
 
         {/* Filter Controls & Global Export Actions */}
         <section className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-          <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-            <SlidersHorizontal size={14} className="text-emerald-700" />
-            Filters
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+              <SlidersHorizontal size={14} className="text-emerald-700" />
+              Filters
+            </div>
+            {kind === 'attendance' && !filters.from && !filters.to && (
+              <span className="text-[10px] font-medium text-slate-400">Default window: Last 90 days</span>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
-            {kind === 'payroll' ? <>
-              <label className="text-[11px] font-medium text-slate-500">Month
-                <select aria-label="Payroll month" value={reportMonth} onChange={(event) => setReportMonth(Number(event.target.value))} className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700">
-                  {Array.from({ length: 12 }, (_, index) => <option key={index} value={index + 1}>{new Date(2024, index).toLocaleString('en-US', { month: 'long' })}</option>)}
+            {kind === 'payroll' ? (
+              <>
+                <label className="text-[11px] font-medium text-slate-500">
+                  Month
+                  <select aria-label="Payroll month" value={reportMonth} onChange={(e) => setReportMonth(Number(e.target.value))} className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700">
+                    {Array.from({ length: 12 }, (_, index) => (
+                      <option key={index} value={index + 1}>{new Date(2024, index).toLocaleString('en-US', { month: 'long' })}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-[11px] font-medium text-slate-500">
+                  Year
+                  <select aria-label="Payroll year" value={reportYear} onChange={(e) => setReportYear(Number(e.target.value))} className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700">
+                    {[currentYear - 2, currentYear - 1, currentYear, currentYear + 1].map((value) => (
+                      <option key={value} value={value}>{value}</option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            ) : (
+              <>
+                <label className="text-[11px] font-medium text-slate-500">
+                  From Date
+                  <input
+                    aria-label="From date"
+                    type="date"
+                    value={filters.from || ''}
+                    onChange={(e) => filter('from', e.target.value)}
+                    className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none focus:border-emerald-400"
+                  />
+                </label>
+                <label className="text-[11px] font-medium text-slate-500">
+                  To Date
+                  <input
+                    aria-label="To date"
+                    type="date"
+                    value={filters.to || ''}
+                    onChange={(e) => filter('to', e.target.value)}
+                    className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none focus:border-emerald-400"
+                  />
+                </label>
+              </>
+            )}
+
+            {['financial', 'expenses', 'tasks'].includes(kind) && (
+              <label className="text-[11px] font-medium text-slate-500">
+                Project
+                <select
+                  aria-label="Project"
+                  value={filters.projectId || 'all'}
+                  onChange={(e) => filter('projectId', e.target.value)}
+                  className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
+                >
+                  <option value="all">All projects</option>
+                  {projects.map((p) => (
+                    <option key={get(p, 'id')} value={get(p, 'id')}>
+                      {get(p, 'name', 'projectName')}
+                    </option>
+                  ))}
                 </select>
               </label>
-              <label className="text-[11px] font-medium text-slate-500">Year
-                <select aria-label="Payroll year" value={reportYear} onChange={(event) => setReportYear(Number(event.target.value))} className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700">
-                  {[reportYear - 2, reportYear - 1, reportYear, reportYear + 1].map((value) => <option key={value} value={value}>{value}</option>)}
+            )}
+
+            {kind === 'financial' && (
+              <label className="text-[11px] font-medium text-slate-500">
+                Client
+                <select
+                  aria-label="Client"
+                  value={filters.client || 'all'}
+                  onChange={(e) => filter('client', e.target.value)}
+                  className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
+                >
+                  <option value="all">All clients</option>
+                  {clientOptions.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
                 </select>
               </label>
-            </> : kind === 'financial' ? <p className="col-span-2 self-end text-xs text-slate-500">Current project financial snapshot</p> : <>
+            )}
+
+            {!['financial', 'audit'].includes(kind) && (
+              <label className="text-[11px] font-medium text-slate-500">
+                {kind === 'tasks' ? 'Assignee' : 'Employee'}
+                <select
+                  aria-label="Employee"
+                  value={filters.userId || 'all'}
+                  onChange={(e) => filter('userId', e.target.value)}
+                  className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
+                >
+                  <option value="all">All employees</option>
+                  {users.map((u) => (
+                    <option key={get(u, 'id')} value={get(u, 'id')}>
+                      {get(u, 'name', 'full_name', 'email')}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
+            {['attendance', 'payroll'].includes(kind) && departmentOptions.length > 0 && (
+              <label className="text-[11px] font-medium text-slate-500">
+                Department
+                <select
+                  aria-label="Department"
+                  value={filters.department || 'all'}
+                  onChange={(e) => filter('department', e.target.value)}
+                  className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
+                >
+                  <option value="all">All departments</option>
+                  {departmentOptions.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+
+            {kind === 'attendance' && (
+              <label className="text-[11px] font-medium text-slate-500">
+                Shift
+                <select
+                  aria-label="Shift"
+                  value={filters.shift || 'all'}
+                  onChange={(e) => filter('shift', e.target.value)}
+                  className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
+                >
+                  <option value="all">All shifts</option>
+                  <option value="morning">Morning Shift</option>
+                  <option value="afternoon">Afternoon Shift</option>
+                </select>
+              </label>
+            )}
+
+            {kind === 'expenses' && (
+              <>
+                <label className="text-[11px] font-medium text-slate-500">
+                  Expense Type
+                  <select
+                    aria-label="Expense type"
+                    value={filters.expenseType || 'all'}
+                    onChange={(e) => filter('expenseType', e.target.value)}
+                    className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
+                  >
+                    <option value="all">All types</option>
+                    <option value="project">Project Expense</option>
+                    <option value="office">Office Expense</option>
+                  </select>
+                </label>
+                <label className="text-[11px] font-medium text-slate-500">
+                  Receipt
+                  <select
+                    aria-label="Receipt status"
+                    value={filters.receiptStatus || 'all'}
+                    onChange={(e) => filter('receiptStatus', e.target.value)}
+                    className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
+                  >
+                    <option value="all">All receipts</option>
+                    <option value="attached">Attached</option>
+                    <option value="missing">No receipt</option>
+                  </select>
+                </label>
+              </>
+            )}
+
+            {kind === 'tasks' && (
+              <label className="text-[11px] font-medium text-slate-500">
+                Priority
+                <select
+                  aria-label="Priority"
+                  value={filters.priority || 'all'}
+                  onChange={(e) => filter('priority', e.target.value)}
+                  className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
+                >
+                  <option value="all">All priorities</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </label>
+            )}
+
             <label className="text-[11px] font-medium text-slate-500">
-              From
-              <input
-                aria-label="From date"
-                type="date"
-                value={filters.from || ''}
-                onChange={(e) => filter('from', e.target.value)}
-                className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none focus:border-emerald-400"
-              />
-            </label>
-            <label className="text-[11px] font-medium text-slate-500">
-              To
-              <input
-                aria-label="To date"
-                type="date"
-                value={filters.to || ''}
-                onChange={(e) => filter('to', e.target.value)}
-                className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none focus:border-emerald-400"
-              />
-            </label>
-            </>}
-            {['financial', 'expenses', 'tasks'].includes(kind) && <label className="text-[11px] font-medium text-slate-500">
-              Project
-              <select
-                aria-label="Project"
-                value={filters.projectId || 'all'}
-                onChange={(e) => filter('projectId', e.target.value)}
-                className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
-              >
-                <option value="all">All projects</option>
-                {projects.map((p) => (
-                  <option key={get(p, 'id')} value={get(p, 'id')}>
-                    {get(p, 'name', 'projectName')}
-                  </option>
-                ))}
-              </select>
-            </label>}
-            {kind !== 'financial' && <label className="text-[11px] font-medium text-slate-500">
-              Employee
-              <select
-                aria-label="Employee"
-                value={filters.userId || 'all'}
-                onChange={(e) => filter('userId', e.target.value)}
-                className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
-              >
-                <option value="all">All employees</option>
-                {users.map((u) => (
-                  <option key={get(u, 'id')} value={get(u, 'id')}>
-                    {get(u, 'name', 'full_name', 'email')}
-                  </option>
-                ))}
-              </select>
-            </label>}
-            <label className="text-[11px] font-medium text-slate-500">
-              Status
+              {kind === 'audit' ? 'Action' : 'Status'}
               <select
                 aria-label="Status"
                 value={filters.status || 'all'}
                 onChange={(e) => filter('status', e.target.value)}
                 className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
               >
-                <option value="all">All statuses</option>
+                <option value="all">{kind === 'audit' ? 'All actions' : 'All statuses'}</option>
                 {statusOptions.map((status) => (
-                  <option key={status}>{status}</option>
+                  <option key={status} value={status}>{formatLabel(status)}</option>
                 ))}
               </select>
             </label>
-            {['expenses', 'leaves', 'attendance'].includes(kind) && <label className="text-[11px] font-medium text-slate-500">
-              {kind === 'attendance' ? 'Work location' : kind === 'leaves' ? 'Leave type' : 'Category'}
-              <select
-                aria-label={kind === 'attendance' ? 'Work location' : kind === 'leaves' ? 'Leave type' : 'Category'}
-                value={filters.category || 'all'}
-                onChange={(e) => filter('category', e.target.value)}
-                className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
-              >
-                <option value="all">
-                  {kind === 'attendance' ? 'All work locations' : kind === 'leaves' ? 'All leave types' : 'All categories'}
-                </option>
-                {categoryOptions.map((category) => (
-                  <option key={category} value={category}>
-                    {kind === 'attendance' ? workLocationLabels[category as AttendanceWorkLocation] || 'Unspecified' : category}
+
+            {['expenses', 'leaves', 'attendance'].includes(kind) && (
+              <label className="text-[11px] font-medium text-slate-500">
+                {kind === 'attendance' ? 'Work Location' : kind === 'leaves' ? 'Leave Type' : 'Category'}
+                <select
+                  aria-label={kind === 'attendance' ? 'Work location' : kind === 'leaves' ? 'Leave type' : 'Category'}
+                  value={filters.category || 'all'}
+                  onChange={(e) => filter('category', e.target.value)}
+                  className="mt-1 h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700"
+                >
+                  <option value="all">
+                    {kind === 'attendance' ? 'All work locations' : kind === 'leaves' ? 'All leave types' : 'All categories'}
                   </option>
-                ))}
-              </select>
-            </label>}
+                  {categoryOptions.map((category) => (
+                    <option key={category} value={category}>
+                      {kind === 'attendance' ? workLocationLabels[category as AttendanceWorkLocation] || 'Unspecified' : category}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
+
           <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2">
-            <div className="relative min-w-[220px] flex-1">
+            <div className="relative min-w-[200px] flex-1">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 aria-label="Search report"
                 value={filters.search || ''}
                 onChange={(e) => filter('search', e.target.value)}
-                placeholder="Search this report"
+                placeholder="Search this report..."
                 className="h-9 w-full rounded-lg border border-slate-200 pl-8 pr-3 text-xs outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50"
               />
             </div>
@@ -784,25 +1148,32 @@ export default function ReportsPage() {
               </p>
             </div>
             <span className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-medium tabular-nums text-slate-600">
-              {filtered.length} rows
+              {filtered.length} {filtered.length === 1 ? 'row' : 'rows'}
             </span>
           </div>
-          <div className="min-h-[50vh] max-h-[66vh] overflow-auto">
-            <table className="w-full min-w-[780px] border-collapse text-left text-xs">
+          <div className="min-h-[45vh] max-h-[66vh] overflow-auto">
+            <table className="w-full border-collapse text-left text-[11px]">
               <thead className="sticky top-0 z-10 bg-slate-50 text-[10px] font-semibold uppercase tracking-wide text-slate-500 shadow-xs">
                 <tr>
                   {columns[kind].map((column) => (
-                    <th key={column.key} className="whitespace-nowrap px-4 py-2.5">
+                    <th
+                      key={column.key}
+                      className={`px-2.5 py-2.5 ${
+                        isNumericColumn(kind, column.key) ? 'text-right whitespace-nowrap' : 'whitespace-nowrap'
+                      }`}
+                    >
                       {column.label}
                     </th>
                   ))}
-                  <th className="px-4 py-2.5 text-right">Export row</th>
+                  <th className="sticky right-0 bg-slate-50 px-2.5 py-2.5 text-right whitespace-nowrap shadow-[-6px_0_10px_-6px_rgba(15,23,42,0.1)]">
+                    Export
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.length ? (
                   filtered.map((row, index) => (
-                    <tr key={get(row, 'id') || kind + index} className="hover:bg-slate-50/70 transition-colors">
+                    <tr key={get(row, 'id') || kind + index} className="group hover:bg-slate-50/80 transition-colors">
                       {columns[kind].map((column) => {
                         const rawVal = row[column.key];
                         const value = String(rawVal ?? '');
@@ -811,38 +1182,49 @@ export default function ReportsPage() {
                         let cellText = value || '—';
                         if (kind === 'attendance' && column.key === 'categoryName') {
                           cellText = workLocationLabels[location] || 'Unspecified';
+                        } else if (column.key === 'createdAt') {
+                          cellText = dateTimeLabel(rawVal);
                         } else if (column.key.toLowerCase().includes('date') && !column.key.toLowerCase().includes('update')) {
                           cellText = dateLabel(rawVal);
                         } else if (isMoneyColumn(kind, column.key)) {
                           const num = Number(rawVal);
-                          cellText = Number.isFinite(num)
-                            ? `৳${new Intl.NumberFormat('en-BD', { maximumFractionDigits: 0 }).format(num)}`
-                            : value || '—';
+                          cellText = kind === 'financial' && column.key === 'budget' && num === 0
+                            ? '—'
+                            : Number.isFinite(num)
+                              ? formatMoneyUi(num)
+                              : value || '—';
+                        } else if (column.key === 'status' && value) {
+                          cellText = formatLabel(value);
                         }
 
-                        const isStatus = column.key === 'status';
+                        const isStatus = column.key === 'status' || column.key === 'priority';
                         const isLocationChip = kind === 'attendance' && column.key === 'categoryName';
-                        const isLongText = ['notes', 'rejectionReason', 'details', 'addressText'].includes(column.key);
+                        const isNum = isNumericColumn(kind, column.key);
+                        const isTruncated = isTruncatedColumn(column.key);
 
                         return (
                           <td
                             key={column.key}
                             title={cellText !== '—' ? cellText : undefined}
-                            className={`px-4 py-3 text-slate-700 ${
-                              isLongText ? 'max-w-[280px] truncate' : 'whitespace-nowrap'
+                            className={`px-2.5 py-2.5 text-slate-700 ${
+                              isNum
+                                ? 'text-right font-medium tabular-nums whitespace-nowrap'
+                                : isTruncated
+                                  ? 'max-w-[165px] truncate'
+                                  : 'whitespace-nowrap'
                             }`}
                           >
                             {isStatus && value ? (
                               <span
-                                className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${statusTone(
-                                  value
+                                className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide ${statusTone(
+                                  value,
                                 )}`}
                               >
                                 {cellText}
                               </span>
                             ) : isLocationChip ? (
                               <span
-                                className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-medium ${
+                                className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${
                                   workLocationTones[location] || workLocationTones.unknown
                                 }`}
                               >
@@ -854,21 +1236,21 @@ export default function ReportsPage() {
                           </td>
                         );
                       })}
-                      <td className="whitespace-nowrap px-4 py-2 text-right">
+                      <td className="sticky right-0 bg-white group-hover:bg-slate-50 px-2.5 py-2 text-right whitespace-nowrap shadow-[-6px_0_10px_-6px_rgba(15,23,42,0.08)]">
                         <div className="inline-flex gap-1">
                           <button
                             type="button"
                             aria-label="Export row as CSV"
                             title="Export this record as CSV"
                             onClick={() => void exportRows('csv', [row])}
-                            className="rounded-md bg-teal-50 p-2 text-teal-700 hover:bg-teal-100 transition-colors"
+                            className="rounded-md bg-teal-50 p-1.5 text-teal-700 hover:bg-teal-100 transition-colors"
                           >
-                            <Download size={14} />
+                            <Download size={13} />
                           </button>
                           <button
                             type="button"
                             onClick={() => void exportRows('pdf', [row])}
-                            className="rounded-md bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 transition-colors"
+                            className="rounded-md bg-rose-50 px-2 py-1 text-[10px] font-semibold text-rose-700 hover:bg-rose-100 transition-colors"
                           >
                             PDF
                           </button>

@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { exportCanvasPdf } from './canvasPdf';
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, PageOrientation } from 'docx';
+import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, PageOrientation, ShadingType } from 'docx';
 
 export class ExportUtils {
   static exportWorkbook(sheets: Array<{ name: string; rows: Record<string, any>[] }>, fileName: string) {
@@ -17,8 +17,16 @@ export class ExportUtils {
 
   static exportToExcel(data: any[], fileName: string, sheetName = 'Data') {
     const ws = XLSX.utils.json_to_sheet(data);
+    if (data.length) {
+      const keys = Object.keys(data[0]);
+      ws['!cols'] = keys.map((key) => {
+        const maxCell = data.reduce((max, row) => Math.max(max, String(row[key] ?? '').length), key.length);
+        return { wch: Math.min(40, Math.max(12, maxCell + 3)) };
+      });
+    }
+    const safeSheet = (sheetName || 'Data').replace(/[:\\/?*\[\]]/g, '').trim().slice(0, 31) || 'Data';
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.utils.book_append_sheet(wb, ws, safeSheet);
     XLSX.writeFile(wb, `${fileName}.xlsx`);
   }
 
@@ -56,24 +64,49 @@ export class ExportUtils {
       { orientation: 'landscape', subtitle });
   }
 
-  static async exportToDocx(title: string, dataRows: string[][], fileName: string) {
-    const colCount = dataRows[0]?.length || 1;
+  static async exportToDocx(
+    title: string,
+    dataRows: string[][],
+    fileName: string,
+    options?: { subtitle?: string },
+  ) {
+    const headers = dataRows[0] || [];
+    const colCount = headers.length || 1;
     const isWide = colCount > 6;
+    const weights = headers.map((label) =>
+      /location|note|detail|reason|address|project|employee|submitted|client|task|entity/i.test(label)
+        ? 1.7
+        : /date|status|amount|salary|payable|revenue|value|budget|benefit|spent|receivable|received/i.test(label)
+          ? 1.2
+          : 1,
+    );
+    const weightSum = weights.reduce((a, b) => a + b, 0) || colCount;
+    const colWidths = weights.map((w) => Number(((w / weightSum) * 100).toFixed(2)));
+
     const tableRows = dataRows.map(
       (row, rowIndex) =>
         new TableRow({
           tableHeader: rowIndex === 0,
           children: row.map(
-            (cell) =>
+            (cell, colIdx) =>
               new TableCell({
-                width: { size: 100 / colCount, type: WidthType.PERCENTAGE },
+                width: { size: colWidths[colIdx] ?? 100 / colCount, type: WidthType.PERCENTAGE },
+                shading:
+                  rowIndex === 0
+                    ? { type: ShadingType.CLEAR, color: 'auto', fill: 'E8F1ED' }
+                    : rowIndex % 2 === 1
+                      ? { type: ShadingType.CLEAR, color: 'auto', fill: 'F8FAFC' }
+                      : undefined,
+                margins: { top: 80, bottom: 80, left: 100, right: 100 },
                 children: [
                   new Paragraph({
                     children: [
                       new TextRun({
                         text: String(cell ?? ''),
-                        bold: rowIndex === 0,
-                        size: rowIndex === 0 ? 16 : 14,
+                        font: 'Noto Sans',
+                        bold: rowIndex === 0 || row[0] === 'Total',
+                        size: rowIndex === 0 ? 17 : 15,
+                        color: rowIndex === 0 ? '10241E' : '1E293B',
                       }),
                     ],
                   }),
@@ -104,22 +137,27 @@ export class ExportUtils {
               children: [
                 new TextRun({
                   text: title,
+                  font: 'Noto Sans',
                   bold: true,
                   size: 28,
+                  color: '10241E',
                 }),
               ],
             }),
             new Paragraph({
               children: [
                 new TextRun({
-                  text: `Generated on: ${new Date().toLocaleString()} • Geospatial Works ERP`,
+                  text: `${options?.subtitle ? `${options.subtitle}  •  ` : ''}Generated on ${new Date().toLocaleString('en-GB')}  •  Geospatial Works ERP`,
+                  font: 'Noto Sans',
                   italics: true,
                   size: 18,
+                  color: '475569',
                 }),
               ],
             }),
             new Paragraph({ text: '' }),
             new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
               rows: tableRows,
             }),
           ],

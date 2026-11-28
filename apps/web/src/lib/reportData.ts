@@ -2,8 +2,14 @@ export interface ReportFilters {
   from?: string;
   to?: string;
   projectId?: string;
+  client?: string;
+  department?: string;
   status?: string;
   category?: string;
+  expenseType?: string;
+  receiptStatus?: string;
+  priority?: string;
+  shift?: string;
   userId?: string;
   search?: string;
 }
@@ -29,6 +35,38 @@ export function filterReportRows<T extends ReportRow>(rows: T[], filters: Report
     if (filters.projectId && filters.projectId !== 'all') {
       const projectId = firstValue(row, ['projectId', 'project_id']);
       if (projectId !== filters.projectId) return false;
+    }
+
+    if (filters.client && filters.client !== 'all') {
+      const client = firstValue(row, ['client', 'clientName', 'client_name']).toLocaleLowerCase();
+      if (client !== filters.client.toLocaleLowerCase()) return false;
+    }
+
+    if (filters.department && filters.department !== 'all') {
+      const dept = firstValue(row, ['department', 'dept']).toLocaleLowerCase();
+      if (dept !== filters.department.toLocaleLowerCase()) return false;
+    }
+
+    if (filters.expenseType && filters.expenseType !== 'all') {
+      const expType = firstValue(row, ['expenseType', 'expense_type']).toLocaleLowerCase();
+      if (expType !== filters.expenseType.toLocaleLowerCase()) return false;
+    }
+
+    if (filters.receiptStatus && filters.receiptStatus !== 'all') {
+      const receiptInfo = firstValue(row, ['receiptInfo']).toLocaleLowerCase();
+      const hasReceipt = receiptInfo.includes('attached');
+      if (filters.receiptStatus === 'attached' && !hasReceipt) return false;
+      if (filters.receiptStatus === 'missing' && hasReceipt) return false;
+    }
+
+    if (filters.priority && filters.priority !== 'all') {
+      const priority = firstValue(row, ['priority']).toLocaleLowerCase();
+      if (priority !== filters.priority.toLocaleLowerCase()) return false;
+    }
+
+    if (filters.shift && filters.shift !== 'all') {
+      const shift = firstValue(row, ['sessionType', 'session_type', 'shift']).toLocaleLowerCase();
+      if (!shift.includes(filters.shift.toLocaleLowerCase())) return false;
     }
 
     if (filters.status && filters.status !== 'all') {
